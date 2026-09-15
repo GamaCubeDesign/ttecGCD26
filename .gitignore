@@ -1,1 +1,22 @@
-/venv
+# build trees
+/build*/
+/venv/
+
+# ESP-IDF
+/ground/esp32/build/
+/ground/esp32/sdkconfig
+/ground/esp32/sdkconfig.old
+
+# mission data: regenerated per run, never committed
+*.ndjson
+*.jsonl
+/flight/**/*.log
+
+# python
+__pycache__/
+*.pyc
+
+# editor
+.vscode/
+.idea/
+compile_commands.json
