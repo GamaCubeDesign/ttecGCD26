@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 Telemetry, telecommand and ADS-B payload software for the Gama Cube Design
 CubeSat, CubeDesign 2026. Flight software runs on a Raspberry Pi Zero 2 W; the
