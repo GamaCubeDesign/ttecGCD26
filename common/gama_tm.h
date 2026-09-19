@@ -65,9 +65,34 @@ typedef struct {
     double   ground_speed_kt; /* knots, quantised to 0.1 kt                */
     double   track_deg;       /* degrees true, 0 .. 360, step 0.01         */
     int32_t  vertical_rate_fpm; /* feet per minute, step 1                 */
-    uint16_t age_ds;          /* deciseconds since the snapshot epoch      */
+    uint16_t age_ds;          /* see "Track age" below                     */
     uint8_t  flags;           /* GAMA_TRACK_F_*                            */
 } gama_track_t;
+
+/*
+ * Track age (ADR-0007).
+ *
+ * On the air, age_ds is the time from this aircraft's last update to the
+ * start of the transmission of the frame that carries the record, in
+ * deciseconds, saturating at 65535. ttcd writes it immediately before
+ * transmitting.
+ *
+ * This makes each record self-contained in time. The ground station timestamps
+ * the frame's arrival with its own clock and subtracts the time on air (known
+ * from the profile, common/gama_lora.h) and the age: the result is the time of
+ * the update in the ground's clock domain, with no satellite clock and no
+ * synchronisation involved. And the age itself is the HLR-ADS-08 latency from
+ * reception to transmission for that update, delivered in every record.
+ *
+ * Inside the satellite, on IPC_TRACKS (common/gama_ipc.h), the same field is
+ * measured to the snapshot epoch instead; ttcd converts it with
+ * gama_track_age_add().
+ */
+
+/* Adds delta_ds to the age of an encoded record, in place, saturating at
+ * 65535 instead of wrapping. Returns the new age. The record's frame CRC must
+ * be computed after this call, not before. */
+uint16_t gama_track_age_add(uint8_t *record, uint32_t delta_ds);
 
 /* Encode/decode exactly GAMA_TRACK_WIRE_LEN bytes. Return the byte count, or
  * a negative gama_frame_result_t on a NULL pointer / undersized buffer.

@@ -20,6 +20,7 @@
 #include "test_util.h"
 #include "gama_bytes.h"
 #include "gama_frame.h"
+#include "gama_ipc.h"
 #include "gama_tc.h"
 #include "gama_tm.h"
 
@@ -221,6 +222,58 @@ int main(void)
                                        0x00FF, NULL, 0), sizeof(vec));
         CHECK_MEM_EQ(buf, vec, sizeof(vec));
         CHECK_EQ_INT(sizeof(vec), GAMA_FRAME_OVERHEAD);
+    }
+
+    TEST_GROUP("vectors: IPC payloads, the OBC<->TT&C contract");
+    {
+        /* These bytes are what the OBC team's adapter will parse. A change
+         * here is a change to an interface owned jointly with another team,
+         * and must go through the ICD, not just this file. */
+
+        /* 02 01 -- role OBC, IPC version 1 */
+        static const uint8_t vec_hello[] = { 0x02, 0x01 };
+        gama_ipc_hello_t h = { .role = GAMA_IPC_ROLE_OBC, .version = GAMA_IPC_VERSION };
+        CHECK_EQ_INT(gama_ipc_hello_encode(buf, sizeof(buf), &h), sizeof(vec_hello));
+        CHECK_MEM_EQ(buf, vec_hello, sizeof(vec_hello));
+
+        /* 78 56 34 12  unix seconds 0x12345678
+         * 0D 0C 0B 0A  nanoseconds  0x0A0B0C0D */
+        static const uint8_t vec_time[] = { 0x78, 0x56, 0x34, 0x12, 0x0D, 0x0C, 0x0B, 0x0A };
+        gama_ipc_time_t t = { .unix_s = 0x12345678u, .nsec = 0x0A0B0C0Du };
+        CHECK_EQ_INT(gama_ipc_time_encode(buf, sizeof(buf), &t), sizeof(vec_time));
+        CHECK_MEM_EQ(buf, vec_time, sizeof(vec_time));
+
+        /* 08 20  8200 mV          06 FF  -250 mA
+         * 6A FF  battery -1.50 C  29 09  external 23.45 C
+         * 64 00  roll 1.00 deg    38 FF  pitch -2.00 deg   28 23  yaw 90.00 deg */
+        static const uint8_t vec_telemetry[] = {
+            0x08, 0x20, 0x06, 0xFF, 0x6A, 0xFF, 0x29, 0x09, 0x64, 0x00, 0x38, 0xFF,
+            0x28, 0x23,
+        };
+        gama_ipc_telemetry_t tel = {
+            .battery_mv = 8200, .current_ma = -250, .temp_bat_ccel = -150,
+            .temp_ext_ccel = 2345, .roll_cdeg = 100, .pitch_cdeg = -200, .yaw_cdeg = 9000,
+        };
+        CHECK_EQ_INT(gama_ipc_telemetry_encode(buf, sizeof(buf), &tel), sizeof(vec_telemetry));
+        CHECK_MEM_EQ(buf, vec_telemetry, sizeof(vec_telemetry));
+
+        /* 60 EA 00 00  60000 received   00 E1 00 00  57600 decoded
+         * 14 00        20 aircraft      01 00        one dump1090 restart */
+        static const uint8_t vec_stat[] = {
+            0x60, 0xEA, 0x00, 0x00, 0x00, 0xE1, 0x00, 0x00, 0x14, 0x00, 0x01, 0x00,
+        };
+        gama_ipc_stat_t st = { .msgs_received = 60000, .msgs_decoded = 57600,
+                               .aircraft_tracked = 20, .dump1090_restarts = 1 };
+        CHECK_EQ_INT(gama_ipc_stat_encode(buf, sizeof(buf), &st), sizeof(vec_stat));
+        CHECK_MEM_EQ(buf, vec_stat, sizeof(vec_stat));
+
+        /* 01 30 05 00 01 | 03 | 49 F8
+         * version, IPC_TC_EVENT, sequence 5, one byte: EV_TC_MISSION_ADSB, CRC */
+        static const uint8_t vec_frame[] = { 0x01, 0x30, 0x05, 0x00, 0x01, 0x03, 0x49, 0xF8 };
+        uint8_t ev = GAMA_OBC_EV_TC_MISSION_ADSB;
+        CHECK_EQ_INT(gama_frame_encode(buf, sizeof(buf), GAMA_FRAME_IPC_TC_EVENT, 0x0005,
+                                       &ev, GAMA_IPC_TC_EVENT_LEN), sizeof(vec_frame));
+        CHECK_MEM_EQ(buf, vec_frame, sizeof(vec_frame));
     }
 
     TEST_GROUP("vectors: record sizes match the data budget");

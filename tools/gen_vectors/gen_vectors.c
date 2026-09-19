@@ -16,6 +16,7 @@
 #include "gama_tc.h"
 #include "gama_tm.h"
 #include "gama_bytes.h"
+#include "gama_ipc.h"
 
 static void dump(const char *name, const uint8_t *b, size_t n)
 {
@@ -100,6 +101,33 @@ int main(void)
     n = gama_frame_encode(frame, sizeof(frame), GAMA_FRAME_TC_ACK, 0x0001,
                           payload, GAMA_TC_ACK_WIRE_LEN);
     dump("vec_frame_tc_ack", frame, (size_t)n);
+
+    /* --- IPC payloads: the OBC<->TT&C interface contract --- */
+    gama_ipc_hello_t hello = { .role = GAMA_IPC_ROLE_OBC, .version = GAMA_IPC_VERSION };
+    n = gama_ipc_hello_encode(payload, sizeof(payload), &hello);
+    dump("vec_ipc_hello", payload, (size_t)n);
+
+    gama_ipc_time_t tm = { .unix_s = 0x12345678u, .nsec = 0x0A0B0C0Du };
+    n = gama_ipc_time_encode(payload, sizeof(payload), &tm);
+    dump("vec_ipc_time", payload, (size_t)n);
+
+    gama_ipc_telemetry_t tel = {
+        .battery_mv = 8200, .current_ma = -250, .temp_bat_ccel = -150,
+        .temp_ext_ccel = 2345, .roll_cdeg = 100, .pitch_cdeg = -200, .yaw_cdeg = 9000,
+    };
+    n = gama_ipc_telemetry_encode(payload, sizeof(payload), &tel);
+    dump("vec_ipc_telemetry", payload, (size_t)n);
+
+    gama_ipc_stat_t ist = { .msgs_received = 60000, .msgs_decoded = 57600,
+                            .aircraft_tracked = 20, .dump1090_restarts = 1 };
+    n = gama_ipc_stat_encode(payload, sizeof(payload), &ist);
+    dump("vec_ipc_stat", payload, (size_t)n);
+
+    /* --- a complete IPC frame: telecommand event for the OBC --- */
+    payload[0] = GAMA_OBC_EV_TC_MISSION_ADSB;
+    n = gama_frame_encode(frame, sizeof(frame), GAMA_FRAME_IPC_TC_EVENT, 0x0005,
+                          payload, GAMA_IPC_TC_EVENT_LEN);
+    dump("vec_frame_ipc_tc_event", frame, (size_t)n);
 
     /* --- an empty beacon: the smallest legal frame --- */
     n = gama_frame_encode(frame, sizeof(frame), GAMA_FRAME_BEACON, 0x00FF, NULL, 0);

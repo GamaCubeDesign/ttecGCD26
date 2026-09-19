@@ -107,6 +107,20 @@ int gama_track_decode(const uint8_t *in, size_t in_len, gama_track_t *t)
     return (int)GAMA_TRACK_WIRE_LEN;
 }
 
+/* The age is the u16 at offset 17 of the 20-byte record (see the layout
+ * pinned by tests/test_vectors.c). */
+#define TRACK_AGE_OFFSET 17u
+
+uint16_t gama_track_age_add(uint8_t *record, uint32_t delta_ds)
+{
+    uint32_t age = (uint32_t)gama_get_u16(record + TRACK_AGE_OFFSET) + delta_ds;
+    if (age > 0xFFFFu || age < delta_ds) {   /* second test: u32 overflow */
+        age = 0xFFFFu;
+    }
+    gama_put_u16(record + TRACK_AGE_OFFSET, (uint16_t)age);
+    return (uint16_t)age;
+}
+
 /* ------------------------------ roster ----------------------------- */
 
 int gama_roster_encode(uint8_t *out, size_t out_cap, const gama_roster_t *r)
