@@ -11,10 +11,12 @@ Written in English: the competition requires the Design Package in English
 | `vv/` | Verification and Validation plan and the requirements traceability matrix |
 | `conops.md` | Concept of Operations — mission phases and operational modes |
 | `relatorios/` | Team status reports, in Portuguese — working notes for the team, not part of the Design Package |
+| [`requisitos.md`](requisitos.md) | Every mission requirement quoted verbatim from the rules, with its status in this repository and what is missing — in Portuguese, working notes for the team |
 
 Source material from the organisers, kept as received:
 
-- `cubedesign2026.pdf` — competition rules and the HLR catalogue
+- `cubedesign2026.pdf` — competition rules and the HLR catalogue; transcribed
+  and checked verbatim in [`requisitos.md`](requisitos.md)
 - `anotacoes_cubedesign2026.pdf` — the team's working notes on those rules
 - `arquitetura.png` — the agreed physical topology
 
