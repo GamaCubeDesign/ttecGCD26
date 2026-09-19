@@ -4,14 +4,21 @@ Repositório da equipe de TT&C da Gama Cube Design para a **CubeDesign 2026**.
 
 Cobre três softwares e a documentação de arquitetura:
 
-| Diretório | O quê | Roda em |
-|---|---|---|
-| `common/` | Codec de pacotes compartilhado (framing, CRC, registros de TM/TC) | compila na Pi **e** no ESP32 |
-| `flight/` | `ttcd` (telecomunicação) e `adsbd` (payload ADS-B) | Raspberry Pi Zero 2 W |
-| `ground/esp32/` | Firmware da ground station | ESP32, ESP-IDF |
-| `ground/host/` | CLI do operador, dashboard e gerador de relatório | PC |
-| `tools/` | Simuladores e análise (orçamento de enlace e de dados) | PC |
-| `docs/` | ADRs, ICDs, budgets, plano de V&V | — |
+| Diretório | O quê | Roda em | Estado |
+|---|---|---|---|
+| `common/` | Codec de pacotes, tabela de perfis LoRa, payloads IPC e o lado da ground do protocolo | Pi **e** ESP32 | pronto |
+| `flight/ttcd/` | Daemon de telecomunicação: enlace, telecomandos, telemetria | Raspberry Pi Zero 2 W | pronto; falta a bancada |
+| `flight/radio/` | Driver do SX1278 e backends de rádio (hardware e UDP simulado) | Raspberry Pi Zero 2 W | pronto; falta a bancada |
+| `flight/libipc/` | Transporte IPC entre os processos de bordo | Raspberry Pi Zero 2 W | pronto |
+| `flight/adsbd/` | Daemon do payload ADS-B | Raspberry Pi Zero 2 W | fase 3 |
+| `ground/esp32/` | Firmware da ground station | ESP32, ESP-IDF | fase 4 |
+| `ground/host/` | CLI do operador, dashboard e gerador de relatório | PC | fase 4 |
+| `tools/gs_cli/` | Ground station de bancada (segundo RA-02 ou rádio UDP) | Pi / PC | pronto |
+| `tools/analysis/` | Orçamento de enlace e dados, tempo no ar medido, checagem das citações | PC | pronto |
+| `docs/` | ADRs, ICDs, budgets, requisitos, plano de V&V | — | — |
+
+Para rodar o enlace inteiro sem hardware e para o teste de bancada com os
+rádios, veja `flight/ttcd/README.md`.
 
 O computador de bordo (OBC) fica em **outro repositório**, mantido por outra
 equipe. O contrato entre os dois está em `docs/icd/obc-ttec-icd.md`.

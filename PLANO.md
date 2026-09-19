@@ -33,16 +33,59 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo && cmake --build build -j4
 (cd build && ctest --output-on-failure)
 ```
 
+### Fase 2 — concluída em software; falta a bancada (dias 3–4)
+
+| Item | Onde | Evidência |
+|---|---|---|
+| Tabela de perfis e tempo no ar | `common/gama_lora.*` | bate no µs com o `lora_budget.py` (27 casos) |
+| Payloads IPC | `common/gama_ipc.*` | vetores dourados |
+| Transporte IPC | `flight/libipc/` | 10 000 frames em cada sentido entre dois processos, sem perda |
+| Núcleo do `ttcd` | `flight/ttcd/link.c`, `tc_dispatch.c`, `tm_sched.c` | 188 verificações |
+| Lado da ground do protocolo | `common/gama_gs_link.*` | 39 verificações |
+| Simulação de canal, os dois lados | `tests/test_link_sim.c` | 63 verificações; números no ADR-0007 |
+| Driver do SX1278 | `flight/radio/sx1278.c` | 92 verificações contra chip emulado |
+| Barramento Linux (spidev + GPIO chardev) | `flight/radio/sx1278_linux.c` | compila; só roda no hardware |
+| Backends de rádio | `flight/radio/radio_sx1278.c`, `radio_udp.c` | — |
+| Configuração | `flight/ttcd/config.c` | 45 verificações |
+| Daemon | `flight/ttcd/main.c` | teste de integração com o binário real (29) |
+| Unidade systemd | `flight/ttcd/ttcd.service` | `systemd-analyze verify` |
+| Ground de bancada | `tools/gs_cli/` | exercitada contra o `ttcd` real via UDP |
+| Análise de tempo no ar | `tools/analysis/toa_from_log.py` | — |
+| ADRs | 0005, 0006, 0008, 0011 *Accepted*; 0007, 0012 *Proposed* | — |
+
+15 suítes, zero warnings, limpo sob ASan e UBSan.
+
+#### O que mudou em relação ao plano da fase 2
+
+- **pigpio → interfaces do kernel** (ADR-0012). O descritor da linha DIO0 entra
+  direto no epoll: sem thread, callback, daemon ou root.
+- **O driver ficou em `flight/radio/`**, não em `flight/ttcd/drivers/`, porque
+  a ground de bancada usa o mesmo.
+- **O lado da ground do protocolo foi escrito agora**, em `common/`: a
+  simulação precisava dele, e o ESP32 vai compilar o mesmo arquivo.
+- **Simulação de canal acrescentada.** Achou dois defeitos de protocolo que eu
+  não tinha previsto (170 colisões em 401 comandos antes da correção).
+- **Bulk download adiado** (ADR-0007): o log bruto de 7,34 MiB levaria ~3,4 h
+  em FAST. `BULK_START` responde `FAILED`.
+- **`IPC_TRACKS` ganhou `index`/`count`**, para o `ttcd` saber quando tem um
+  snapshot completo.
+- **`age_ds` definido**: tempo até o início da transmissão (ADR-0007).
+
+#### Falta para fechar a fase 2 — depende do hardware
+
+- [ ] Executar o teste de bancada de `flight/ttcd/README.md`: tempo no ar
+      dentro de 5%, PER sobre 1000 frames por perfil, trocas de taxa, ACK
+      perdido, LBT `header` × `preamble`
+- [ ] Registrar em `docs/vv/bancada/AAAA-MM-DD/`
+- [ ] Revisar e aceitar o ADR-0007 e o ADR-0012 (estão *Proposed*)
+
 ### Dívida imediata
 
-**Três ADRs são citados por documentos já `Accepted` mas não existem.**
-Referência pendurada em documento aceito é defeito — resolver antes de
-qualquer código novo:
+~~Três ADRs citados por documentos aceitos não existiam~~ — **quitada em
+2026-09-19** (0007, 0008 e 0011 escritos).
 
-- [ ] `0007-ota-frame-format-and-arq.md` — citado por ADR-0003 (quantização)
-- [ ] `0008-adsb-receive-chain-ownership.md` — citado por ADR-0003 e ADR-0004
-- [ ] `0011-documentation-language.md` — citado por ADR-0001 e ADR-0002
-- [ ] Atualizar o índice em `docs/adr/README.md`
+As lacunas encontradas no levantamento dos requisitos estão em
+`docs/requisitos.md` §7, com dono e prazo; não são repetidas aqui.
 
 ---
 
@@ -53,70 +96,74 @@ funcionando e reversão por timeout exercitada.
 
 ### 2.1 `flight/libipc/` — transporte AF_UNIX SOCK_SEQPACKET
 
-- [ ] `ipc_server_create(path)` — socket, bind, listen; `unlink()` antes do bind
-- [ ] `ipc_accept()` / `ipc_close_peer()` — múltiplos clientes (`adsbd`, `obc`)
-- [ ] `ipc_recv_nb(fd, buf, cap)` — `MSG_DONTWAIT`; devolve 0 quando vazio
-- [ ] `ipc_send(fd, frame, len)` — trata `EAGAIN` sem bloquear
-- [ ] Identificação de peer via `GAMA_FRAME_IPC_HELLO`
-- [ ] Reuso do mesmo codec: payload IPC **é** um `gama_frame`
+- [x] `ipc_server_open(path)` — socket, bind, listen; remove só um socket antigo, nunca outro tipo de arquivo
+- [x] `ipc_server_accept()` — múltiplos clientes (`adsbd`, `obc`, ferramentas)
+- [x] `ipc_recv()` — `MSG_DONTWAIT`; `IPC_EMPTY` quando vazio, truncamento reportado
+- [x] `ipc_send()` — `EAGAIN` vira `IPC_EMPTY`, sem bloquear
+- [x] Identificação de peer via `GAMA_FRAME_IPC_HELLO` (na casca do `ttcd`)
+- [x] Reuso do mesmo codec: payload IPC **é** um `gama_frame`
 
 **Aceite:** dois processos de teste trocam 10 000 frames sem perda nem
 bloqueio; `recv` em socket vazio retorna imediatamente.
 
-### 2.2 `flight/ttcd/drivers/sx1278.*` — porte do driver
+### 2.2 `flight/radio/sx1278.*` — porte do driver *(feito; ficou em `flight/radio/`)*
 
 Base: `ultima_missao/satellite/LoRa.c` (utilizável, 463 linhas).
 
-- [ ] Portar mantendo a API de registrador; descartar `Moden.cpp`
-- [ ] `sx1278_set_profile(gama_rate_profile_t)` — escreve `REG_MODEM_CONFIG_1/2`
+- [x] Portar mantendo a API de registrador; descartar `Moden.cpp`
+- [x] `sx1278_set_profile(gama_rate_profile_t)` — escreve `REG_MODEM_CONFIG_1/2`
       **e recalcula o bit LDRO em `REG_MODEM_CONFIG_3`**.
       Nota: o driver legado só reescreve LDRO dentro de `LoRa_send()`/
       `LoRa_receive()`. Uma troca de taxa que mexa só em CONFIG_1/2 deixa LDRO
       obsoleto até o próximo envio. Verificar por leitura de registrador.
       SF12/BW125 → símbolo 32,8 ms → LDRO **on**. SF9 → 4,1 ms → off.
-- [ ] **Substituir `sleep(Tpkt/1000 + 1)` de `Moden.cpp:91` por DIO0 TxDone.**
-      Callback pigpio escreve um byte num `eventfd`; o laço principal trata.
+- [x] **Substituir `sleep(Tpkt/1000 + 1)` de `Moden.cpp:91` por DIO0 TxDone.**
+      Em vez de callback pigpio + `eventfd`: o descritor da linha DIO0 do
+      GPIO chardev entra direto no epoll (ADR-0012).
       No SAFE esse sleep arredonda até 1 s de air time fora por pacote.
-- [ ] Leitura de RSSI e SNR por pacote, para o log da ground
-- [ ] `sx1278_rx_continuous()` / `sx1278_standby()` — half-duplex explícito
+- [x] Leitura de RSSI e SNR por pacote, para o log da ground
+- [x] Half-duplex explícito: transmitir e reconfigurar são recusados durante uma transmissão
 
 **Aceite:** ToA medido em bancada bate com `lora_budget.py` dentro de 5% nos
 três perfis; LDRO confirmado por leitura de registrador após troca de perfil.
 
 ### 2.3 `flight/ttcd/link.*` — máquina de estados do enlace
 
-- [ ] Estados `IDLE → TX → STREAM → BULK → SAFE` (`gama_link_state_t`)
-- [ ] Fila de TX com prioridade: ACK > HK > snapshot > bulk
-- [ ] Timer de reversão de taxa: sem contato no perfil novo em N s, volta
-- [ ] Timeout de contato → `SAFE` + beacon
-- [ ] Contadores de `seq` por direção (evidência do HLR-ADS-08)
+- [x] Modos `IDLE`, `STREAM`, `SAFE` reportados no HK; `BULK` adiado (ADR-0007)
+- [x] Prioridade: ACK > HK > STAT > snapshot > beacon
+- [x] Timer de reversão de taxa: 20 s no satélite, 30 s na ground
+- [x] Timeout de contato → `SAFE` + beacon, com retorno automático comandado pela ground
+- [x] Contadores de `seq` por direção (evidência do HLR-ADS-08)
 
 ### 2.4 `flight/ttcd/tc_dispatch.*`
 
-- [ ] Validar tamanho de argumento via `gama_tc_arg_len()` antes de despachar
-- [ ] Responder `TC_ACK` com `gama_ack_status_t` correto em todo caminho
-- [ ] `SHUTDOWN` exige `GAMA_TC_SHUTDOWN_MAGIC`
-- [ ] Traduzir `GAMA_TC_SET_MODE` → `GAMA_FRAME_IPC_TC_EVENT` para o OBC
-- [ ] **Nenhum handler pode bloquear.** O pecado do legado
+- [x] Validar tamanho de argumento via `gama_tc_arg_len()` antes de despachar
+- [x] Responder `TC_ACK` com `gama_ack_status_t` correto em todo caminho
+- [x] `SHUTDOWN` exige `GAMA_TC_SHUTDOWN_MAGIC`
+- [x] Traduzir `GAMA_TC_SET_MODE` → `GAMA_FRAME_IPC_TC_EVENT` para o OBC
+- [x] **Nenhum handler pode bloquear.** O pecado do legado
       (`Module.cpp:139,145,149` — `sleep(10)` dentro do handler) não se repete.
 
 ### 2.5 `flight/ttcd/main.c` — laço epoll
 
-- [ ] `epoll` sobre: listen fd, fds de cliente, `timerfd` (escalonador de TM),
-      `eventfd` (DIO0)
-- [ ] Escalonador: snapshot 5 s, HK 10 s, STAT 30 s (ver `data-budget.md`)
-- [ ] `SIGTERM`/`SIGINT` por `signalfd` — saída limpa, sem handler assíncrono
-- [ ] **Zero `sleep()` no processo inteiro**
+- [x] `epoll` sobre: listen fd, fds de cliente, `timerfd` (escalonador de TM),
+      descritor da linha DIO0
+- [x] Escalonador: snapshot no período comandado, HK 10 s, STAT 30 s
+- [x] `SIGTERM`/`SIGINT` por `signalfd` — saída limpa, sem handler assíncrono
+- [x] **Zero `sleep()` no processo inteiro** (a única espera é o pulso de reset do rádio, antes do laço)
 
 ### 2.6 `flight/ttcd/config.*`
 
-- [ ] Configuração por arquivo + override por argv. Nada de path hardcoded —
+- [x] Configuração por arquivo + override por argv. Nada de path hardcoded —
       o legado tinha `/home/pedro/adsb/...` compilado dentro do binário
-- [ ] Unidade systemd em `flight/ttcd/ttcd.service`
+- [x] Unidade systemd em `flight/ttcd/ttcd.service`, sem root
 
 ### 2.7 Teste de bancada
 
-- [ ] Dois RA-02 a ~1 m
+Procedimento completo em `flight/ttcd/README.md`; ferramentas: `tools/gs_cli`,
+`tools/analysis/toa_from_log.py`.
+
+- [ ] Dois RA-02 a ~1 m, potência de 2 dBm
 - [ ] PER sobre 1000 frames em cada perfil
 - [ ] Troca `SAFE ↔ NOMINAL ↔ FAST` nos dois sentidos
 - [ ] **Caso do ACK perdido**: a troca aconteceu mas o ACK sumiu — a reversão
@@ -125,9 +172,10 @@ três perfis; LDRO confirmado por leitura de registrador após troca de perfil.
 
 ### ADRs desta fase
 
-- [ ] `0005-process-architecture-and-fault-isolation.md`
-- [ ] `0006-obc-ttec-ipc-transport.md`
-- [ ] `0007-ota-frame-format-and-arq.md` *(já em dívida)*
+- [x] `0005-process-architecture-and-fault-isolation.md` (*Accepted*)
+- [x] `0006-obc-ttec-ipc-transport.md` (*Accepted*)
+- [x] `0007-ota-frame-format-and-arq.md` (*Proposed* — aguarda revisão do time)
+- [x] `0012-hardware-access-through-kernel-interfaces.md` (*Proposed*, não previsto)
 
 ---
 
@@ -159,8 +207,13 @@ por mensagem, append + `fflush`. Ajustes:
 
 ### 3.3 `flight/adsbd/ipc_client.*`
 
-- [ ] Conectar no `ttcd`, `HELLO`, reconectar se cair
-- [ ] Enviar `IPC_TRACKS` e `IPC_STAT`
+- [ ] Conectar no `ttcd`, `HELLO` (papel `adsbd`), reconectar se cair
+- [ ] Enviar `IPC_TRACKS` (cabeçalho `epoch_ms`/`index`/`count`, idades
+      medidas até `epoch_ms`) e `IPC_STAT` — formatos em `common/gama_ipc.h`
+- [ ] Acrescentar ao `IPC_STAT` um indicador de `dump1090` vivo: o bit
+      `GAMA_HK_F_DUMP1090_UP` do HK depende dele e hoje nunca é ligado
+- [ ] Mensagem IPC com a tabela ICAO → callsign, para o `REQ_ROSTER` (hoje
+      responde `FAILED`)
 
 ### 3.4 Medições na Pi — **o maior risco não quantificado**
 
@@ -186,8 +239,11 @@ por mensagem, append + `fflush`. Ajustes:
 
 ### 4.1 `ground/esp32/` — ESP-IDF
 
-- [ ] Projeto IDF puxando `common/` via `EXTRA_COMPONENT_DIRS`
-- [ ] Driver SX1278 sobre SPI (pinos do `groundStation.ino:6-11` como base)
+- [ ] Projeto IDF puxando `common/` via `EXTRA_COMPONENT_DIRS` — traz de graça
+      o lado da ground do protocolo (`gama_gs_link`), já testado na simulação
+- [ ] Driver SX1278: o `flight/radio/sx1278.c` só fala com um `sx1278_bus_t`;
+      basta implementar o barramento com o SPI e o GPIO do ESP-IDF (pinos do
+      `groundStation.ino:6-11` como base)
 - [ ] Bridge UART para o host
 - [ ] **Build de teste com `tests/test_vectors.c` para xtensa.** Passar nos
       dois alvos é o que demonstra que Pi e ESP32 geram bytes idênticos — é a
@@ -195,7 +251,11 @@ por mensagem, append + `fflush`. Ajustes:
 
 ### 4.2 `ground/host/` — CLI e dashboard
 
-- [ ] CLI: enviar TC, receber TM, log NDJSON com timestamp de recepção
+- [ ] CLI: enviar TC, receber TM, log NDJSON com timestamp de recepção.
+      O `tools/gs_cli` já faz isso em C, na bancada; o formato de saída
+      dele (um JSON por evento, frame bruto em hex) serve de modelo para o
+      ESP32 enviar pela UART — o host em Python consome JSON e não precisa de
+      um segundo codec (ADR-0002)
 - [ ] Tabela ao vivo de aeronaves
 - [ ] Base: `ultima_missao/telemetry_reports/serial_data_collector/`
 - [ ] Reaproveitar `thermalControl/gerarRelatorio.py` + `template.tex` para o

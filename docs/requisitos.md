@@ -8,7 +8,7 @@ falta para garanti-lo.
 | | |
 |---|---|
 | **Fonte** | `docs/cubedesign2026.pdf` — regulamento (pp. 1–7) e catálogo *High Level Requirements* (pp. 8–13) |
-| **Estado registrado em** | 2026-09-19, commit `bc20975` |
+| **Estado registrado em** | 2026-09-19 — atualizado ao fim da fase 2 do PLANO |
 | **Prazos** | Design Package **27/09/2026** · testes em UNSAM **24/11/2026** |
 
 ## Como ler
@@ -31,9 +31,12 @@ falta para garanti-lo.
 | `PENDENTE` | nada feito |
 | `OUTRA EQUIPE` | fora deste repositório — o comentário diz o que o TT&C precisa fornecer |
 
-**Nenhum requisito está `VERIFICADO` hoje.** `flight/` e `ground/` estão
-vazios. O que existe: o codec compartilhado (`common/`), o protótipo
-`adsb_capture.c`, os ADRs 0001–0004 e os budgets de dados e enlace.
+**Nenhum requisito está `VERIFICADO` hoje** — nada foi medido em RF ainda.
+O que existe: o codec compartilhado e o lado da ground do protocolo
+(`common/`), o `ttcd` completo com driver do SX1278 (`flight/`), a simulação
+de canal e o teste de integração, a ground de bancada (`tools/gs_cli`), o
+protótipo `adsb_capture.c`, os ADRs e os budgets. `flight/adsbd/` e
+`ground/` ainda não começaram.
 
 ## Sumário
 
@@ -58,7 +61,7 @@ vazios. O que existe: o codec compartilhado (`common/`), o protótipo
 |---|---|---|---|---|
 | [HLR-GEN-01](#hlr-gen-01) | Envelope CDS v14.1, 1U a 3U | Inspection (Fit-Check) | Estrutura | `OUTRA EQUIPE` |
 | [HLR-GEN-02](#hlr-gen-02) | Subsistemas mínimos | Inspection + Doc. review | Todas | `OUTRA EQUIPE` |
-| [HLR-GEN-03](#hlr-gen-03) | Operação autônoma com TC e TM | Doc. review | L | `PROJETADO` |
+| [HLR-GEN-03](#hlr-gen-03) | Operação autônoma com TC e TM | Doc. review | L | `PARCIAL` |
 | [HLR-GEN-04](#hlr-gen-04) | Requisitos de subsistema derivados | Doc. review | Todas | `PENDENTE` |
 | [HLR-COMM-01](#hlr-comm-01) | Executar TC em tempo limitado | Test | L | `PARCIAL` |
 | [HLR-COMM-02](#hlr-comm-02) | TM estruturada: status, potência, atitude, missão | Test + Data inspection | L | `PARCIAL` |
@@ -89,8 +92,8 @@ vazios. O que existe: o codec compartilhado (`common/`), o protótipo
 | [HLR-COST-02](#hlr-cost-02) | Decisões justificadas por desempenho, custo e complexidade | Doc. review | A + L | `PARCIAL` |
 | [HLR-SYS-01](#hlr-sys-01) | Coerência de engenharia de sistemas | Integrated review | Todas | `PARCIAL` |
 
-**Do TT&C (L, A ou A + L): 14 requisitos.** Nenhum verificado; 10 parciais,
-3 projetados (HLR-GEN-03, HLR-ADS-03, HLR-ADS-05) e 1 pendente (HLR-COST-01). Os requisitos do time inteiro — HLR-GEN-04, HLR-VV-01/02,
+**Do TT&C (L, A ou A + L): 14 requisitos.** Nenhum verificado; 11 parciais,
+2 projetados (HLR-ADS-03, HLR-ADS-05) e 1 pendente (HLR-COST-01). Os requisitos do time inteiro — HLR-GEN-04, HLR-VV-01/02,
 HLR-SYS-01 — também dependem de uma parte do TT&C.
 
 ---
@@ -232,13 +235,16 @@ requisitos COMM e ADS)
 >
 > **Verification:** Documentation review
 
-**Dono:** L · **Estado:** `PROJETADO`
+**Dono:** L · **Estado:** `PARCIAL` — o lado do `ttcd` está implementado
+(2026-09-19); falta o `adsbd` e a ConOps
 
 - Como o projeto atende: depois do telecomando que inicia a missão, o `ttcd`
-  transmite snapshots em modo `STREAM` sem pedido da ground (a cada 5 s,
-  `docs/budgets/data-budget.md` §5); `ttcd` e `adsbd` rodam sob systemd com
-  reinício automático; o `adsbd` supervisiona o `dump1090`. Queda do enlace
-  leva ao modo `SAFE` com beacon (ADR-0004). Nada disso está implementado.
+  transmite snapshots em modo `STREAM` sem pedido da ground (período
+  comandado, 5 s por padrão); roda sob systemd com reinício automático; a
+  queda do enlace leva ao `SAFE` com beacon, e a ground traz o enlace de volta
+  sozinha (ADR-0007). Verificado na simulação: apagões de 200 s e 300 s
+  recuperados sem operador. O `adsbd`, que supervisiona o `dump1090`, é a
+  fase 3.
 - **DP:** a verificação é revisão de documentação, então a evidência é a
   ConOps mais o ADR-0005 (arquitetura de processos, ainda não escrito)
   descrevendo a sequência inteira sem intervenção. A ConOps não existe —
@@ -325,7 +331,10 @@ nada é transmitido ainda
 - Falta a temperatura da bateria — ver [HLR-EPS-04](#hlr-eps-04).
 - Potência e atitude virão do OBC por `IPC_TELEMETRY`. Enquanto o cliente
   IPC não estiver no OBC (ICD pendente, PLANO fase 4.3), esses campos não têm
-  fonte.
+  fonte, e o `TM_HK` os reporta como desconhecidos (`INT16_MIN`), não como
+  zero.
+- O `ttcd` real já transmite `TM_HK`, `TM_STAT` e `TM_TRACKS`; verificado
+  pelo teste de integração sobre o rádio UDP. Falta a bancada com RF.
 - "Data inspection" exige que a ground grave os frames brutos, não só os
   valores decodificados — ver [HLR-SW-02](#hlr-sw-02).
 
@@ -415,7 +424,11 @@ nada é transmitido ainda
   (externa) e `temp_soc_ccel` (SoC da Pi).
 - O teste térmico exige a bateria acima de 0 °C o tempo todo
   ([REG-26](#reg-26)). Sem esse campo, não há como demonstrar isso por
-  telemetria.
+  telemetria **transmitida**.
+- Mitigação parcial (2026-09-19): o `IPC_TELEMETRY` do OBC já carrega
+  `temp_bat_ccel`, e o `ttcd` registra cada um no log de bordo (evento
+  `obc_telemetry`). A análise de telemetria pode usar o log de bordo mesmo
+  antes de o `TM_HK` ganhar o campo.
 - Acrescentar o campo muda o formato de wire: vetores dourados,
   `data-budget.md` e um ADR. Decidir também quantos sensores — a missão
   anterior tinha dois (`batteryTemperature1` e `2`).
@@ -714,8 +727,10 @@ nada é transmitido ainda
   Sem ele, o formato só está documentado no código.
 - **Reproducible:** a ground deve gravar o frame bruto (em hex) com
   timestamp de chegada, RSSI e SNR, não só os valores decodificados, para
-  que a decodificação possa ser refeita. O formato do log da ground ainda não
-  foi definido.
+  que a decodificação possa ser refeita. O `tools/gs_cli` já faz isso (um
+  JSON por evento, com `payload` em hex, `rssi`, `snr`, `mono_ms` e
+  `wall_ms`); falta formalizar no ICD e replicar no ESP32. A bordo, o log do
+  `ttcd` registra cada frame transmitido e recebido.
 - A seção 5 acrescenta "Available for post-analysis"
   ([§2.4](#24-hlr-sw-02-é-mais-fraco-que-a-seção-5)): pelo ADR-0003, o NDJSON
   completo fica a bordo e é recuperado por USB ou SSH depois da missão.
@@ -1427,11 +1442,11 @@ este documento ([§9](#9-como-manter-este-documento)).
 |---|---|---|---|---|
 | 1 | ~~Definir o limite de tempo de resposta a TC e a regra de quando a ground pode transmitir~~ — feito em 2026-09-19 (ADR-0007, *Proposed*) | HLR-COMM-01 | L | ADR-0007 |
 | 2 | ~~Definir a semântica de `age_ds`~~ — feito em 2026-09-19 (ADR-0007) | HLR-ADS-07, HLR-ADS-08, REG-16 | A + L | ADR-0007, ICD do enlace |
-| 3 | Acrescentar a temperatura da bateria ao `TM_HK` | HLR-EPS-04, REG-26 | L, com a EPS | novo ADR, vetores, `data-budget.md` |
+| 3 | Acrescentar a temperatura da bateria ao `TM_HK` (já vem no `IPC_TELEMETRY` e vai para o log de bordo) | HLR-EPS-04, REG-26 | L, com a EPS | novo ADR, vetores, `data-budget.md` |
 | 4 | ~~Corrigir a linha NDJSON (110 → ~160 B) e conciliar 89:1 × 106:1~~ — feito em 2026-09-19 | HLR-SYS-01, HLR-ADS-04 | A + L | `data-budget.md`, errata do ADR-0003, `--check` |
 | 5 | ~~Escrever os ADRs citados que não existem~~ — feito em 2026-09-19 | HLR-SYS-01, HLR-COMM-03 | L e A | `docs/adr/` |
 | 6 | Escrever o ICD do enlace e o ICD OBC↔TT&C | HLR-SW-02, HLR-COMM-03 | L | `docs/icd/` |
-| 7 | Definir o formato do log da ground: frame bruto, timestamp, RSSI, SNR | HLR-SW-02, HLR-ADS-08 | L | ICD do enlace |
+| 7 | Formalizar o formato do log da ground — já praticado pelo `tools/gs_cli` | HLR-SW-02, HLR-ADS-08 | L | ICD do enlace |
 | 8 | Escrever os requisitos derivados do TT&C (`TTC-nn`) | HLR-GEN-04 | L + A | `docs/vv/` |
 | 9 | Definir o método de estimativa de origem e destino | REG-16 | A | novo ADR |
 | 10 | Declarar no DP o que é "classificar" e que *heading* é o rumo | REG-12, REG-16 | A | ADR-0008 |
