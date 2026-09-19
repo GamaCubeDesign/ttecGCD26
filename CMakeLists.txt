@@ -38,3 +38,4 @@ endif()
 
 # Developer tools. Not part of the flight software.
 add_subdirectory(tools/gen_vectors)
+add_subdirectory(tools/gs_cli)
