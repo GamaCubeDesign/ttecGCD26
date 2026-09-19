@@ -47,6 +47,7 @@ cmake --build build-asan -j4 && (cd build-asan && ctest --output-on-failure)
 
 python3 tools/analysis/lora_budget.py          # full budget tables
 python3 tools/analysis/lora_budget.py --check  # verifies the ADRs' figures
+python3 tools/analysis/check_requirements.py   # verifies docs/requisitos.md quotes the rules verbatim
 ```
 
 The build must stay at **zero warnings** under `-Wall -Wextra -Wpedantic
@@ -107,6 +108,10 @@ HK 25 B, stat 26 B, framing overhead 7 B. Changing one means revising
 Read `docs/adr/README.md` first. ADR-0003 (processing split) and ADR-0004
 (radio configuration) between them determine what the mission can and cannot
 do.
+
+The mission requirements, quoted verbatim with their status and gaps, are in
+`docs/requisitos.md` — check it before claiming a requirement is met, and
+update its status when one changes.
 
 **Accepted ADRs are immutable.** To change a decision, write a new ADR and mark
 the old one superseded — do not edit it. Write the record at the moment the
