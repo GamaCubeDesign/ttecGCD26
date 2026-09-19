@@ -40,3 +40,5 @@ Three reasons, in order of importance to the project:
 | [0002](0002-flight-software-language.md) | C11 for flight and ground software | Accepted | HLR-SW-01, HLR-SYS-01 |
 | [0003](0003-processing-split-onboard-vs-ground.md) | Hybrid processing split at the track-state boundary | Accepted | HLR-ADS-04, HLR-ADS-05, HLR-ADS-08 |
 | [0004](0004-lora-phy-configuration.md) | LoRa PHY configuration and rate profiles | Accepted | HLR-COMM-03, HLR-ADS-08 |
+| [0008](0008-adsb-receive-chain-ownership.md) | The payload daemon owns the SDR, through dump1090-fa | Accepted | HLR-ADS-01, HLR-ADS-02, HLR-ADS-04 |
+| [0011](0011-documentation-language.md) | English for Design Package documents, Portuguese for working notes | Accepted | REG-04, HLR-SYS-01 |
