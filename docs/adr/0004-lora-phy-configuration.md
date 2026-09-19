@@ -197,3 +197,11 @@ and because a future mission should revisit it.
 - `common/gama_tc.h` — `gama_rate_profile_t`, the three reachable profiles
 - SX1276/77/78/79 datasheet (Semtech rev. 7), §4.1.1.7 time on air, §5.5.4 PA
 - `ultima_missao/satellite/LoRa.h:70-97` — the driver's existing enumerations
+
+## Erratum — 2026-09-19
+
+The decision in this record is unchanged. The Context section compares the
+2.6 KB inherited capacity against "the mission's 5 MB of ADS-B data". The raw
+volume is **7.34 MiB** at the nominal message rate; the 5 MB figure came from
+an understated NDJSON line size, corrected in ADR-0003's erratum. The
+inherited configuration therefore fell short by a larger margin than stated.

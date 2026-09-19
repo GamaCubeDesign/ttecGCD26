@@ -182,3 +182,29 @@ Worth revisiting if aircraft count ever exceeds the budget.
 - ADR-0004 — the radio configuration that sets the 58 KB budget
 - ADR-0008 — which process owns the SDR
 - CubeDesign 2026 rules §4.4, HLR-ADS-01 through HLR-ADS-08
+
+## Erratum — 2026-09-19
+
+The decision in this record is unchanged, and every correction below makes the
+case for onboard processing stronger. The record stays as written; these are
+the figures that were wrong.
+
+**Cause.** The raw volumes assumed 110 bytes per NDJSON line. The line format
+of `adsb_capture.c`, reproduced by `tools/analysis/lora_budget.py` for a
+representative aircraft and weighted by the ADS-B broadcast mix, is
+**160.4 bytes** — 156 B for position, 170 B for velocity, 109 B for
+identification. Separately, two figures were taken from the 4.2 s snapshot
+cadence first considered, not the 5 s cadence the design actually flies.
+
+| Where | As written | Corrected |
+|---|---|---|
+| Context, volume at 2 / 4 / 6 msg/s | 2.52 / 5.04 / 7.55 MB | 3.67 / 7.34 / 11.02 MiB |
+| Context, gap over the NOMINAL capacity | 44:1 to 133:1, centred on 88:1 | 65:1 to 194:1, centred on 129:1 |
+| Rationale table, "Decoded SBS-1 lines" | 5.04 MB, 88x over | 7.34 MiB, 129x over |
+| Rationale table, "Raw 1090ES frames" | 12x over | 11x over |
+| Rationale table, "Track state, 5 s cadence" | 58.0 KB, exactly fills the allocation | 48.5 KB, 83% of the 58.3 KB allocation; the rest carries housekeeping, statistics and acknowledgements (`data-budget.md` §5) |
+| Rationale, "The reduction is 89:1" | 89:1 | 155:1 — raw volume over the 48.5 KB actually downlinked at the 5 s cadence |
+| Alternatives, "Fully on the ground" | 88x over budget | 129x over budget |
+
+`lora_budget.py --check` verifies the corrected figures. ADR-0004 quotes the
+same understated volume and carries its own erratum.

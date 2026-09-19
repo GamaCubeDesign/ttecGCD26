@@ -10,7 +10,7 @@ in English — see "Language" below.
 ## The one number that governs everything
 
 The LoRa downlink carries **58 KB** over the 10-minute mission. The raw ADS-B
-stream from 20 aircraft is **5 MB**. That 88:1 gap forces onboard decoding and
+stream from 20 aircraft is **7.3 MiB**. That 129:1 gap forces onboard decoding and
 aggregation, and it is the reason for most of the architecture. Before
 proposing anything that moves bytes over the radio, check it against
 `docs/budgets/data-budget.md`.

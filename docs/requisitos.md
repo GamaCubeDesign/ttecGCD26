@@ -340,8 +340,7 @@ nada é transmitido ainda
   mas o ADR-0007 (formato de frame e ARQ) e o ICD do enlace
   (`docs/icd/ota-protocol-icd.md`) não foram escritos.
 - "consistent with mission requirements": o `data-budget.md` fecha o
-  orçamento, mas subestima o tamanho da linha NDJSON — ver
-  [HLR-SYS-01](#hlr-sys-01).
+  orçamento (tamanho da linha NDJSON corrigido em 2026-09-19).
 - **UNSAM:** medir o air time real dos três perfis contra o calculado e a
   taxa de erro de pacote (PLANO fase 2.7).
 
@@ -555,9 +554,9 @@ nada é transmitido ainda
   ground.
 - O requisito diz "implement **and** justify". A justificativa está pronta
   para o DP; a implementação é o `adsbd` mais o escalonador do `ttcd`.
-- Os números que sustentam a decisão estão subestimados nos documentos (ver
-  [HLR-SYS-01](#hlr-sys-01)). A conclusão fica mais forte, não mais fraca,
-  mas os números precisam ser corrigidos antes do DP.
+- Os números que sustentam a decisão estavam subestimados; foram corrigidos
+  em 2026-09-19 (errata do ADR-0003). A conclusão ficou mais forte: o volume
+  bruto é 129× a capacidade do enlace.
 
 ### HLR-ADS-05
 
@@ -826,20 +825,21 @@ nossos documentos
 
 Corrigir antes do DP:
 
-1. **Tamanho da linha NDJSON.** `data-budget.md` e ADR-0003 usam 110 B por
-   linha. O formato real do `adsb_capture.c` dá 156 B numa mensagem de
-   posição e 170 B numa de velocidade — ~160 B na média ponderada pelo mix de
-   mensagens. O volume bruto nominal passa de 5,04 MB para ~7,3 MiB, e a
-   razão sobre a capacidade NOMINAL passa de 88× para ~129×.
-2. **Razão de redução a bordo.** O ADR-0003 diz 89:1; o `data-budget.md` diz
-   106:1. Os denominadores são diferentes (capacidade do enlace × volume
-   efetivamente enviado), e o `lora_budget.py --check` só verifica o 106.
-3. **ADRs citados que não existem:** 0007, 0008 e 0011.
+1. ~~**Tamanho da linha NDJSON.**~~ **Resolvido em 2026-09-19.** O
+   `lora_budget.py` agora calcula a linha a partir do formato real do
+   `adsb_capture.c` (160,4 B, não 110 B); o volume bruto nominal passa a
+   7,34 MiB e a razão sobre a capacidade NOMINAL a 129×. `data-budget.md`
+   corrigido; ADR-0003 e ADR-0004 receberam errata.
+2. ~~**Razão de redução a bordo.**~~ **Resolvido em 2026-09-19.** O valor
+   único agora é 155:1 (volume bruto sobre os 48,5 KB efetivamente enviados),
+   verificado pelo `--check`; a errata do ADR-0003 registra o 89:1 original.
+3. **ADRs citados que não existem:** 0007 (0008 e 0011 escritos em
+   2026-09-19).
 
 Regra prática: um número mora em um único lugar e os outros documentos
 apontam para ele; o que vier de cálculo entra no `lora_budget.py --check`.
-O ADR-0003 é aceito e portanto imutável — decidir se a correção vira uma
-errata no fim dele ou um novo ADR.
+Como o ADR-0003 é aceito e portanto imutável, a correção entrou como errata
+no fim dele: a decisão e o texto original ficam intactos.
 
 ---
 
@@ -1334,7 +1334,7 @@ Checklist da [REG-05](#reg-05): onde cada item vai estar e em que estado está.
 | System architecture | ADRs, diagrama do `README.md`, `docs/arquitetura.png` | todas | `PARCIAL` — ADRs 0001–0004 escritos |
 | Mass budget | — | estrutura | não acompanhado aqui |
 | Power budget | `docs/budgets/power-budget.md` | EPS, com o TT&C | `PENDENTE` |
-| Data budget | `docs/budgets/data-budget.md` | TT&C | `PARCIAL` — corrigir a linha NDJSON ([HLR-SYS-01](#hlr-sys-01)) |
+| Data budget | `docs/budgets/data-budget.md` | TT&C | `PARCIAL` — números corrigidos; falta a medição de CPU do `dump1090` |
 | Financial budget | — | todas | `PENDENTE` |
 | ADS-B payload design | ADR-0003, ADR-0008 (a escrever) | A | `PARCIAL` |
 | V&V plan | `docs/vv/vv-plan.md` | todas | `PENDENTE` |
@@ -1418,8 +1418,8 @@ este documento ([§9](#9-como-manter-este-documento)).
 | 1 | Definir o limite de tempo de resposta a TC, incluindo a regra de quando a ground pode transmitir | HLR-COMM-01 | L | ADR-0007 |
 | 2 | Definir a semântica de `age_ds` | HLR-ADS-07, HLR-ADS-08, REG-16 | A + L | ADR-0007, ICD do enlace |
 | 3 | Acrescentar a temperatura da bateria ao `TM_HK` | HLR-EPS-04, REG-26 | L, com a EPS | novo ADR, vetores, `data-budget.md` |
-| 4 | Corrigir a linha NDJSON (110 → ~160 B) e conciliar 89:1 × 106:1 | HLR-SYS-01, HLR-ADS-04 | A + L | `data-budget.md`, errata do ADR-0003, `--check` |
-| 5 | Escrever os ADRs citados que não existem: 0007, 0008, 0011 | HLR-SYS-01, HLR-COMM-03 | L e A | `docs/adr/` |
+| 4 | ~~Corrigir a linha NDJSON (110 → ~160 B) e conciliar 89:1 × 106:1~~ — feito em 2026-09-19 | HLR-SYS-01, HLR-ADS-04 | A + L | `data-budget.md`, errata do ADR-0003, `--check` |
+| 5 | Escrever os ADRs citados que não existem: 0007 (0008 e 0011 feitos em 2026-09-19) | HLR-SYS-01, HLR-COMM-03 | L e A | `docs/adr/` |
 | 6 | Escrever o ICD do enlace e o ICD OBC↔TT&C | HLR-SW-02, HLR-COMM-03 | L | `docs/icd/` |
 | 7 | Definir o formato do log da ground: frame bruto, timestamp, RSSI, SNR | HLR-SW-02, HLR-ADS-08 | L | ICD do enlace |
 | 8 | Escrever os requisitos derivados do TT&C (`TTC-nn`) | HLR-GEN-04 | L + A | `docs/vv/` |

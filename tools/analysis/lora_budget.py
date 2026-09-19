@@ -39,6 +39,37 @@ FRAME_OVERHEAD = 7       # GAMA_FRAME_OVERHEAD
 TRACK_WIRE_LEN = 20      # GAMA_TRACK_WIRE_LEN
 TRACKS_PER_FRAME = 12    # GAMA_TRACKS_PER_FRAME
 
+
+def ndjson_line_bytes():
+    """Average size of one line of the onboard ADS-B log, in bytes.
+
+    Reproduces the printf format of adsb_capture.c:message_to_ndjson() for a
+    representative aircraft, weighted by the ADS-B broadcast mix: airborne
+    position and airborne velocity at 2 Hz each, identification every 5 s.
+    Computed rather than typed, because the typed value (110 B) understated
+    the real line by 31% and every volume figure in the budget inherited the
+    error.
+    """
+    rx_epoch_ns = 1789900000123456789          # 19 digits: a 2026 epoch
+
+    def line(tt, callsign="", fields=""):
+        return (f'{{"icao":"E48DF5","rx_epoch_ns":{rx_epoch_ns},'
+                f'"transmission_type":{tt},"callsign":"{callsign}"'
+                f'{fields},"on_ground":0}}\n')
+
+    position = line(3, fields=',"altitude_ft":37000'
+                              ',"lat":-23.559616,"lon":-46.658908')
+    velocity = line(4, fields=',"ground_speed_kt":451.7,"track_deg":128.4'
+                              ',"vertical_rate_fpm":-1216')
+    ident = line(1, callsign="TAM3054")
+
+    mix = ((position, 2.0), (velocity, 2.0), (ident, 0.2))
+    return (sum(len(text) * hz for text, hz in mix)
+            / sum(hz for _, hz in mix))
+
+
+NDJSON_LINE = ndjson_line_bytes()
+
 # Half the mission is spent transmitting. The other half is not idle time we
 # could reclaim: LoRa is half-duplex, so every second spent transmitting is a
 # second in which a telecommand cannot be heard (HLR-COMM-01).
@@ -161,9 +192,9 @@ def print_data_volume():
 
     for rate in (2, 4, 6):
         msgs = MAX_AIRCRAFT * rate * MISSION_S
-        raw = msgs * 110          # one SBS-1 / NDJSON line
+        raw = msgs * NDJSON_LINE  # one line of the onboard log
         print(f"  {rate} msg/s/aircraft: {msgs:>6} messages"
-              f" = {raw/1024/1024:>5.2f} MB raw"
+              f" = {raw/1024/1024:>5.2f} MiB raw"
               f"  ->  {raw/capacity:>6.0f}x the NOMINAL downlink budget")
 
     print()
@@ -189,8 +220,8 @@ def print_data_volume():
           f" {MISSION_S*TX_DUTY:.0f} s allocation for HK, stats and acks")
     print()
     print(f"  Reduction achieved onboard: "
-          f"{MAX_AIRCRAFT * 4 * MISSION_S * 110 / downlinked:.0f}:1"
-          f"   ({MAX_AIRCRAFT * 4 * MISSION_S * 110 / 1024 / 1024:.2f} MB"
+          f"{MAX_AIRCRAFT * 4 * MISSION_S * NDJSON_LINE / downlinked:.0f}:1"
+          f"   ({MAX_AIRCRAFT * 4 * MISSION_S * NDJSON_LINE / 1024 / 1024:.2f} MiB"
           f" -> {downlinked/1024:.1f} KB)")
 
 
@@ -242,10 +273,15 @@ def check():
     downlinked = (MISSION_S / STREAM_PERIOD_S) * snapshot_bytes()
     expect("data-budget track downlink (KB)", downlinked / 1024, 48.5, 0.5)
     expect("data-budget onboard reduction ratio",
-           MAX_AIRCRAFT * 4 * MISSION_S * 110 / downlinked, 106, 2)
+           MAX_AIRCRAFT * 4 * MISSION_S * NDJSON_LINE / downlinked, 155, 2)
 
-    expect("ADR-0003 raw volume at 4 msg/s (MB)",
-           MAX_AIRCRAFT * 4 * MISSION_S * 110 / 1024 / 1024, 5.04, 0.05)
+    expect("data-budget NDJSON line size (bytes)", NDJSON_LINE, 160.4, 0.5)
+
+    expect("ADR-0003 erratum: raw volume at 4 msg/s (MiB)",
+           MAX_AIRCRAFT * 4 * MISSION_S * NDJSON_LINE / 1024 / 1024, 7.34, 0.02)
+
+    expect("ADR-0003 erratum: raw volume over NOMINAL capacity",
+           MAX_AIRCRAFT * 4 * MISSION_S * NDJSON_LINE / nominal, 129, 1)
 
     if failures:
         print("BUDGET CHECK FAILED — the documentation no longer matches:")

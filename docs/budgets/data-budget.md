@@ -15,11 +15,17 @@
 
 ## 2. Source volume
 
-| Rate assumption | Messages | Raw NDJSON (110 B/line) |
+| Rate assumption | Messages | Raw NDJSON (160.4 B/line) |
 |---|---|---|
-| 2 msg/s/aircraft | 24 000 | 2.52 MB |
-| **4 msg/s/aircraft** | **48 000** | **5.04 MB** |
-| 6 msg/s/aircraft | 72 000 | 7.55 MB |
+| 2 msg/s/aircraft | 24 000 | 3.67 MiB |
+| **4 msg/s/aircraft** | **48 000** | **7.34 MiB** |
+| 6 msg/s/aircraft | 72 000 | 11.02 MiB |
+
+The line size is computed, not assumed: `lora_budget.py` reproduces the
+`printf` format of `adsb_capture.c` for a representative aircraft and weights
+it by the broadcast mix — 156 B for a position message, 170 B for velocity,
+109 B for identification. An earlier revision of this budget assumed 110 B per
+line and understated every volume by 31%.
 
 ## 3. Downlink capacity
 
@@ -27,8 +33,8 @@ At the NOMINAL profile (SF9 / BW 125 kHz / CR 4:5, ADR-0004), a 208-byte frame
 takes 1.046 s of air time and yields 1592 bps of goodput. Over 600 s at 50%
 duty: **58.3 KB**.
 
-The source is therefore **88x** the capacity at the nominal message rate. This
-is the finding that forces onboard processing (ADR-0003).
+The source is therefore **129x** the capacity at the nominal message rate.
+This is the finding that forces onboard processing (ADR-0003).
 
 ## 4. Why 50% duty
 
@@ -66,14 +72,14 @@ and buys back the entire housekeeping, statistics and acknowledgement budget.
 | Stage | Volume | Ratio to source |
 |---|---|---|
 | Raw IQ at 2.4 MS/s | ~2.9 GB | — |
-| Decoded SBS-1 (source) | 5.04 MB | 1:1 |
-| Stored onboard as NDJSON | 5.04 MB | 1:1 (complete record, HLR-SW-02) |
-| **Downlinked as track state** | **48.5 KB** | **106:1** |
+| Decoded SBS-1 (source) | 7.34 MiB | 1:1 |
+| Stored onboard as NDJSON | 7.34 MiB | 1:1 (complete record, HLR-SW-02) |
+| **Downlinked as track state** | **48.5 KB** | **155:1** |
 
 ## 7. Onboard storage
 
-The NDJSON log grows at ~8.6 KB/s, so 5.04 MB for the mission. A 16 GB SD card
-is three orders of magnitude clear of that; no rotation is needed for the
+The NDJSON log grows at ~12.5 KiB/s, so 7.34 MiB for the mission. A 16 GB SD
+card is three orders of magnitude clear of that; no rotation is needed for the
 nominal mission.
 
 `ENV_SURVIVAL` may run indefinitely, which the OBC's `docs/log_schema.md`
@@ -98,4 +104,3 @@ would take down `ttcd` and the radio with it.
 - Message rate per aircraft is an assumption from the ADS-B specification, not
   a measurement of the organisers' scenario. To be confirmed on site; the
   budget holds up to 6 msg/s/aircraft.
-- The 110 B/line NDJSON figure is an estimate from the current record shape.
