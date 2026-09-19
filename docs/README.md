@@ -10,6 +10,7 @@ Written in English: the competition requires the Design Package in English
 | `budgets/` | Data, link and power budgets |
 | `vv/` | Verification and Validation plan and the requirements traceability matrix |
 | `conops.md` | Concept of Operations — mission phases and operational modes |
+| `relatorios/` | Team status reports, in Portuguese — working notes for the team, not part of the Design Package |
 
 Source material from the organisers, kept as received:
 
