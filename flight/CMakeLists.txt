@@ -34,3 +34,7 @@ add_library(ttec_radio STATIC radio/radio_sx1278.c radio/radio_udp.c)
 target_link_libraries(ttec_radio PUBLIC ttec_sx1278_linux)
 target_compile_definitions(ttec_radio PRIVATE _GNU_SOURCE)
 
+# ttcd configuration parsing, kept out of main.c so it can be unit-tested.
+add_library(ttcd_config STATIC ttcd/config.c)
+target_link_libraries(ttcd_config PUBLIC ttcd_core)
+

@@ -40,6 +40,11 @@ target_link_libraries(test_sx1278 PRIVATE ttec_sx1278)
 target_include_directories(test_sx1278 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_sx1278 COMMAND test_sx1278)
 
+add_executable(test_config test_config.c)
+target_link_libraries(test_config PRIVATE ttcd_config)
+target_include_directories(test_config PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_config COMMAND test_config)
+
 # test_tm exercises NaN handling and quantisation bounds.
 target_link_libraries(test_tm PRIVATE m)
 
