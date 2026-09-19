@@ -45,3 +45,4 @@ Three reasons, in order of importance to the project:
 | [0007](0007-ota-frame-format-and-arq.md) | Link protocol — framing, medium access, acknowledgement and rate change | **Proposed** | HLR-COMM-01, HLR-COMM-03, HLR-ADS-07, HLR-ADS-08 |
 | [0008](0008-adsb-receive-chain-ownership.md) | The payload daemon owns the SDR, through dump1090-fa | Accepted | HLR-ADS-01, HLR-ADS-02, HLR-ADS-04 |
 | [0011](0011-documentation-language.md) | English for Design Package documents, Portuguese for working notes | Accepted | REG-04, HLR-SYS-01 |
+| [0012](0012-hardware-access-through-kernel-interfaces.md) | Radio hardware through the kernel's spidev and GPIO character device | **Proposed** | HLR-COMM-01, HLR-COMM-03 |

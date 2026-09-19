@@ -35,6 +35,11 @@ target_link_libraries(test_link_sim PRIVATE ttcd_core)
 target_include_directories(test_link_sim PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_link_sim COMMAND test_link_sim)
 
+add_executable(test_sx1278 test_sx1278.c)
+target_link_libraries(test_sx1278 PRIVATE ttec_sx1278)
+target_include_directories(test_sx1278 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_sx1278 COMMAND test_sx1278)
+
 # test_tm exercises NaN handling and quantisation bounds.
 target_link_libraries(test_tm PRIVATE m)
 
