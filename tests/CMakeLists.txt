@@ -7,6 +7,7 @@ set(TTEC_TESTS
     test_tm
     test_tc
     test_vectors
+    test_lora
 )
 
 foreach(t IN LISTS TTEC_TESTS)
