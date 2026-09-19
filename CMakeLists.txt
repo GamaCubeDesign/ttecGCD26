@@ -29,6 +29,7 @@ if(TTEC_SANITIZE)
 endif()
 
 add_subdirectory(common)
+add_subdirectory(flight)
 
 include(CTest)
 if(BUILD_TESTING)

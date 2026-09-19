@@ -8,6 +8,7 @@ set(TTEC_TESTS
     test_tc
     test_vectors
     test_lora
+    test_ipc_codec
 )
 
 foreach(t IN LISTS TTEC_TESTS)
@@ -16,6 +17,12 @@ foreach(t IN LISTS TTEC_TESTS)
     target_include_directories(${t} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     add_test(NAME ${t} COMMAND ${t})
 endforeach()
+
+# Flight-software tests: Linux only, linked against the flight libraries.
+add_executable(test_libipc test_libipc.c)
+target_link_libraries(test_libipc PRIVATE ttec_ipc gama_common)
+target_include_directories(test_libipc PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_libipc COMMAND test_libipc)
 
 # test_tm exercises NaN handling and quantisation bounds.
 target_link_libraries(test_tm PRIVATE m)
