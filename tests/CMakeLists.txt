@@ -25,6 +25,11 @@ target_link_libraries(test_libipc PRIVATE ttec_ipc gama_common)
 target_include_directories(test_libipc PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_libipc COMMAND test_libipc)
 
+add_executable(test_ttcd_core test_ttcd_core.c)
+target_link_libraries(test_ttcd_core PRIVATE ttcd_core)
+target_include_directories(test_ttcd_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_ttcd_core COMMAND test_ttcd_core)
+
 # test_tm exercises NaN handling and quantisation bounds.
 target_link_libraries(test_tm PRIVATE m)
 
