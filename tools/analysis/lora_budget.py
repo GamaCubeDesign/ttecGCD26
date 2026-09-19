@@ -245,6 +245,49 @@ def print_link_budget():
     print("the CubeSat. Even at 1 km, SF9 retains more than 60 dB of margin.")
 
 
+# --- telecommand response bound (HLR-COMM-01, ADR-0007) -----------------
+# Mirrors common/gama_gs_link.c and flight/ttcd; tests/test_link_sim.c checks
+# the implementation against the same bound in simulation.
+
+TC_FRAME_MAX = 16          # 7 framing + 1 command + 8 arguments (SET_TIME)
+ACK_FRAME = 11             # 7 framing + 4
+BACKOFF_FIRST_MS = 250     # GS_BACKOFF_FIRST_MS
+# Longest frame the satellite sends, per profile: a full TM_TRACKS frame
+# (7 + 12 x 20) while streaming; TM_STAT (33 B) in SAFE, where tracks are off.
+LONGEST_SAT_FRAME = {12: 33, 9: 247, 7: 247}
+
+
+def header_s(sf, bw=125_000, preamble=8):
+    return (preamble + 4.25 + 8) * (2 ** sf) / bw
+
+
+def ack_timeout_s(sf, bw, cr):
+    # gs_ack_timeout_ms: ACK time on air + a header time + 100 ms, rounded up
+    return (math.ceil((time_on_air(ACK_FRAME, sf, bw, cr)
+                       + header_s(sf, bw)) * 1000) + 100) / 1000
+
+
+def tc_bounds(sf, bw, cr):
+    # Each term rounded up to whole milliseconds, as the implementation does.
+    frame = math.ceil(time_on_air(LONGEST_SAT_FRAME[sf], sf, bw, cr) * 1000) / 1000
+    tc = math.ceil(time_on_air(TC_FRAME_MAX, sf, bw, cr) * 1000) / 1000
+    b0 = frame + tc
+    b1 = b0 + ack_timeout_s(sf, bw, cr) + BACKOFF_FIRST_MS / 1000 + b0
+    return b0, b1
+
+
+def print_tc_bounds():
+    print()
+    print("=" * 78)
+    print("TELECOMMAND RESPONSE BOUND (HLR-COMM-01), submission to execution by ttcd")
+    print("=" * 78)
+    print(f"{'profile':<10}{'no loss':>10}{'one loss':>11}"
+          f"{'  (+1 s for commands the OBC executes)':>40}")
+    for name, sf, cr in (("SAFE", 12, 4), ("NOMINAL", 9, 1), ("FAST", 7, 1)):
+        b0, b1 = tc_bounds(sf, 125_000, cr)
+        print(f"{name:<10}{b0:>9.2f}s{b1:>10.2f}s")
+
+
 def check():
     """Assert the figures quoted in the ADRs. Exits non-zero on drift."""
     failures = []
@@ -283,6 +326,10 @@ def check():
     expect("ADR-0003 erratum: raw volume over NOMINAL capacity",
            MAX_AIRCRAFT * 4 * MISSION_S * NDJSON_LINE / nominal, 129, 1)
 
+    b0, b1 = tc_bounds(9, 125_000, 1)
+    expect("ADR-0007 TC bound at NOMINAL, no loss (s)", b0, 1.395, 0.002)
+    expect("ADR-0007 TC bound at NOMINAL, one loss (s)", b1, 3.368, 0.002)
+
     if failures:
         print("BUDGET CHECK FAILED — the documentation no longer matches:")
         for f in failures:
@@ -305,6 +352,7 @@ def main():
     print_rate_comparison()
     print_data_volume()
     print_link_budget()
+    print_tc_bounds()
 
 
 if __name__ == "__main__":

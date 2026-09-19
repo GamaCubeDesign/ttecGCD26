@@ -60,7 +60,7 @@ vazios. O que existe: o codec compartilhado (`common/`), o protótipo
 | [HLR-GEN-02](#hlr-gen-02) | Subsistemas mínimos | Inspection + Doc. review | Todas | `OUTRA EQUIPE` |
 | [HLR-GEN-03](#hlr-gen-03) | Operação autônoma com TC e TM | Doc. review | L | `PROJETADO` |
 | [HLR-GEN-04](#hlr-gen-04) | Requisitos de subsistema derivados | Doc. review | Todas | `PENDENTE` |
-| [HLR-COMM-01](#hlr-comm-01) | Executar TC em tempo limitado | Test | L | `PENDENTE` |
+| [HLR-COMM-01](#hlr-comm-01) | Executar TC em tempo limitado | Test | L | `PARCIAL` |
 | [HLR-COMM-02](#hlr-comm-02) | TM estruturada: status, potência, atitude, missão | Test + Data inspection | L | `PARCIAL` |
 | [HLR-COMM-03](#hlr-comm-03) | Arquitetura de comunicação definida e justificada | Doc. review + Test | L | `PARCIAL` |
 | [HLR-EPS-01](#hlr-eps-01) | Bateria recarregável para a missão inteira | Test | EPS | `OUTRA EQUIPE` |
@@ -89,9 +89,8 @@ vazios. O que existe: o codec compartilhado (`common/`), o protótipo
 | [HLR-COST-02](#hlr-cost-02) | Decisões justificadas por desempenho, custo e complexidade | Doc. review | A + L | `PARCIAL` |
 | [HLR-SYS-01](#hlr-sys-01) | Coerência de engenharia de sistemas | Integrated review | Todas | `PARCIAL` |
 
-**Do TT&C (L, A ou A + L): 14 requisitos.** Nenhum verificado; 9 parciais,
-3 projetados (HLR-GEN-03, HLR-ADS-03, HLR-ADS-05) e 2 pendentes (HLR-COMM-01,
-HLR-COST-01). Os requisitos do time inteiro — HLR-GEN-04, HLR-VV-01/02,
+**Do TT&C (L, A ou A + L): 14 requisitos.** Nenhum verificado; 10 parciais,
+3 projetados (HLR-GEN-03, HLR-ADS-03, HLR-ADS-05) e 1 pendente (HLR-COST-01). Os requisitos do time inteiro — HLR-GEN-04, HLR-VV-01/02,
 HLR-SYS-01 — também dependem de uma parte do TT&C.
 
 ---
@@ -275,17 +274,24 @@ requisitos COMM e ADS)
 >
 > **Verification:** Test
 
-**Dono:** L · **Estado:** `PENDENTE` — o limite não foi definido
+**Dono:** L · **Estado:** `PARCIAL` — limite definido e verificado em
+simulação (2026-09-19); falta verificar em bancada
 
+- **O limite agora está escrito** (ADR-0007, *Proposed*): em NOMINAL, o
+  `ttcd` executa um telecomando em até **1,40 s** da submissão sem perda de
+  frame e **3,37 s** com uma perda; comandos executados pelo OBC somam 1 s.
+  Calculado pelo `lora_budget.py` e verificado pela simulação de canal
+  (`tests/test_link_sim.c`): em 401 comandos durante streaming, p95 1,78 s e
+  máximo 2,40 s.
 - **O requisito só é cumprido com um número escrito.** Um sistema rápido sem
   limite declarado não atende.
 - O limite ponta a ponta é a soma de: espera pela janela em que a ground
   pode transmitir (o rádio é half-duplex) + air time do TC + despacho no
   `ttcd` + IPC + até um ciclo do OBC (laço de 1 s em `obc/src/main.c`, sem
   compensação de deriva).
-- O primeiro termo depende de uma regra que ainda não existe: quando a ground
-  pode transmitir sem colidir com uma transmissão do satélite. Pertence ao
-  ADR-0007.
+- O primeiro termo dependia de uma regra que não existia: quando a ground
+  pode transmitir sem colidir com o satélite. O ADR-0007 a define (janela de
+  resposta após cada frame do satélite, mais listen-before-talk).
 - **UNSAM:** o OBC registra `tc` antes de agir e `transicao` depois; a
   diferença de `t_ms` entre os dois é a evidência do lado do OBC
   (`obc/docs/log_schema.md`, linhas 71–72).
@@ -336,9 +342,10 @@ nada é transmitido ainda
 - Camada física e taxas: definidas e justificadas no ADR-0004 e em
   `docs/budgets/link-budget.md`, reproduzíveis com
   `python3 tools/analysis/lora_budget.py`.
-- Protocolo: implementado em `common/` e fixado por `tests/test_vectors.c`,
-  mas o ADR-0007 (formato de frame e ARQ) e o ICD do enlace
-  (`docs/icd/ota-protocol-icd.md`) não foram escritos.
+- Protocolo: implementado em `common/` e `flight/ttcd/`, fixado por
+  `tests/test_vectors.c` e verificado pela simulação de canal. O ADR-0007
+  (acesso ao meio, ACK, troca de taxa) está escrito como *Proposed*; falta o
+  ICD do enlace (`docs/icd/ota-protocol-icd.md`).
 - "consistent with mission requirements": o `data-budget.md` fecha o
   orçamento (tamanho da linha NDJSON corrigido em 2026-09-19).
 - **UNSAM:** medir o air time real dos três perfis contra o calculado e a
@@ -618,11 +625,12 @@ nada é transmitido ainda
 - O carimbo marca a chegada no socket SBS, não a recepção de RF. Se isso for
   questionado, o formato Beast do `dump1090` traz o timestamp do próprio
   receptor (contador de 12 MHz).
-- No enlace: o único campo de tempo do `TM_TRACKS` é `age_ds`, **com
-  semântica indefinida** — o nome diz "idade", o comentário em
-  `common/gama_tm.h` diz "desde a época do snapshot", e os vetores de teste
-  parecem tempo de missão. A reconstrução de trajetória na ground depende
-  dele. Definir no ADR-0007 e no ICD do enlace antes do DP.
+- No enlace: `age_ds` passou a ter semântica definida (ADR-0007, 2026-09-19):
+  tempo da última atualização da aeronave até o **início da transmissão** do
+  frame, escrito pelo `ttcd` logo antes de transmitir. A ground calcula o
+  instante da atualização no próprio relógio (`chegada − tempo no ar − idade`),
+  sem sincronizar com o satélite. Implementado e testado; falta o ICD do
+  enlace.
 - Resolução no enlace: 100 ms. A 450 kt, isso são ~23 m, abaixo da precisão
   do próprio ADS-B.
 
@@ -661,9 +669,11 @@ nada é transmitido ainda
 - Decodificação: "correctly decoded" precisa do gabarito do cenário.
 - Perda: medida pelas lacunas de `seq`, o que exige que todo frame rejeitado
   seja contado (AGENTS.md, regra 6).
-- Latência: "recepção → início da transmissão" se mede inteira a bordo, com
-  um único relógio. "→ chegada na ground" compara dois relógios e exige
-  sincronização (`GAMA_TC_SET_TIME`) — e depende da semântica de `age_ds`.
+- Latência: com a semântica do ADR-0007, a idade de cada registro **é** a
+  latência recepção → início da transmissão, e o `ttcd` reporta o p95 no
+  `TM_STAT`. Na simulação com 20 aeronaves: p95 3,2 s (meta 5 s).
+- Perda: na simulação, a ground conta exatamente cada frame perdido do
+  downlink, inclusive com 10% de perda aleatória.
 
 ### 3.6 Software and Data
 
@@ -833,8 +843,8 @@ Corrigir antes do DP:
 2. ~~**Razão de redução a bordo.**~~ **Resolvido em 2026-09-19.** O valor
    único agora é 155:1 (volume bruto sobre os 48,5 KB efetivamente enviados),
    verificado pelo `--check`; a errata do ADR-0003 registra o 89:1 original.
-3. **ADRs citados que não existem:** 0007 (0008 e 0011 escritos em
-   2026-09-19).
+3. ~~**ADRs citados que não existem.**~~ **Resolvido em 2026-09-19:** 0007,
+   0008 e 0011 escritos.
 
 Regra prática: um número mora em um único lugar e os outros documentos
 apontam para ele; o que vier de cálculo entra no `lora_budget.py --check`.
@@ -1415,11 +1425,11 @@ este documento ([§9](#9-como-manter-este-documento)).
 
 | # | Ação | Requisitos | Dono sugerido | Onde registrar |
 |---|---|---|---|---|
-| 1 | Definir o limite de tempo de resposta a TC, incluindo a regra de quando a ground pode transmitir | HLR-COMM-01 | L | ADR-0007 |
-| 2 | Definir a semântica de `age_ds` | HLR-ADS-07, HLR-ADS-08, REG-16 | A + L | ADR-0007, ICD do enlace |
+| 1 | ~~Definir o limite de tempo de resposta a TC e a regra de quando a ground pode transmitir~~ — feito em 2026-09-19 (ADR-0007, *Proposed*) | HLR-COMM-01 | L | ADR-0007 |
+| 2 | ~~Definir a semântica de `age_ds`~~ — feito em 2026-09-19 (ADR-0007) | HLR-ADS-07, HLR-ADS-08, REG-16 | A + L | ADR-0007, ICD do enlace |
 | 3 | Acrescentar a temperatura da bateria ao `TM_HK` | HLR-EPS-04, REG-26 | L, com a EPS | novo ADR, vetores, `data-budget.md` |
 | 4 | ~~Corrigir a linha NDJSON (110 → ~160 B) e conciliar 89:1 × 106:1~~ — feito em 2026-09-19 | HLR-SYS-01, HLR-ADS-04 | A + L | `data-budget.md`, errata do ADR-0003, `--check` |
-| 5 | Escrever os ADRs citados que não existem: 0007 (0008 e 0011 feitos em 2026-09-19) | HLR-SYS-01, HLR-COMM-03 | L e A | `docs/adr/` |
+| 5 | ~~Escrever os ADRs citados que não existem~~ — feito em 2026-09-19 | HLR-SYS-01, HLR-COMM-03 | L e A | `docs/adr/` |
 | 6 | Escrever o ICD do enlace e o ICD OBC↔TT&C | HLR-SW-02, HLR-COMM-03 | L | `docs/icd/` |
 | 7 | Definir o formato do log da ground: frame bruto, timestamp, RSSI, SNR | HLR-SW-02, HLR-ADS-08 | L | ICD do enlace |
 | 8 | Escrever os requisitos derivados do TT&C (`TTC-nn`) | HLR-GEN-04 | L + A | `docs/vv/` |

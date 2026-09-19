@@ -42,5 +42,6 @@ Three reasons, in order of importance to the project:
 | [0004](0004-lora-phy-configuration.md) | LoRa PHY configuration and rate profiles | Accepted | HLR-COMM-03, HLR-ADS-08 |
 | [0005](0005-process-architecture-and-fault-isolation.md) | Separate processes for telecom and payload, with ttcd as the hub | Accepted | HLR-GEN-03, HLR-COMM-01, HLR-ADS-05 |
 | [0006](0006-obc-ttec-ipc-transport.md) | AF_UNIX SOCK_SEQPACKET for inter-process communication | Accepted | HLR-COMM-01, HLR-COMM-02, HLR-GEN-03 |
+| [0007](0007-ota-frame-format-and-arq.md) | Link protocol — framing, medium access, acknowledgement and rate change | **Proposed** | HLR-COMM-01, HLR-COMM-03, HLR-ADS-07, HLR-ADS-08 |
 | [0008](0008-adsb-receive-chain-ownership.md) | The payload daemon owns the SDR, through dump1090-fa | Accepted | HLR-ADS-01, HLR-ADS-02, HLR-ADS-04 |
 | [0011](0011-documentation-language.md) | English for Design Package documents, Portuguese for working notes | Accepted | REG-04, HLR-SYS-01 |
