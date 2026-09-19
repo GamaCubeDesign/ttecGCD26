@@ -87,24 +87,38 @@ int gama_ipc_stat_decode(const uint8_t *in, size_t len, gama_ipc_stat_t *s)
     return (int)GAMA_IPC_STAT_LEN;
 }
 
-int gama_ipc_tracks_header_encode(uint8_t *out, size_t cap, uint32_t epoch_ms)
+int gama_ipc_tracks_header_encode(uint8_t *out, size_t cap,
+                                  const gama_ipc_tracks_hdr_t *h)
 {
-    if (out == NULL || cap < GAMA_IPC_TRACKS_HEADER_LEN) { return GAMA_FRAME_ERR_ARG; }
-    gama_put_u32(out, epoch_ms);
+    if (out == NULL || h == NULL || cap < GAMA_IPC_TRACKS_HEADER_LEN) {
+        return GAMA_FRAME_ERR_ARG;
+    }
+    if (h->count == 0 || h->count > GAMA_IPC_TRACKS_MAX_FRAMES || h->index >= h->count) {
+        return GAMA_FRAME_ERR_ARG;
+    }
+    gama_put_u32(out, h->epoch_ms);
+    out[4] = h->index;
+    out[5] = h->count;
     return (int)GAMA_IPC_TRACKS_HEADER_LEN;
 }
 
 int gama_ipc_tracks_decode(const uint8_t *in, size_t len,
-                           uint32_t *epoch_ms, size_t *n_records)
+                           gama_ipc_tracks_hdr_t *h, size_t *n_records)
 {
-    if (in == NULL || epoch_ms == NULL || n_records == NULL) { return GAMA_FRAME_ERR_ARG; }
+    if (in == NULL || h == NULL || n_records == NULL) { return GAMA_FRAME_ERR_ARG; }
     if (len < GAMA_IPC_TRACKS_HEADER_LEN) { return GAMA_FRAME_ERR_SHORT; }
 
     size_t body = len - GAMA_IPC_TRACKS_HEADER_LEN;
     if (body % GAMA_TRACK_WIRE_LEN != 0) { return GAMA_FRAME_ERR_LEN; }
     if (body / GAMA_TRACK_WIRE_LEN > GAMA_IPC_TRACKS_MAX) { return GAMA_FRAME_ERR_LEN; }
 
-    *epoch_ms = gama_get_u32(in);
+    uint8_t index = in[4], count = in[5];
+    if (count == 0 || count > GAMA_IPC_TRACKS_MAX_FRAMES || index >= count) {
+        return GAMA_FRAME_ERR_LEN;
+    }
+    h->epoch_ms = gama_get_u32(in);
+    h->index = index;
+    h->count = count;
     *n_records = body / GAMA_TRACK_WIRE_LEN;
     return (int)GAMA_IPC_TRACKS_HEADER_LEN;
 }

@@ -99,20 +99,26 @@ typedef struct {
 #define GAMA_IPC_MODE_LEN 1u
 
 /* ------------------------------------------------------------------ *
- *  IPC_TRACKS — adsbd -> ttcd.  4 + 20 N B, N <= 12
+ *  IPC_TRACKS — adsbd -> ttcd.  6 + 20 N B, N <= 12
  *
- *  u32 epoch_ms, then N track records exactly as they will go on the air
- *  (gama_tm.h). epoch_ms is adsbd's CLOCK_MONOTONIC in milliseconds, low 32
- *  bits, at the moment the snapshot was taken, and each record's age_ds is
- *  measured from its last update to that epoch.
+ *    u32 epoch_ms   adsbd's CLOCK_MONOTONIC, milliseconds, low 32 bits, at
+ *                   the moment the snapshot was taken
+ *    u8  index      this frame's position in the snapshot, from 0
+ *    u8  count      frames in the snapshot, 1 .. GAMA_IPC_TRACKS_MAX_FRAMES
+ *    N track records, exactly as they will go on the air (gama_tm.h), each
+ *    age_ds measured from the aircraft's last update to epoch_ms
+ *
+ *  A snapshot of 20 aircraft does not fit one frame. index and count let
+ *  ttcd know when it holds all of one, so a timer firing between two frames
+ *  of the same snapshot cannot put half of it on the air.
  *
  *  ttcd rewrites each age to be measured to the start of the transmission
- *  instead (gama_track_age_add) and drops the epoch: both processes read the
- *  same monotonic clock, so the rewrite needs no clock synchronisation.
- *  Several frames with the same epoch form one snapshot.
+ *  instead (gama_track_age_add) and drops this header: both processes read
+ *  the same monotonic clock, so the rewrite needs no synchronisation.
  * ------------------------------------------------------------------ */
-#define GAMA_IPC_TRACKS_HEADER_LEN 4u
-#define GAMA_IPC_TRACKS_MAX        12u
+#define GAMA_IPC_TRACKS_HEADER_LEN 6u
+#define GAMA_IPC_TRACKS_MAX        12u  /* records per frame   */
+#define GAMA_IPC_TRACKS_MAX_FRAMES  8u  /* frames per snapshot */
 
 /* ------------------------------------------------------------------ *
  *  IPC_STAT — adsbd -> ttcd.  12 B
@@ -144,11 +150,18 @@ int gama_ipc_stat_encode(uint8_t *out, size_t cap, const gama_ipc_stat_t *s);
 int gama_ipc_stat_decode(const uint8_t *in, size_t len, gama_ipc_stat_t *s);
 
 /* IPC_TRACKS is variable length: header, then whole records. The decoder
- * reports how many records follow and rejects a payload that is not a whole
- * number of them. */
-int gama_ipc_tracks_header_encode(uint8_t *out, size_t cap, uint32_t epoch_ms);
+ * reports how many records follow, and rejects a payload that is not a whole
+ * number of them or whose index/count are inconsistent. */
+typedef struct {
+    uint32_t epoch_ms;
+    uint8_t  index;
+    uint8_t  count;
+} gama_ipc_tracks_hdr_t;
+
+int gama_ipc_tracks_header_encode(uint8_t *out, size_t cap,
+                                  const gama_ipc_tracks_hdr_t *h);
 int gama_ipc_tracks_decode(const uint8_t *in, size_t len,
-                           uint32_t *epoch_ms, size_t *n_records);
+                           gama_ipc_tracks_hdr_t *h, size_t *n_records);
 
 const char *gama_ipc_role_name(uint8_t role);
 

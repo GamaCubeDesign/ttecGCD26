@@ -67,26 +67,49 @@ int main(void)
 
     TEST_GROUP("ipc: tracks payload is a header and whole records");
     {
-        uint32_t epoch; size_t n;
-        size_t len = GAMA_IPC_TRACKS_HEADER_LEN;
-        CHECK_EQ_INT(gama_ipc_tracks_header_encode(buf, sizeof(buf), 0x01020304u), 4);
-        CHECK_EQ_INT(gama_ipc_tracks_decode(buf, len, &epoch, &n), 4);
-        CHECK_EQ_INT(epoch, 0x01020304u);
+        gama_ipc_tracks_hdr_t h = { .epoch_ms = 0x01020304u, .index = 1, .count = 2 }, back;
+        size_t n, len = GAMA_IPC_TRACKS_HEADER_LEN;
+        CHECK_EQ_INT(gama_ipc_tracks_header_encode(buf, sizeof(buf), &h), 6);
+        CHECK_EQ_INT(buf[0], 0x04);   /* epoch little-endian, then index, count */
+        CHECK_EQ_INT(buf[4], 1);
+        CHECK_EQ_INT(buf[5], 2);
+
+        CHECK_EQ_INT(gama_ipc_tracks_decode(buf, len, &back, &n), 6);
+        CHECK_EQ_INT(back.epoch_ms, 0x01020304u);
+        CHECK_EQ_INT(back.index, 1);
+        CHECK_EQ_INT(back.count, 2);
         CHECK_EQ_INT(n, 0);
 
-        CHECK_EQ_INT(gama_ipc_tracks_decode(buf, len + 3 * GAMA_TRACK_WIRE_LEN, &epoch, &n), 4);
+        CHECK_EQ_INT(gama_ipc_tracks_decode(buf, len + 3 * GAMA_TRACK_WIRE_LEN, &back, &n), 6);
         CHECK_EQ_INT(n, 3);
 
-        /* The maximum: twelve records, 244 bytes, still one frame. */
-        CHECK_EQ_INT(gama_ipc_tracks_decode(buf, len + 12 * GAMA_TRACK_WIRE_LEN, &epoch, &n), 4);
+        /* The maximum: twelve records, 246 bytes, still one frame. */
+        CHECK_EQ_INT(gama_ipc_tracks_decode(buf, len + 12 * GAMA_TRACK_WIRE_LEN, &back, &n), 6);
         CHECK_EQ_INT(n, 12);
         CHECK(len + 12 * GAMA_TRACK_WIRE_LEN <= GAMA_FRAME_MAX_PAYLOAD);
 
-        CHECK_EQ_INT(gama_ipc_tracks_decode(buf, len + 13 * GAMA_TRACK_WIRE_LEN, &epoch, &n),
+        CHECK_EQ_INT(gama_ipc_tracks_decode(buf, len + 13 * GAMA_TRACK_WIRE_LEN, &back, &n),
                      GAMA_FRAME_ERR_LEN);
-        CHECK_EQ_INT(gama_ipc_tracks_decode(buf, len + GAMA_TRACK_WIRE_LEN + 1, &epoch, &n),
+        CHECK_EQ_INT(gama_ipc_tracks_decode(buf, len + GAMA_TRACK_WIRE_LEN + 1, &back, &n),
                      GAMA_FRAME_ERR_LEN);
-        CHECK_EQ_INT(gama_ipc_tracks_decode(buf, 3, &epoch, &n), GAMA_FRAME_ERR_SHORT);
+        CHECK_EQ_INT(gama_ipc_tracks_decode(buf, 5, &back, &n), GAMA_FRAME_ERR_SHORT);
+    }
+
+    TEST_GROUP("ipc: tracks index and count must be consistent");
+    {
+        gama_ipc_tracks_hdr_t h = { .epoch_ms = 1, .index = 2, .count = 2 }, back;
+        size_t n;
+        CHECK_EQ_INT(gama_ipc_tracks_header_encode(buf, sizeof(buf), &h), GAMA_FRAME_ERR_ARG);
+        h.index = 0; h.count = 0;
+        CHECK_EQ_INT(gama_ipc_tracks_header_encode(buf, sizeof(buf), &h), GAMA_FRAME_ERR_ARG);
+        h.count = GAMA_IPC_TRACKS_MAX_FRAMES + 1;
+        CHECK_EQ_INT(gama_ipc_tracks_header_encode(buf, sizeof(buf), &h), GAMA_FRAME_ERR_ARG);
+
+        /* The same checks on the receiving side, against hand-built bytes. */
+        uint8_t raw[6] = { 0, 0, 0, 0, 3, 3 };          /* index 3 of 3 */
+        CHECK_EQ_INT(gama_ipc_tracks_decode(raw, 6, &back, &n), GAMA_FRAME_ERR_LEN);
+        raw[4] = 0; raw[5] = 0;                          /* count 0 */
+        CHECK_EQ_INT(gama_ipc_tracks_decode(raw, 6, &back, &n), GAMA_FRAME_ERR_LEN);
     }
 
     TEST_GROUP("track age: rewritten in place, other fields untouched");
