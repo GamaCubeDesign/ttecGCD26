@@ -38,3 +38,16 @@ target_compile_definitions(ttec_radio PRIVATE _GNU_SOURCE)
 add_library(ttcd_config STATIC ttcd/config.c)
 target_link_libraries(ttcd_config PUBLIC ttcd_core)
 
+# The ttcd daemon. The build records `git describe` so every log says which
+# build produced it.
+find_package(Git QUIET)
+set(TTEC_VERSION "unknown")
+if(GIT_FOUND)
+    execute_process(COMMAND ${GIT_EXECUTABLE} describe --always --dirty
+                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                    OUTPUT_VARIABLE TTEC_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE
+                    ERROR_QUIET)
+endif()
+add_executable(ttcd ttcd/main.c)
+target_link_libraries(ttcd PRIVATE ttcd_config ttcd_core ttec_ipc ttec_radio)
+target_compile_definitions(ttcd PRIVATE TTEC_VERSION="${TTEC_VERSION}")

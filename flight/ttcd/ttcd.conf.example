@@ -1,0 +1,39 @@
+# ttcd configuration. One `key = value` per line; '#' starts a comment.
+# Unknown keys are an error, so a typo cannot silently keep a default.
+# Any key can be overridden on the command line: ttcd -c FILE -o key=value
+# Check a file without starting: ttcd -c FILE --check-config
+
+# --- where things live -----------------------------------------------------
+ipc_path      = /run/gama/ttec.sock       # adsbd and the OBC connect here
+log_path      = /var/lib/gama/ttcd.jsonl  # one JSON object per line; "-" = stdout
+log_max_bytes = 67108864                  # stop logging (with a record) past 64 MiB
+soc_temp_path = /sys/class/thermal/thermal_zone0/temp
+
+# --- the radio: Ai-Thinker RA-02 (SX1278) on SPI0 ---------------------------
+radio      = sx1278            # or "udp" to run without hardware
+spi_dev    = /dev/spidev0.0    # CE0
+spi_hz     = 1000000
+gpio_chip  = /dev/gpiochip0
+reset_line = 20                # BCM GPIO20 -> RA-02 NRESET (previous mission's wiring)
+dio0_line  = 21                # BCM GPIO21 -> RA-02 DIO0
+lbt        = header            # "preamble" once the bench confirms it (ADR-0007)
+
+# --- link (ADR-0004, ADR-0007) ---------------------------------------------
+profile      = nominal         # safe | nominal | fast
+tx_power_dbm = 20              # 2..20; use 2 on the bench with the radios close
+
+# --- timing, milliseconds (docs/budgets/data-budget.md, ADR-0007) ------------
+hk_period_ms          = 10000
+stat_period_ms        = 30000
+safe_beacon_period_ms = 30000
+safe_hk_period_ms     = 60000
+contact_timeout_ms    = 120000   # silence from the ground before falling to SAFE
+rate_revert_ms        = 20000    # an unconfirmed profile change reverts
+reaction_margin_ms    = 20
+dup_window_ms         = 60000
+
+# --- UDP radio (radio = udp): ttcd on one port, the ground tool on the other --
+udp_bind      = 127.0.0.1
+udp_port      = 47001
+udp_peer      = 127.0.0.1
+udp_peer_port = 47002
