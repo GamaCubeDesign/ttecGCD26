@@ -28,3 +28,9 @@ target_link_libraries(ttec_sx1278 PUBLIC gama_common)
 add_library(ttec_sx1278_linux STATIC radio/sx1278_linux.c)
 target_link_libraries(ttec_sx1278_linux PUBLIC ttec_sx1278)
 target_compile_definitions(ttec_sx1278_linux PRIVATE _GNU_SOURCE)
+
+# The radio as the shells see it: sx1278 hardware or a UDP simulation.
+add_library(ttec_radio STATIC radio/radio_sx1278.c radio/radio_udp.c)
+target_link_libraries(ttec_radio PUBLIC ttec_sx1278_linux)
+target_compile_definitions(ttec_radio PRIVATE _GNU_SOURCE)
+
