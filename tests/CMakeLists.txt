@@ -9,6 +9,7 @@ set(TTEC_TESTS
     test_vectors
     test_lora
     test_ipc_codec
+    test_gs_link
 )
 
 foreach(t IN LISTS TTEC_TESTS)

@@ -12,6 +12,7 @@ add_library(gama_common STATIC
     gama_tc.c
     gama_lora.c
     gama_ipc.c
+    gama_gs_link.c
 )
 
 target_include_directories(gama_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
