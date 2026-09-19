@@ -20,13 +20,14 @@ proposing anything that moves bytes over the radio, check it against
 | Path | What | Target |
 |---|---|---|
 | `common/` | Shared packet codec: framing, CRC, TM/TC records | compiles on Pi **and** ESP32 |
-| `flight/ttcd/` | Telecom daemon: radio, protocol, TC dispatch, TM scheduler | Pi |
-| `flight/adsbd/` | Payload daemon: dump1090, track table, NDJSON log | Pi |
+| `flight/ttcd/` | Telecom daemon: pure core (`link.c`, `tc_dispatch.c`, `tm_sched.c`) + epoll shell (`main.c`) | Pi |
+| `flight/radio/` | SX1278 driver over an abstract bus; Linux bus (spidev + GPIO chardev); radio backends (sx1278, udp) | Pi |
+| `flight/adsbd/` | Payload daemon: dump1090, track table, NDJSON log — **not started (PLANO phase 3)** | Pi |
 | `flight/libipc/` | AF_UNIX SOCK_SEQPACKET transport | Pi |
 | `ground/esp32/` | Ground station firmware | ESP32 / ESP-IDF |
 | `ground/host/` | Operator CLI, dashboard, report generator | PC, Python |
-| `tools/analysis/` | Link and data budget calculator | PC |
-| `tools/sim/` | Simulators for testing without hardware | PC |
+| `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check | PC |
+| `tools/gs_cli/` | Bench ground station: the real `gs_link` on a second RA-02 or the UDP radio | Pi / PC |
 | `docs/adr/` | Architecture Decision Records | — |
 | `docs/icd/` | Interface contracts (OBC↔TT&C, over-the-air) | — |
 | `ultima_missao/` | Previous competition's code, **frozen**, reference only | — |
@@ -48,7 +49,21 @@ cmake --build build-asan -j4 && (cd build-asan && ctest --output-on-failure)
 python3 tools/analysis/lora_budget.py          # full budget tables
 python3 tools/analysis/lora_budget.py --check  # verifies the ADRs' figures
 python3 tools/analysis/check_requirements.py   # verifies docs/requisitos.md quotes the rules verbatim
+
+# the whole link without hardware: ttcd on the UDP radio, gs_cli as the ground
+./build/flight/ttcd -o radio=udp -o ipc_path=/tmp/ttec.sock -o log_path=/tmp/ttcd.jsonl
+./build/tools/gs_cli/gs_cli --radio udp          # then: ping 5, rate fast, ...
 ```
+
+`ctest` includes `test_link_sim` (both protocol sides on a simulated
+half-duplex channel, virtual time) and `test_ttcd_integration` (the real
+`ttcd` binary over the UDP radio, ~5 s real time). The protocol figures in
+ADR-0007 come from `test_link_sim`; if you change link behaviour, rerun it
+and update the ADR's verification table.
+
+Keep the `ttcd` core free of system calls (ADR-0005): no clock reads, no
+sleeps, no file descriptors in `link.c`, `tc_dispatch.c`, `tm_sched.c`.
+Everything the core needs from the world goes through `ttcd_ops_t`.
 
 The build must stay at **zero warnings** under `-Wall -Wextra -Wpedantic
 -Wconversion -Wsign-conversion -Wstrict-prototypes`. This is not cosmetic: the
@@ -133,10 +148,14 @@ built from those.
 
 ## Current state
 
-See `PLANO.md` for what is done, what is next, and the open risks. Phase 1
-(shared codec, tests, ADRs 0001–0004) is complete. Three ADRs are cited by
-accepted documents but not yet written — that debt is listed at the top of
-`PLANO.md` and should be cleared before new code lands.
+See `PLANO.md` for what is done, what is next, and the open risks. As of
+2026-09-19: phases 1 and 2 are done in software — shared codec, IPC, the
+`ttcd` core and daemon, the ground side of the protocol, the SX1278 driver,
+the channel simulation and the bench tooling. Phase 2 still needs its bench
+run on real radios (procedure in `flight/ttcd/README.md`), and ADR-0007 and
+ADR-0012 are *Proposed*, awaiting team review. `flight/adsbd/` and
+`ground/` are not started. Requirement status and open gaps:
+`docs/requisitos.md` (§7 lists the actions).
 
 ## Working style for this repo
 
