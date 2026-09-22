@@ -28,6 +28,8 @@ proposing anything that moves bytes over the radio, check it against
 | `ground/host/` | Operator CLI, dashboard, report generator | PC, Python |
 | `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check | PC |
 | `tools/gs_cli/` | Bench ground station: the real `gs_link` on a second RA-02 or the UDP radio | Pi / PC |
+| `tools/bench/` | Bench procedure: one `gs_cli` command script per step, and `run_step.sh`, which starts `ttcd` afresh for each | Pi / PC |
+| `Makefile` | Entry point for build, tests, bench, Pi install and PC→Pi runs (`make help`) | Pi / PC |
 | `docs/adr/` | Architecture Decision Records | — |
 | `docs/icd/` | Interface contracts (OBC↔TT&C, over-the-air) | — |
 | `ultima_missao/` | Previous competition's code, **frozen**, reference only | — |
@@ -39,21 +41,27 @@ deliver a reference implementation and they merge it.
 ## Build and test
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo && cmake --build build -j4
-(cd build && ctest --output-on-failure)
+make                  # configure + build in build/ (RelWithDebInfo); -j2 on the Pi
+make test             # ctest --output-on-failure; T=regex runs a subset
+make check            # before any merge: test, asan (ASan+UBSan, warnings as errors), requirements
 
-# before any merge
-cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=Debug -DTTEC_SANITIZE=ON
-cmake --build build-asan -j4 && (cd build-asan && ctest --output-on-failure)
-
-python3 tools/analysis/lora_budget.py          # full budget tables
-python3 tools/analysis/lora_budget.py --check  # verifies the ADRs' figures
-python3 tools/analysis/check_requirements.py   # verifies docs/requisitos.md quotes the rules verbatim
+make budget           # full budget tables (lora_budget.py)
+make budget-check     # verifies the ADRs' figures (lora_budget.py --check, also in ctest)
+make requirements     # verifies docs/requisitos.md quotes the rules verbatim
 
 # the whole link without hardware: ttcd on the UDP radio, gs_cli as the ground
-./build/flight/ttcd -o radio=udp -o ipc_path=/tmp/ttec.sock -o log_path=/tmp/ttcd.jsonl
-./build/tools/gs_cli/gs_cli --radio udp          # then: ping 5, rate fast, ...
+make bench-ping RADIO=udp   # one scripted bench step; ttcd is started and stopped for it
+make bench-ttcd RADIO=udp   # by hand: the satellite in one terminal...
+make bench-gs RADIO=udp     # ...the ground in another: ping 5, rate fast, ...
 ```
+
+The `Makefile` only strings these commands together — `cmake`, `ctest`, the
+scripts in `tools/` — and each still works on its own; keep it that way, so
+any failure can be reproduced without make. It configures on every `make`
+because that refreshes `TTEC_VERSION` (`git describe`), which every `ttcd`
+log records. The bench targets drive the two RA-02 on the Pi and the UDP
+radio anywhere else, and `make pi-<target>` runs any target on the Pi over
+rsync and ssh; both are described in `flight/ttcd/README.md`.
 
 `ctest` includes `test_link_sim` (both protocol sides on a simulated
 half-duplex channel, virtual time) and `test_ttcd_integration` (the real
@@ -111,8 +119,8 @@ telecommands to the OBC is exercised by every ground-link test.
 All little-endian. `tests/test_vectors.c` pins the actual bytes of every
 record — **if you change a field's order, width, scaling or endianness, that
 test fails, and that is the point.** Never edit a vector to make it pass;
-regenerate with `tools/gen_vectors` only on a deliberate version bump, and
-review the diff byte by byte.
+regenerate with `make vectors` (`tools/gen_vectors`) only on a deliberate
+version bump, and review the diff byte by byte.
 
 Record sizes are load-bearing for the data budget: track 20 B, roster 11 B,
 HK 25 B, stat 26 B, framing overhead 7 B. Changing one means revising
@@ -152,10 +160,10 @@ See `PLANO.md` for what is done, what is next, and the open risks. As of
 2026-09-19: phases 1 and 2 are done in software — shared codec, IPC, the
 `ttcd` core and daemon, the ground side of the protocol, the SX1278 driver,
 the channel simulation and the bench tooling. Phase 2 still needs its bench
-run on real radios (procedure in `flight/ttcd/README.md`), and ADR-0007 and
-ADR-0012 are *Proposed*, awaiting team review. `flight/adsbd/` and
-`ground/` are not started. Requirement status and open gaps:
-`docs/requisitos.md` (§7 lists the actions).
+run on real radios (`make bench` on the Pi; procedure in
+`flight/ttcd/README.md`), and ADR-0007 and ADR-0012 are *Proposed*, awaiting
+team review. `flight/adsbd/` and `ground/` are not started. Requirement
+status and open gaps: `docs/requisitos.md` (§7 lists the actions).
 
 ## Working style for this repo
 
