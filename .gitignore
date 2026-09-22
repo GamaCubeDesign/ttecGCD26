@@ -11,6 +11,11 @@
 *.ndjson
 *.jsonl
 /flight/**/*.log
+# ...except the bench logs: test evidence for the Design Package (make bench)
+!/docs/vv/bancada/**/*.jsonl
+
+# per-machine Makefile settings (PI_HOST, ...)
+/local.mk
 
 # python
 __pycache__/
