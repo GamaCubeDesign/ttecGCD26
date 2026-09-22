@@ -1,0 +1,3 @@
+# Bench step 1 — both radios answer (flight/ttcd/README.md).
+# Accept: ping_summary with "acked":10.
+ping 10

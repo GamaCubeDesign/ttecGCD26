@@ -1,0 +1,14 @@
+# Bench step 5 — the lost ACK, the critical case of ADR-0007.
+# deafen makes the ground ignore everything it receives for 3 s, so the ACK
+# of SET_RATE never reaches it. Expected, as on the UDP radio on 2026-09-19:
+#   - ttcd goes to FAST (rate ... commanded) and, unconfirmed, back to
+#     NOMINAL 20 s later (rate ... revert);
+#   - the ground keeps retrying at NOMINAL until heard; ttcd changes again
+#     and confirms (rate_commit);
+#   - the ack of SET_RATE comes with attempts > 1 and ~21 s of latency, and
+#     both ends finish on FAST.
+deafen 3
+rate fast
+# The satellite commits the change once it hears the ground at FAST; the
+# PINGs also show both ends did finish there.
+ping 3
