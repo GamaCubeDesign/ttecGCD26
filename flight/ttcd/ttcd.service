@@ -1,11 +1,9 @@
 # ttcd — Gama TT&C daemon: the LoRa link, telecommands and telemetry.
 #
-# Install:
-#   sudo install -m 0755 build/flight/ttcd /usr/local/bin/ttcd
-#   sudo install -D -m 0644 flight/ttcd/ttcd.conf.example /etc/gama/ttcd.conf
-#   sudo install -m 0644 flight/ttcd/ttcd.service /etc/systemd/system/
-#   sudo useradd --system --no-create-home --groups spi,gpio gama
-#   sudo systemctl daemon-reload && sudo systemctl enable --now ttcd
+# Install, on the Pi (flight/ttcd/README.md; from the PC, the same with pi-):
+#   make provision        once: build tools, SPI0 and the gama user below
+#   make install          ttcd, this unit and, if absent, /etc/gama/ttcd.conf
+#   make service-enable   start it now and at every boot
 #
 # ttcd must be listening before adsbd and the OBC connect; both retry their
 # connection, so start order only affects how soon they succeed (ADR-0005).
