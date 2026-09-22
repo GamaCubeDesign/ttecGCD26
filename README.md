@@ -14,11 +14,13 @@ Cobre três softwares e a documentação de arquitetura:
 | `ground/esp32/` | Firmware da ground station | ESP32, ESP-IDF | fase 4 |
 | `ground/host/` | CLI do operador, dashboard e gerador de relatório | PC | fase 4 |
 | `tools/gs_cli/` | Ground station de bancada (segundo RA-02 ou rádio UDP) | Pi / PC | pronto |
+| `tools/bench/` | Roteiros dos passos da bancada e o executor que sobe o `ttcd` para cada um | Pi / PC | pronto; ensaiado no rádio UDP |
 | `tools/analysis/` | Orçamento de enlace e dados, tempo no ar medido, checagem das citações | PC | pronto |
 | `docs/` | ADRs, ICDs, budgets, requisitos, plano de V&V | — | — |
 
-Para rodar o enlace inteiro sem hardware e para o teste de bancada com os
-rádios, veja `flight/ttcd/README.md`.
+Os comandos do dia a dia são alvos do `Makefile` (`make help` lista todos).
+Para rodar o enlace inteiro sem hardware, para o teste de bancada com os
+rádios e para mandar o código do PC para a Pi, veja `flight/ttcd/README.md`.
 
 O computador de bordo (OBC) fica em **outro repositório**, mantido por outra
 equipe. O contrato entre os dois está em `docs/icd/obc-ttec-icd.md`.
@@ -48,18 +50,16 @@ equipe. O contrato entre os dois está em `docs/icd/obc-ttec-icd.md`.
 ## Build e testes
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build -j4
-(cd build && ctest --output-on-failure)
+make                  # configura e compila (CMake, em build/)
+make test             # os testes; make test T=link_sim roda só os que casam
+make check            # antes de qualquer merge
 ```
 
-Com sanitizers (é assim que os testes devem rodar antes de qualquer merge):
-
-```bash
-cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=Debug -DTTEC_SANITIZE=ON
-cmake --build build-asan -j4
-(cd build-asan && ctest --output-on-failure)
-```
+O `make check` roda os testes, depois compila de novo em `build-asan/` com
+ASan e UBSan e com todo warning virando erro, roda os testes ali, e confere
+as citações de `docs/requisitos.md` contra o regulamento. É assim que o
+código deve estar antes de qualquer merge. Os comandos por baixo — `cmake`,
+`ctest`, os scripts de `tools/analysis/` — continuam valendo sozinhos.
 
 O build é mantido em **zero warnings** com `-Wall -Wextra -Wpedantic
 -Wconversion -Wsign-conversion`. Isso não é cosmético: quase todo bug que este
@@ -71,8 +71,8 @@ latitude — aparece primeiro como conversão implícita.
 Todo número citado nos ADRs sai deste script:
 
 ```bash
-python3 tools/analysis/lora_budget.py           # tabelas completas
-python3 tools/analysis/lora_budget.py --check    # confere contra os ADRs
+make budget           # tabelas completas (tools/analysis/lora_budget.py)
+make budget-check     # confere contra os ADRs (lora_budget.py --check)
 ```
 
 O `--check` roda como teste no CTest, então a documentação não consegue

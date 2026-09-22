@@ -8,7 +8,7 @@ Written in English: the competition requires the Design Package in English
 | [`adr/`](adr/README.md) | Architecture Decision Records — every decision, with its rationale and the alternatives rejected |
 | `icd/` | Interface Control Documents — the OBC↔TT&C contract and the over-the-air protocol |
 | `budgets/` | Data, link and power budgets |
-| `vv/` | Verification and Validation plan and the requirements traceability matrix |
+| `vv/` | Verification and Validation plan and the requirements traceability matrix; `vv/bancada/` holds the bench logs, one directory per day, written there by `make bench` |
 | `conops.md` | Concept of Operations — mission phases and operational modes |
 | `relatorios/` | Team status reports, in Portuguese — working notes for the team, not part of the Design Package |
 | [`requisitos.md`](requisitos.md) | Every mission requirement quoted verbatim from the rules, with its status in this repository and what is missing — in Portuguese, working notes for the team |

@@ -29,8 +29,7 @@ das medições que o firmware produzir.
 | Budgets de dados e enlace | `docs/budgets/` | inglês |
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo && cmake --build build -j4
-(cd build && ctest --output-on-failure)
+make test             # compila e roda a suíte; make check antes de um merge
 ```
 
 ### Fase 2 — concluída em software; falta a bancada (dias 3–4)
@@ -51,6 +50,8 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo && cmake --build build -j4
 | Unidade systemd | `flight/ttcd/ttcd.service` | `systemd-analyze verify` |
 | Ground de bancada | `tools/gs_cli/` | exercitada contra o `ttcd` real via UDP |
 | Análise de tempo no ar | `tools/analysis/toa_from_log.py` | — |
+| Makefile: build, testes, bancada, instalação e PC → Pi | `Makefile` | `make help`; `pi-sync` conferido contra um diretório local (não há Pi ligada) |
+| Roteiros da bancada, um `ttcd` novo por passo | `tools/bench/` | `make bench` inteiro no rádio UDP: 6 passos, 28 min |
 | ADRs | 0005, 0006, 0008, 0011 *Accepted*; 0007, 0012 *Proposed* | — |
 
 15 suítes, zero warnings, limpo sob ASan e UBSan.
@@ -73,10 +74,12 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo && cmake --build build -j4
 
 #### Falta para fechar a fase 2 — depende do hardware
 
-- [ ] Executar o teste de bancada de `flight/ttcd/README.md`: tempo no ar
-      dentro de 5%, PER sobre 1000 frames por perfil, trocas de taxa, ACK
-      perdido, LBT `header` × `preamble`
-- [ ] Registrar em `docs/vv/bancada/AAAA-MM-DD/`
+- [ ] Executar o teste de bancada de `flight/ttcd/README.md` — `make bench`
+      na Pi, ou `make pi-bench` do PC: tempo no ar dentro de 5%, PER sobre
+      1000 frames por perfil, trocas de taxa, ACK perdido, LBT `header` ×
+      `preamble`
+- [ ] Registrar em `docs/vv/bancada/AAAA-MM-DD/` — os logs já vão para lá;
+      falta a `notas.md` com a montagem e os resultados
 - [ ] Revisar e aceitar o ADR-0007 e o ADR-0012 (estão *Proposed*)
 
 ### Dívida imediata
@@ -160,8 +163,9 @@ três perfis; LDRO confirmado por leitura de registrador após troca de perfil.
 
 ### 2.7 Teste de bancada
 
-Procedimento completo em `flight/ttcd/README.md`; ferramentas: `tools/gs_cli`,
-`tools/analysis/toa_from_log.py`.
+Procedimento completo em `flight/ttcd/README.md`. `make bench` roda os passos
+1 a 6 a partir dos roteiros de `tools/bench/`, sobre `tools/gs_cli` e
+`tools/analysis/toa_from_log.py`, e grava os logs em `docs/vv/bancada/`.
 
 - [ ] Dois RA-02 a ~1 m, potência de 2 dBm
 - [ ] PER sobre 1000 frames em cada perfil

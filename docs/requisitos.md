@@ -349,8 +349,8 @@ nada é transmitido ainda
 **Dono:** L · **Estado:** `PARCIAL`
 
 - Camada física e taxas: definidas e justificadas no ADR-0004 e em
-  `docs/budgets/link-budget.md`, reproduzíveis com
-  `python3 tools/analysis/lora_budget.py`.
+  `docs/budgets/link-budget.md`, reproduzíveis com `make budget`
+  (`tools/analysis/lora_budget.py`).
 - Protocolo: implementado em `common/` e `flight/ttcd/`, fixado por
   `tests/test_vectors.c` e verificado pela simulação de canal. O ADR-0007
   (acesso ao meio, ACK, troca de taxa) está escrito como *Proposed*; falta o
@@ -1497,7 +1497,7 @@ este documento ([§9](#9-como-manter-este-documento)).
 - **Texto literal:** conferir as citações contra o PDF com
 
   ```bash
-  python3 tools/analysis/check_requirements.py
+  make requirements      # tools/analysis/check_requirements.py
   ```
 
   Quando sair a versão final do regulamento, trocar o PDF em `docs/` e rodar
