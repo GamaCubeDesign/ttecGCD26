@@ -82,6 +82,65 @@ make test             # compila e roda a suíte; make check antes de um merge
       falta a `notas.md` com a montagem e os resultados
 - [ ] Revisar e aceitar o ADR-0007 e o ADR-0012 (estão *Proposed*)
 
+### Fase 3 — concluída em software; faltam as medições na Pi (2026-09-28)
+
+| Item | Onde | Evidência |
+|---|---|---|
+| Leitura do SBS-1, com o "no solo" corrigido (`-1` é verdadeiro) | `flight/adsbd/sbs.c` | `test_sbs`: 64 verificações |
+| Linha do registro de bordo, byte a byte a do protótipo | `flight/adsbd/ndjson.c` | as três linhas de que o `lora_budget.py` deriva os 160,4 B/linha, fixadas em `test_sbs` |
+| Tabela de aeronaves e regras do retrato | `flight/adsbd/tracks.c` | `test_tracks`: 51 verificações, inclusive 20 aeronaves por 10 min a 4 msg/s |
+| Núcleo do `adsbd`, sem chamadas de sistema | `flight/adsbd/core.c` | `test_adsbd_core`: 66 verificações |
+| Configuração por arquivo e `-o`, com validação cruzada | `flight/adsbd/config.c` | `test_adsbd_config`: 35 verificações |
+| Casca: supervisão do `dump1090`, SBS, IPC, teto do registro | `flight/adsbd/main.c` | `test_adsbd_integration`: o binário real contra `dump1090` e `ttcd` falsos, 46 verificações |
+| A cadeia inteira sem hardware: SBS → `adsbd` → `ttcd` → rádio UDP → ground | `tests/test_adsb_chain.c` | 31 verificações: o rádio sobrevive ao `adsbd` morto; o `adsbd` reiniciado volta à hora da ground |
+| `ttcd` reenvia a hora a quem se conecta depois do `SET_TIME` | `flight/ttcd/link.c`, `tc_dispatch.c` | `test_ttcd_core`: 199 verificações (eram 188) |
+| Ground manda `SET_TIME` sozinha no contato | `tools/gs_cli` (`--auto-time on`) | exercitado no `make adsb-chain` |
+| Referência de tempo | ADR-0009 (*Proposed*) | — |
+| `dump1090` sem SDR, a partir de captura ou simulação | `tools/sbs_replay/` | — |
+| Estimador de origem e destino do colega, trazido da branch `ADSB-ground` | `ground/host/ground-aeronaves/` | os 49 testes dele no CTest (`ground_aeronaves`), 1 pulado sem o banco local |
+| Downlink → NDJSON do estimador | `ground/host/tracks_to_ndjson.py` | 7 testes, cada linha conferida pelo próprio `parser.py` do estimador (CTest `tracks_to_ndjson`) |
+| Emulação do downlink sobre capturas reais, com comparação | `tools/analysis/downlink_emulation.py` | mesmas conclusões do estimador com 382 registros (a cada 5 s) e com 1894 mensagens (completo), também com 10% de perda — simulação sintética |
+| Missão gravada ou simulada pela cadeia inteira | `make adsb-chain INPUT=...` | ver `flight/adsbd/README.md` |
+| A mesma missão pela cadeia real, até o estimador da ground | `make adsb-chain`, simulador do colega | 1894 mensagens → 5682 linhas SBS gravadas a bordo → 125 frames de tracks, nenhum perdido → 386 registros na ground; o estimador chega às mesmas origens e destinos que com o fluxo completo — os destinos nos mesmos instantes, a origem 51 s antes; latência de bordo p95 de 2,0 s, medida pelo próprio `ttcd` no `TM_STAT` (a meta do data-budget §8, derivada do HLR-ADS-08, é p95 ≤ 5 s). Cenário sintético: 4 voos, 10 min, rádio UDP |
+| Unidade systemd, sem root | `flight/adsbd/adsbd.service` | `systemd-analyze verify`; `DeviceAllow` a conferir na Pi |
+
+23 suítes — 3406 verificações em C, 7 testes do adaptador e 49 do estimador
+em Python —, zero warnings, limpo sob ASan e UBSan.
+
+#### O que mudou em relação ao plano da fase 3
+
+- **Busca linear, não hash, na tabela.** A 128 posições e ~80 mensagens/s são
+  ~10 000 comparações por segundo; o custo está no `dump1090`, não aqui.
+- **Retrato a cada 1 s para o `ttcd`**, que transmite o mais recente a cada 5 s:
+  é a cadência que a simulação do ADR-0007 supôs (latência p95 de 3,2 s). Um
+  retrato vazio também vai, para uma aeronave que sumiu não voltar ao ar.
+- **A idade do registro é a da posição**, quando ela tem até 10 s; sem posição
+  recente, o registro sai sem posição, datado pelo campo mais novo.
+- **Tempo: monotônico + âncora da ground** (ADR-0009), com o formato da linha
+  intacto. Dois achados: o `ttcd` não mandava a hora a um `adsbd` que se
+  conectasse depois do `SET_TIME`; e a ground passou a mandar a hora sozinha
+  no contato, como combinado na reunião de 28/09.
+- **O `adsb_capture.c` lia errado o "no solo" do SBS** (`-1` é verdadeiro no
+  formato BaseStation, conferido no `net_io.c` do dump1090-fa): toda
+  aeronave no solo saía como desconhecida no NDJSON, e o estimador da ground
+  perdia a âncora de decolagem.
+- **Integração com o estimador da ground**, que não estava no plano: o
+  estimador de origem e destino e o painel do colega consomem o mesmo NDJSON
+  do registro de bordo; o adaptador faz o downlink chegar nele no mesmo
+  formato, sem mudar o código dele. A branch `ADSB-ground` entrou por merge
+  em 28/09, com a autoria preservada, e mudou para `ground/host/` — a pasta
+  original tinha um espaço no nome.
+- **O `--write-json` do `dump1090` saiu**: gravava um arquivo no SD por
+  segundo que ninguém lia.
+
+#### Falta para fechar a fase 3 — depende do hardware ou de decisão
+
+- [ ] Instalar o `dump1090-fa` na Pi e medir (3.4)
+- [ ] `IPC_STAT` com o indicador de `dump1090` vivo — muda um formato fixado
+      pelos vetores: decidir antes
+- [ ] Mensagem IPC ICAO → callsign para o `REQ_ROSTER`
+- [ ] Revisar e aceitar o ADR-0009
+
 ### Dívida imediata
 
 ~~Três ADRs citados por documentos aceitos não existiam~~ — **quitada em
@@ -187,37 +246,49 @@ Procedimento completo em `flight/ttcd/README.md`. `make bench` roda os passos
 
 Objetivo: **track table alimentada por SDR real**, com CPU medida na Pi.
 
-### 3.1 Porte do `adsb_capture.c`
+### 3.1 Porte do `adsb_capture.c` *(feito: `flight/adsbd/`)*
 
 O núcleo é bom: `fork`/`execv` sem shell, remontagem de linha SBS, timestamp
 por mensagem, append + `fflush`. Ajustes:
 
-- [ ] Configuração por arquivo/argv (hoje `/home/pedro/*` está hardcoded)
-- [ ] **`CLOCK_MONOTONIC` + uma âncora de wall-clock no boot** — a Pi Zero 2 W
-      não tem RTC. Mesma convenção que o OBC já documentou em
-      `obc/docs/log_schema.md`; adotar idêntica
-- [ ] Supervisão do `dump1090`: detectar morte, reiniciar, contar reinícios
+- [x] Configuração por arquivo/argv (hoje `/home/pedro/*` está hardcoded)
+- [x] **`CLOCK_MONOTONIC` + uma âncora de wall-clock** — a Pi Zero 2 W não tem
+      RTC. A âncora vem do `SET_TIME` da ground, não do boot (ADR-0009)
+- [x] Supervisão do `dump1090`: detectar morte, reiniciar, contar reinícios
       (`gama_stat_t.dump1090_restarts`)
-- [ ] Remover o `sleep(2)` da linha 375; laço de retry no connect
-- [ ] Teto de tamanho no NDJSON — filesystem cheio derruba o `ttcd` junto
+- [x] Remover o `sleep(2)` da linha 375; laço de retry no connect
+- [x] Teto de tamanho no NDJSON — filesystem cheio derruba o `ttcd` junto
+- [x] *(achado)* `on_ground` do SBS: `-1` é verdadeiro
 
-### 3.2 `flight/adsbd/tracks.*` — tabela de pistas
+### 3.2 `flight/adsbd/tracks.*` — tabela de pistas *(feito)*
 
-- [ ] Hash por ICAO de 24 bits, capacidade fixa, sem `malloc` no caminho quente
-- [ ] Merge por tipo de mensagem: posição, velocidade e identificação chegam
-      separadas — flags de validade por campo (`GAMA_TRACK_F_*`)
-- [ ] Expiração por idade (aeronave que sumiu sai da tabela)
-- [ ] `tracks_snapshot(out, max)` → array de `gama_track_t`
+- [x] Capacidade fixa, sem `malloc` no caminho quente — busca linear, não
+      hash: 128 posições bastam (ver "O que mudou" acima)
+- [x] Merge por tipo de mensagem: posição, velocidade e identificação chegam
+      separadas — cada campo com o instante em que chegou (`GAMA_TRACK_F_*`)
+- [x] Expiração por idade (aeronave que sumiu sai da tabela)
+- [x] `tracks_snapshot(out, max)` → array de `gama_track_t`
 
-### 3.3 `flight/adsbd/ipc_client.*`
+### 3.3 `flight/adsbd/ipc_client.*` *(feito, em `main.c` e `core.c`)*
 
-- [ ] Conectar no `ttcd`, `HELLO` (papel `adsbd`), reconectar se cair
-- [ ] Enviar `IPC_TRACKS` (cabeçalho `epoch_ms`/`index`/`count`, idades
+- [x] Conectar no `ttcd`, `HELLO` (papel `adsbd`), reconectar se cair
+- [x] Enviar `IPC_TRACKS` (cabeçalho `epoch_ms`/`index`/`count`, idades
       medidas até `epoch_ms`) e `IPC_STAT` — formatos em `common/gama_ipc.h`
 - [ ] Acrescentar ao `IPC_STAT` um indicador de `dump1090` vivo: o bit
-      `GAMA_HK_F_DUMP1090_UP` do HK depende dele e hoje nunca é ligado
+      `GAMA_HK_F_DUMP1090_UP` do HK depende dele e hoje nunca é ligado.
+      Muda um payload fixado pelos vetores: decidir antes
 - [ ] Mensagem IPC com a tabela ICAO → callsign, para o `REQ_ROSTER` (hoje
-      responde `FAILED`)
+      responde `FAILED`); o `adsbd` já guarda o callsign
+
+### 3.3b Ponte com a ground *(não estava no plano; feito)*
+
+- [x] `tools/sbs_replay/` — o `dump1090` sem SDR
+- [x] `ground/host/ground-aeronaves/` — o estimador do colega (branch
+      `ADSB-ground`), com os testes dele no CTest
+- [x] `ground/host/tracks_to_ndjson.py` — o downlink no formato do estimador
+- [x] `tools/analysis/downlink_emulation.py` — o downlink emulado sobre
+      capturas reais, com `--compare`
+- [x] `make adsb-chain INPUT=...` — a cadeia inteira, em tempo real
 
 ### 3.4 Medições na Pi — **o maior risco não quantificado**
 
@@ -232,10 +303,11 @@ por mensagem, append + `fflush`. Ajustes:
 
 ### ADRs desta fase
 
-- [ ] `0008-adsb-receive-chain-ownership.md` *(já em dívida)* — resolve o
-      conflito com o `sdr.c` da branch `feat/modulo-aocs` do OBC
-- [ ] `0009-time-reference-and-synchronisation.md`
-- [ ] `0010-onboard-storage-and-data-retention.md`
+- [x] `0008-adsb-receive-chain-ownership.md` (*Accepted* em 2026-09-19) —
+      resolve o conflito com o `sdr.c` da branch `feat/modulo-aocs` do OBC
+- [x] `0009-time-reference-and-synchronisation.md` (*Proposed* — aguarda revisão)
+- [ ] `0010-onboard-storage-and-data-retention.md` — a política já está no
+      data-budget §7 e implementada (`ndjson_max_bytes`); falta o registro
 
 ---
 
@@ -260,7 +332,10 @@ por mensagem, append + `fflush`. Ajustes:
       dele (um JSON por evento, frame bruto em hex) serve de modelo para o
       ESP32 enviar pela UART — o host em Python consome JSON e não precisa de
       um segundo codec (ADR-0002)
-- [ ] Tabela ao vivo de aeronaves
+- [ ] Tabela ao vivo de aeronaves — o painel de `ground/host/ground-aeronaves`
+      já faz; falta ligá-lo ao downlink ao vivo (hoje só o `make adsb-chain`
+      leva o downlink até o estimador)
+- [x] Adaptador downlink → NDJSON do estimador (`ground/host/tracks_to_ndjson.py`)
 - [ ] Base: `ultima_missao/telemetry_reports/serial_data_collector/`
 - [ ] Reaproveitar `thermalControl/gerarRelatorio.py` + `template.tex` para o
       relatório de evidência do DP
@@ -278,7 +353,7 @@ por mensagem, append + `fflush`. Ajustes:
 
 ### ADRs desta fase
 
-- [ ] `0011-documentation-language.md` *(já em dívida)*
+- [x] `0011-documentation-language.md` (*Accepted* em 2026-09-19)
 
 ---
 
