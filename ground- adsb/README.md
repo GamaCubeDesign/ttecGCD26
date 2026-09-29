@@ -1,0 +1,45 @@
+# Ground ADS-B
+
+Este diretório contém o projeto ADS-B independente dos módulos já existentes na main.
+
+- `ground-aeronaves/`: recepção de NDJSON, estimador por aeroportos/pistas, memória temporal, painel web, simulador e testes.
+- `banco-aeronaves/`: importador do cadastro OurAirports. O banco de rotas foi removido.
+
+## Executar
+
+Requer Python 3.10 ou mais recente; o núcleo usa a biblioteca padrão.
+
+```bash
+cd "ground- adsb/ground-aeronaves"
+python3 -m venv .venv
+source .venv/bin/activate
+python -m unittest discover -s tests -v
+```
+
+Para simular ou usar o cadastro geográfico, coloque uma cópia do `referencias.db` local em `ground- adsb/banco-aeronaves/`. Alternativamente, copie os CSVs e o manifesto do cadastro local para `banco-aeronaves/fontes/` e execute `python3 banco-aeronaves/importar_bases.py` a partir desta pasta. O importador verifica os hashes e recusa sobrescrever tabelas existentes. O banco fica ignorado pelo Git.
+
+Com o banco instalado, execute em dois terminais dentro de `ground-aeronaves/`:
+
+```bash
+python simular_trajetorias.py
+```
+
+```bash
+python -m ground.visualize --serve
+```
+
+O simulador e o painel usam por padrão `~/adsb/eventos.ndjson`. Para processar um arquivo até o fim: `python -m ground --input /caminho/eventos.ndjson`.
+
+## Avaliação e dados locais
+
+```bash
+python validation/gerar_casos_avaliacao.py
+python validation/rodar_teste_completo.py
+python validation/diagnosticar_estimador.py
+```
+
+Os comandos acima exigem o cadastro geográfico. Os casos sintéticos e as respostas esperadas são gerados pelo primeiro comando. `validation/evaluate.py` é uma avaliação histórica que exige o pacote local `validation/baseline-2026-09-24/`; ele não é distribuído aqui. O teste E480F9 é ignorado se o banco ou sua captura local não estiverem presentes.
+
+Não são versionados bancos, capturas NDJSON, dados de referência, estados gerados, pacotes históricos ou ambiente virtual. Para reproduzir exatamente uma avaliação anterior, use os mesmos dados locais. A documentação histórica pode mencionar caminhos do computador original e etapas antigas; este arquivo descreve a organização para GitHub.
+
+As estimativas são heurísticas experimentais. TENTATIVE é uma hipótese provisória; ESTIMATED não confirma o evento nem representa uma probabilidade calibrada.
