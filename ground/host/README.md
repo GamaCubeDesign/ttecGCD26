@@ -32,6 +32,16 @@ python -m ground.visualize --serve
 
 O simulador e o painel usam por padrão `~/adsb/eventos.ndjson`. Para processar um arquivo até o fim: `python -m ground --input /caminho/eventos.ndjson`.
 
+## Do downlink ao estimador
+
+`tracks_to_ndjson.py` converte o log da ground station (um JSON por evento, como o `tools/gs_cli` escreve e como o ESP32 vai mandar pela UART) no NDJSON que o estimador lê: um objeto por registro de aeronave recebido, com o horário refeito no relógio desta máquina — chegada menos tempo no ar menos idade, ADR-0007 — e só os campos que o registro marca como válidos. O teste dele passa cada linha pelo `parser.py` do estimador.
+
+```bash
+gs_cli --radio udp ... | python3 tracks_to_ndjson.py | (cd ground-aeronaves && python -m ground --input -)
+```
+
+A cadeia inteira sem hardware — captura ou simulação, `adsbd`, `ttcd`, rádio UDP, ground e estimador — é o `make adsb-chain INPUT=...`, descrito em `flight/adsbd/README.md`.
+
 ## Avaliação e dados locais
 
 ```bash

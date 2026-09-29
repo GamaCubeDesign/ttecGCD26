@@ -107,4 +107,8 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME ground_aeronaves
              COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host/ground-aeronaves)
+    # The ground's adapter from the downlink to the estimator's NDJSON.
+    add_test(NAME tracks_to_ndjson
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_tracks_to_ndjson
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
 endif()
