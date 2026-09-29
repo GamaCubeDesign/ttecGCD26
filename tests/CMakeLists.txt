@@ -45,6 +45,23 @@ target_link_libraries(test_config PRIVATE ttcd_config)
 target_include_directories(test_config PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_config COMMAND test_config)
 
+# adsbd: the SBS parser and the record line, the track table, and the core on
+# a virtual clock.
+add_executable(test_sbs test_sbs.c)
+target_link_libraries(test_sbs PRIVATE adsbd_core)
+target_include_directories(test_sbs PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_sbs COMMAND test_sbs)
+
+add_executable(test_tracks test_tracks.c)
+target_link_libraries(test_tracks PRIVATE adsbd_core)
+target_include_directories(test_tracks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_tracks COMMAND test_tracks)
+
+add_executable(test_adsbd_core test_adsbd_core.c)
+target_link_libraries(test_adsbd_core PRIVATE adsbd_core)
+target_include_directories(test_adsbd_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_adsbd_core COMMAND test_adsbd_core)
+
 # The real ttcd binary, end to end, over the UDP radio.
 add_executable(test_ttcd_integration test_ttcd_integration.c)
 target_link_libraries(test_ttcd_integration PRIVATE ttec_radio ttec_ipc gama_common)

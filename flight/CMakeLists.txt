@@ -51,3 +51,15 @@ endif()
 add_executable(ttcd ttcd/main.c)
 target_link_libraries(ttcd PRIVATE ttcd_config ttcd_core ttec_ipc ttec_radio)
 target_compile_definitions(ttcd PRIVATE TTEC_VERSION="${TTEC_VERSION}")
+
+# The adsbd core: SBS parsing, the track table, the onboard record and the
+# snapshots for ttcd. No system calls, like ttcd's core, so the tests drive
+# it with a virtual clock and recorded SBS lines.
+add_library(adsbd_core STATIC
+    adsbd/sbs.c
+    adsbd/tracks.c
+    adsbd/ndjson.c
+    adsbd/core.c
+)
+target_include_directories(adsbd_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/adsbd)
+target_link_libraries(adsbd_core PUBLIC gama_common)
