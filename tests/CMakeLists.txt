@@ -74,6 +74,13 @@ target_include_directories(test_ttcd_integration PRIVATE ${CMAKE_CURRENT_SOURCE_
 add_test(NAME test_ttcd_integration COMMAND test_ttcd_integration $<TARGET_FILE:ttcd>)
 set_tests_properties(test_ttcd_integration PROPERTIES TIMEOUT 60)
 
+# The real adsbd binary: dump1090 and ttcd played by the test.
+add_executable(test_adsbd_integration test_adsbd_integration.c)
+target_link_libraries(test_adsbd_integration PRIVATE ttec_ipc gama_common)
+target_include_directories(test_adsbd_integration PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_adsbd_integration COMMAND test_adsbd_integration $<TARGET_FILE:adsbd>)
+set_tests_properties(test_adsbd_integration PROPERTIES TIMEOUT 60)
+
 # test_tm exercises NaN handling and quantisation bounds.
 target_link_libraries(test_tm PRIVATE m)
 

@@ -1,0 +1,49 @@
+# adsbd — Gama ADS-B payload daemon: dump1090-fa, the track table, the
+# onboard record, the snapshots for ttcd.
+#
+# Install, on the Pi (flight/adsbd/README.md; from the PC, the same with pi-):
+#   make install          ttcd and adsbd, their units and, if absent, their
+#                         files in /etc/gama
+#   make adsbd-enable     start it now and at every boot
+#
+# Needs dump1090-fa at the path dump1090_cmd names in /etc/gama/adsbd.conf.
+# ttcd need not be up first: adsbd keeps recording and reconnects on its own,
+# and ttcd keeps the radio on while adsbd is away (ADR-0005).
+
+[Unit]
+Description=Gama ADS-B payload daemon (adsbd)
+Documentation=file:///usr/local/share/doc/gama/adr
+After=ttcd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/adsbd -c /etc/gama/adsbd.conf
+User=gama
+Group=gama
+# plugdev: the RTL-SDR's USB device, through librtlsdr's udev rule.
+SupplementaryGroups=plugdev
+
+# The payload restarts on its own; dump1090 is a child in this unit's cgroup
+# and stops with it.
+Restart=always
+RestartSec=2
+KillMode=control-group
+
+# /run/gama holds ttcd's socket; this unit must not remove it when it stops.
+RuntimeDirectory=gama
+RuntimeDirectoryMode=0770
+RuntimeDirectoryPreserve=yes
+# /var/lib/gama holds the onboard record and the event log.
+StateDirectory=gama
+
+# Only USB devices (the SDR). To confirm on the first run on the Pi (PLANO 3.4).
+DevicePolicy=closed
+DeviceAllow=char-usb_device rw
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/gama /run/gama
+
+[Install]
+WantedBy=multi-user.target

@@ -69,3 +69,9 @@ add_library(adsbd_config STATIC adsbd/config.c)
 target_link_libraries(adsbd_config PUBLIC adsbd_core)
 # strtok_r is POSIX, not C11.
 target_compile_definitions(adsbd_config PRIVATE _POSIX_C_SOURCE=200809L)
+
+# The payload daemon: supervises dump1090-fa, reads its SBS output, records
+# every message and sends track snapshots to ttcd (ADR-0008).
+add_executable(adsbd adsbd/main.c)
+target_link_libraries(adsbd PRIVATE adsbd_config adsbd_core ttec_ipc)
+target_compile_definitions(adsbd PRIVATE TTEC_VERSION="${TTEC_VERSION}")

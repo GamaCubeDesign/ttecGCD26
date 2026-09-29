@@ -1,0 +1,34 @@
+# adsbd configuration. One `key = value` per line; '#' starts a comment.
+# Unknown keys are an error, so a typo cannot silently keep a default.
+# Any key can be overridden on the command line: adsbd -c FILE -o key=value
+# Check a file without starting: adsbd -c FILE --check-config
+
+# --- where things live -----------------------------------------------------
+ipc_path         = /run/gama/ttec.sock         # ttcd's socket; adsbd reconnects on its own
+ndjson_path      = /var/lib/gama/adsb.ndjson   # the onboard record: every message (HLR-SW-02)
+ndjson_max_bytes = 1073741824                  # 1 GiB, ~140 missions of 7.34 MiB; then stop, with an event
+log_path         = /var/lib/gama/adsbd.jsonl   # events, one JSON object per line; "-" = stdout
+log_max_bytes    = 67108864
+
+# --- dump1090 (ADR-0008) -----------------------------------------------------
+# Run without a shell, split on spaces; the first word is an absolute path.
+# Empty: adsbd starts nothing and connects to sbs_host:sbs_port — a dump1090
+# started elsewhere, or tools/sbs_replay on the bench.
+# The gain is the prototype's until the sweep of PLANO 3.4 measures a better
+# one; how "-10" is read depends on the dump1090-fa version.
+dump1090_cmd = /usr/bin/dump1090-fa --device-index 0 --gain -10 --net --net-bind-address 127.0.0.1 --net-sbs-port 30003 --net-ro-port 0 --net-bo-port 0 --net-bi-port 0 --net-ri-port 0 --quiet
+sbs_host       = 127.0.0.1
+sbs_port       = 30003
+retry_ms       = 1000     # reconnection to dump1090 and to ttcd
+restart_min_ms = 1000     # dump1090 died: the first wait before starting it again
+restart_max_ms = 30000    # ... doubling up to this; a run of a minute resets it
+
+# --- tracks and snapshots (flight/adsbd/tracks.h, ADR-0007) ------------------
+snapshot_period_ms    = 1000    # to ttcd; the link model of ADR-0007 assumes 1 s
+stat_period_ms        = 1000
+report_period_ms      = 60000   # counters into the event log
+track_expiry_ms       = 60000   # an aircraft silent this long leaves the table
+position_max_age_ms   = 10000   # older positions are left out of a record
+field_ttl_ms          = 60000   # older fields are left out of a record
+snapshot_max_aircraft = 24      # two frames: the data budget's 20 aircraft
+table_capacity        = 128

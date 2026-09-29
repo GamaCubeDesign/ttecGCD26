@@ -171,9 +171,10 @@ radio-a-free:
 	    exit 1; \
 	fi
 
-##@ On the Pi — ttcd as a systemd service
+##@ On the Pi — ttcd and adsbd as systemd services
 
-.PHONY: provision install service-enable service-stop service-status service-logs
+.PHONY: provision install service-enable service-stop service-status service-logs \
+        adsbd-enable adsbd-stop adsbd-status
 
 # Once, on a fresh Pi: the build tools, tmux (a long bench run inside it
 # survives a dropped ssh), SPI0 (spidev0.0 and spidev0.1) and the unprivileged
@@ -189,19 +190,26 @@ provision: ## Once: build tools, SPI0 enabled, the gama user for the service
 	$(need-pi)
 	$(PROVISION)
 
-# ttcd.service runs /usr/local/bin/ttcd -c /etc/gama/ttcd.conf. An existing
-# /etc/gama/ttcd.conf is kept: it may hold this board's own settings.
-install: build ## Install ttcd, its systemd unit and, if absent, /etc/gama/ttcd.conf
+# ttcd.service runs /usr/local/bin/ttcd -c /etc/gama/ttcd.conf, and
+# adsbd.service /usr/local/bin/adsbd -c /etc/gama/adsbd.conf. An existing
+# file in /etc/gama is kept: it may hold this board's own settings.
+install: build ## Install ttcd and adsbd, their systemd units and, if absent, their /etc/gama files
 	$(need-pi)
 	$(SUDO) install -m 0755 $(BUILD_DIR)/flight/ttcd /usr/local/bin/ttcd
+	$(SUDO) install -m 0755 $(BUILD_DIR)/flight/adsbd /usr/local/bin/adsbd
 	$(SUDO) install -m 0644 flight/ttcd/ttcd.service /etc/systemd/system/ttcd.service
-	if [ -e /etc/gama/ttcd.conf ]; then \
-	    echo "kept /etc/gama/ttcd.conf; compare it with flight/ttcd/ttcd.conf.example"; \
-	else \
-	    $(SUDO) install -D -m 0644 flight/ttcd/ttcd.conf.example /etc/gama/ttcd.conf; \
-	fi
+	$(SUDO) install -m 0644 flight/adsbd/adsbd.service /etc/systemd/system/adsbd.service
+	for d in ttcd adsbd; do \
+	    if [ -e /etc/gama/$$d.conf ]; then \
+	        echo "kept /etc/gama/$$d.conf; compare it with flight/$$d/$$d.conf.example"; \
+	    else \
+	        $(SUDO) install -D -m 0644 flight/$$d/$$d.conf.example /etc/gama/$$d.conf; \
+	    fi; \
+	done
 	$(SUDO) systemctl daemon-reload
-	if systemctl is-active --quiet ttcd; then $(SUDO) systemctl restart ttcd; echo "ttcd restarted"; fi
+	for d in ttcd adsbd; do \
+	    if systemctl is-active --quiet $$d; then $(SUDO) systemctl restart $$d; echo "$$d restarted"; fi; \
+	done
 
 service-enable: ## Start ttcd now and at every boot — the flight configuration
 	$(need-pi)
@@ -219,6 +227,23 @@ service-status: ## systemd's view of ttcd, and the end of its log
 service-logs: ## Follow ttcd's log; Ctrl-C leaves
 	$(need-pi)
 	tail -F $(SERVICE_LOG)
+
+# log_path in /etc/gama/adsbd.conf.
+ADSBD_LOG   ?= /var/lib/gama/adsbd.jsonl
+
+adsbd-enable: ## Start adsbd now and at every boot (dump1090-fa must be installed)
+	$(need-pi)
+	@test -x /usr/bin/dump1090-fa || echo "warning: /usr/bin/dump1090-fa not found; adsbd will keep retrying it" >&2
+	$(SUDO) systemctl enable --now adsbd
+
+adsbd-stop: ## Stop adsbd until the next boot: frees the SDR
+	$(need-pi)
+	$(SUDO) systemctl stop adsbd
+
+adsbd-status: ## systemd's view of adsbd, and the end of its log
+	$(need-pi)
+	systemctl status adsbd --no-pager || true
+	tail -n 20 $(ADSBD_LOG)
 
 ##@ From the PC — the same targets, run on the Pi over ssh
 
