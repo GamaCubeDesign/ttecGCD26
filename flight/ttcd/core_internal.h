@@ -31,6 +31,10 @@ bool ack_pending(const ttcd_core_t *c);
 void ack_pop(ttcd_core_t *c, ttcd_ack_t *out);
 const ttcd_ack_t *ack_peek(const ttcd_core_t *c);
 
+/* Sends a peer the wall-clock time now, from the ground's anchor (ADR-0009).
+ * Nothing is sent before the first SET_TIME. */
+void core_send_time(ttcd_core_t *c, uint64_t now, uint8_t role);
+
 /* ---- tm_sched.c ---- */
 
 void tm_init(ttcd_core_t *c, uint64_t now);

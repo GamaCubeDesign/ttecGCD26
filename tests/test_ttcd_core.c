@@ -587,6 +587,41 @@ int main(void)
         CHECK_EQ_INT(st, GAMA_ACK_BAD_ARGS);
     }
 
+    TEST_GROUP("core: a peer that connects after SET_TIME is told the time at once");
+    {
+        boot();
+        gama_ipc_time_t t = { .unix_s = 1789900000u, .nsec = 250000000u };
+        uint8_t args[8];
+        gama_ipc_time_encode(args, sizeof(args), &t);
+        h_send_tc(&C, 52, GAMA_TC_SET_TIME, args, 8);
+        CHECK_EQ_INT(H.n_ipc, 0);                        /* nobody to tell yet */
+        CHECK(step_to(&C, H.now + 5000));
+        /* adsbd restarted, say: without this it would stamp its record with
+         * the unsynchronised system clock until the next SET_TIME. */
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
+        CHECK_EQ_INT(H.n_ipc, 1);
+        CHECK_EQ_INT(H.ipc_role[0], GAMA_IPC_ROLE_ADSBD);
+        gama_frame_t f; gama_ipc_time_t now_t;
+        gama_frame_decode(H.ipc[0], H.ipc_len[0], &f);
+        CHECK_EQ_INT(f.type, GAMA_FRAME_IPC_TIME_SET);
+        gama_ipc_time_decode(f.payload, f.len, &now_t);
+        /* 165 ms on air, then 5 s: the time now, not the time of the anchor. */
+        CHECK_EQ_INT(now_t.unix_s, 1789900005u);
+        CHECK_EQ_INT(now_t.nsec, 415000000u);
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        CHECK_EQ_INT(H.n_ipc, 2);
+        CHECK_EQ_INT(H.ipc_role[1], GAMA_IPC_ROLE_OBC);
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_TOOL, true);    /* tools are not */
+        CHECK_EQ_INT(H.n_ipc, 2);
+    }
+
+    TEST_GROUP("core: before any SET_TIME a connecting peer is told nothing");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
+        CHECK_EQ_INT(H.n_ipc, 0);
+    }
+
     TEST_GROUP("core: SHUTDOWN exits only after its acknowledgement has left");
     {
         boot();

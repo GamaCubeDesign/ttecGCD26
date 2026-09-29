@@ -108,21 +108,28 @@ static tc_result_t do_set_time(ttcd_core_t *c, uint64_t now, const gama_frame_t 
              "\"mono_ms\":%" PRIu64 ",\"unix_s\":%" PRIu32 ",\"nsec\":%" PRIu32,
              c->time_anchor_mono, t.unix_s, t.nsec);
 
-    /* Forward the time as it is now, not as it was at the anchor: the
-     * receivers pair it with their own clock on arrival. */
-    gama_ipc_time_t current = t;
+    if (c->obc_linked) {
+        core_send_time(c, now, GAMA_IPC_ROLE_OBC);
+    }
+    if (c->adsbd_linked) {
+        core_send_time(c, now, GAMA_IPC_ROLE_ADSBD);
+    }
+    return ok();
+}
+
+void core_send_time(ttcd_core_t *c, uint64_t now, uint8_t role)
+{
+    if (!c->time_synced) {
+        return;
+    }
+    /* The time as it is now, not as it was at the anchor: the receiver pairs
+     * it with its own clock on arrival. */
+    gama_ipc_time_t current = { .unix_s = c->time_anchor_unix_s,
+                                .nsec = c->time_anchor_nsec };
     time_add_ms(&current, now - c->time_anchor_mono);
     uint8_t payload[GAMA_IPC_TIME_LEN];
     gama_ipc_time_encode(payload, sizeof(payload), &current);
-    if (c->obc_linked) {
-        core_ipc_send(c, now, GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_TIME_SET,
-                      payload, GAMA_IPC_TIME_LEN);
-    }
-    if (c->adsbd_linked) {
-        core_ipc_send(c, now, GAMA_IPC_ROLE_ADSBD, GAMA_FRAME_IPC_TIME_SET,
-                      payload, GAMA_IPC_TIME_LEN);
-    }
-    return ok();
+    core_ipc_send(c, now, role, GAMA_FRAME_IPC_TIME_SET, payload, GAMA_IPC_TIME_LEN);
 }
 
 static tc_result_t do_set_mode(ttcd_core_t *c, uint64_t now, const uint8_t *args)
