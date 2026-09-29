@@ -81,6 +81,16 @@ target_include_directories(test_adsbd_integration PRIVATE ${CMAKE_CURRENT_SOURCE
 add_test(NAME test_adsbd_integration COMMAND test_adsbd_integration $<TARGET_FILE:adsbd>)
 set_tests_properties(test_adsbd_integration PROPERTIES TIMEOUT 60)
 
+# The chain end to end: SBS -> adsbd -> ttcd -> UDP radio -> ground. Also
+# shows the radio surviving the payload, and ttcd re-anchoring a restarted
+# adsbd.
+add_executable(test_adsb_chain test_adsb_chain.c)
+target_link_libraries(test_adsb_chain PRIVATE ttec_radio gama_common)
+target_include_directories(test_adsb_chain PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_adsb_chain
+         COMMAND test_adsb_chain $<TARGET_FILE:ttcd> $<TARGET_FILE:adsbd>)
+set_tests_properties(test_adsb_chain PROPERTIES TIMEOUT 90)
+
 # test_tm exercises NaN handling and quantisation bounds.
 target_link_libraries(test_tm PRIVATE m)
 
