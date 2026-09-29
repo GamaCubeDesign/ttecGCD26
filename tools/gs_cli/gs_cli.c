@@ -13,6 +13,11 @@
  *   gs_cli --radio sx1278 --spi /dev/spidev0.1 --reset 16 --dio0 26 --power 2
  *   gs_cli --radio udp --port 47002 --peer-port 47001
  *
+ * With --auto-time on, every time contact with the satellite is (re)gained
+ * the ground sends its wall clock (SET_TIME) by itself, as operations do
+ * (ADR-0009). The bench steps leave it off, so their measurements see only
+ * the telecommands their scripts send.
+ *
  * Commands:
  *   ping [N]              N sequential PINGs (default 1), latency of each
  *   per N                 N PINGs, then uplink and downlink loss from TM_STAT
@@ -61,6 +66,7 @@ static int       ep, tfd;
 static bool      stdin_open = true;
 static uint64_t  deaf_until;         /* frames received before this are ignored */
 static uint32_t  deaf_dropped;
+static bool      auto_time;          /* SET_TIME whenever contact comes up      */
 
 /* The activity the current command is waiting on. */
 static struct {
@@ -227,6 +233,13 @@ static void g_event(void *c, uint64_t now, const gs_event_t *e)
         break;
     case GS_EV_CONTACT:
         out("\"ev\":\"contact\",\"up\":%s", e->up ? "true" : "false");
+        if (e->up && auto_time) {
+            /* Outside the command in progress: its ACK is logged like any
+             * other, and the operator's commands are not held up by it. */
+            uint8_t a[GAMA_IPC_TIME_LEN] = { 0 };   /* stamped at transmission */
+            uint32_t id = gs_submit(&G, mono_ms(), GAMA_TC_SET_TIME, a, GAMA_IPC_TIME_LEN);
+            out("\"ev\":\"auto_time\",\"id\":%" PRIu32, id);
+        }
         break;
     default:
         break;
@@ -448,7 +461,8 @@ static void usage(void)
             "  sx1278: --spi DEV (/dev/spidev0.1) --chip DEV (/dev/gpiochip0)\n"
             "          --reset N (16) --dio0 N (26) --power DBM (2) --lbt header|preamble\n"
             "  udp:    --bind IP (127.0.0.1) --port N (47002) --peer IP --peer-port N (47001)\n"
-            "  both:   --profile safe|nominal|fast (nominal)\n");
+            "  both:   --profile safe|nominal|fast (nominal)\n"
+            "          --auto-time on|off (off): SET_TIME whenever contact comes up\n");
 }
 
 int main(int argc, char **argv)
@@ -471,6 +485,10 @@ int main(int argc, char **argv)
         else if (strcmp(k, "--port") == 0)      { port = atoi(v); }
         else if (strcmp(k, "--peer") == 0)      { peer = v; }
         else if (strcmp(k, "--peer-port") == 0) { peer_port = atoi(v); }
+        else if (strcmp(k, "--auto-time") == 0) {
+            if (strcmp(v, "on") != 0 && strcmp(v, "off") != 0) { usage(); return 2; }
+            auto_time = strcmp(v, "on") == 0;
+        }
         else if (strcmp(k, "--profile") == 0) {
             profile = strcmp(v, "safe") == 0 ? GAMA_RATE_SAFE
                     : strcmp(v, "fast") == 0 ? GAMA_RATE_FAST : GAMA_RATE_NOMINAL;
