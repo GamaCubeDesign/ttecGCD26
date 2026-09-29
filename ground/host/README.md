@@ -1,6 +1,6 @@
 # Ground ADS-B
 
-Este diretório contém o projeto ADS-B independente dos módulos já existentes na main.
+Este diretório contém o projeto ADS-B da ground, trazido da branch `ADSB-ground` (onde ficava em `ground- adsb/`).
 
 - `ground-aeronaves/`: recepção de NDJSON, estimador por aeroportos/pistas, memória temporal, painel web, simulador e testes.
 - `banco-aeronaves/`: importador do cadastro OurAirports. O banco de rotas foi removido.
@@ -10,13 +10,15 @@ Este diretório contém o projeto ADS-B independente dos módulos já existentes
 Requer Python 3.10 ou mais recente; o núcleo usa a biblioteca padrão.
 
 ```bash
-cd "ground- adsb/ground-aeronaves"
+cd ground/host/ground-aeronaves
 python3 -m venv .venv
 source .venv/bin/activate
 python -m unittest discover -s tests -v
 ```
 
-Para simular ou usar o cadastro geográfico, coloque uma cópia do `referencias.db` local em `ground- adsb/banco-aeronaves/`. Alternativamente, copie os CSVs e o manifesto do cadastro local para `banco-aeronaves/fontes/` e execute `python3 banco-aeronaves/importar_bases.py` a partir desta pasta. O importador verifica os hashes e recusa sobrescrever tabelas existentes. O banco fica ignorado pelo Git.
+Os mesmos testes rodam no `make test` (CTest `ground_aeronaves`).
+
+Para simular ou usar o cadastro geográfico, coloque uma cópia do `referencias.db` local em `ground/host/banco-aeronaves/`. Alternativamente, copie os CSVs e o manifesto do cadastro local para `banco-aeronaves/fontes/` e execute `python3 banco-aeronaves/importar_bases.py` a partir desta pasta. O importador verifica os hashes e recusa sobrescrever tabelas existentes. O banco fica ignorado pelo Git.
 
 Com o banco instalado, execute em dois terminais dentro de `ground-aeronaves/`:
 

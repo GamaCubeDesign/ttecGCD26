@@ -64,4 +64,8 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME budget_matches_adrs
              COMMAND ${Python3_EXECUTABLE}
                      ${CMAKE_SOURCE_DIR}/tools/analysis/lora_budget.py --check)
+    # The ground's ADS-B estimator, with its own tests.
+    add_test(NAME ground_aeronaves
+             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host/ground-aeronaves)
 endif()
