@@ -171,6 +171,23 @@ radio-a-free:
 	    exit 1; \
 	fi
 
+##@ ADS-B without an SDR — a recorded or simulated mission through the chain
+
+# sbs_replay plays dump1090; ttcd runs on the UDP radio; gs_cli is the ground,
+# streaming at 5 s and sending its clock on contact; tracks_to_ndjson turns
+# what arrives into the NDJSON of the ground's estimator (ground/host).
+# Real time: a 10-minute mission takes 10 minutes. How to read the result:
+# flight/adsbd/README.md.
+INPUT      ?=
+CHAIN_DIR  ?= $(BUILD_DIR)/adsb-chain
+
+.PHONY: adsb-chain
+
+adsb-chain: build ## A mission through adsbd, ttcd and the ground, no hardware: INPUT=<ndjson|.sbs>
+	@test -f '$(INPUT)' || { echo "adsb-chain: name the mission with INPUT=<ndjson or .sbs file>" >&2; exit 1; }
+	BUILD_DIR=$(BUILD_DIR) PYTHON=$(PYTHON) tools/bench/adsb_chain.sh '$(INPUT)' \
+	    $(CHAIN_DIR)/$(BENCH_DATE)-$(BENCH_TIME)
+
 ##@ On the Pi — ttcd and adsbd as systemd services
 
 .PHONY: provision install service-enable service-stop service-status service-logs \
@@ -300,3 +317,4 @@ help: ## This list
 	@echo "  BENCH_DIR=$(BENCH_DIR)"
 	@echo "  PI_HOST=$(or $(PI_HOST),(unset))  PI_DIR=$(PI_DIR)"
 	@echo "  T=<regex> for test and asan, LOG=<file> for toa, TTCD_OPTS and GS_OPTS for extra options"
+	@echo "  INPUT=<ndjson|.sbs> for adsb-chain, which writes under $(CHAIN_DIR)/"
