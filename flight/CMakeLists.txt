@@ -63,3 +63,9 @@ add_library(adsbd_core STATIC
 )
 target_include_directories(adsbd_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/adsbd)
 target_link_libraries(adsbd_core PUBLIC gama_common)
+
+# adsbd configuration parsing, kept out of main.c so it can be unit-tested.
+add_library(adsbd_config STATIC adsbd/config.c)
+target_link_libraries(adsbd_config PUBLIC adsbd_core)
+# strtok_r is POSIX, not C11.
+target_compile_definitions(adsbd_config PRIVATE _POSIX_C_SOURCE=200809L)
