@@ -13,4 +13,4 @@ class Observation:
 
     @property
     def has_position(self) -> bool:
-        return self.fields.get('lat') is not None and self.fields.get('lon') is not None
+        return self.fields.get("lat") is not None and self.fields.get("lon") is not None
