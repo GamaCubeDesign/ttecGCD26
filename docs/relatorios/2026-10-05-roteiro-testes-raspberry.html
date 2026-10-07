@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TT&amp;C GCD26 — Roteiro de testes na Raspberry Pi (05/10/2026)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+<style>
+/* Acréscimos deste roteiro; o bloco acima é o mesmo dos relatórios. */
+.callout.ok{border-color:var(--ok);background:var(--ok-soft)}
+.step-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13.5px;color:var(--muted);margin:-4px 0 14px}
+.step-meta b{color:var(--fg)}
+.where{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:5px;margin:0 0 6px}
+.where.pc{color:var(--accent);background:var(--accent-soft)}
+.where.pi{color:var(--ok);background:var(--ok-soft)}
+.cmd{position:relative}
+.cmd pre{padding-right:78px}
+.copy{position:absolute;top:8px;right:8px;font:inherit;font-size:12px;padding:3px 9px;border-radius:5px;border:1px solid var(--line-strong);background:var(--surface);color:var(--muted);cursor:pointer}
+.copy:hover{color:var(--accent);border-color:var(--accent)}
+ul.check{list-style:none;padding-left:4px}
+ul.check li{display:flex;gap:10px;align-items:flex-start;margin:6px 0}
+ul.check input{margin-top:5px;width:16px;height:16px;flex:none;accent-color:var(--ok)}
+ul.check label{cursor:pointer}
+.why{font-size:15px}
+.why b:first-child{color:var(--accent)}
+svg.diagram .pin{stroke:var(--line-strong);stroke-width:1.2;fill:var(--node)}
+svg.diagram .pin.a{fill:var(--accent)}
+svg.diagram .pin.b{fill:var(--ok)}
+svg.diagram .pin.s{fill:var(--warn)}
+svg.diagram .pin.x{fill:var(--bad)}
+svg.diagram .pn{font-size:10px;fill:var(--muted)}
+svg.diagram .lab-a{font-size:12px;fill:var(--accent);font-weight:600}
+svg.diagram .lab-b{font-size:12px;fill:var(--ok);font-weight:600}
+svg.diagram .lab-s{font-size:12px;fill:var(--warn);font-weight:600}
+svg.diagram .lab-x{font-size:12px;fill:var(--bad)}
+svg.diagram .lab-n{font-size:11px;fill:var(--muted)}
+svg.diagram.pins{min-width:560px;max-width:640px;margin:0 auto}
+.progress{font-size:14px;color:var(--muted);margin:6px 0 0}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#antes">Antes de começar</a></li>
+    <li><a href="#visao">A sessão em uma figura</a></li>
+    <li><a href="#e1">Etapa 1 · Conectar e preparar a Pi</a></li>
+    <li><a href="#e2">Etapa 2 · O código na Pi</a></li>
+    <li><a href="#e3">Etapa 3 · Ligar os dois rádios</a></li>
+    <li><a href="#e4">Etapa 4 · A bancada dos rádios</a></li>
+    <li><a href="#e5">Etapa 5 · O SDR e o dump1090</a></li>
+    <li><a href="#e6">Etapa 6 · O adsbd com o SDR</a></li>
+    <li><a href="#e7">Etapa 7 · ADS-B real pelo LoRa real</a></li>
+    <li><a href="#e8">Etapa 8 · Trazer e anotar</a></li>
+    <li><a href="#problemas">Se algo der errado</a></li>
+    <li><a href="#glossario">Glossário</a></li>
+  </ol>
+  <p class="progress" id="progress"></p>
+</nav>
+
+<main>
+
+<header class="doc">
+  <p class="eyebrow">Gama Cube Design · CubeDesign 2026 · TT&amp;C</p>
+  <h1>Roteiro de testes na Raspberry Pi</h1>
+  <p class="lede">A primeira sessão com o hardware de verdade: o código rodando na Pi, os dois rádios LoRa trocando frames, o SDR recebendo aviões e, se der tempo, ADS-B real descendo pelo rádio real. Passo a passo, com o que esperar em cada um.</p>
+  <div class="meta">
+    <span>Data: <b>05/10/2026</b></span>
+    <span>Branch: <b><code>feat/nova_arquitetura</code></b></span>
+    <span>Duração: <b>3 a 3,5 h</b>, em etapas independentes</span>
+    <span>Base: <code>flight/ttcd/README.md</code>, <code>flight/adsbd/README.md</code>, PLANO 2.7 e 3.4</span>
+  </div>
+</header>
+
+<div class="callout" style="margin-top:18px">
+  <p><b>Como usar.</b> Cada etapa diz <span class="where pc">no PC</span> ou <span class="where pi">na Pi</span> antes de cada comando, explica <b>por que</b> o passo existe, mostra <b>o que você deve ver</b> e o que fazer <b>se der errado</b>. Os quadradinhos de conferência ficam marcados neste navegador, então dá para fechar a página e voltar. Os botões <b>copiar</b> copiam o comando inteiro.</p>
+</div>
+
+<h2 id="antes"><span class="n">1</span>Antes de começar</h2>
+
+<h3>O que esta sessão precisa provar</h3>
+<p>Até hoje, tudo no TT&amp;C foi verificado em software: 3406 verificações, simulação do canal, rádio simulado por UDP. <b>Nada foi medido no hardware.</b> Esta sessão troca as suposições pelas primeiras medidas:</p>
+<ul>
+  <li>o código compila e passa nos testes <b>no sistema da Pi</b> — a decisão é usar <b>64 bits</b> (07/10; a de 05/10, 32 bits, foi revista), e o código nunca foi compilado em ARM;</li>
+  <li>os dois RA-02 conversam, com o tempo no ar dentro de 5% do modelo, a taxa de erro medida e o protocolo se recuperando sozinho do ACK perdido (evidência do HLR-COMM-01 e do HLR-COMM-03);</li>
+  <li>o SDR recebe aviões, e sabemos <b>quanto de CPU o <code>dump1090</code> consome na Pi Zero 2 W</b> — o maior risco não quantificado do projeto.</li>
+</ul>
+
+<h3>O que levar para a bancada</h3>
+<ul class="check">
+  <li><input type="checkbox" id="mat-pi"><label for="mat-pi">Raspberry Pi Zero 2 W com o cartão SD já com o Raspberry Pi OS e o ssh ligados, na mesma rede do PC</label></li>
+  <li><input type="checkbox" id="mat-fonte"><label for="mat-fonte">Fonte de 5 V e pelo menos 2,5 A, no conector <b>PWR</b> da Pi — o SDR puxa uns 300 mA a mais</label></li>
+  <li><input type="checkbox" id="mat-ra02"><label for="mat-ra02">Os dois RA-02, cada um com antena de 433 MHz <b>ou</b> uma carga de 50 Ω</label></li>
+  <li><input type="checkbox" id="mat-jump"><label for="mat-jump">Jumpers fêmea-fêmea: 16 fios (8 por rádio), ou protoboard</label></li>
+  <li><input type="checkbox" id="mat-sdr"><label for="mat-sdr">NESDR Nano 3 com a antena de 1090 MHz e um <b>adaptador OTG</b> micro-USB → USB-A, porque a Pi Zero só tem micro-USB</label></li>
+  <li><input type="checkbox" id="mat-pc"><label for="mat-pc">O PC com este repositório atualizado (<code>git pull</code>) — é dele que tudo é comandado</label></li>
+</ul>
+
+<div class="callout bad">
+  <p><b>Três regras que protegem o hardware:</b></p>
+  <ol>
+    <li><b>O RA-02 é 3,3 V.</b> Nunca ligue no 5 V (pinos 2 e 4 da Pi).</li>
+    <li><b>Antena ou carga de 50 Ω conectada antes de qualquer transmissão.</b> Transmitir sem carga pode queimar o amplificador do rádio.</li>
+    <li><b>Ligue e desligue fios com a Pi desligada</b> (tire a fonte). Um jumper encostando no lugar errado com tudo energizado basta para estragar um pino.</li>
+  </ol>
+</div>
+
+<h3>Se o tempo for curto</h3>
+<p>As etapas são independentes. A ordem de importância é: <b>1</b> (sem ela nada roda), <b>2</b> só o <code>make pi-test</code>, <b>3</b>, <b>4</b> pelo menos os passos 1 e 2, e <b>5</b> até a CPU. A 7 é bônus.</p>
+
+<h2 id="visao"><span class="n">2</span>A sessão em uma figura</h2>
+
+<figure>
+<div class="frame">
+<svg class="diagram" viewBox="0 0 980 400" role="img" aria-labelledby="fvt fvd">
+  <title id="fvt">A montagem da sessão</title>
+  <desc id="fvd">O PC comanda a Raspberry Pi pela rede, com ssh e rsync. Na Pi, o rádio A, do satélite, fica no SPI chip-select 0, e o rádio B, da ground, no chip-select 1; os dois estão a cerca de um metro um do outro, com antena ou carga, a 2 dBm. O SDR NESDR Nano 3 entra na porta micro-USB de dados da Pi por um adaptador OTG, com a antena de 1090 MHz.</desc>
+  <defs>
+    <marker id="v1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="v1rf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah-rf" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <rect class="box" x="20" y="150" width="190" height="90" rx="10"/>
+  <text class="t-b" x="115" y="182" text-anchor="middle">PC</text>
+  <text class="t-s" x="115" y="204" text-anchor="middle">este repositório</text>
+  <text class="t-s" x="115" y="222" text-anchor="middle">make pi-…</text>
+
+  <line class="edge" x1="212" y1="195" x2="366" y2="195" marker-start="url(#v1)" marker-end="url(#v1)"/>
+  <text class="t-e" x="289" y="185" text-anchor="middle">rede · ssh e rsync</text>
+  <text class="t-e" x="289" y="215" text-anchor="middle">comandos e cópia do código</text>
+
+  <rect class="box done" x="370" y="130" width="230" height="130" rx="10"/>
+  <text class="t-b" x="485" y="160" text-anchor="middle">Raspberry Pi Zero 2 W</text>
+  <text class="t-s" x="485" y="184" text-anchor="middle">ttcd · gs_cli · adsbd · dump1090</text>
+  <text class="t-s" x="485" y="206" text-anchor="middle">roda tudo, nativo</text>
+  <text class="t-s" x="485" y="228" text-anchor="middle">logs em docs/vv/bancada/</text>
+
+  <rect class="box hw" x="700" y="30" width="250" height="64" rx="8"/>
+  <text class="t-b" x="825" y="56" text-anchor="middle">RA-02 A · satélite</text>
+  <text class="t-s" x="825" y="76" text-anchor="middle">SPI CE0 · antena ou carga · 2 dBm</text>
+
+  <rect class="box hw" x="700" y="160" width="250" height="64" rx="8"/>
+  <text class="t-b" x="825" y="186" text-anchor="middle">RA-02 B · ground</text>
+  <text class="t-s" x="825" y="206" text-anchor="middle">SPI CE1 · antena ou carga · 2 dBm</text>
+
+  <rect class="box hw" x="700" y="290" width="250" height="64" rx="8"/>
+  <text class="t-b" x="825" y="316" text-anchor="middle">NESDR Nano 3</text>
+  <text class="t-s" x="825" y="336" text-anchor="middle">antena 1090 MHz · adaptador OTG</text>
+
+  <line class="edge" x1="602" y1="150" x2="698" y2="66" marker-end="url(#v1)"/>
+  <text class="t-e" x="640" y="94" text-anchor="middle">SPI</text>
+  <line class="edge" x1="602" y1="194" x2="698" y2="192" marker-end="url(#v1)"/>
+  <text class="t-e" x="650" y="184" text-anchor="middle">SPI</text>
+  <line class="edge" x1="602" y1="238" x2="698" y2="318" marker-end="url(#v1)"/>
+  <text class="t-e" x="640" y="298" text-anchor="middle">USB</text>
+
+  <line class="edge rf" x1="910" y1="96" x2="910" y2="158" marker-start="url(#v1rf)" marker-end="url(#v1rf)"/>
+  <text class="t-e" x="900" y="124" text-anchor="end">LoRa 433 MHz</text>
+  <text class="t-e" x="900" y="140" text-anchor="end">~1 m</text>
+
+  <text class="t-e" x="20" y="300">Os dois rádios ficam na mesma Pi: o A faz o papel</text>
+  <text class="t-e" x="20" y="318">do satélite (ttcd) e o B, o da ground (gs_cli).</text>
+  <text class="t-e" x="20" y="336">Cada passo da bancada sobe os dois, mede e desliga.</text>
+</svg>
+</div>
+<figcaption>Figura 1 — A montagem. Tudo roda na Pi; o PC só manda os comandos e recebe os logs de volta.</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Etapa</th><th class="r">Tempo</th><th>O que ela prova</th></tr></thead>
+<tbody>
+<tr><td><a href="#e1">1 · Conectar e preparar a Pi</a></td><td class="r">20 min</td><td>o PC comanda a Pi; sistema, data e SPI conferidos</td></tr>
+<tr><td><a href="#e2">2 · O código na Pi</a></td><td class="r">20–40 min</td><td>o software compila e passa nos testes no sistema da Pi</td></tr>
+<tr><td><a href="#e3">3 · Ligar os dois rádios</a></td><td class="r">20 min</td><td>a fiação está certa</td></tr>
+<tr><td><a href="#e4">4 · A bancada dos rádios</a></td><td class="r">45 min</td><td>tempo no ar, taxa de erro, troca de taxa, ACK perdido e listen-before-talk, medidos</td></tr>
+<tr><td><a href="#e5">5 · O SDR e o dump1090</a></td><td class="r">40 min</td><td>o receptor funciona; o melhor ganho; a CPU do <code>dump1090</code></td></tr>
+<tr><td><a href="#e6">6 · O adsbd com o SDR</a></td><td class="r">15 min</td><td>o nosso daemon com o hardware de verdade</td></tr>
+<tr><td><a href="#e7">7 · ADS-B real pelo LoRa real</a></td><td class="r">15 min</td><td>a cadeia da missão inteira, em hardware (bônus)</td></tr>
+<tr><td><a href="#e8">8 · Trazer e anotar</a></td><td class="r">10 min</td><td>a evidência fica no repositório</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="e1"><span class="n">3</span>Etapa 1 · Conectar e preparar a Pi</h2>
+<div class="step-meta"><span><b>20 min</b></span><span>uma vez por Pi; nas próximas sessões, só a conferência do fim</span></div>
+
+<p class="why"><b>Por quê.</b> Tudo nesta sessão é comandado do PC com <code>make pi-…</code>: o <code>make</code> copia o código para a Pi com o <code>rsync</code> e roda o alvo lá pelo <code>ssh</code>. Para isso funcionar sem pedir senha a cada comando, o PC precisa de uma chave ssh na Pi, e o repositório precisa saber o endereço dela.</p>
+
+<p><span class="where pc">no PC</span> Troque <code>USUARIO</code> pelo usuário que você criou ao gravar o cartão, e <code>raspberrypi.local</code> pelo nome ou IP da Pi, se for outro.</p>
+<div class="cmd"><pre><code>ssh-keygen -t ed25519                     # só se ainda não tem chave
+ssh-copy-id USUARIO@raspberrypi.local     # a senha da Pi, uma última vez
+echo 'PI_HOST = USUARIO@raspberrypi.local' &gt; local.mk
+make pi-provision                         # ferramentas, SPI, usuário gama</code></pre></div>
+
+<p>O <code>pi-provision</code> pede a senha do <code>sudo</code> na Pi e instala compilador, CMake, Python, rsync e tmux. Ele também <b>liga o SPI</b>, o barramento dos rádios. Faltam dois pacotes que o roteiro usa: o <code>poppler-utils</code>, que confere as citações do regulamento no <code>make check</code>, e o <code>sysstat</code>, que mede a CPU na etapa 5. Depois, reinicie a Pi para o SPI aparecer:</p>
+<div class="cmd"><pre><code>ssh -t USUARIO@raspberrypi.local 'sudo apt-get install -y poppler-utils sysstat &amp;&amp; sudo reboot'</code></pre></div>
+
+<p>Espere um minuto e confira o estado da Pi:</p>
+<div class="cmd"><pre><code>ssh USUARIO@raspberrypi.local 'tr -d "\0" &lt; /proc/device-tree/model; echo; dpkg --print-architecture; date; ls /dev/spidev*; free -m | head -2'</code></pre></div>
+
+<div class="callout ok">
+  <p><b>O que você deve ver:</b></p>
+  <ul>
+    <li><code>Raspberry Pi Zero 2 W Rev 1.0</code></li>
+    <li><code>arm64</code> — o sistema de 64 bits, o decidido em 07/10. Se aparecer <code>armhf</code> (32 bits), veja o aviso abaixo;</li>
+    <li>a data e a hora certas. A Pi não tem relógio próprio e acerta a hora pela rede, e os logs da bancada são separados por data;</li>
+    <li><code>/dev/spidev0.0  /dev/spidev0.1</code> — os dois chip-selects, um para cada rádio.</li>
+  </ul>
+</div>
+
+<div class="callout warn">
+  <p><b>Decisão de 07/10: 64 bits.</b> A Pi roda o Raspberry Pi OS de <b>64 bits</b>, a pedido do time do OBC; a decisão de 05/10, de usar 32 bits, foi revista. <b>Se aparecer <code>armhf</code></b>, o cartão está com o sistema errado: trocar significa regravá-lo, e isso apaga tudo. Para hoje, siga com o que está instalado — nada desta sessão depende disso —, anote, e a regravação fica para uma próxima sessão.</p>
+</div>
+
+<ul class="check">
+  <li><input type="checkbox" id="e1-ssh"><label for="e1-ssh"><code>ssh USUARIO@raspberrypi.local</code> entra sem pedir senha</label></li>
+  <li><input type="checkbox" id="e1-prov"><label for="e1-prov"><code>make pi-provision</code> terminou sem erro, e a Pi foi reiniciada</label></li>
+  <li><input type="checkbox" id="e1-arch"><label for="e1-arch">A arquitetura é <code>arm64</code> (anotei, se não for)</label></li>
+  <li><input type="checkbox" id="e1-date"><label for="e1-date">A data da Pi está certa</label></li>
+  <li><input type="checkbox" id="e1-spi"><label for="e1-spi"><code>/dev/spidev0.0</code> e <code>/dev/spidev0.1</code> existem</label></li>
+</ul>
+
+<h2 id="e2"><span class="n">4</span>Etapa 2 · O código na Pi</h2>
+<div class="step-meta"><span><b>20–40 min</b></span><span>a maior parte é a Pi compilando</span></div>
+
+<p class="why"><b>Por quê.</b> Os testes já passam no PC, mas a Pi é outra máquina, com outro processador e outro compilador. Em 64 bits, <code>size_t</code> e <code>long</code> têm a mesma largura do PC, mas o ARM tem diferenças próprias — a mais conhecida: lá, um <code>char</code> sem qualificador é <b>sem sinal</b>, e no PC é com sinal. Conversões que hoje não geram aviso podem passar a gerar, e é a classe de defeito que este projeto mais teme. Rodar os testes na própria Pi é a única forma de saber.</p>
+
+<p><span class="where pc">no PC</span> Primeiro, o teste rápido:</p>
+<div class="cmd"><pre><code>make pi-test</code></pre></div>
+<p>Ele copia o código para <code>~/ttec</code> na Pi, compila lá (uns 5 a 10 min na primeira vez; depois, só o que mudou) e roda os 23 testes.</p>
+
+<div class="callout ok">
+  <p><b>O que você deve ver:</b> <code>100% tests passed out of 23</code>, e nenhuma linha <code>warning:</code> durante a compilação.</p>
+</div>
+
+<p>Depois, o teste completo, com os sanitizers e os avisos tratados como erro. Ele compila tudo duas vezes, então rode dentro de um <b>tmux</b> — uma sessão de terminal que continua viva na Pi mesmo que o ssh caia. Na Pi, a segunda compilação usa só o <b>UBSan</b>: o ASan não consegue iniciar no kernel da Pi Zero 2 W, que dá a cada processo um espaço de endereços de 39 bits (descoberto na bancada de 07/10; o <code>Makefile</code> já escolhe sozinho):</p>
+<div class="cmd"><pre><code>make pi-sync
+ssh -t USUARIO@raspberrypi.local tmux new -A -s testes</code></pre></div>
+<p><span class="where pi">na Pi, dentro do tmux</span></p>
+<div class="cmd"><pre><code>mkdir -p ttec/docs/vv/bancada
+make -C ttec check 2&gt;&amp;1 | tee ttec/docs/vv/bancada/check-pi.txt</code></pre></div>
+<p>Para sair do tmux e deixá-lo rodando: <kbd>Ctrl</kbd>+<kbd>b</kbd>, depois <kbd>d</kbd>. Para voltar: o mesmo <code>ssh -t … tmux new -A -s testes</code>. Enquanto ele roda, dá para seguir para a etapa 3 com a Pi ligada — só não mexa nos fios.</p>
+
+<div class="callout ok">
+  <p><b>O que você deve ver no fim:</b> duas vezes <code>100% tests passed out of 23</code> (a compilação normal e a com UBSan), nenhuma linha <code>runtime error</code> e <code>71 of 71 quotations match</code>.</p>
+</div>
+<div class="callout warn">
+  <p><b>Se aparecer um <code>warning:</code></b>: na compilação normal ele não para nada, mas na compilação com sanitizers vira erro. Não é preciso consertar na hora — copie as linhas do aviso; o log também fica no <code>check-pi.txt</code>. É exatamente o resultado que esta etapa procura, e a correção é feita no PC.</p>
+</div>
+
+<ul class="check">
+  <li><input type="checkbox" id="e2-test"><label for="e2-test"><code>make pi-test</code>: 23 de 23</label></li>
+  <li><input type="checkbox" id="e2-warn"><label for="e2-warn">Anotei se houve <code>warning:</code> (e copiei as linhas, se houve)</label></li>
+  <li><input type="checkbox" id="e2-check"><label for="e2-check"><code>make check</code> na Pi: duas vezes 23 de 23, 71 de 71 citações</label></li>
+</ul>
+
+<h2 id="e3"><span class="n">5</span>Etapa 3 · Ligar os dois rádios</h2>
+<div class="step-meta"><span><b>20 min</b></span><span><b>com a Pi desligada</b></span></div>
+
+<p class="why"><b>Por quê.</b> Os dois RA-02 dividem o mesmo barramento SPI (os fios de relógio e de dados), e cada um tem o seu fio de "chip-select", que diz com quem a Pi está falando. O rádio A usa a ligação da missão anterior; o B usa o segundo chip-select e dois pinos livres. Nenhum deles conflita com os pinos que o OBC usa.</p>
+
+<figure>
+<div class="frame">
+<svg class="diagram pins" viewBox="0 0 640 560" role="img" aria-labelledby="fpt fpd">
+  <title id="fpt">Conector de 40 pinos da Raspberry Pi e a ligação dos dois RA-02</title>
+  <desc id="fpd">Os 40 pinos em duas colunas, ímpares à esquerda e pares à direita. Rádio A: 3,3 V no pino 1, GND no pino 6, NSS no 24, RESET no 38, DIO0 no 40. Rádio B: 3,3 V no pino 17, GND no 9, NSS no 26, RESET no 36, DIO0 no 37. Compartilhados pelos dois: MOSI no 19, MISO no 21 e SCK no 23. O pino 35, GPIO19, é do fio de queima da antena do OBC e não deve ser usado.</desc>
+
+  <rect class="box hw" x="270" y="16" width="100" height="490" rx="8"/>
+  <text class="t-s" x="320" y="534" text-anchor="middle">pino 1 = o de solda quadrada</text>
+
+  <g id="pinrows">
+    <!-- row r: y = 40 + 24*r; left pin odd at x=300, right pin even at x=340 -->
+    <circle class="pin a" cx="300" cy="40" r="8"/><text class="pn" x="300" y="44" text-anchor="middle" style="fill:#fff">1</text>
+    <circle class="pin" cx="340" cy="40" r="8"/><text class="pn" x="340" y="44" text-anchor="middle">2</text>
+    <text class="lab-a" x="280" y="44" text-anchor="end">A · 3,3 V</text>
+    <text class="lab-x" x="360" y="44">5 V — nunca nos rádios</text>
+
+    <circle class="pin" cx="300" cy="64" r="8"/><text class="pn" x="300" y="68" text-anchor="middle">3</text>
+    <circle class="pin" cx="340" cy="64" r="8"/><text class="pn" x="340" y="68" text-anchor="middle">4</text>
+    <text class="lab-n" x="280" y="68" text-anchor="end">I²C · OBC</text>
+    <text class="lab-x" x="360" y="68">5 V</text>
+
+    <circle class="pin" cx="300" cy="88" r="8"/><text class="pn" x="300" y="92" text-anchor="middle">5</text>
+    <circle class="pin a" cx="340" cy="88" r="8"/><text class="pn" x="340" y="92" text-anchor="middle" style="fill:#fff">6</text>
+    <text class="lab-n" x="280" y="92" text-anchor="end">I²C · OBC</text>
+    <text class="lab-a" x="360" y="92">A · GND</text>
+
+    <circle class="pin" cx="300" cy="112" r="8"/><text class="pn" x="300" y="116" text-anchor="middle">7</text>
+    <circle class="pin" cx="340" cy="112" r="8"/><text class="pn" x="340" y="116" text-anchor="middle">8</text>
+    <text class="lab-n" x="280" y="116" text-anchor="end">1-Wire · OBC</text>
+
+    <circle class="pin b" cx="300" cy="136" r="8"/><text class="pn" x="300" y="140" text-anchor="middle" style="fill:#fff">9</text>
+    <circle class="pin" cx="340" cy="136" r="8"/><text class="pn" x="340" y="140" text-anchor="middle">10</text>
+    <text class="lab-b" x="280" y="140" text-anchor="end">B · GND</text>
+
+    <circle class="pin" cx="300" cy="160" r="8"/><text class="pn" x="300" y="164" text-anchor="middle">11</text>
+    <circle class="pin" cx="340" cy="160" r="8"/><text class="pn" x="340" y="164" text-anchor="middle">12</text>
+
+    <circle class="pin" cx="300" cy="184" r="8"/><text class="pn" x="300" y="188" text-anchor="middle">13</text>
+    <circle class="pin" cx="340" cy="184" r="8"/><text class="pn" x="340" y="188" text-anchor="middle">14</text>
+
+    <circle class="pin" cx="300" cy="208" r="8"/><text class="pn" x="300" y="212" text-anchor="middle">15</text>
+    <circle class="pin" cx="340" cy="208" r="8"/><text class="pn" x="340" y="212" text-anchor="middle">16</text>
+
+    <circle class="pin b" cx="300" cy="232" r="8"/><text class="pn" x="300" y="236" text-anchor="middle" style="fill:#fff">17</text>
+    <circle class="pin" cx="340" cy="232" r="8"/><text class="pn" x="340" y="236" text-anchor="middle">18</text>
+    <text class="lab-b" x="280" y="236" text-anchor="end">B · 3,3 V</text>
+
+    <circle class="pin s" cx="300" cy="256" r="8"/><text class="pn" x="300" y="260" text-anchor="middle" style="fill:#fff">19</text>
+    <circle class="pin" cx="340" cy="256" r="8"/><text class="pn" x="340" y="260" text-anchor="middle">20</text>
+    <text class="lab-s" x="280" y="260" text-anchor="end">A e B · MOSI</text>
+
+    <circle class="pin s" cx="300" cy="280" r="8"/><text class="pn" x="300" y="284" text-anchor="middle" style="fill:#fff">21</text>
+    <circle class="pin" cx="340" cy="280" r="8"/><text class="pn" x="340" y="284" text-anchor="middle">22</text>
+    <text class="lab-s" x="280" y="284" text-anchor="end">A e B · MISO</text>
+
+    <circle class="pin s" cx="300" cy="304" r="8"/><text class="pn" x="300" y="308" text-anchor="middle" style="fill:#fff">23</text>
+    <circle class="pin a" cx="340" cy="304" r="8"/><text class="pn" x="340" y="308" text-anchor="middle" style="fill:#fff">24</text>
+    <text class="lab-s" x="280" y="308" text-anchor="end">A e B · SCK</text>
+    <text class="lab-a" x="360" y="308">A · NSS (CE0)</text>
+
+    <circle class="pin" cx="300" cy="328" r="8"/><text class="pn" x="300" y="332" text-anchor="middle">25</text>
+    <circle class="pin b" cx="340" cy="328" r="8"/><text class="pn" x="340" y="332" text-anchor="middle" style="fill:#fff">26</text>
+    <text class="lab-b" x="360" y="332">B · NSS (CE1)</text>
+
+    <circle class="pin" cx="300" cy="352" r="8"/><text class="pn" x="300" y="356" text-anchor="middle">27</text>
+    <circle class="pin" cx="340" cy="352" r="8"/><text class="pn" x="340" y="356" text-anchor="middle">28</text>
+
+    <circle class="pin" cx="300" cy="376" r="8"/><text class="pn" x="300" y="380" text-anchor="middle">29</text>
+    <circle class="pin" cx="340" cy="376" r="8"/><text class="pn" x="340" y="380" text-anchor="middle">30</text>
+
+    <circle class="pin" cx="300" cy="400" r="8"/><text class="pn" x="300" y="404" text-anchor="middle">31</text>
+    <circle class="pin" cx="340" cy="400" r="8"/><text class="pn" x="340" y="404" text-anchor="middle">32</text>
+
+    <circle class="pin" cx="300" cy="424" r="8"/><text class="pn" x="300" y="428" text-anchor="middle">33</text>
+    <circle class="pin" cx="340" cy="424" r="8"/><text class="pn" x="340" y="428" text-anchor="middle">34</text>
+
+    <circle class="pin x" cx="300" cy="448" r="8"/><text class="pn" x="300" y="452" text-anchor="middle" style="fill:#fff">35</text>
+    <circle class="pin b" cx="340" cy="448" r="8"/><text class="pn" x="340" y="452" text-anchor="middle" style="fill:#fff">36</text>
+    <text class="lab-x" x="280" y="452" text-anchor="end">antena do OBC — não usar</text>
+    <text class="lab-b" x="360" y="452">B · RESET (GPIO16)</text>
+
+    <circle class="pin b" cx="300" cy="472" r="8"/><text class="pn" x="300" y="476" text-anchor="middle" style="fill:#fff">37</text>
+    <circle class="pin a" cx="340" cy="472" r="8"/><text class="pn" x="340" y="476" text-anchor="middle" style="fill:#fff">38</text>
+    <text class="lab-b" x="280" y="476" text-anchor="end">B · DIO0 (GPIO26)</text>
+    <text class="lab-a" x="360" y="476">A · RESET (GPIO20)</text>
+
+    <circle class="pin" cx="300" cy="496" r="8"/><text class="pn" x="300" y="500" text-anchor="middle">39</text>
+    <circle class="pin a" cx="340" cy="496" r="8"/><text class="pn" x="340" y="500" text-anchor="middle" style="fill:#fff">40</text>
+    <text class="lab-a" x="360" y="500">A · DIO0 (GPIO21)</text>
+  </g>
+</svg>
+</div>
+<div class="legend">
+  <span><i class="sw" style="background:var(--accent);border-color:var(--accent)"></i> rádio A (satélite)</span>
+  <span><i class="sw" style="background:var(--ok);border-color:var(--ok)"></i> rádio B (ground)</span>
+  <span><i class="sw" style="background:var(--warn);border-color:var(--warn)"></i> compartilhado pelos dois</span>
+  <span><i class="sw" style="background:var(--bad);border-color:var(--bad)"></i> não usar</span>
+</div>
+<figcaption>Figura 2 — O conector de 40 pinos em esquema: ímpares numa fileira, pares na outra. Na placa, o pino 1 é o de solda quadrada, e o 2, ao lado dele, já é 5 V. Os três pinos laranja recebem dois fios cada (um de cada rádio): use uma protoboard ou um jumper em Y.</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Pino do RA-02</th><th>Rádio A — satélite</th><th>Rádio B — ground</th></tr></thead>
+<tbody>
+<tr><td>3.3V</td><td>pino 1</td><td>pino 17</td></tr>
+<tr><td>GND</td><td>pino 6</td><td>pino 9</td></tr>
+<tr><td>SCK</td><td>pino 23 (GPIO11)</td><td>pino 23 (compartilhado)</td></tr>
+<tr><td>MISO</td><td>pino 21 (GPIO9)</td><td>pino 21 (compartilhado)</td></tr>
+<tr><td>MOSI</td><td>pino 19 (GPIO10)</td><td>pino 19 (compartilhado)</td></tr>
+<tr><td>NSS</td><td>pino 24 (GPIO8, CE0) → <code>/dev/spidev0.0</code></td><td>pino 26 (GPIO7, CE1) → <code>/dev/spidev0.1</code></td></tr>
+<tr><td>RESET</td><td>pino 38 (GPIO20)</td><td>pino 36 (GPIO16)</td></tr>
+<tr><td>DIO0</td><td>pino 40 (GPIO21)</td><td>pino 37 (GPIO26)</td></tr>
+</tbody>
+</table></div>
+
+<p class="small">Mesma tabela do <code>flight/ttcd/README.md</code>. O RA-02 tem outros pinos (DIO1 a DIO5, um segundo GND): ficam desligados.</p>
+
+<h3>Enviar e receber: os mesmos 8 fios</h3>
+
+<p>Não existe uma ligação para transmitir e outra para receber. O RA-02 é <i>half-duplex</i>: num instante ele só transmite ou só recebe, e quem decide é o software, escrevendo nos registradores do chip pelo SPI. Os dois rádios fazem as duas coisas: o A (satélite) recebe telecomandos e transmite telemetria; o B (ground) faz o contrário. Por isso os dois têm exatamente a mesma ligação, só em pinos diferentes da Pi. O que cada fio faz em cada sentido:</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Fio</th><th>Para enviar</th><th>Para receber</th></tr></thead>
+<tbody>
+<tr><td>3.3V e GND</td><td colspan="2">alimentação; na transmissão o consumo sobe (até ~120 mA a 20 dBm, bem menos a 2 dBm)</td></tr>
+<tr><td>SCK, MOSI, MISO</td><td>a Pi escreve o frame no FIFO do chip e manda transmitir</td><td>a Pi lê do FIFO o frame que chegou, e o RSSI/SNR</td></tr>
+<tr><td>NSS</td><td colspan="2">seleciona este rádio no SPI compartilhado: sem ele, a Pi fala com o rádio errado</td></tr>
+<tr><td>RESET</td><td colspan="2">usado só na abertura, para reiniciar o chip num estado conhecido</td></tr>
+<tr><td>DIO0</td><td>sobe quando a transmissão termina (<i>TxDone</i>)</td><td>sobe quando um frame chegou inteiro (<i>RxDone</i>)</td></tr>
+<tr><td>Antena (conector IPEX)</td><td colspan="2">uma só, para os dois sentidos: o chaveamento TX/RX é interno ao módulo</td></tr>
+</tbody>
+</table></div>
+
+<p class="small">O driver troca a função do DIO0 a cada mudança de modo: <code>flight/radio/sx1278.c</code> o mapeia para <i>RxDone</i> ao entrar em recepção e para <i>TxDone</i> ao transmitir. É por isso que um único fio de interrupção basta, e por que um DIO0 solto aparece como "transmite uma vez e trava" ou "nunca recebe".</p>
+
+<h3>Os pinos do lado do RA-02</h3>
+
+<p>O módulo tem 16 contatos em duas fileiras de 8. A ordem abaixo é a do datasheet da Ai-Thinker; <b>confira com a serigrafia da sua placa</b> antes de ligar, porque placas adaptadoras costumam reordenar os pinos. Em <b>negrito</b>, os 8 que você liga; o resto fica solto.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Fileira 1 (pinos 1–8)</th><th>Fileira 2 (pinos 9–16)</th></tr></thead>
+<tbody>
+<tr><td>1 · <b>GND</b></td><td>9 · GND</td></tr>
+<tr><td>2 · GND</td><td>10 · DIO4</td></tr>
+<tr><td>3 · <b>3.3V</b></td><td>11 · DIO5</td></tr>
+<tr><td>4 · <b>RESET</b></td><td>12 · <b>SCK</b></td></tr>
+<tr><td>5 · <b>DIO0</b></td><td>13 · <b>MISO</b></td></tr>
+<tr><td>6 · DIO1</td><td>14 · <b>MOSI</b></td></tr>
+<tr><td>7 · DIO2</td><td>15 · <b>NSS</b></td></tr>
+<tr><td>8 · DIO3</td><td>16 · GND</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout warn">
+<p><b>O RA-02 sem placa adaptadora tem contatos de 2 mm</b>, menores que o passo de 2,54 mm dos jumpers: o jumper não encaixa. Ou o módulo vem numa placa adaptadora com barra de pinos, ou os 8 fios são soldados nele. Qualquer GND do módulo serve; basta um.</p>
+</div>
+
+<ul class="check">
+  <li><input type="checkbox" id="e3-off"><label for="e3-off">Pi desligada da fonte antes de ligar qualquer fio</label></li>
+  <li><input type="checkbox" id="e3-33"><label for="e3-33">Os dois rádios no 3,3 V (pinos 1 e 17), <b>nenhum fio no 2 ou no 4</b></label></li>
+  <li><input type="checkbox" id="e3-wires"><label for="e3-wires">Conferi fio por fio contra a tabela — os 8 do A e os 8 do B</label></li>
+  <li><input type="checkbox" id="e3-ant"><label for="e3-ant">Antena ou carga de 50 Ω nos dois rádios</label></li>
+  <li><input type="checkbox" id="e3-dist"><label for="e3-dist">Rádios a cerca de 1 m um do outro; anotei a distância</label></li>
+</ul>
+
+<h2 id="e4"><span class="n">6</span>Etapa 4 · A bancada dos rádios</h2>
+<div class="step-meta"><span><b>45 min</b></span><span>6 passos; os logs vão para <code>docs/vv/bancada/AAAA-MM-DD/</code></span></div>
+
+<p class="why"><b>Por quê.</b> É a evidência de teste do HLR-COMM-01 (tempo de resposta a telecomando) e do HLR-COMM-03 (enlace definido e justificado), e o que decide se os ADRs 0007 e 0012 podem ser aceitos. Cada passo sobe o <code>ttcd</code> no rádio A e a ground de bancada (<code>gs_cli</code>) no rádio B, executa um roteiro de comandos, desliga tudo e imprime um resumo. A potência fica em 2 dBm nos dois lados: a 1 m, com 20 dBm, o sinal chegaria perto de saturar o receptor, e a taxa de erro deixaria de representar o enlace.</p>
+
+<p>Ligue a Pi de novo e espere ela voltar à rede. <span class="where pc">no PC</span></p>
+
+<h3>Passo 0 — configuração</h3>
+<div class="cmd"><pre><code>make pi-bench-config</code></pre></div>
+<p>Valida a configuração do <code>ttcd</code> sem tocar no rádio. <b>Esperado:</b> uma linha de configuração válida, sem erro.</p>
+
+<h3>Passo 1 — os dois chips respondem</h3>
+<div class="cmd"><pre><code>make pi-bench-ping</code></pre></div>
+<p>A ground manda 10 PINGs ao satélite. <b>Aceite:</b> <code>ping_summary</code> com <code>acked</code> 10.</p>
+<div class="callout warn">
+  <p><b>Se falhar:</b> se o <code>gs_cli</code> disser <code>unexpected RegVersion</code>, o rádio B não respondeu; se o log do <code>ttcd</code> tiver <code>radio_open_failed</code>, foi o A. RegVersion <code>0x00</code> ou <code>0xFF</code> é fio errado ou solto: desligue a Pi e confira 3,3 V, GND, NSS e MISO daquele rádio. Os outros passos dependem deste — não siga sem ele.</p>
+</div>
+
+<h3>Passos 2 a 6 — dentro do tmux</h3>
+<p>Os cinco passos seguintes levam uns 28 min juntos, e uma rodada longa morre se o ssh cair. Rode dentro do tmux:</p>
+<div class="cmd"><pre><code>make pi-sync
+ssh -t USUARIO@raspberrypi.local tmux new -A -s bench</code></pre></div>
+<p><span class="where pi">na Pi, dentro do tmux</span> O <code>make bench</code> roda os passos 1 a 6 em ordem; o <code>-k</code> faz ele seguir para o próximo mesmo se um falhar:</p>
+<div class="cmd"><pre><code>make -k -C ttec bench</code></pre></div>
+<p>No fim, <span class="where pc">no PC</span>, traga os logs: <code>make pi-fetch</code>.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Passo</th><th>O que faz</th><th>Aceite</th></tr></thead>
+<tbody>
+<tr><td class="nw">2 · tempo no ar</td><td>PINGs nos três perfis; depois o <code>toa_from_log.py</code> compara o tempo no ar medido com o modelo (<code>HHMMSS-toa.txt</code>)</td><td>todos os grupos dentro de 5% do modelo — o <code>make</code> termina com erro se não. Confirma também o bit LDRO, que o driver antigo errava</td></tr>
+<tr><td class="nw">3 · taxa de erro</td><td>1000 PINGs em NOMINAL e em FAST, 200 em SAFE (17 min)</td><td>não há limite: o resultado é o número. Anote <code>uplink_per</code> e <code>downlink_per</code> de cada perfil — inclui colisões, não só RF</td></tr>
+<tr><td class="nw">4 · troca de taxa</td><td>sete trocas entre todos os pares de perfis</td><td>cada <code>ack</code> com <code>status</code> OK e um evento <code>rate</code> para o perfil pedido</td></tr>
+<tr><td class="nw">5 · ACK perdido</td><td>a ground "fica surda" por 3 s e perde o ACK de uma troca de taxa</td><td>o satélite volta sozinho para NOMINAL em 20 s, ouve a ground de novo, e os dois terminam em FAST: o <code>ack</code> chega com <code>attempts</code> &gt; 1 e uns 21 s de latência</td></tr>
+<tr><td class="nw">6 · listen-before-talk</td><td>400 PINGs com o canal ocupado, duas vezes: detecção pelo cabeçalho e pelo preâmbulo (8 min)</td><td>compare as <code>attempts</code> dos dois. Se o preâmbulo der bem menos retries (a simulação prevê ~12% → ~2%), o padrão muda para <code>preamble</code></td></tr>
+</tbody>
+</table></div>
+
+<div class="callout warn">
+  <p><b>"A ttcd is already running"</b>: algum <code>ttcd</code> ficou de pé (um <code>bench-ttcd</code> esquecido, ou o serviço). <code>make pi-service-stop</code>, ou <kbd>Ctrl</kbd>+<kbd>C</kbd> no terminal dele.</p>
+</div>
+
+<ul class="check">
+  <li><input type="checkbox" id="e4-p0"><label for="e4-p0">Passo 0: configuração válida</label></li>
+  <li><input type="checkbox" id="e4-p1"><label for="e4-p1">Passo 1: 10 de 10 PINGs</label></li>
+  <li><input type="checkbox" id="e4-p2"><label for="e4-p2">Passo 2: tempo no ar dentro de 5%</label></li>
+  <li><input type="checkbox" id="e4-p3"><label for="e4-p3">Passo 3: anotei a taxa de erro de cada perfil</label></li>
+  <li><input type="checkbox" id="e4-p4"><label for="e4-p4">Passo 4: sete trocas com ACK OK</label></li>
+  <li><input type="checkbox" id="e4-p5"><label for="e4-p5">Passo 5: recuperou sozinho e terminou em FAST</label></li>
+  <li><input type="checkbox" id="e4-p6"><label for="e4-p6">Passo 6: anotei as tentativas com cabeçalho e com preâmbulo</label></li>
+  <li><input type="checkbox" id="e4-fetch"><label for="e4-fetch"><code>make pi-fetch</code>: os logs estão no PC</label></li>
+</ul>
+
+<h2 id="e5"><span class="n">7</span>Etapa 5 · O SDR e o dump1090</h2>
+<div class="step-meta"><span><b>40 min</b></span><span>tudo <b>na Pi</b>, num terminal ssh: <code>ssh USUARIO@raspberrypi.local</code></span></div>
+
+<p class="why"><b>Por quê.</b> O <code>dump1090-fa</code> transforma as amostras de rádio do SDR em mensagens ADS-B. Na Pi Zero 2 W, ele é o programa mais pesado do satélite, e ninguém mediu ainda quanto de CPU ele usa. Se ocupar um núcleo inteiro, a missão está em risco. E o ganho do SDR decide quantas mensagens são decodificadas: no ensaio, o SDR fica perto da fonte, com sinal forte, e ganho demais satura.</p>
+
+<h3>5.1 Instalar</h3>
+<p>Com o SDR desligado da Pi por enquanto. Os comandos são os da FlightAware, que mantém o <code>dump1090-fa</code>:</p>
+<div class="cmd"><pre><code>wget https://www.flightaware.com/adsb/piaware/files/packages/pool/piaware/f/flightaware-apt-repository/flightaware-apt-repository_1.3_all.deb
+sudo dpkg -i flightaware-apt-repository_1.3_all.deb
+sudo apt update
+sudo apt install -y dump1090-fa
+sudo systemctl disable --now dump1090-fa     # importante: quem sobe o dump1090 é o adsbd</code></pre></div>
+<p>A última linha importa: o pacote instala um serviço próprio, que sobe o <code>dump1090</code> sozinho e prende o SDR. No satélite, quem inicia e supervisiona o <code>dump1090</code> é o <code>adsbd</code> (ADR-0008); com os dois rodando, um deles não acha o SDR.</p>
+
+<h3>5.2 O SDR aparece?</h3>
+<p>Ligue o SDR na porta micro-USB marcada <b>USB</b> (não na <b>PWR</b>), pelo adaptador OTG, com a antena de 1090 MHz. Perto de uma janela ajuda.</p>
+<div class="cmd"><pre><code>lsusb
+dump1090-fa --device-index 0 --interactive</code></pre></div>
+<div class="callout ok">
+  <p><b>O que você deve ver:</b> no <code>lsusb</code>, uma linha com <code>RTL2838</code> (ou <code>0bda:2838</code>). No modo interativo, uma tabela de aviões — endereço ICAO, voo, altitude, velocidade, posição — atualizando sozinha. Sem aviões por perto, a tabela fica vazia, mas o programa roda sem erro. <kbd>Ctrl</kbd>+<kbd>C</kbd> sai.</p>
+</div>
+
+<h3>5.3 Varredura de ganho</h3>
+<p>O ganho é a amplificação antes da conversão para digital. Pouco ganho perde os aviões fracos; ganho demais satura com os fortes e as mensagens chegam corrompidas. No <code>dump1090-fa</code>, <code>--gain -10</code> liga o controle automático do próprio sintonizador (o valor que o protótipo usava), e qualquer outro número é o ganho em dB.</p>
+<p>O laço abaixo roda 2 minutos em cada ganho e guarda as estatísticas num arquivo dentro da pasta de hoje da bancada, para o <code>pi-fetch</code> trazer depois. Leva uns 13 minutos:</p>
+<div class="cmd"><pre><code>D=~/ttec/docs/vv/bancada/$(date +%F); mkdir -p $D
+for g in -10 49.6 42.1 36.4 28.0 20.7; do
+  echo "== ganho $g" | tee -a $D/ganho.txt
+  timeout 130 dump1090-fa --device-index 0 --gain $g --stats-every 60 --quiet \
+    | grep -E 'Statistics|accepted|above -3dBFS|noise power|current SDR gain' | tee -a $D/ganho.txt
+done</code></pre></div>
+<p><b>Como ler.</b> Para cada ganho, olhe o <b>segundo</b> bloco de estatísticas (o primeiro minuto inclui a partida):</p>
+<ul>
+  <li><b>mensagens aceitas</b> = <code>accepted with correct CRC</code> + <code>accepted with 1-bit error repaired</code>. Quanto mais, melhor;</li>
+  <li><b>sinais fortes</b> = <code>messages with signal power above -3dBFS</code>. São mensagens perto de saturar o conversor. Uma regra prática: mantenha abaixo de uns 5% das aceitas.</li>
+</ul>
+<p>O melhor ganho é o que dá mais mensagens aceitas com poucos sinais fortes. O tráfego muda de minuto a minuto, então, no fim, repita os dois melhores para confirmar. <b>Anote o ganho escolhido</b>: ele vai para o <code>dump1090_cmd</code> do <code>adsbd</code>.</p>
+
+<h3>5.4 CPU e temperatura</h3>
+<p>Com o ganho escolhido no lugar de <code>G</code>:</p>
+<div class="cmd"><pre><code>D=~/ttec/docs/vv/bancada/$(date +%F)
+dump1090-fa --device-index 0 --gain G --quiet &amp;
+sleep 20
+pidstat -u -p $(pidof dump1090-fa) 10 6 | tee -a $D/cpu.txt
+vcgencmd measure_temp | tee -a $D/cpu.txt
+vcgencmd get_throttled | tee -a $D/cpu.txt
+kill %1</code></pre></div>
+<div class="callout ok">
+  <p><b>Como ler:</b> a coluna <code>%CPU</code> do <code>pidstat</code> é a porcentagem de <b>um</b> núcleo (a Pi tem quatro). Abaixo de uns 50%, folga confortável; perto de 100%, um núcleo saturado — o risco do PLANO 3.4 confirmado. <code>get_throttled</code> deve dar <code>throttled=0x0</code>; outro valor significa que a Pi baixou o relógio por temperatura ou por fonte fraca.</p>
+</div>
+<div class="callout warn">
+  <p><b>Se saturar:</b> anote e siga. O PLANO previa cair para 2,0 MS/s, mas o <code>dump1090-fa</code> só roda o RTL-SDR a 2,4 MS/s — a taxa é fixa no código. A alternativa precisa ser estudada no PC, com os números desta medida.</p>
+</div>
+
+<ul class="check">
+  <li><input type="checkbox" id="e5-inst"><label for="e5-inst"><code>dump1090-fa</code> instalado e o serviço dele desligado</label></li>
+  <li><input type="checkbox" id="e5-usb"><label for="e5-usb">SDR aparece no <code>lsusb</code>; o modo interativo roda</label></li>
+  <li><input type="checkbox" id="e5-gain"><label for="e5-gain">Varredura feita; ganho escolhido anotado</label></li>
+  <li><input type="checkbox" id="e5-cpu"><label for="e5-cpu">CPU, temperatura e <code>get_throttled</code> anotados</label></li>
+</ul>
+
+<h2 id="e6"><span class="n">8</span>Etapa 6 · O adsbd com o SDR</h2>
+<div class="step-meta"><span><b>15 min</b></span><span><b>na Pi</b>, dentro de <code>~/ttec</code></span></div>
+
+<p class="why"><b>Por quê.</b> Até aqui, o <code>adsbd</code> só conversou com um <code>dump1090</code> de mentira (o <code>sbs_replay</code>). Agora ele sobe o <code>dump1090-fa</code> de verdade, lê as mensagens do SDR e grava o registro de bordo.</p>
+
+<p>O comando abaixo usa a configuração de exemplo, mas grava na pasta de hoje e mostra os eventos na tela. Se o ganho escolhido não for <code>-10</code>, troque o <code>-10</code> pelo seu:</p>
+<div class="cmd"><pre><code>cd ~/ttec
+D=docs/vv/bancada/$(date +%F)
+build/flight/adsbd -c flight/adsbd/adsbd.conf.example \
+  -o ipc_path=/tmp/ttec-bench.sock -o ndjson_path=$D/adsb.ndjson -o log_path=- \
+  -o "dump1090_cmd=/usr/bin/dump1090-fa --device-index 0 --gain -10 --net --net-bind-address 127.0.0.1 --net-sbs-port 30003 --net-ro-port 0 --net-bo-port 0 --net-bi-port 0 --net-ri-port 0 --quiet" \
+  | tee $D/adsbd.jsonl</code></pre></div>
+
+<div class="callout ok">
+  <p><b>O que você deve ver:</b> <code>start</code>, <code>dump1090_start</code> e, uns segundos depois, <code>sbs_up</code> — o <code>adsbd</code> conectou na porta de mensagens. O <code>ipc_connect_failed</code> é normal aqui: não há <code>ttcd</code> rodando. A cada minuto, um evento <code>stats</code> com as linhas lidas e as aeronaves. Num segundo terminal, <code>wc -l ~/ttec/docs/vv/bancada/*/adsb.ndjson</code> mostra o registro crescendo, e <code>tail -n 2</code> no mesmo arquivo mostra as últimas linhas.</p>
+</div>
+<p>Deixe rodar uns 5 minutos e pare com <kbd>Ctrl</kbd>+<kbd>C</kbd>: o log termina com <code>stop</code> e <code>exit</code>, e o <code>dump1090</code> é encerrado junto.</p>
+
+<ul class="check">
+  <li><input type="checkbox" id="e6-up"><label for="e6-up"><code>dump1090_start</code> e <code>sbs_up</code> no log</label></li>
+  <li><input type="checkbox" id="e6-rec"><label for="e6-rec">O <code>adsb.ndjson</code> cresceu</label></li>
+  <li><input type="checkbox" id="e6-stop"><label for="e6-stop">Parou limpo, com <code>stop</code> e <code>exit</code></label></li>
+</ul>
+
+<h2 id="e7"><span class="n">9</span>Etapa 7 · ADS-B real pelo LoRa real <span class="badge b-ok">bônus</span></h2>
+<div class="step-meta"><span><b>15 min</b></span><span><b>na Pi</b>, três terminais (três ssh, ou três janelas do tmux)</span></div>
+
+<p class="why"><b>Por quê.</b> É a missão em miniatura: aviões de verdade, recebidos pelo SDR, resumidos pelo <code>adsbd</code>, transmitidos pelo <code>ttcd</code> no rádio A e recebidos pela ground no rádio B. É o mesmo teste que rodou sem hardware em 28/09, agora com tudo real.</p>
+
+<p><b>Terminal 1</b> — o satélite (o log vai para a tela e para <code>manual-ttcd.jsonl</code>):</p>
+<div class="cmd"><pre><code>cd ~/ttec &amp;&amp; make bench-ttcd</code></pre></div>
+<p><b>Terminal 2</b> — o <code>adsbd</code>, com o mesmo comando da etapa 6 (ele já aponta para o socket da bancada, <code>/tmp/ttec-bench.sock</code>). Agora o log deve mostrar <code>ipc_up</code>.</p>
+<p><b>Terminal 3</b> — a ground, mandando a hora sozinha no contato:</p>
+<div class="cmd"><pre><code>cd ~/ttec &amp;&amp; make bench-gs GS_OPTS='--auto-time on'</code></pre></div>
+<p>No terminal 3, digite <code>stream 5</code> e espere uns 2 minutos. Depois <code>stop</code>, <code>quit</code>, e <kbd>Ctrl</kbd>+<kbd>C</kbd> nos terminais 2 e 1.</p>
+<div class="callout ok">
+  <p><b>O que você deve ver no terminal 3:</b> um evento <code>auto_time</code>, depois linhas <code>"ev":"tracks"</code> a cada 5 s, cada uma com os aviões do momento (<code>icao</code>, <code>lat</code>, <code>lon</code>, <code>alt_ft</code>…). Sem aviões ao alcance, os <code>tracks</code> não aparecem — o resto funciona igual.</p>
+</div>
+<p>De volta <span class="where pc">no PC</span>, depois do <code>make pi-fetch</code>, dá para levar o que desceu pelo rádio até o estimador:</p>
+<div class="cmd"><pre><code>python3 ground/host/tracks_to_ndjson.py &lt; docs/vv/bancada/$(date +%F)/manual-ground.jsonl &gt; /tmp/real.ndjson
+wc -l /tmp/real.ndjson</code></pre></div>
+
+<ul class="check">
+  <li><input type="checkbox" id="e7-ipc"><label for="e7-ipc">O <code>adsbd</code> mostrou <code>ipc_up</code></label></li>
+  <li><input type="checkbox" id="e7-tracks"><label for="e7-tracks">A ground recebeu <code>tracks</code> com aviões de verdade</label></li>
+</ul>
+
+<h2 id="e8"><span class="n">10</span>Etapa 8 · Trazer e anotar</h2>
+<div class="step-meta"><span><b>10 min</b></span><span><span class="where pc">no PC</span></span></div>
+
+<div class="cmd"><pre><code>make pi-fetch
+ls docs/vv/bancada/$(date +%F)/</code></pre></div>
+<p>A pasta do dia tem os pares de log de cada passo (<code>HHMMSS-&lt;passo&gt;-ttcd.jsonl</code> e <code>-ground.jsonl</code>), o <code>toa.txt</code>, o <code>ganho.txt</code>, o <code>cpu.txt</code> e os logs das etapas 6 e 7. Crie ali uma <code>notas.md</code> — curta, só o que os logs não contam:</p>
+<div class="cmd"><pre><code># Bancada — 05/10/2026
+
+- Sistema da Pi: arm64 (esperado) / armhf
+- make pi-test: __ de 23 · warnings: sim/não · make check: ok / falhou em __
+- Montagem: rádios a __ m · antenas / cargas de 50 Ω · 2 dBm
+- Passo 1: __/10 · Passo 2: dentro de 5%? · Passo 3: PER uplink/downlink por perfil __
+- Passo 4: __/7 · Passo 5: recuperou? · Passo 6: tentativas header __ × preamble __
+- SDR: ganho escolhido __ · CPU do dump1090 __% · temperatura __ · throttled __
+- adsbd com SDR: ok? · ADS-B pelo LoRa: ok?
+- Problemas e observações:</code></pre></div>
+<p>Depois me chame: eu leio os logs, faço a análise de cada passo, atualizo o PLANO e o <code>data-budget.md</code> §9 com os números medidos, e preparamos o commit da evidência.</p>
+
+<ul class="check">
+  <li><input type="checkbox" id="e8-fetch"><label for="e8-fetch">Logs no PC</label></li>
+  <li><input type="checkbox" id="e8-notas"><label for="e8-notas"><code>notas.md</code> escrita</label></li>
+</ul>
+
+<h2 id="problemas"><span class="n">11</span>Se algo der errado</h2>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Sintoma</th><th>Causa provável</th><th>O que fazer</th></tr></thead>
+<tbody>
+<tr><td>Cada <code>make pi-…</code> pede senha duas vezes</td><td>falta a chave ssh na Pi</td><td><code>ssh-copy-id USUARIO@raspberrypi.local</code></td></tr>
+<tr><td><code>PI_HOST is not set</code></td><td>falta o <code>local.mk</code></td><td><code>echo 'PI_HOST = USUARIO@raspberrypi.local' &gt; local.mk</code></td></tr>
+<tr><td><code>raspberrypi.local</code> não resolve</td><td>a rede não tem mDNS</td><td>use o IP da Pi (do roteador, ou <code>hostname -I</code> na Pi)</td></tr>
+<tr><td><code>/dev/spidev0.1</code> não existe</td><td>o SPI ainda não foi ligado</td><td>rode o <code>make pi-provision</code> e reinicie a Pi</td></tr>
+<tr><td><code>unexpected RegVersion</code> ou <code>radio_open_failed</code></td><td>fio errado ou solto naquele rádio</td><td>desligue a Pi; confira 3,3 V, GND, NSS e MISO contra a tabela da etapa 3</td></tr>
+<tr><td>PINGs perdidos no passo 1</td><td>antena solta, rádios longe ou perto demais</td><td>confira antenas ou cargas; 1 m; repita o passo</td></tr>
+<tr><td><code>a ttcd is already running</code></td><td>um <code>ttcd</code> ficou de pé</td><td><kbd>Ctrl</kbd>+<kbd>C</kbd> no <code>bench-ttcd</code>, ou <code>make pi-service-stop</code></td></tr>
+<tr><td>O ssh caiu no meio de uma rodada</td><td>rede</td><td>se estava no tmux, nada se perdeu: <code>ssh -t … tmux new -A -s bench</code> volta para a sessão</td></tr>
+<tr><td><code>pdftotext not found</code> no <code>make check</code></td><td>falta o <code>poppler-utils</code></td><td><code>sudo apt-get install -y poppler-utils</code> na Pi</td></tr>
+<tr><td><code>pidstat: command not found</code></td><td>falta o <code>sysstat</code></td><td><code>sudo apt-get install -y sysstat</code> na Pi</td></tr>
+<tr><td>dump1090: <code>usb_claim_interface error -6</code></td><td>o driver de TV digital do Linux pegou o SDR</td><td><code>sudo rmmod dvb_usb_rtl28xxu</code>; para sempre: <code>echo 'blacklist dvb_usb_rtl28xxu' | sudo tee /etc/modprobe.d/rtl-sdr.conf</code> e reinicie</td></tr>
+<tr><td>dump1090: nenhum dispositivo encontrado</td><td>SDR na porta <b>PWR</b>, adaptador OTG ruim, ou o serviço <code>dump1090-fa</code> segurando o SDR</td><td>confira o <code>lsusb</code>, a porta <b>USB</b>, e <code>sudo systemctl disable --now dump1090-fa</code></td></tr>
+<tr><td>A Pi reinicia sozinha ou <code>get_throttled</code> diferente de <code>0x0</code></td><td>fonte fraca, sobretudo com o SDR ligado</td><td>fonte de 2,5 A ou mais, cabo curto</td></tr>
+<tr><td><code>warning:</code> na compilação na Pi</td><td>diferença de compilador ou de processador (no ARM, <code>char</code> é sem sinal)</td><td>não conserte na Pi: copie as linhas e continue; a correção é feita no PC</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="glossario"><span class="n">12</span>Glossário</h2>
+
+<dl class="gloss">
+  <dt>ssh</dt><dd>o acesso remoto à Pi pela rede: um terminal da Pi aberto no seu PC.</dd>
+  <dt>Chave ssh</dt><dd>um par de arquivos que deixa o PC entrar na Pi sem digitar a senha toda vez.</dd>
+  <dt>rsync</dt><dd>o programa que copia a pasta do repositório para a Pi mandando só o que mudou. É o que o <code>make pi-sync</code> usa; a pasta na Pi vira um espelho do PC.</dd>
+  <dt>tmux</dt><dd>uma sessão de terminal que continua viva na Pi mesmo se o ssh cair. Sair sem fechar: <kbd>Ctrl</kbd>+<kbd>b</kbd>, <kbd>d</kbd>.</dd>
+  <dt>armhf / arm64</dt><dd>sistema de 32 ou de 64 bits na Pi.</dd>
+  <dt>SPI</dt><dd>o barramento entre a Pi e os rádios: relógio (SCK), dados de ida (MOSI) e de volta (MISO), e um fio de seleção por rádio.</dd>
+  <dt>Chip-select (NSS, CE0, CE1)</dt><dd>o fio que diz com qual rádio a Pi está falando no SPI compartilhado.</dd>
+  <dt>DIO0</dt><dd>o fio por onde o rádio avisa a Pi que terminou de transmitir ou que recebeu um frame.</dd>
+  <dt>dBm</dt><dd>potência em escala logarítmica: 2 dBm são 1,6 mW; 20 dBm, 100 mW.</dd>
+  <dt>Carga de 50 Ω</dt><dd>um conector que absorve a potência no lugar da antena, sem irradiar.</dd>
+  <dt>Tempo no ar</dt><dd>quanto tempo um frame ocupa o rádio; o modelo calcula, a bancada mede.</dd>
+  <dt>PER</dt><dd><i>packet error rate</i>: a fração de frames que não chegam.</dd>
+  <dt>Listen-before-talk</dt><dd>perguntar ao rádio se há recepção em curso antes de transmitir.</dd>
+  <dt>SDR</dt><dd>rádio definido por software: o NESDR entrega amostras brutas, e o <code>dump1090</code> faz a demodulação.</dd>
+  <dt>Ganho, AGC</dt><dd>a amplificação do sinal antes da conversão para digital; AGC é o ajuste automático dela.</dd>
+  <dt>dBFS</dt><dd>potência relativa ao máximo do conversor: 0 dBFS é o teto; perto dele, satura.</dd>
+  <dt>OTG</dt><dd>o adaptador que faz a porta micro-USB da Pi aceitar um dispositivo USB comum.</dd>
+</dl>
+
+<footer>
+  <p>Preparado em 05/10/2026, com apoio do Claude Code, a partir do <code>flight/ttcd/README.md</code>, do <code>flight/adsbd/README.md</code>, do <code>Makefile</code> e do código do <code>dump1090-fa</code> v11. Os comandos de instalação do <code>dump1090-fa</code> são os da página da FlightAware em 05/10/2026.</p>
+  <p>Relacionados: <a href="2026-09-28-estado-do-projeto.html">estado do projeto em 28/09</a> e o PLANO, decisões de 05/10.</p>
+</footer>
+
+</main>
+</div>
+<script>
+(function () {
+  var boxes = document.querySelectorAll('ul.check input[type=checkbox]');
+  var KEY = 'roteiro-pi-2026-10-05:';
+  function load(id) { try { return localStorage.getItem(KEY + id) === '1'; } catch (e) { return false; } }
+  function save(id, v) { try { localStorage.setItem(KEY + id, v ? '1' : '0'); } catch (e) {} }
+  function progress() {
+    var done = 0;
+    for (var i = 0; i < boxes.length; i++) { if (boxes[i].checked) { done++; } }
+    var p = document.getElementById('progress');
+    if (p) { p.textContent = done + ' de ' + boxes.length + ' conferências feitas'; }
+  }
+  for (var i = 0; i < boxes.length; i++) {
+    boxes[i].checked = load(boxes[i].id);
+    boxes[i].addEventListener('change', function (e) { save(e.target.id, e.target.checked); progress(); });
+  }
+  progress();
+  var blocks = document.querySelectorAll('.cmd');
+  for (var j = 0; j < blocks.length; j++) {
+    (function (block) {
+      var btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'copy'; btn.textContent = 'copiar';
+      btn.addEventListener('click', function () {
+        var text = block.querySelector('code').innerText;
+        function done(ok) { btn.textContent = ok ? 'copiado' : 'selecionado'; setTimeout(function () { btn.textContent = 'copiar'; }, 1500); }
+        function select() {
+          var r = document.createRange(); r.selectNodeContents(block.querySelector('code'));
+          var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done(false);
+        }
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () { done(true); }, select);
+          } else { select(); }
+        } catch (e) { select(); }
+      });
+      block.appendChild(btn);
+    })(blocks[j]);
+  }
+})();
+</script>
+</body>
+</html>
