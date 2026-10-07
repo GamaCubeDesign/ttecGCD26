@@ -1,0 +1,2 @@
+python3 tools/analysis/check_requirements.py
+71 of 71 quotations match cubedesign2026.pdf verbatim
