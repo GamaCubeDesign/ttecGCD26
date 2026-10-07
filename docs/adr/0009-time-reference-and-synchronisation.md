@@ -1,6 +1,6 @@
 # ADR-0009: Monotonic clocks everywhere, one wall-clock anchor from the ground
 
-- **Status:** Proposed — implemented and tested without hardware; awaiting team review
+- **Status:** Accepted (2026-10-05) — implemented and tested without hardware; the anchor's error is still to be measured on the Pi
 - **Date:** 2026-09-28
 - **Requirements:** HLR-ADS-07, HLR-ADS-08, HLR-SW-02
 - **Deciders:** TT&C team (LoRa and ADS-B sub-teams)
