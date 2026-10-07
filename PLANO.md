@@ -7,7 +7,8 @@ Documento de trabalho. As decisões consolidadas ficam nos ADRs
 **Prioridade atual (05/10):** hardware — a bancada da fase 2 e as medições
 na Pi, pelo roteiro `docs/relatorios/2026-10-05-roteiro-testes-raspberry.html`.
 Em paralelo, sem hardware: a troca de formatos, o TT&C seguindo o modo do
-OBC, o ICD do enlace e a CI (decisões de 05/10, abaixo).
+OBC, o ICD do enlace e a CI (decisões de 05/10, abaixo). Em 07/10, etapas 1
+e 2 do roteiro concluídas; progresso em `docs/vv/bancada/`.
 
 ---
 
@@ -157,7 +158,7 @@ Tomadas a partir dos relatórios de 28/09 e da integração com o OBC (versão d
 | 4 | Proposta ao OBC para `MISSION_DOWNLINK`: o roster com estatísticas (~0,4 KB); ao terminar, o `ttcd` manda `EV_TASK_DONE` ao OBC | depende do item 2 |
 | 5 | Posição para o OBC: `SET_MODE(EV_TASK_DONE)` sai da sobrevivência e aborta qualquer prova, sem mudar o fio; a sobrevivência automática do EPS vale em qualquer modo | ICD OBC↔TT&C |
 | 6 | ADR-0009 aceito; ADR-0007 e ADR-0012 só depois da bancada | — |
-| 7 | Raspberry Pi OS de 32 bits, como o OBC; o código do TT&C é testado nele primeiro | `make check` na Pi |
+| 7 | Raspberry Pi OS de 32 bits, como o OBC; o código do TT&C é testado nele primeiro — **substituída em 07/10 por 64 bits** (abaixo) | `make check` na Pi |
 | 8 | Lote de documentos: `AGENTS.md`, `README.md` e `requisitos.md` com a fase 3; erratas nos ADRs 0002 e 0004; ADR-0010 | — |
 | 9 | CI com GitHub Actions rodando o `make check` | `.github/workflows/` |
 | 10 | ICD do enlace agora, com o ESP32 decodificando os frames e mandando JSON pela UART, no formato da `gs_cli`; ICD OBC↔TT&C depois da conversa com o OBC | `docs/icd/` |
@@ -169,6 +170,33 @@ Ficam para depois: a chave do evento nos logs (`"ev"` na `gs_cli`, `"event"`
 no `ttcd` e no `adsbd`), o `memcmp` sobre padding no `test_tm` e a frase sobre
 o CA 5 no data-budget. A missão secundária (HLR-ADS-06) foi decidida fora do
 TT&C e do OBC.
+
+### Atualização de 07/10/2026
+
+Primeira sessão com a Pi. O registro completo, com os logs, está em
+`docs/vv/bancada/` (o `README.md` tem o progresso por etapa do roteiro).
+
+- **64 bits, não 32.** O time do OBC escolheu o Raspberry Pi OS de 64 bits;
+  substitui a decisão 7 de 05/10. A Pi da bancada roda Debian 13 (trixie),
+  arm64, gcc 14.2.
+- **Etapas 1 e 2 do roteiro concluídas.** A Pi está preparada (SPI ligado,
+  ferramentas, usuário `gama`) e o `make check` passa nela: 23 de 23 testes
+  nos dois builds, zero warnings, 71 de 71 citações.
+- **O ASan não roda na Pi.** O kernel dá a cada processo um espaço de
+  endereços de 39 bits, e o ASan do gcc 14 em arm64 precisa de 47. Na Pi o
+  `make asan` passa a usar só o UBSan (`SANITIZERS=`); no PC nada muda
+  (commit `897e961`).
+- **O `memcmp` sobre padding no `test_tm` foi corrigido** (commit `b12e3f4`):
+  deixou de ser "para depois" porque reprovou o teste na Pi, compilado com
+  UBSan. Os grupos do HK e do STAT comparam campo a campo; o codec não
+  mudou.
+- **Rede da bancada:** o PC como ponto de acesso Wi-Fi (NetworkManager
+  *shared*), repassando à Pi a internet cabeada; procedimento no README da
+  bancada.
+
+Próximo: a etapa 3 (ligar os dois RA-02) e a bancada dos rádios (2.7).
+Pendente da etapa 2: um erro do UBSan hoje é impresso mas não reprova o
+teste (falta `-fno-sanitize-recover=undefined`).
 
 ### Dívida imediata
 
