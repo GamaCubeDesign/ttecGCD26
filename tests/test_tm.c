@@ -208,7 +208,21 @@ int main(void)
 
         CHECK_EQ_INT(gama_hk_encode(buf, sizeof(buf), &in), GAMA_HK_WIRE_LEN);
         CHECK_EQ_INT(gama_hk_decode(buf, sizeof(buf), &out), GAMA_HK_WIRE_LEN);
-        CHECK_MEM_EQ(&out, &in, sizeof(gama_hk_t));
+        /* Field by field, never memcmp of the struct: its padding bytes are
+         * not written by the decoder and their value is unspecified (on the
+         * Pi under UBSan they held stack garbage). */
+        CHECK_EQ_INT(out.battery_mv,    in.battery_mv);
+        CHECK_EQ_INT(out.current_ma,    in.current_ma);
+        CHECK_EQ_INT(out.temp_ext_ccel, in.temp_ext_ccel);
+        CHECK_EQ_INT(out.temp_soc_ccel, in.temp_soc_ccel);
+        CHECK_EQ_INT(out.roll_cdeg,     in.roll_cdeg);
+        CHECK_EQ_INT(out.pitch_cdeg,    in.pitch_cdeg);
+        CHECK_EQ_INT(out.yaw_cdeg,      in.yaw_cdeg);
+        CHECK_EQ_INT(out.adsb_msgs,     in.adsb_msgs);
+        CHECK_EQ_INT(out.obc_mode,      in.obc_mode);
+        CHECK_EQ_INT(out.link_state,    in.link_state);
+        CHECK_EQ_INT(out.uptime_s,      in.uptime_s);
+        CHECK_EQ_INT(out.flags,         in.flags);
     }
 
     TEST_GROUP("hk: negative current reads back as charging");
@@ -232,7 +246,15 @@ int main(void)
 
         CHECK_EQ_INT(gama_stat_encode(buf, sizeof(buf), &in), GAMA_STAT_WIRE_LEN);
         CHECK_EQ_INT(gama_stat_decode(buf, sizeof(buf), &out), GAMA_STAT_WIRE_LEN);
-        CHECK_MEM_EQ(&out, &in, sizeof(gama_stat_t));
+        /* Field by field: see the hk group above. */
+        CHECK_EQ_INT(out.msgs_received,     in.msgs_received);
+        CHECK_EQ_INT(out.msgs_decoded,      in.msgs_decoded);
+        CHECK_EQ_INT(out.aircraft_tracked,  in.aircraft_tracked);
+        CHECK_EQ_INT(out.tm_frames_sent,    in.tm_frames_sent);
+        CHECK_EQ_INT(out.tc_frames_rx,      in.tc_frames_rx);
+        CHECK_EQ_INT(out.tc_frames_bad,     in.tc_frames_bad);
+        CHECK_EQ_INT(out.latency_p95_ms,    in.latency_p95_ms);
+        CHECK_EQ_INT(out.dump1090_restarts, in.dump1090_restarts);
     }
 
     TEST_GROUP("records: every payload fits a single frame");
