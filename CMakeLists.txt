@@ -22,10 +22,16 @@ add_compile_options(
     -Wpointer-arith -Wvla
 )
 
-option(TTEC_SANITIZE "Build with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
+option(TTEC_SANITIZE "Build with the sanitizers listed in TTEC_SANITIZERS" OFF)
+# ASan cannot run on the Pi Zero 2 W: GCC's arm64 ASan reserves its heap at
+# 0x500000000000 and the Pi kernel gives each process a 39-bit address space
+# (bench notes, docs/vv/bancada/2026-10-07). The Makefile passes "undefined"
+# there; ASan keeps running on the PC.
+set(TTEC_SANITIZERS "address,undefined" CACHE STRING
+    "Comma-separated -fsanitize= list used when TTEC_SANITIZE is ON")
 if(TTEC_SANITIZE)
-    add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer -g)
-    add_link_options(-fsanitize=address,undefined)
+    add_compile_options(-fsanitize=${TTEC_SANITIZERS} -fno-omit-frame-pointer -g)
+    add_link_options(-fsanitize=${TTEC_SANITIZERS})
 endif()
 
 add_subdirectory(common)

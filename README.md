@@ -57,7 +57,10 @@ make check            # antes de qualquer merge
 
 O `make check` roda os testes, depois compila de novo em `build-asan/` com
 ASan e UBSan e com todo warning virando erro, roda os testes ali, e confere
-as citações de `docs/requisitos.md` contra o regulamento. É assim que o
+as citações de `docs/requisitos.md` contra o regulamento. Na Raspberry Pi o
+segundo build usa só o UBSan: o ASan não consegue iniciar no kernel dela, que
+dá a cada processo um espaço de endereços de 39 bits (`SANITIZERS=` escolhe a
+lista; bancada de 07/10/2026). É assim que o
 código deve estar antes de qualquer merge. Os comandos por baixo — `cmake`,
 `ctest`, os scripts de `tools/analysis/` — continuam valendo sozinhos.
 

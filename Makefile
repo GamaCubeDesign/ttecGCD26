@@ -27,6 +27,10 @@ ON_PI      ?= $(shell grep -qs 'Raspberry Pi' /proc/device-tree/model && echo 1)
 
 BUILD_DIR  ?= build
 ASAN_DIR   ?= build-asan
+comma      := ,
+# ASan cannot start on the Pi (39-bit address space, see CMakeLists.txt):
+# there make asan runs UBSan alone.
+SANITIZERS ?= $(if $(ON_PI),undefined,address$(comma)undefined)
 BUILD_TYPE ?= RelWithDebInfo
 # The Pi Zero 2 W has 512 MB: more than two compilers at once exhausts it.
 JOBS       ?= $(if $(ON_PI),2,$(shell nproc))
@@ -52,9 +56,9 @@ test: build ## Run the tests; T=regex runs only those whose name matches
 
 # The configuration every merge must pass (AGENTS.md): sanitizers, and any
 # warning is an error — zero warnings is a rule of this project.
-asan: ## Build with ASan+UBSan and warnings as errors, then run the tests
+asan: ## Build with ASan+UBSan (UBSan alone on the Pi) and warnings as errors, then run the tests
 	cmake -S . -B $(ASAN_DIR) -DCMAKE_BUILD_TYPE=Debug -DTTEC_SANITIZE=ON \
-	      -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+	      -DTTEC_SANITIZERS='$(SANITIZERS)' -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
 	cmake --build $(ASAN_DIR) $(CMAKE_JOBS)
 	cd $(ASAN_DIR) && ctest --output-on-failure $(if $(T),-R '$(T)')
 
@@ -313,7 +317,7 @@ help: ## This list
 	    $(MAKEFILE_LIST)
 	@echo
 	@echo "Variables (make <target> VAR=value, or in local.mk), as on this machine:"
-	@echo "  RADIO=$(RADIO)  POWER=$(POWER)  LBT=$(LBT)  JOBS=$(JOBS)"
+	@echo "  RADIO=$(RADIO)  POWER=$(POWER)  LBT=$(LBT)  JOBS=$(JOBS)  SANITIZERS=$(SANITIZERS)"
 	@echo "  BENCH_DIR=$(BENCH_DIR)"
 	@echo "  PI_HOST=$(or $(PI_HOST),(unset))  PI_DIR=$(PI_DIR)"
 	@echo "  T=<regex> for test and asan, LOG=<file> for toa, TTCD_OPTS and GS_OPTS for extra options"
