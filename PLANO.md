@@ -4,8 +4,10 @@ Documento de trabalho. As decisões consolidadas ficam nos ADRs
 (`docs/adr/`); aqui fica o que falta fazer e em que ordem.
 
 **Marcos:** Design Package **27/09/2026** · UNSAM **24/11/2026**
-**Prioridade atual:** firmware testável. O DP é montado a partir dos ADRs e
-das medições que o firmware produzir.
+**Prioridade atual (05/10):** hardware — a bancada da fase 2 e as medições
+na Pi, pelo roteiro `docs/relatorios/2026-10-05-roteiro-testes-raspberry.html`.
+Em paralelo, sem hardware: a troca de formatos, o TT&C seguindo o modo do
+OBC, o ICD do enlace e a CI (decisões de 05/10, abaixo).
 
 ---
 
@@ -80,7 +82,8 @@ make test             # compila e roda a suíte; make check antes de um merge
       `preamble`
 - [ ] Registrar em `docs/vv/bancada/AAAA-MM-DD/` — os logs já vão para lá;
       falta a `notas.md` com a montagem e os resultados
-- [ ] Revisar e aceitar o ADR-0007 e o ADR-0012 (estão *Proposed*)
+- [ ] Revisar e aceitar o ADR-0007 e o ADR-0012 (estão *Proposed*) — depois
+      da bancada, decidido em 05/10: o passo 6 pode mudar o padrão do LBT
 
 ### Fase 3 — concluída em software; faltam as medições na Pi (2026-09-28)
 
@@ -136,10 +139,36 @@ em Python —, zero warnings, limpo sob ASan e UBSan.
 #### Falta para fechar a fase 3 — depende do hardware ou de decisão
 
 - [ ] Instalar o `dump1090-fa` na Pi e medir (3.4)
-- [ ] `IPC_STAT` com o indicador de `dump1090` vivo — muda um formato fixado
-      pelos vetores: decidir antes
-- [ ] Mensagem IPC ICAO → callsign para o `REQ_ROSTER`
-- [ ] Revisar e aceitar o ADR-0009
+- [ ] `IPC_STAT` com o indicador de `dump1090` vivo — decidido em 05/10:
+      entra na troca de versão do protocolo
+- [ ] Mensagem IPC ICAO → callsign para o `REQ_ROSTER` — idem
+- [x] Revisar e aceitar o ADR-0009 — aceito em 05/10
+
+### Decisões de 05/10/2026
+
+Tomadas a partir dos relatórios de 28/09 e da integração com o OBC (versão de
+02/10). O que muda o desenho vira ADR quando for implementado.
+
+| # | Decisão | O que gera |
+|---|---|---|
+| 1 | Hardware primeiro: a bancada (2.7) e as medições na Pi (3.4) antes de qualquer fase nova | roteiro `docs/relatorios/2026-10-05-roteiro-testes-raspberry.html` |
+| 2 | Uma troca de versão do protocolo, com três mudanças: temperatura da bateria no `TM_HK` (HLR-EPS-04), `dump1090` vivo no `IPC_STAT` e mensagem IPC ICAO → callsign, que destrava o `REQ_ROSTER` | ADR novo, vetores, data-budget |
+| 3 | O modo do OBC dirige o TT&C: o `ttcd` repassa o modo ao `adsbd`, que só roda o `dump1090` em `MISSION_ADSB`, e começa e para os retratos pelo modo. `STREAM_START` e `STREAM_STOP` ficam como comando manual | ADR novo; `ttcd` e `adsbd` |
+| 4 | Proposta ao OBC para `MISSION_DOWNLINK`: o roster com estatísticas (~0,4 KB); ao terminar, o `ttcd` manda `EV_TASK_DONE` ao OBC | depende do item 2 |
+| 5 | Posição para o OBC: `SET_MODE(EV_TASK_DONE)` sai da sobrevivência e aborta qualquer prova, sem mudar o fio; a sobrevivência automática do EPS vale em qualquer modo | ICD OBC↔TT&C |
+| 6 | ADR-0009 aceito; ADR-0007 e ADR-0012 só depois da bancada | — |
+| 7 | Raspberry Pi OS de 32 bits, como o OBC; o código do TT&C é testado nele primeiro | `make check` na Pi |
+| 8 | Lote de documentos: `AGENTS.md`, `README.md` e `requisitos.md` com a fase 3; erratas nos ADRs 0002 e 0004; ADR-0010 | — |
+| 9 | CI com GitHub Actions rodando o `make check` | `.github/workflows/` |
+| 10 | ICD do enlace agora, com o ESP32 decodificando os frames e mandando JSON pela UART, no formato da `gs_cli`; ICD OBC↔TT&C depois da conversa com o OBC | `docs/icd/` |
+| 11 | Banco de aeroportos da região da UNSAM, gerado pelo importador do estimador e versionado | com o autor do estimador |
+| 12 | As 8 perguntas do `requisitos.md` §8 vão para a organização agora | — |
+| 13 | Custo (HLR-COST-01), consumo por modo (HLR-EPS-03), requisitos derivados e plano de V&V ficam com o TT&C, depois do hardware | fase 6 |
+
+Ficam para depois: a chave do evento nos logs (`"ev"` na `gs_cli`, `"event"`
+no `ttcd` e no `adsbd`), o `memcmp` sobre padding no `test_tm` e a frase sobre
+o CA 5 no data-budget. A missão secundária (HLR-ADS-06) foi decidida fora do
+TT&C e do OBC.
 
 ### Dívida imediata
 
@@ -237,8 +266,9 @@ Procedimento completo em `flight/ttcd/README.md`. `make bench` roda os passos
 
 - [x] `0005-process-architecture-and-fault-isolation.md` (*Accepted*)
 - [x] `0006-obc-ttec-ipc-transport.md` (*Accepted*)
-- [x] `0007-ota-frame-format-and-arq.md` (*Proposed* — aguarda revisão do time)
-- [x] `0012-hardware-access-through-kernel-interfaces.md` (*Proposed*, não previsto)
+- [x] `0007-ota-frame-format-and-arq.md` (*Proposed* — aceitar depois da bancada)
+- [x] `0012-hardware-access-through-kernel-interfaces.md` (*Proposed*, não previsto;
+      aceitar depois da bancada)
 
 ---
 
@@ -276,7 +306,8 @@ por mensagem, append + `fflush`. Ajustes:
       medidas até `epoch_ms`) e `IPC_STAT` — formatos em `common/gama_ipc.h`
 - [ ] Acrescentar ao `IPC_STAT` um indicador de `dump1090` vivo: o bit
       `GAMA_HK_F_DUMP1090_UP` do HK depende dele e hoje nunca é ligado.
-      Muda um payload fixado pelos vetores: decidir antes
+      Muda um payload fixado pelos vetores — entra na troca de versão
+      decidida em 05/10
 - [ ] Mensagem IPC com a tabela ICAO → callsign, para o `REQ_ROSTER` (hoje
       responde `FAILED`); o `adsbd` já guarda o callsign
 
@@ -293,11 +324,15 @@ por mensagem, append + `fflush`. Ajustes:
 ### 3.4 Medições na Pi — **o maior risco não quantificado**
 
 - [ ] CPU do `dump1090` a 2,4 MS/s (`pidstat -p <pid> 1`)
-- [ ] Se saturar um core: cair para 2,0 MS/s e remedir
+- [ ] Se saturar um core: o `dump1090-fa` v11 roda o RTL-SDR fixo a 2,4 MS/s
+      (`Modes.sample_rate` no código), então cair para 2,0 MS/s exigiria
+      outro decodificador — estudar com o número medido
 - [ ] Afinidade de CPU: `dump1090` e `ttcd` em cores distintos
-- [ ] **Varredura de ganho.** `adsb_capture.c:46` usa `GAIN "-10"`, ambíguo
-      entre o dump1090 original (décimos de dB) e o `-fa` (dB). O ambiente de
-      teste é SDR a curta distância → sinal forte, AGC pode saturar
+- [ ] **Varredura de ganho.** `adsb_capture.c:46` usa `GAIN "-10"`. No
+      dump1090-fa v11, `-10` liga o AGC do sintonizador; qualquer outro valor
+      é em dB, arredondado para o passo mais próximo (`sdr_rtlsdr.c`). O
+      ambiente de teste é SDR a curta distância → sinal forte, AGC pode
+      saturar
 - [ ] Taxa de decodificação contra cenário conhecido
 - [ ] Registrar tudo em `docs/budgets/data-budget.md` §9
 
@@ -305,7 +340,7 @@ por mensagem, append + `fflush`. Ajustes:
 
 - [x] `0008-adsb-receive-chain-ownership.md` (*Accepted* em 2026-09-19) —
       resolve o conflito com o `sdr.c` da branch `feat/modulo-aocs` do OBC
-- [x] `0009-time-reference-and-synchronisation.md` (*Proposed* — aguarda revisão)
+- [x] `0009-time-reference-and-synchronisation.md` (*Accepted* em 2026-10-05)
 - [ ] `0010-onboard-storage-and-data-retention.md` — a política já está no
       data-budget §7 e implementada (`ndjson_max_bytes`); falta o registro
 
