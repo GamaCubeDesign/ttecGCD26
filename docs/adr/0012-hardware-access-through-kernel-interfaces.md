@@ -1,6 +1,6 @@
 # ADR-0012: Radio hardware through the kernel's spidev and GPIO character device
 
-- **Status:** Proposed — implemented; not yet run on the Raspberry Pi
+- **Status:** Proposed — implemented; run on the Raspberry Pi with two RA-02 (bench of 2026-10-09); awaiting team review
 - **Date:** 2026-09-19
 - **Requirements:** HLR-COMM-01, HLR-COMM-03, HLR-GEN-03
 - **Deciders:** TT&C team (LoRa sub-team)
@@ -101,9 +101,16 @@ file with awkward semantics. Rejected.
 
 ### Follow-up required
 
-- Bench: confirm the driver initialises the RA-02 (RegVersion 0x12), that DIO0
-  edges arrive for both TxDone and RxDone, and measure the time from the edge
-  to the service call.
+- ~~Bench: confirm the driver initialises the RA-02 (RegVersion 0x12), that DIO0
+  edges arrive for both TxDone and RxDone~~ — done 2026-10-09
+  (`docs/vv/bancada/2026-10-09/`): both modules read RegVersion 0x12 through
+  spidev on CE0 and CE1, and the bench ran on DIO0 alone — about 2,200
+  receptions and 2,200 transmissions on each side, none missed. The time
+  from the edge to the service call is not measured on its own; the time on
+  air measured from the transmit call to the serviced TxDone exceeds the
+  model by 0.5 to 1 ms, which bounds it.
+- The board runs 64-bit Raspberry Pi OS (Debian 13, kernel 6.18): the
+  GPIO character device uAPI v2 and spidev work there unchanged.
 - Provision the flight image with `ttcd` in the `spi` and `gpio` groups.
 
 ## References

@@ -1,6 +1,6 @@
 # ADR-0007: Link protocol — framing, medium access, acknowledgement and rate change
 
-- **Status:** Proposed — implemented and verified in simulation; awaiting team review
+- **Status:** Proposed — implemented, verified in simulation and on two RA-02 (bench of 2026-10-09); awaiting team review
 - **Date:** 2026-09-19
 - **Requirements:** HLR-COMM-01, HLR-COMM-02, HLR-COMM-03, HLR-ADS-07, HLR-ADS-08, HLR-GEN-03
 - **Deciders:** TT&C team (LoRa sub-team)
@@ -177,6 +177,29 @@ and runs are seeded, so the figures below reproduce exactly
 `tests/test_ttcd_core.c` (188 checks) and `tests/test_gs_link.c` (39) pin each
 rule on one side at a time.
 
+### On the bench, two RA-02 (2026-10-09)
+
+Both sides on one Raspberry Pi Zero 2 W, radios 0.8 m apart at 2 dBm, RSSI
+about −28 dBm (`make bench`; logs and analysis in
+`docs/vv/bancada/2026-10-09/`). Not the mission link: the distance and the
+team's antennas are still to be measured.
+
+| Step | Result |
+|---|---|
+| Time on air against `common/gama_lora.c`, 141 frames, 3 profiles | worst error +1.9% (FAST, 11 B); NOMINAL +0.4%, SAFE +0.1% |
+| PING, NOMINAL / FAST / SAFE | 1000 / 1000 / 200 acknowledged at the first attempt; mean 276 ms / 81 ms / 2.70 s, inside B0 |
+| Downlink | 2220 frames, none lost, none corrupt |
+| Listen before talk during the PING runs | the satellite deferred 1174 transmissions while the ground spoke; no collision cost a command |
+| Rate change, every pair of profiles | 7 of 7 acknowledged at the first attempt |
+| Rate change, ACK lost (ground deaf 3 s) | satellite reverted after 20.000 s; both on FAST after 23.2 s, 12 attempts (simulation: 23.4 s) |
+| 400 PINGs with HK every second, header vs preamble detection | 0% retried in both; header stays the default |
+
+The bench found one driver defect the simulation could not: on the real
+chip, RegModemStat's "RX on-going" bit stays set throughout RX continuous,
+on an empty channel too (0x04 on both modules). Counted as busy, it held
+every transmission back; the driver no longer counts it (commit
+`72deaa5`).
+
 ## Rationale
 
 Every rule above prevents a specific failure, and most were found by the
@@ -270,12 +293,14 @@ is retrieved over USB after the mission (ADR-0003). `BULK_START` and
 
 ### Follow-up required
 
-- **Bench (PLANO 2.7):** measure how soon the SX1278 reports a reception in
-  `RegModemStat`. If "signal detected" asserts within ~5 preamble symbols,
-  have the driver use that bit: in simulation, commands needing a retry drop
-  from 12% to 2%.
-- **Bench:** measure time on air against `common/gama_lora.c`, and the modem
-  reconfiguration time against the 50 ms settle.
+- ~~**Bench (PLANO 2.7):** measure how soon the SX1278 reports a reception in
+  `RegModemStat`~~ — done 2026-10-09: with "signal detected" (preamble) or
+  without it (header), 0% of commands needed a retry; header stays.
+- ~~**Bench:** measure time on air against `common/gama_lora.c`~~ — done
+  2026-10-09, within 1.9%. The modem reconfiguration time against the 50 ms
+  settle is still unmeasured.
+- **Bench at mission distance**, with the team's antennas: the frame loss
+  rate at 0.8 m is zero and says nothing about the real link.
 - Document the frames and payloads for the ground and the Design Package in
   `docs/icd/ota-protocol-icd.md`.
 - Revisit bulk transfer only if a specific, smaller product is needed over RF.
