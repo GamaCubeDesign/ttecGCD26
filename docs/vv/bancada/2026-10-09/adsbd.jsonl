@@ -1,0 +1,27 @@
+{"mono_ms":1509333,"event":"start","version":"19b324b-dirty","sbs":"127.0.0.1:30003","ipc_path":"/tmp/ttec-bench.sock","ndjson_path":"docs/vv/bancada/2026-10-09/adsb.ndjson","record_bytes":0,"dump1090":"/usr/bin/dump1090-fa","wall_s":1791555648,"wall_note":"system clock until the ground's SET_TIME"}
+{"mono_ms":1509333,"event":"dump1090_start","pid":3048,"path":"/usr/bin/dump1090-fa"}
+{"mono_ms":1509333,"event":"ipc_connect_failed","path":"/tmp/ttec-bench.sock","why":"No such file or directory"}
+{"mono_ms":1509334,"event":"sbs_connect_failed","why":"Connection refused"}
+Fri Oct  9 11:20:48 2026 -03  dump1090-fa 11.1 starting up.
+rtlsdr: using device #0: Generic RTL2832U OEM (Realtek, RTL2838UHIDIR, SN 00000001)
+Found Rafael Micro R820T tuner
+rtlsdr: tuner gain set to about 58.6 dB (gain step 29) (tuner AGC enabled)
+Allocating 4 zero-copy buffers
+{"mono_ms":1510335,"event":"sbs_up","host":"127.0.0.1","port":30003}
+{"mono_ms":1569333,"event":"stats","lines":0,"decoded":0,"ignored":0,"non_icao":0,"rejected":0,"aircraft":0,"evictions":0,"expired":0,"snapshots":0,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":0,"dump1090_restarts":0,"time_synced":false}
+{"mono_ms":1629333,"event":"stats","lines":0,"decoded":0,"ignored":0,"non_icao":0,"rejected":0,"aircraft":0,"evictions":0,"expired":0,"snapshots":0,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":0,"dump1090_restarts":0,"time_synced":false}
+{"mono_ms":1689333,"event":"stats","lines":0,"decoded":0,"ignored":0,"non_icao":0,"rejected":0,"aircraft":0,"evictions":0,"expired":0,"snapshots":0,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":0,"dump1090_restarts":0,"time_synced":false}
+{"mono_ms":1749333,"event":"stats","lines":9,"decoded":9,"ignored":0,"non_icao":0,"rejected":0,"aircraft":2,"evictions":0,"expired":0,"snapshots":0,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":0,"dump1090_restarts":0,"time_synced":false}
+{"mono_ms":1809315,"event":"stop","signal":2}
+Fri Oct  9 11:25:48 2026 -03  Caught SIGINT, shutting down..
+
+Fri Oct  9 11:25:48 2026 -03  Caught SIGTERM, shutting down..
+
+{"mono_ms":1809333,"event":"stats","lines":24,"decoded":24,"ignored":0,"non_icao":0,"rejected":0,"aircraft":2,"evictions":0,"expired":0,"snapshots":0,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":0,"dump1090_restarts":0,"time_synced":false}
+Fri Oct  9 11:25:48 2026 -03  Waiting for receive thread termination
+Fri Oct  9 11:25:48 2026 -03  Normal exit.
+{"mono_ms":1809383,"event":"sbs_down","why":"closed by dump1090"}
+{"mono_ms":1809383,"event":"dump1090_exit","status":0}
+{"mono_ms":1809384,"event":"exit","code":0,"record_bytes":2700,"record_dropped":0}
+exit=124
+dump1090 encerrado junto

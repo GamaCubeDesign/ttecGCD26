@@ -31,8 +31,8 @@ Etapas do roteiro. ✅ feito · ⏳ em andamento · — não começado.
 | 2 · O código na Pi | compila e passa nos testes no compilador da Pi | ✅ 07/10 — 23/23 nos dois builds, citações 71/71; na Pi o ASan é impossível e roda só o UBSan, que achou um defeito no `test_tm` (corrigido) | [notas](2026-10-07/notas.md#etapa-2) |
 | 3 · Ligar os dois rádios | a fiação está certa | ✅ 09/10 — com placa perfurada (na protoboard nenhum chip respondia); 80 cm | [07/10](2026-10-07/notas.md#etapa-3), [09/10](2026-10-09/notas.md) |
 | 4 · A bancada dos rádios | tempo no ar, PER, troca de taxa, ACK perdido, LBT (HLR-COMM-01, HLR-COMM-03; aceite dos ADRs 0007 e 0012) | ✅ 09/10 — os 6 passos: ToA ≤ 1,9%, PER 0 em ~2,2 mil frames por sentido, 7/7 trocas, ACK perdido recuperado (23 s), LBT header = preamble; driver corrigido (RX on-going) | [notas](2026-10-09/notas.md) |
-| 5 · O SDR e o dump1090 | o receptor funciona; ganho; CPU do `dump1090` (risco do PLANO 3.4) | — | |
-| 6 · O `adsbd` com o SDR | o daemon com o hardware de verdade | — | |
+| 5 · O SDR e o dump1090 | o receptor funciona; ganho; CPU do `dump1090` (risco do PLANO 3.4) | ✅ 09/10 — dump1090-fa 11.1, 0 amostras perdidas, **CPU 22% de um núcleo**, 46 °C; ganho inconclusivo (0–3 aeronaves), fica `-10` | [notas](2026-10-09/notas.md#etapa-5--o-sdr-e-o-dump1090) |
+| 6 · O `adsbd` com o SDR | o daemon com o hardware de verdade | ✅ 09/10 — sobe o dump1090-fa real, `sbs_up` em 1 s, 24 mensagens de 2 aeronaves gravadas, parada limpa | [notas](2026-10-09/notas.md#etapa-6--o-adsbd-com-o-sdr-1120-a-1125-) |
 | 7 · ADS-B real pelo LoRa real | a cadeia da missão, em hardware (bônus) | — | |
 
 ## A Pi da bancada
