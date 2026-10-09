@@ -1,0 +1,4 @@
+{"mono_ms":68123,"wall_ms":1791551423381,"ev":"start","radio":"sx1278","profile":"NOMINAL"}
+{"mono_ms":68124,"wall_ms":1791551423381,"ev":"command","text":"ping 10"}
+{"mono_ms":218123,"wall_ms":1791551573380,"ev":"contact","up":false}
+{"mono_ms":218123,"wall_ms":1791551573381,"ev":"rate","from":"NOMINAL","to":"SAFE","reason":"contact_lost"}

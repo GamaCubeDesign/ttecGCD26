@@ -1,0 +1,19 @@
+{"mono_ms":1724132,"wall_ms":1791553079390,"ev":"start","radio":"sx1278","profile":"NOMINAL"}
+{"mono_ms":1724136,"wall_ms":1791553079394,"ev":"command","text":"deafen 3"}
+{"mono_ms":1724136,"wall_ms":1791553079394,"ev":"command","text":"rate fast"}
+{"mono_ms":1725154,"wall_ms":1791553080412,"ev":"deaf_drop","type":"TC_ACK"}
+{"mono_ms":1747385,"wall_ms":1791553102643,"ev":"contact","up":true}
+{"mono_ms":1747385,"wall_ms":1791553102643,"ev":"frame","type":"TC_ACK","seq":4,"rssi":-28,"snr":9,"payload":"20000100"}
+{"mono_ms":1747385,"wall_ms":1791553102643,"ev":"ack","id":1,"cmd":"SET_RATE","status":"OK","latency_ms":23249,"attempts":12}
+{"mono_ms":1747386,"wall_ms":1791553102644,"ev":"rate","from":"NOMINAL","to":"FAST","reason":"commanded"}
+{"mono_ms":1747386,"wall_ms":1791553102644,"ev":"command","text":"ping 3"}
+{"mono_ms":1747516,"wall_ms":1791553102773,"ev":"frame","type":"TC_ACK","seq":5,"rssi":-30,"snr":9,"payload":"01000200"}
+{"mono_ms":1747516,"wall_ms":1791553102773,"ev":"ack","id":0,"cmd":"PING","status":"OK","latency_ms":131,"attempts":1}
+{"mono_ms":1747597,"wall_ms":1791553102854,"ev":"frame","type":"TC_ACK","seq":6,"rssi":-29,"snr":9,"payload":"01000300"}
+{"mono_ms":1747597,"wall_ms":1791553102854,"ev":"ack","id":2,"cmd":"PING","status":"OK","latency_ms":211,"attempts":1}
+{"mono_ms":1747678,"wall_ms":1791553102935,"ev":"frame","type":"TC_ACK","seq":7,"rssi":-29,"snr":9,"payload":"01000400"}
+{"mono_ms":1747678,"wall_ms":1791553102935,"ev":"ack","id":3,"cmd":"PING","status":"OK","latency_ms":81,"attempts":1}
+{"mono_ms":1747759,"wall_ms":1791553103016,"ev":"frame","type":"TC_ACK","seq":8,"rssi":-29,"snr":9,"payload":"01000500"}
+{"mono_ms":1747759,"wall_ms":1791553103017,"ev":"ack","id":4,"cmd":"PING","status":"OK","latency_ms":81,"attempts":1}
+{"mono_ms":1747759,"wall_ms":1791553103017,"ev":"ping_summary","sent":3,"acked":3,"failed":0,"attempts":3,"latency_min_ms":81,"latency_mean_ms":124,"latency_max_ms":211}
+{"mono_ms":1747759,"wall_ms":1791553103017,"ev":"summary","dl_frames":5,"dl_lost":0,"dl_bad":0,"tc_sent":16,"tc_acked":5,"tc_failed":0,"lbt_defers":0}

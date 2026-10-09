@@ -148,3 +148,41 @@ na Pi, em arm64, com o compilador dela.
 Observação para depois: o `make asan` não usa `-fno-sanitize-recover`, então
 um erro do UBSan é impresso mas não reprova o teste — hoje a conferência é o
 `grep "runtime error"` no log (zero na Pi). Vale fazer o erro reprovar.
+
+## Etapa 3
+
+Os dois RA-02 ligados conforme a tabela do roteiro, a **80 cm** um do outro.
+Depois de religar: `/dev/spidev0.0` e `0.1` presentes, `throttled=0x0` com
+os dois rádios.
+
+## Etapa 4
+
+### Passo 0 — 17:43, ✅
+
+`make pi-bench-config`: `configuration valid: radio=sx1278 … profile=NOMINAL`,
+2 dBm, LBT por cabeçalho.
+
+### Passo 1 — 17:44, ❌ nenhum dos dois chips responde
+
+`make pi-bench-ping`: o `ttcd` não abre o rádio A
+(`radio_open_failed`, `unexpected RegVersion`; log `174357-ping-ttcd.jsonl`).
+
+Diagnóstico pelo SPI, à mão (`spidev` em Python, RESET pulsado e mantido
+alto com `gpioset`), lendo RegVersion (0x42, esperado `0x12`), RegOpMode,
+RegFrfMsb e RegSyncWord:
+
+| | CE0 (rádio A) | CE1 (rádio B) |
+|---|---|---|
+| MISO sem pull | `0x00` em todos | `0x00` em todos |
+| MISO com pull-up (`pinctrl set 9 pu`) | `0xFF` em todos | `0xFF` em todos |
+
+O MISO **flutua**: nenhum chip o aciona. Do lado da Pi está certo — GPIO9,
+10 e 11 em ALT0 (`SPI0_MISO`, `MOSI`, `SCLK`), CE0/CE1 em repouso alto,
+RESET (GPIO20, GPIO16) alto. Como os dois falham igual, a suspeita é algo
+comum aos dois: os fios compartilhados (MISO, MOSI, SCK), a alimentação, ou
+MISO e MOSI trocados no lado do RA-02.
+
+Repetido duas vezes depois de mexer na fiação: igual (`0x00`; `0xFF` com
+pull-up). Na terceira, com bytes distintos (`42 A5 5A`) para distinguir um
+laço MOSI→MISO de um chip: recebido `00 00 00` (`FF FF FF` com pull-up) nos
+dois CE — nem chip, nem eco.

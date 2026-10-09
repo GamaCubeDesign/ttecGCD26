@@ -1,0 +1,2 @@
+{"mono_ms":159699,"event":"start","version":"19b324b-dirty","radio":"sx1278","ipc_path":"/tmp/ttec-bench.sock","wall_s":1791405842,"wall_note":"unsynchronised until SET_TIME"}
+{"mono_ms":159712,"event":"radio_open_failed","why":"unexpected RegVersion (no chip, or wiring)"}
