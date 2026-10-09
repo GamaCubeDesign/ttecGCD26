@@ -1,0 +1,12 @@
+# Bench step 2 — time on air in the three profiles (PLANO 2.2).
+# This only makes traffic: the measurement is in ttcd's log, where every
+# transmission has its modelled and its measured time on air, and
+# make bench-toa runs tools/analysis/toa_from_log.py on it afterwards.
+# Accept: every (profile, frame length) within 5% of the model. A wrong LDRO
+# bit shows up here too, as SAFE falling out of the model.
+per 50
+rate safe
+per 20
+rate fast
+per 50
+rate nominal

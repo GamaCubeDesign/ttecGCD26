@@ -1,0 +1,1012 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TT&amp;C GCD26 — Fase 3: o payload ADS-B (28/09/2026)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#mudou">O que mudou desde 20/09</a></li>
+    <li><a href="#sistema">O sistema hoje</a></li>
+    <li><a href="#componentes">Estado por componente</a></li>
+    <li><a href="#verificacao">Verificação</a></li>
+    <li><a href="#adsbd">Como o adsbd é construído</a></li>
+    <li><a href="#tempo">O tempo sem relógio de tempo real</a></li>
+    <li><a href="#ground">A ground: estimador e adaptador</a></li>
+    <li><a href="#cadeia">A missão simulada, pela cadeia inteira</a></li>
+    <li><a href="#decisoes">Decisões registradas</a></li>
+    <li><a href="#requisitos">Requisitos</a></li>
+    <li><a href="#numeros">Os números que mudaram</a></li>
+    <li><a href="#falta">O que falta</a></li>
+    <li><a href="#riscos">Riscos abertos</a></li>
+    <li><a href="#lacunas">Lacunas e inconsistências</a></li>
+    <li><a href="#qa">Perguntas e respostas</a></li>
+    <li><a href="#glossario">Glossário</a></li>
+    <li><a href="#reproduzir">Como reproduzir</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header class="doc">
+  <p class="eyebrow">Gama Cube Design · CubeDesign 2026 · TT&amp;C</p>
+  <h1>Fase 3 — o payload ADS-B, do SBS ao estimador da ground</h1>
+  <p class="lede">Terceiro relatório de estado para a equipe. Cobre o que entrou desde 20 de setembro: a bancada virando alvos do <code>make</code> (22/09) e, em 28/09, o daemon do payload, a referência de tempo, o estimador da ground trazido para o repositório e a cadeia inteira rodando sem hardware.</p>
+  <div class="meta">
+    <span>Data: <b>28/09/2026</b></span>
+    <span>Branch: <b><code>feat/nova_arquitetura</code></b></span>
+    <span>Commit: <b><code>8d3ac9b</code></b></span>
+    <span>Design Package: <b>27/09/2026</b></span>
+    <span>Teste na UNSAM: <b>24/11/2026</b> (57 dias)</span>
+  </div>
+</header>
+
+<div class="callout" style="margin-top:18px">
+  <p><b>Base deste relatório.</b> Tudo foi conferido contra o commit <code>8d3ac9b</code>: build do zero com e sem sanitizers, a suíte inteira, a missão simulada passada pela cadeia completa em tempo real (10 min), a emulação do downlink e os scripts de orçamento e de requisitos. O <a href="2026-09-20-estado-do-projeto.html">relatório de 20/09</a> continua valendo para o enlace, e o <a href="2026-09-28-comparativo-ultima-missao.html">comparativo com a missão anterior</a>, também de hoje, explica o porquê de cada decisão de arquitetura. <b>Nada aqui foi medido em RF nem com o SDR.</b></p>
+</div>
+
+<h2 id="resumo"><span class="n">1</span>Resumo</h2>
+
+<ul>
+  <li><b>A fase 3 está pronta em software.</b> O <code>adsbd</code>, o daemon do payload, existe inteiro: sobe e supervisiona o <code>dump1090-fa</code>, lê as mensagens que ele decodifica, grava cada uma no registro de bordo, mantém a tabela de aeronaves e manda ao <code>ttcd</code> um retrato por segundo. São 2197 linhas de C, construídas como o <code>ttcd</code>: um núcleo sem chamadas de sistema dentro de uma casca <code>epoll</code>.</li>
+  <li><b>A cadeia inteira roda sem hardware.</b> Um substituto do <code>dump1090</code> serve uma missão gravada ou simulada, e ela atravessa o <code>adsbd</code>, o <code>ttcd</code>, o rádio UDP, a ground e um adaptador até o estimador de origem e destino. Com a simulação do colega — 4 voos, 10 min —, chegaram 125 frames de tracks sem nenhuma perda, e o estimador tirou as mesmas conclusões que tira do fluxo completo.</li>
+  <li><b>O tempo ganhou regra</b> (ADR-0009, <i>Proposed</i>): todo processo carimba com o relógio monotônico, e o horário de parede vem de uma âncora que a ground manda sozinha a cada contato. No caminho apareceram dois defeitos, ambos corrigidos: o <code>ttcd</code> não mandava a hora a um processo que reconectasse, e o protótipo lia errado o "no solo" do SBS — toda aeronave no solo saía como desconhecida.</li>
+  <li><b>O estimador do colega entrou no repositório</b>, em <code>ground/host/</code>, por merge e com a autoria preservada. Os 49 testes dele rodam no <code>make test</code>, e cada linha que o adaptador do downlink produz é conferida pelo próprio parser do estimador.</li>
+  <li><b>Os testes passaram de 15 para 23 suítes</b> e de 3102 para 3406 verificações em C, mais 56 testes em Python. Zero warnings, limpos sob ASan e UBSan.</li>
+  <li><b>O que falta depende de hardware ou de decisão.</b> Instalar o <code>dump1090-fa</code> na Pi e medir CPU, ganho e taxa de decodificação; fazer a bancada dos dois rádios, ainda pendente desde a fase 2; e revisar os ADRs 0007, 0009 e 0012, os três ainda <i>Proposed</i>.</li>
+</ul>
+
+<div class="tiles">
+  <div class="tile"><div class="v">2197</div><div class="l">linhas de C no <code>adsbd</code>, com 1682 linhas de teste para ele</div></div>
+  <div class="tile"><div class="v">23</div><div class="l">suítes de teste: 3406 verificações em C e 56 testes em Python (eram 15 e 3102)</div></div>
+  <div class="tile"><div class="v">0</div><div class="l">frames perdidos entre os 231 do downlink, na missão simulada de 10 min pela cadeia inteira</div></div>
+  <div class="tile"><div class="v">2,0 s</div><div class="l">latência p95 de bordo que o <code>ttcd</code> mediu nessa missão, contra o alvo de 5 s do data-budget §8</div></div>
+  <div class="tile"><div class="v">4 de 4</div><div class="l">voos com a mesma conclusão do estimador pela cadeia e pelo fluxo completo — cenário sintético</div></div>
+  <div class="tile"><div class="v">0</div><div class="l">medições em RF ou com o SDR até agora — tudo é software, simulação ou modelo</div></div>
+</div>
+
+<h2 id="mudou"><span class="n">2</span>O que mudou desde 20/09</h2>
+
+<h3>2.1 Código e documentos que entraram</h3>
+<p>Foram 21 commits na branch, mais o do colega que veio com o merge: cerca de 11 200 linhas, das quais 3306 são o projeto dele.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Quando</th><th>Onde</th><th class="r">Linhas</th><th>O que é</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">22/09</td><td><code>Makefile</code>, <code>tools/bench/</code></td><td class="r">+423</td><td>todo comando do time virou um alvo: build, testes, sanitizers, orçamento, os seis passos da bancada (um roteiro da <code>gs_cli</code> por passo, cada um com um <code>ttcd</code> novo) e a execução na Pi a partir do PC, por <code>rsync</code> e <code>ssh</code></td></tr>
+    <tr><td class="nw">22/09</td><td><code>flight/ttcd/README.md</code></td><td class="r">+184 −91</td><td>instalação e bancada reescritas em torno do <code>make</code></td></tr>
+    <tr><td class="nw">28/09</td><td><code>flight/adsbd/</code></td><td class="r">2423</td><td>o daemon do payload: núcleo (SBS, tabela de aeronaves, registro, retratos), casca <code>epoll</code>, configuração, unidade systemd e README</td></tr>
+    <tr><td class="nw">28/09</td><td><code>tests/</code></td><td class="r">+1682</td><td>seis suítes novas: <code>test_sbs</code>, <code>test_tracks</code>, <code>test_adsbd_core</code>, <code>test_adsbd_config</code>, <code>test_adsbd_integration</code> e <code>test_adsb_chain</code></td></tr>
+    <tr><td class="nw">28/09</td><td><code>flight/ttcd/</code>, <code>tools/gs_cli/</code></td><td class="r">+48 −13</td><td>a hora reenviada a quem se conecta depois do <code>SET_TIME</code>; a ground de bancada mandando a hora sozinha no contato (<code>--auto-time</code>)</td></tr>
+    <tr><td class="nw">28/09</td><td><code>ground/host/ground-aeronaves/</code>, <code>banco-aeronaves/</code></td><td class="r">3306</td><td>o estimador de origem e destino do colega, com painel, simulador, testes e o importador do cadastro de aeroportos — da branch <code>ADSB-ground</code>, por merge</td></tr>
+    <tr><td class="nw">28/09</td><td><code>ground/host/tracks_to_ndjson.py</code></td><td class="r">208</td><td>o adaptador que leva o downlink ao estimador, com os testes</td></tr>
+    <tr><td class="nw">28/09</td><td><code>tools/sbs_replay/</code>, <code>tools/bench/adsb_chain.sh</code>, <code>tools/analysis/downlink_emulation.py</code></td><td class="r">+485</td><td>o <code>dump1090</code> sem SDR, a cadeia inteira em um comando (<code>make adsb-chain</code>) e a emulação do downlink sobre capturas completas</td></tr>
+    <tr><td class="nw">28/09</td><td><code>docs/</code>, <code>PLANO.md</code></td><td class="r">+1233</td><td>ADR-0009, a fase 3 no PLANO e o comparativo com a missão anterior</td></tr>
+  </tbody>
+</table></div>
+
+<h3>2.2 As lacunas do relatório anterior</h3>
+<p>O relatório de 20/09 deixou dez lacunas abertas. Uma avançou; as outras seguem como estavam. As duas primeiras — os ADRs só propostos e o ICD vazio — são as que mais pesam numa revisão de fora do time.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>#</th><th>Lacuna de 20/09</th><th>Situação hoje</th></tr></thead>
+  <tbody>
+    <tr><td class="nw"><b>N1</b> <span class="badge b-bad">aberta</span></td><td>ADRs 0007 e 0012 em <i>Proposed</i></td><td>continuam, e o ADR-0009 se juntou a eles: três decisões implementadas e testadas esperando a revisão do time</td></tr>
+    <tr><td class="nw"><b>N2</b> <span class="badge b-bad">aberta</span></td><td><code>docs/icd/</code> vazio</td><td>continua vazio. O <code>README.md</code> e o <code>AGENTS.md</code> apontam o contrato com o OBC para <code>docs/icd/obc-ttec-icd.md</code>, que não existe</td></tr>
+    <tr><td class="nw"><b>N3</b> <span class="badge b-bad">aberta</span></td><td>o ADR-0002 promete CI com sanitizers</td><td>não há CI; o <code>make check</code> faz o mesmo trabalho, mas depende de alguém rodar</td></tr>
+    <tr><td class="nw"><b>N4</b> <span class="badge b-bad">aberta</span></td><td>chave do evento: <code>"event"</code> no <code>ttcd</code>, <code>"ev"</code> na <code>gs_cli</code></td><td>o <code>adsbd</code> seguiu o <code>ttcd</code> (<code>"event"</code>); a <code>gs_cli</code> continua com <code>"ev"</code>, e o adaptador da ground lê <code>"ev"</code></td></tr>
+    <tr><td class="nw"><b>N5</b> <span class="badge b-warn">avançou</span></td><td><code>REQ_ROSTER</code>, <code>BULK_*</code> e o bit <code>DUMP1090_UP</code> esperavam o <code>adsbd</code></td><td>o <code>adsbd</code> existe e já guarda o callsign de cada aeronave. Faltam uma mensagem IPC para a tabela ICAO → callsign e um campo no <code>IPC_STAT</code> para o bit — este muda um formato fixado pelos vetores, e por isso é decisão, não tarefa. <code>BULK_*</code> segue adiado pelo ADR-0007</td></tr>
+    <tr><td class="nw"><b>N6</b> <span class="badge b-bad">aberta</span></td><td>temperatura da bateria fora do <code>TM_HK</code></td><td>sem mudança</td></tr>
+    <tr><td class="nw"><b>N7</b> <span class="badge b-bad">aberta</span></td><td>como o host em Python lê os frames só está no PLANO</td><td>a decisão foi seguida na prática — o adaptador lê o JSON da <code>gs_cli</code>, sem segundo codec —, mas continua sem ADR nem ICD</td></tr>
+    <tr><td class="nw"><b>G8</b> <span class="badge b-bad">aberta</span></td><td>"dezenas de metros" sem fonte no ADR-0004</td><td>sem mudança</td></tr>
+    <tr><td class="nw"><b>G9</b> <span class="badge b-bad">aberta</span></td><td>o ADR-0002 cita o HLR-SW-01</td><td>sem mudança</td></tr>
+    <tr><td class="nw"><b>G10</b> <span class="badge b-bad">aberta</span></td><td><code>memcmp</code> sobre padding em <code>test_tm.c</code></td><td>continua: o <code>CHECK_MEM_EQ</code> das linhas 211 e 235 compara as structs inteiras com <code>memcmp</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="sistema"><span class="n">3</span>O sistema hoje</h2>
+
+<p>Em 20/09 só o caminho do rádio existia. Agora os dois existem em software: o do payload vai do SBS do <code>dump1090</code> até o estimador da ground, passando pelo mesmo <code>ttcd</code> e pelo mesmo protocolo.</p>
+
+<figure>
+  <div class="frame">
+<svg class="diagram" viewBox="0 0 980 466" role="img" aria-labelledby="fig1t fig1d">
+  <title id="fig1t">Arquitetura de software e o que já existe</title>
+  <desc id="fig1d">No CubeSat: o SDR alimenta o dump1090-fa, processo filho do adsbd, que grava o registro de bordo e troca retratos e a hora com o ttcd; o ttcd fala com o rádio SX1278 e com o OBC. Na ground: o rádio serve hoje a gs_cli de bancada e, na fase 4, o ESP32; os dois entregam JSON ao adaptador, que alimenta o estimador e o painel do colega. Embaixo, a biblioteca common, compartilhada pelos dois lados.</desc>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="ahrf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah-rf" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <rect class="zone" x="10" y="12" width="590" height="372" rx="14"/>
+  <text class="zone-label" x="26" y="36">CUBESAT · RASPBERRY PI ZERO 2 W</text>
+  <rect class="zone" x="690" y="12" width="280" height="372" rx="14"/>
+  <text class="zone-label" x="706" y="36">GROUND STATION</text>
+
+  <rect class="box hw" x="26" y="58" width="156" height="58" rx="8"/>
+  <text class="t-b" x="104" y="82" text-anchor="middle">NESDR Nano 3</text>
+  <text class="t-s" x="104" y="101" text-anchor="middle">RTL-SDR · 1090 MHz</text>
+
+  <rect class="box ext" x="226" y="58" width="156" height="58" rx="8"/>
+  <text class="t-b" x="304" y="82" text-anchor="middle">dump1090-fa</text>
+  <text class="t-s" x="304" y="101" text-anchor="middle">filho do adsbd</text>
+
+  <rect class="box hw" x="426" y="58" width="156" height="58" rx="8"/>
+  <text class="t-b" x="504" y="82" text-anchor="middle">SX1278 / RA-02</text>
+  <text class="t-s" x="504" y="101" text-anchor="middle">driver pronto</text>
+
+  <rect class="box hw" x="26" y="188" width="156" height="58" rx="8"/>
+  <text class="t-b" x="104" y="212" text-anchor="middle">adsb.ndjson</text>
+  <text class="t-s" x="104" y="231" text-anchor="middle">registro de bordo · SD</text>
+
+  <rect class="box done" x="226" y="188" width="156" height="58" rx="8"/>
+  <text class="t-b" x="304" y="212" text-anchor="middle">adsbd</text>
+  <text class="t-s" x="304" y="231" text-anchor="middle">pronto · falta a Pi</text>
+
+  <rect class="box done" x="426" y="188" width="156" height="58" rx="8"/>
+  <text class="t-b" x="504" y="212" text-anchor="middle">ttcd</text>
+  <text class="t-s" x="504" y="231" text-anchor="middle">pronto · falta bancada</text>
+
+  <rect class="box ext" x="426" y="300" width="156" height="58" rx="8"/>
+  <text class="t-b" x="504" y="324" text-anchor="middle">obc</text>
+  <text class="t-s" x="504" y="343" text-anchor="middle">outro time, outro repo</text>
+
+  <text class="t-e" x="26" y="300">O adsbd grava toda mensagem e manda</text>
+  <text class="t-e" x="26" y="319">ao ttcd um retrato por segundo; o ttcd</text>
+  <text class="t-e" x="26" y="338">transmite o mais recente a cada 5 s e</text>
+  <text class="t-e" x="26" y="357">devolve ao adsbd a hora da ground.</text>
+
+  <line class="edge" x1="182" y1="87" x2="224" y2="87" marker-end="url(#ah)"/>
+  <text class="t-e" x="203" y="79" text-anchor="middle">USB</text>
+  <line class="edge" x1="304" y1="116" x2="304" y2="186" marker-end="url(#ah)"/>
+  <text class="t-e" x="296" y="156" text-anchor="end">TCP :30003 · SBS-1</text>
+  <line class="edge" x1="226" y1="217" x2="184" y2="217" marker-end="url(#ah)"/>
+  <text class="t-e" x="205" y="209" text-anchor="middle">grava</text>
+  <line class="edge" x1="384" y1="217" x2="424" y2="217" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text class="t-e" x="404" y="209" text-anchor="middle">IPC</text>
+  <line class="edge" x1="504" y1="186" x2="504" y2="118" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text class="t-e" x="512" y="150">SPI + DIO0</text>
+  <text class="t-e" x="512" y="168">pronto</text>
+  <line class="edge" x1="504" y1="248" x2="504" y2="298" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text class="t-e" x="512" y="278">IPC</text>
+
+  <line class="edge rf" x1="584" y1="87" x2="714" y2="87" marker-start="url(#ahrf)" marker-end="url(#ahrf)"/>
+  <text class="t-e" x="645" y="78" text-anchor="middle">LoRa 433 MHz</text>
+  <text class="t-e" x="645" y="106" text-anchor="middle">half-duplex</text>
+
+  <rect class="box hw" x="706" y="58" width="248" height="48" rx="8"/>
+  <text class="t-b" x="830" y="78" text-anchor="middle">SX1278 / RA-02</text>
+  <text class="t-s" x="830" y="96" text-anchor="middle">segundo módulo</text>
+
+  <rect class="box done" x="706" y="140" width="118" height="52" rx="8"/>
+  <text class="t-b" x="765" y="162" text-anchor="middle">gs_cli</text>
+  <text class="t-s" x="765" y="180" text-anchor="middle">bancada · pronta</text>
+
+  <rect class="box plan" x="836" y="140" width="118" height="52" rx="8"/>
+  <text class="t-b" x="895" y="162" text-anchor="middle">ESP32</text>
+  <text class="t-s" x="895" y="180" text-anchor="middle">fase 4</text>
+
+  <line class="edge" x1="765" y1="106" x2="765" y2="138" marker-end="url(#ah)"/>
+  <text class="t-e" x="757" y="127" text-anchor="end">SPI</text>
+  <line class="edge" x1="895" y1="106" x2="895" y2="138" marker-end="url(#ah)"/>
+
+  <rect class="box done" x="706" y="228" width="248" height="46" rx="8"/>
+  <text class="t-b" x="830" y="248" text-anchor="middle">adaptador</text>
+  <text class="t-s" x="830" y="265" text-anchor="middle">tracks_to_ndjson.py · pronto</text>
+
+  <line class="edge" x1="765" y1="192" x2="765" y2="226" marker-end="url(#ah)"/>
+  <text class="t-e" x="757" y="214" text-anchor="end">JSON</text>
+  <line class="edge" x1="895" y1="192" x2="895" y2="226" marker-end="url(#ah)"/>
+  <text class="t-e" x="903" y="214">UART</text>
+
+  <rect class="box done" x="706" y="306" width="248" height="58" rx="8"/>
+  <text class="t-b" x="830" y="330" text-anchor="middle">estimador e painel</text>
+  <text class="t-s" x="830" y="349" text-anchor="middle">ground-aeronaves · do colega</text>
+
+  <line class="edge" x1="830" y1="274" x2="830" y2="304" marker-end="url(#ah)"/>
+  <text class="t-e" x="838" y="294">NDJSON</text>
+
+  <rect class="box done" x="10" y="398" width="960" height="58" rx="12"/>
+  <text class="t-b" x="490" y="422" text-anchor="middle">common/ — codec, perfis LoRa, payloads de IPC e o lado da ground do protocolo · pronto</text>
+  <text class="t-s" x="490" y="442" text-anchor="middle">os mesmos arquivos .c compilados no ttcd, no adsbd, na gs_cli e, na fase 4, no firmware do ESP32</text>
+</svg>
+  </div>
+  <div class="legend">
+    <span><i class="sw done"></i>pronto em software</span>
+    <span><i class="sw plan"></i>planejado, ainda sem código</span>
+    <span><i class="sw ext"></i>terceiros ou outro time</span>
+    <span><i class="sw hw"></i>hardware ou armazenamento</span>
+  </div>
+  <figcaption>Figura 1 — Os dois caminhos existem em software: o do rádio desde 20/09 e, agora, o do payload, do SDR até o estimador da ground. Nenhum dos dois rodou ainda no hardware de voo.</figcaption>
+</figure>
+
+<h2 id="componentes"><span class="n">4</span>Estado por componente</h2>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Componente</th><th>Onde</th><th>Estado</th><th>Observação</th></tr></thead>
+  <tbody>
+    <tr><td>Codec compartilhado</td><td><code>common/</code></td><td><span class="badge b-ok">pronto</span></td><td>sem mudança nesta fase: o <code>adsbd</code> usou os formatos de IPC que já estavam fixados</td></tr>
+    <tr><td>Transporte IPC</td><td><code>flight/libipc/</code></td><td><span class="badge b-ok">pronto</span></td><td>agora com um cliente de verdade, o <code>adsbd</code>; o OBC segue representado pelo teste de integração</td></tr>
+    <tr><td>Daemon de telecom</td><td><code>flight/ttcd/</code></td><td><span class="badge b-ok">pronto</span> <span class="badge b-warn">falta bancada</span></td><td>passou a mandar a hora a quem se conecta depois do <code>SET_TIME</code></td></tr>
+    <tr><td>Driver do rádio</td><td><code>flight/radio/</code></td><td><span class="badge b-ok">pronto</span> <span class="badge b-warn">falta bancada</span></td><td>sem mudança; a camada Linux ainda não rodou num RA-02</td></tr>
+    <tr><td><b>Daemon do payload</b></td><td><code>flight/adsbd/</code></td><td><span class="badge b-ok">pronto</span> <span class="badge b-warn">falta a Pi</span></td><td>núcleo sem chamadas de sistema, casca <code>epoll</code>, supervisão do <code>dump1090</code>, configuração por arquivo e argv, unidade systemd sem root. Nunca falou com um SDR</td></tr>
+    <tr><td>Ground de bancada</td><td><code>tools/gs_cli/</code></td><td><span class="badge b-ok">pronto</span></td><td>ganhou <code>--auto-time</code>: manda a hora sozinha a cada contato</td></tr>
+    <tr><td><b>Estimador e painel</b></td><td><code>ground/host/ground-aeronaves/</code></td><td><span class="badge b-ok">pronto</span> <span class="badge b-warn">falta o banco</span></td><td>do colega, em Python, só biblioteca padrão. Sem o banco de aeroportos (<code>referencias.db</code>, fora do git) não conclui nada</td></tr>
+    <tr><td><b>Adaptador do downlink</b></td><td><code>ground/host/tracks_to_ndjson.py</code></td><td><span class="badge b-ok">pronto</span></td><td>leva o log da ground ao formato do estimador; conferido pelo parser dele</td></tr>
+    <tr><td><b>Cadeia sem hardware</b></td><td><code>tools/sbs_replay/</code>, <code>make adsb-chain</code></td><td><span class="badge b-ok">pronto</span></td><td>uma missão gravada ou simulada passa por tudo, em tempo real</td></tr>
+    <tr><td>Análise e verificação</td><td><code>tools/analysis/</code></td><td><span class="badge b-ok">pronto</span></td><td>ganhou a emulação do downlink sobre capturas completas, com comparação pelo estimador</td></tr>
+    <tr><td>ADRs</td><td><code>docs/adr/</code></td><td><span class="badge b-ok">11 escritos</span> <span class="badge b-warn">3 propostos</span></td><td>0001 a 0009, 0011 e 0012; 0007, 0009 e 0012 aguardam revisão; o 0010 (armazenamento a bordo) falta escrever, embora a política já esteja implementada</td></tr>
+    <tr><td>Firmware da ground</td><td><code>ground/esp32/</code></td><td><span class="badge b-todo">fase 4</span></td><td>vai compilar o <code>gama_gs_link</code>, já testado</td></tr>
+    <tr><td>ICDs</td><td><code>docs/icd/</code></td><td><span class="badge b-bad">vazio</span></td><td>o protocolo e o IPC estão estáveis; o que falta é escrever</td></tr>
+    <tr><td>Plano de V&amp;V e ConOps</td><td><code>docs/vv/</code>, <code>docs/conops.md</code></td><td><span class="badge b-bad">vazio</span></td><td>fase 6</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="verificacao"><span class="n">5</span>Verificação</h2>
+
+<p>Conferido em 28/09/2026 com GCC 16.2.1, CMake 4.4.3 e Python 3.14.7, a partir de um build do zero numa cópia limpa do commit.</p>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Verificação</th><th>Resultado</th></tr></thead>
+  <tbody>
+    <tr><td>Build <code>RelWithDebInfo</code></td><td><span class="badge b-ok">0 warnings</span> em 45 unidades de compilação (eram 33)</td></tr>
+    <tr><td>CTest</td><td><span class="badge b-ok">23/23</span> passando, em 17,4 s</td></tr>
+    <tr><td>Build <code>Debug</code> com ASan + UBSan, warnings como erro</td><td><span class="badge b-ok">0 warnings</span> <span class="badge b-ok">23/23</span> passando</td></tr>
+    <tr><td>Verificações no total</td><td><b>3406</b> em C (eram 3102), mais <b>56</b> testes em Python (49 do estimador, com 1 pulado sem o banco local, e 7 do adaptador)</td></tr>
+    <tr><td><code>lora_budget.py --check</code></td><td>todos os números citados nos ADRs reproduzem</td></tr>
+    <tr><td><code>check_requirements.py</code></td><td><b>71 de 71</b> citações do regulamento conferem com o PDF, palavra por palavra</td></tr>
+    <tr><td>Unidades systemd</td><td><code>systemd-analyze verify</code> no <code>ttcd.service</code> e no <code>adsbd.service</code> só reclama que os binários não estão instalados nesta máquina</td></tr>
+    <tr><td>A cadeia inteira, sem hardware</td><td><code>make adsb-chain</code> com a simulação do colega, 10 min em tempo real: 1894 mensagens → 5682 linhas gravadas a bordo → 125 frames de tracks, 0 perdidos → 386 registros para o estimador (<a href="#cadeia">seção 9</a>)</td></tr>
+  </tbody>
+</table></div>
+
+<h3>5.1 As 23 suítes</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Suíte</th><th class="r">Verificações</th><th>O que garante</th></tr></thead>
+  <tbody>
+    <tr><td><code>test_tm</code></td><td class="r">1306</td><td>registros de telemetria: quantização, saturação, NaN, flags de validade</td></tr>
+    <tr><td><code>test_lora</code></td><td class="r">832</td><td>tabela de perfis e tempo no ar batendo com o <code>lora_budget.py</code> no microssegundo</td></tr>
+    <tr><td><code>test_crc16</code></td><td class="r">260</td><td>o CRC é o CCITT-FALSE e detecta toda inversão de 1 bit</td></tr>
+    <tr><td><code>test_ttcd_core</code> <span class="badge b-warn">mudou</span></td><td class="r">199</td><td>cada regra do protocolo no lado do satélite; agora também a hora mandada a quem se conecta depois do <code>SET_TIME</code>, e a nenhum antes dele (eram 188)</td></tr>
+    <tr><td><code>test_sx1278</code></td><td class="r">92</td><td>o driver contra um chip emulado, registrador por registrador</td></tr>
+    <tr><td><code>test_adsbd_core</code> <span class="badge b-ok">novo</span></td><td class="r">66</td><td>o núcleo do <code>adsbd</code> em relógio virtual: linhas viram registro, retrato e contadores; a âncora de tempo; linhas rejeitadas contadas e só as 20 primeiras no log</td></tr>
+    <tr><td><code>test_sbs</code> <span class="badge b-ok">novo</span></td><td class="r">64</td><td>o parser do SBS-1, com o "no solo" corrigido, e as três linhas do registro de que o orçamento de dados é calculado, byte a byte</td></tr>
+    <tr><td><code>test_link_sim</code></td><td class="r">63</td><td>os dois lados reais do enlace num canal half-duplex simulado</td></tr>
+    <tr><td><code>test_frame</code></td><td class="r">58</td><td>framing: round-trip, truncamento, CRC, versão</td></tr>
+    <tr><td><code>test_ipc_codec</code></td><td class="r">55</td><td>os payloads de IPC, com vetores dourados</td></tr>
+    <tr><td><code>test_tracks</code> <span class="badge b-ok">novo</span></td><td class="r">51</td><td>a tabela de aeronaves e as regras do retrato, inclusive 20 aeronaves por 10 min a 4 mensagens/s</td></tr>
+    <tr><td><code>test_vectors</code></td><td class="r">50</td><td>os bytes literais de cada registro e frame</td></tr>
+    <tr><td><code>test_tc</code></td><td class="r">49</td><td>catálogo de telecomandos e valores de wire</td></tr>
+    <tr><td><code>test_adsbd_integration</code> <span class="badge b-ok">novo</span></td><td class="r">46</td><td>o binário real do <code>adsbd</code>, com o teste no papel do <code>dump1090</code> e do <code>ttcd</code>: reconexões, registro, log, âncora, parada limpa e um <code>dump1090</code> que morre sem parar</td></tr>
+    <tr><td><code>test_config</code></td><td class="r">45</td><td>a configuração do <code>ttcd</code></td></tr>
+    <tr><td><code>test_gs_link</code></td><td class="r">39</td><td>o lado da ground do protocolo</td></tr>
+    <tr><td><code>test_libipc</code></td><td class="r">36</td><td>o transporte IPC</td></tr>
+    <tr><td><code>test_adsbd_config</code> <span class="badge b-ok">novo</span></td><td class="r">35</td><td>a configuração do <code>adsbd</code>: chave desconhecida é erro, com a linha; validação cruzada dos prazos</td></tr>
+    <tr><td><code>test_adsb_chain</code> <span class="badge b-ok">novo</span></td><td class="r">31</td><td><code>adsbd</code> e <code>ttcd</code> reais com a ground no rádio UDP: os aviões chegam; o rádio sobrevive ao <code>adsbd</code> morto; o <code>adsbd</code> reiniciado volta à hora da ground sem outro <code>SET_TIME</code></td></tr>
+    <tr><td><code>test_ttcd_integration</code></td><td class="r">29</td><td>o binário real do <code>ttcd</code>, ponta a ponta</td></tr>
+    <tr><td><code>budget_matches_adrs</code></td><td class="r">—</td><td>os números dos ADRs reproduzem</td></tr>
+    <tr><td><code>ground_aeronaves</code> <span class="badge b-ok">novo</span></td><td class="r">49 testes</td><td>os testes do próprio estimador, em Python; um fica pulado sem o banco local</td></tr>
+    <tr><td><code>tracks_to_ndjson</code> <span class="badge b-ok">novo</span></td><td class="r">7 testes</td><td>o adaptador: horário refeito, só os campos válidos, repetidos escritos uma vez, e cada linha aceita pelo parser do estimador</td></tr>
+    <tr class="total"><td>Total em C</td><td class="r">3406</td><td></td></tr>
+  </tbody>
+</table></div>
+
+<div class="callout warn">
+  <p><b>O que os testes ainda não cobrem.</b> O <code>adsbd</code> nunca viu um SDR nem um <code>dump1090-fa</code> de verdade: o SBS dos testes é gravado ou gerado, e a supervisão foi exercitada com <code>/bin/sh</code> e <code>/bin/sleep</code> no papel do <code>dump1090</code>. A CPU que o <code>dump1090</code> vai consumir na Pi Zero 2 W, o ganho certo e a taxa de decodificação só existem depois da medição do PLANO 3.4.</p>
+</div>
+
+<h2 id="adsbd"><span class="n">6</span>Como o <code>adsbd</code> é construído</h2>
+
+<p>O <code>adsbd</code> repete a estrutura do <code>ttcd</code> (ADR-0005): <b>um núcleo puro dentro de uma casca fina</b>. O núcleo recebe linhas SBS e eventos já carimbados com o instante e age pela tabela <code>adsbd_ops_t</code>; a casca tem o processo filho, os sockets, os arquivos e o relógio.</p>
+
+<figure>
+  <div class="frame">
+<svg class="diagram" viewBox="0 0 980 416" role="img" aria-labelledby="fig2t fig2d">
+  <title id="fig2t">O núcleo puro do adsbd e sua casca</title>
+  <desc id="fig2d">Os recursos do sistema operacional — o processo do dump1090, o socket SBS, o socket IPC, o timerfd, o signalfd e os arquivos — ficam com a casca main.c, que roda o epoll e o relógio. A casca entrega linhas SBS e eventos carimbados ao núcleo, formado por sbs.c, tracks.c, ndjson.c e core.c, e o núcleo age de volta pela tabela de operações: gravar uma linha, mandar um frame ao ttcd, escrever no log.</desc>
+  <defs>
+    <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <text class="zone-label" x="20" y="44">SISTEMA OPERACIONAL</text>
+  <rect class="box hw" x="20" y="56" width="190" height="38" rx="8"/>
+  <text class="t-b" x="115" y="80" text-anchor="middle">dump1090-fa · filho</text>
+  <rect class="box hw" x="20" y="102" width="190" height="38" rx="8"/>
+  <text class="t-b" x="115" y="126" text-anchor="middle">socket TCP · SBS</text>
+  <rect class="box hw" x="20" y="148" width="190" height="38" rx="8"/>
+  <text class="t-b" x="115" y="172" text-anchor="middle">socket IPC · ttcd</text>
+  <rect class="box hw" x="20" y="194" width="190" height="38" rx="8"/>
+  <text class="t-b" x="115" y="218" text-anchor="middle">timerfd</text>
+  <rect class="box hw" x="20" y="240" width="190" height="38" rx="8"/>
+  <text class="t-b" x="115" y="264" text-anchor="middle">signalfd</text>
+  <rect class="box hw" x="20" y="286" width="190" height="38" rx="8"/>
+  <text class="t-b" x="115" y="310" text-anchor="middle">registro e log · SD</text>
+
+  <line class="edge" x1="210" y1="75" x2="276" y2="70" marker-end="url(#ah2)"/>
+  <line class="edge" x1="210" y1="121" x2="276" y2="84" marker-end="url(#ah2)"/>
+  <line class="edge" x1="210" y1="167" x2="276" y2="98" marker-end="url(#ah2)"/>
+  <line class="edge" x1="210" y1="213" x2="276" y2="112" marker-end="url(#ah2)"/>
+  <line class="edge" x1="210" y1="259" x2="276" y2="126" marker-end="url(#ah2)"/>
+  <line class="edge" x1="210" y1="305" x2="276" y2="140" marker-end="url(#ah2)"/>
+
+  <rect class="box" x="280" y="56" width="660" height="90" rx="10"/>
+  <text class="t-b" x="610" y="86" text-anchor="middle">casca — main.c</text>
+  <text class="t-s" x="610" y="110" text-anchor="middle">laço epoll · relógio monotônico · reinicia o dump1090 · reconecta SBS e IPC</text>
+  <text class="t-s" x="610" y="130" text-anchor="middle">nenhuma regra sobre os dados mora aqui</text>
+
+  <line class="edge" x1="400" y1="148" x2="400" y2="246" marker-end="url(#ah2)"/>
+  <text class="t-e" x="416" y="170">eventos, com o instante:</text>
+  <text class="t-e" x="416" y="190">adsbd_on_line()</text>
+  <text class="t-e" x="416" y="210">adsbd_on_ipc_frame()</text>
+  <text class="t-e" x="416" y="230">adsbd_on_tick()</text>
+
+  <line class="edge" x1="820" y1="246" x2="820" y2="148" marker-end="url(#ah2)"/>
+  <text class="t-e" x="804" y="170" text-anchor="end">ações (adsbd_ops_t):</text>
+  <text class="t-e" x="804" y="190" text-anchor="end">record()</text>
+  <text class="t-e" x="804" y="210" text-anchor="end">ipc_send()</text>
+  <text class="t-e" x="804" y="230" text-anchor="end">log()</text>
+
+  <rect class="box done" x="280" y="250" width="660" height="120" rx="10"/>
+  <text class="t-b" x="610" y="280" text-anchor="middle">núcleo — sbs.c · tracks.c · ndjson.c · core.c</text>
+  <text class="t-s" x="610" y="304" text-anchor="middle">lê o SBS · junta os campos por aeronave · escreve a linha do registro · monta o retrato</text>
+  <text class="t-s" x="610" y="324" text-anchor="middle">conta toda linha rejeitada e toda aeronave deixada de fora (HLR-ADS-08)</text>
+  <text class="t-b" x="610" y="352" text-anchor="middle">não lê relógio · não bloqueia · não toca descritor</text>
+
+  <text class="t-e" x="610" y="400" text-anchor="middle">nos testes, a casca vira um relógio virtual e linhas SBS gravadas: 20 aeronaves por 10 min rodam em milissegundos</text>
+</svg>
+  </div>
+  <figcaption>Figura 2 — A mesma divisão do <code>ttcd</code>. O que a casca faz é pouco e é testado com o binário real; tudo o que decide sobre os dados é testado em tempo virtual.</figcaption>
+</figure>
+
+<h3>6.1 Os três produtos</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Produto</th><th>Para quem</th><th>Quando</th></tr></thead>
+  <tbody>
+    <tr><td><b>Registro de bordo</b> — toda mensagem, carimbada na chegada, uma linha JSON cada</td><td>a análise depois do teste, pelo cartão ou por USB (HLR-SW-02, HLR-ADS-07)</td><td>a cada mensagem, com <code>fflush</code>; para de gravar em 1 GiB (~140 missões), com um evento no log</td></tr>
+    <tr><td><b>Retrato</b> — o estado de cada aeronave num registro de 20 bytes (<code>IPC_TRACKS</code>)</td><td>o <code>ttcd</code>, que transmite o mais recente a cada 5 s (ADR-0003, ADR-0007)</td><td>a cada 1 s</td></tr>
+    <tr><td><b>Contadores</b> — linhas lidas e aplicadas, aeronaves, reinícios do <code>dump1090</code> (<code>IPC_STAT</code>)</td><td>o <code>ttcd</code>, para o <code>TM_STAT</code> e o <code>TM_HK</code> (HLR-ADS-08)</td><td>a cada 1 s; o log de eventos recebe todos os contadores a cada minuto</td></tr>
+  </tbody>
+</table></div>
+
+<h3>6.2 As regras do retrato</h3>
+<p>O ADS-B entrega o estado de uma aeronave em pedaços: posição numa mensagem, velocidade em outra, identificação numa terceira, cada uma no seu ritmo. A tabela junta os pedaços por endereço ICAO e lembra quando cada campo chegou; o retrato aplica as regras abaixo, todas configuráveis e validadas entre si.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Regra</th><th class="r">Valor</th><th>Por quê</th></tr></thead>
+  <tbody>
+    <tr><td>Posição só entra se for recente</td><td class="r">≤ 10 s</td><td>uma posição velha desenha a trajetória no lugar errado; sem posição recente, o registro sai sem ela</td></tr>
+    <tr><td>O instante do registro</td><td class="r">o da posição</td><td>é a posição que o estimador usa; sem posição, vale o campo mais novo. O <code>ttcd</code> estende a idade até o início da transmissão (ADR-0007)</td></tr>
+    <tr><td>Campos entram enquanto frescos</td><td class="r">≤ 60 s</td><td>o mesmo prazo que o estimador usa (<code>field_ttl_s = 60</code> no <code>config.py</code> dele)</td></tr>
+    <tr><td>Aeronave sai da tabela</td><td class="r">60 s de silêncio</td><td>libera a posição para outra; a tabela tem 128</td></tr>
+    <tr><td>Aeronaves por retrato</td><td class="r">≤ 24</td><td>dois frames de 12 cobrem as 20 do orçamento; as com posição recente vêm primeiro, as mais novas antes. As que ficam de fora são contadas</td></tr>
+    <tr><td>Retrato vazio</td><td class="r">também vai</td><td>uma aeronave que sumiu não volta ao ar com o retrato anterior</td></tr>
+  </tbody>
+</table></div>
+
+<h3>6.3 O que muda em relação ao <code>adsb_capture.c</code></h3>
+<p>O protótipo de 15/09 foi a base: ficaram o <code>fork</code>/<code>execv</code> sem shell, a leitura das linhas SBS, o carimbo de cada mensagem na chegada, o <code>fflush</code> por linha e o formato da linha, byte a byte. O resto mudou:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>No protótipo</th><th>Agora</th></tr></thead>
+  <tbody>
+    <tr><td>caminhos compilados no binário (<code>/home/pedro/...</code>)</td><td>arquivo de configuração, com sobrescrita por <code>-o</code>; chave desconhecida é erro</td></tr>
+    <tr><td><code>CLOCK_REALTIME</code>, "já ajustado antes do <code>main()</code>"</td><td>relógio monotônico mais a âncora da ground (ADR-0009)</td></tr>
+    <tr><td>"no solo" lido como verdadeiro só com <code>"1"</code></td><td><code>"-1"</code> é verdadeiro no formato BaseStation: aeronave no solo sai como <code>1</code>, não mais como desconhecida</td></tr>
+    <tr><td><code>dump1090</code> morto, o programa terminava</td><td>reiniciado com espera dobrando de 1 s a 30 s, e cada reinício contado e enviado à ground</td></tr>
+    <tr><td><code>sleep(2)</code> esperando o <code>dump1090</code> subir</td><td>reconexão a cada 1 s, sem bloquear</td></tr>
+    <tr><td>gravava sem limite</td><td>teto de 1 GiB, com evento no log (data-budget §7)</td></tr>
+    <tr><td><code>--write-json</code> gravando no SD a cada segundo</td><td>removido: ninguém lia</td></tr>
+    <tr><td>só gravava</td><td>tabela de aeronaves, retrato para o <code>ttcd</code>, contadores</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="tempo"><span class="n">7</span>O tempo sem relógio de tempo real</h2>
+
+<p>A Pi Zero 2 W não tem RTC: ao ligar, o relógio do sistema é o que foi salvo no último desligamento, ou 1970, e no local não há rede para NTP. O tempo tem três consumidores, e só um deles ainda não estava resolvido:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Quem</th><th>Precisa de</th><th>Como fica</th></tr></thead>
+  <tbody>
+    <tr><td>o enlace ao vivo</td><td>o instante de cada atualização, na ground</td><td>já resolvido em 20/09: cada registro leva a idade, e a ground refaz o instante no próprio relógio (ADR-0007)</td></tr>
+    <tr><td><b>o registro de bordo</b></td><td>um horário por mensagem, ordenado, sem saltos, na linha do tempo da ground</td><td><b>novo, ADR-0009</b>: relógio monotônico mais uma âncora que vem da ground</td></tr>
+    <tr><td>os logs do <code>ttcd</code> e do OBC</td><td>ordem, e uma data</td><td>já resolvido: milissegundos monotônicos e uma anotação de horário de parede</td></tr>
+  </tbody>
+</table></div>
+
+<figure>
+  <div class="frame">
+<svg class="diagram" viewBox="0 0 980 384" role="img" aria-labelledby="fig3t fig3d">
+  <title id="fig3t">Como a hora da ground chega ao registro de bordo</title>
+  <desc id="fig3d">Três faixas no tempo: ground, ttcd e adsbd. Até o primeiro contato, o adsbd carimba com o palpite do relógio da Pi. No contato, a ground manda SET_TIME; o ttcd ancora descontando o tempo no ar e repassa IPC_TIME_SET ao adsbd, que passa a carimbar na hora da ground. Quando o adsbd reinicia e reconecta, o ttcd manda a hora na mesma hora. No contato seguinte, uma nova âncora corrige só a deriva do cristal.</desc>
+  <defs>
+    <marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="ah3rf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah-rf" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <text class="t-e" x="960" y="34" text-anchor="end">tempo →</text>
+
+  <text class="zone-label" x="20" y="83">GROUND</text>
+  <text class="zone-label" x="20" y="173">TTCD</text>
+  <text class="zone-label" x="20" y="263">ADSBD</text>
+  <rect class="zone" x="120" y="52" width="850" height="52" rx="10"/>
+  <rect class="zone" x="120" y="142" width="850" height="52" rx="10"/>
+  <rect class="zone" x="120" y="232" width="850" height="52" rx="10"/>
+
+  <rect class="box ext" x="320" y="60" width="120" height="36" rx="6"/>
+  <text class="t-s" x="380" y="83" text-anchor="middle">contato: SET_TIME</text>
+  <rect class="box ext" x="842" y="60" width="116" height="36" rx="6"/>
+  <text class="t-s" x="900" y="83" text-anchor="middle">contato: SET_TIME</text>
+
+  <line class="edge rf" x1="380" y1="98" x2="380" y2="148" marker-end="url(#ah3rf)"/>
+  <line class="edge rf" x1="900" y1="98" x2="900" y2="148" marker-end="url(#ah3rf)"/>
+
+  <rect class="box done" x="290" y="150" width="180" height="36" rx="6"/>
+  <text class="t-s" x="380" y="173" text-anchor="middle">âncora, menos o tempo no ar</text>
+  <text class="t-e" x="658" y="173">reconexão: a hora vai na hora</text>
+  <rect class="box done" x="860" y="150" width="80" height="36" rx="6"/>
+  <text class="t-s" x="900" y="173" text-anchor="middle">nova âncora</text>
+
+  <line class="edge" x1="380" y1="188" x2="380" y2="238" marker-end="url(#ah3)"/>
+  <line class="edge" x1="650" y1="160" x2="650" y2="238" marker-end="url(#ah3)"/>
+  <line class="edge" x1="900" y1="188" x2="900" y2="238" marker-end="url(#ah3)"/>
+
+  <rect class="box plan" x="130" y="240" width="240" height="36" rx="6"/>
+  <text class="t-s" x="250" y="263" text-anchor="middle">hora = palpite da Pi, sem RTC</text>
+  <rect class="box done" x="382" y="240" width="208" height="36" rx="6"/>
+  <text class="t-s" x="486" y="263" text-anchor="middle">hora da ground</text>
+  <text class="t-e" x="620" y="263" text-anchor="middle">reinício</text>
+  <rect class="box done" x="652" y="240" width="308" height="36" rx="6"/>
+  <text class="t-s" x="770" y="263" text-anchor="middle">hora da ground</text>
+
+  <text class="t-e" x="380" y="306">1ª âncora: o salto pode ser grande, e por isso vem no contato, antes da missão</text>
+  <text class="t-e" x="960" y="326" text-anchor="end">âncoras seguintes: só a deriva do cristal, ~30 ms em 10 min</text>
+  <text class="t-e" x="20" y="358">Cada âncora entra no log do adsbd com o salto que deu (step_ms): o registro pode ser recalculado depois,</text>
+  <text class="t-e" x="20" y="376">e as linhas anteriores à primeira ficam marcadas como não sincronizadas.</text>
+</svg>
+  </div>
+  <figcaption>Figura 3 — Fora de escala. O formato da linha do registro não muda: só o horário que vai nela.</figcaption>
+</figure>
+
+<p>Três detalhes decidem se isso funciona:</p>
+<ul>
+  <li><b>O horário é o da ground no início da transmissão do <code>SET_TIME</code>.</b> O <code>ttcd</code> desconta o tempo no ar do frame, que o modelo calcula no microssegundo; o erro que sobra é o do relógio da ground, mais o do modelo, mais o salto do IPC. Medir esse erro na Pi é um dos pontos de acompanhamento do ADR-0009.</li>
+  <li><b>A ground manda a hora sozinha</b>, toda vez que o contato sobe — a primeira e cada retomada. Na <code>gs_cli</code> é o <code>--auto-time on</code>; o ESP32 vai fazer o mesmo. Os passos da bancada deixam desligado, para medirem só os telecomandos dos seus roteiros.</li>
+  <li><b>Quem reconecta recebe a hora na hora.</b> Antes, um <code>adsbd</code> reiniciado pelo systemd voltava a carimbar com o relógio não sincronizado até o próximo <code>SET_TIME</code>. O <code>test_adsb_chain</code> mata o <code>adsbd</code>, sobe outro e confere que o registro dele volta à hora da ground — que no teste roda um dia à frente da máquina, para não se confundir com o relógio do sistema.</li>
+</ul>
+
+<h2 id="ground"><span class="n">8</span>A ground: estimador e adaptador</h2>
+
+<p>O projeto do colega tem três partes: o estimador, um painel web e um simulador de trajetórias. O estimador lê um NDJSON — um objeto JSON por mensagem — e, para cada aeronave, estima de que aeroporto ela decolou e para qual vai, com memória do que já viu. Foi escrito contra o registro de bordo: o mesmo formato que o <code>adsbd</code> grava.</p>
+<p>O downlink não carrega mensagens, e sim um registro de 20 bytes por aeronave a cada retrato. O adaptador faz esse registro chegar ao estimador no mesmo formato, <b>sem mudar o código dele</b>:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>O que o adaptador faz</th><th>Como</th></tr></thead>
+  <tbody>
+    <tr><td>refaz o instante de cada registro</td><td><code>chegada − tempo no ar − 0,1 s × idade</code>, no relógio da máquina da ground (ADR-0007); nenhum relógio sincronizado</td></tr>
+    <tr><td>escreve só o que é válido</td><td>os campos que as flags do registro marcam; um campo ausente continua ausente</td></tr>
+    <tr><td>escreve cada atualização uma vez</td><td>o satélite manda toda aeronave em todo retrato; uma atualização sem novidade chega duas vezes e é descartada na segunda</td></tr>
+    <tr><td>acrescenta a origem</td><td><code>source</code>, <code>seq</code>, <code>age_ds</code>, <code>rssi</code> e <code>snr</code> — o estimador aceita campos extras</td></tr>
+  </tbody>
+</table></div>
+<p>Ao vivo, é um encadeamento de três comandos: a <code>gs_cli</code> escreve o log, o adaptador converte e o estimador lê da entrada padrão.</p>
+<pre><code>gs_cli --radio udp ... | python3 ground/host/tracks_to_ndjson.py \
+    | (cd ground/host/ground-aeronaves &amp;&amp; python -m ground --input -)</code></pre>
+<p>O teste do adaptador passa cada linha que ele produz pelo <code>parser.py</code> do estimador, em vez de uma cópia das regras: se o contrato mudar de um lado, o <code>make test</code> quebra.</p>
+
+<h2 id="cadeia"><span class="n">9</span>A missão simulada, pela cadeia inteira</h2>
+
+<p>Para este relatório rodei de novo, no commit final, a simulação do colega pela cadeia real — os mesmos binários que vão voar, com o rádio UDP no lugar do SX1278 — com <code>make adsb-chain</code>. São 10 minutos em tempo real, porque o <code>adsbd</code> carimba cada mensagem na chegada.</p>
+
+<figure>
+  <div class="frame">
+<svg class="diagram" viewBox="0 0 980 290" role="img" aria-labelledby="fig4t fig4d">
+  <title id="fig4t">A cadeia sem hardware e o que passou por cada etapa</title>
+  <desc id="fig4d">Primeira linha, da esquerda para a direita: a simulação do colega, o sbs_replay no papel do dump1090, o adsbd e o ttcd no rádio UDP. Segunda linha, da direita para a esquerda: a gs_cli como ground, o adaptador tracks_to_ndjson e o estimador do colega, que chega às mesmas conclusões que com o fluxo completo.</desc>
+  <defs>
+    <marker id="ah4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="ah4rf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah-rf" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <rect class="box ext" x="20" y="30" width="200" height="84" rx="8"/>
+  <text class="t-b" x="120" y="56" text-anchor="middle">simulação do colega</text>
+  <text class="t-s" x="120" y="76" text-anchor="middle">4 voos · 10 min</text>
+  <text class="t-b" x="120" y="100" text-anchor="middle">1894 mensagens</text>
+
+  <rect class="box done" x="265" y="30" width="200" height="84" rx="8"/>
+  <text class="t-b" x="365" y="56" text-anchor="middle">sbs_replay</text>
+  <text class="t-s" x="365" y="76" text-anchor="middle">no papel do dump1090</text>
+  <text class="t-b" x="365" y="100" text-anchor="middle">5682 linhas SBS</text>
+
+  <rect class="box done" x="510" y="30" width="200" height="84" rx="8"/>
+  <text class="t-b" x="610" y="56" text-anchor="middle">adsbd</text>
+  <text class="t-s" x="610" y="76" text-anchor="middle">registro · retrato a cada 1 s</text>
+  <text class="t-b" x="610" y="100" text-anchor="middle">5682 linhas gravadas</text>
+
+  <rect class="box done" x="755" y="30" width="200" height="84" rx="8"/>
+  <text class="t-b" x="855" y="56" text-anchor="middle">ttcd</text>
+  <text class="t-s" x="855" y="76" text-anchor="middle">retrato a cada 5 s · NOMINAL</text>
+  <text class="t-b" x="855" y="100" text-anchor="middle">125 frames de tracks</text>
+
+  <line class="edge" x1="220" y1="72" x2="263" y2="72" marker-end="url(#ah4)"/>
+  <line class="edge" x1="465" y1="72" x2="508" y2="72" marker-end="url(#ah4)"/>
+  <text class="t-e" x="487" y="64" text-anchor="middle">SBS</text>
+  <line class="edge" x1="710" y1="72" x2="753" y2="72" marker-end="url(#ah4)"/>
+  <text class="t-e" x="732" y="64" text-anchor="middle">IPC</text>
+
+  <line class="edge rf" x1="855" y1="116" x2="855" y2="168" marker-end="url(#ah4rf)"/>
+  <text class="t-e" x="863" y="146">rádio UDP</text>
+
+  <rect class="box done" x="755" y="172" width="200" height="84" rx="8"/>
+  <text class="t-b" x="855" y="198" text-anchor="middle">gs_cli · ground</text>
+  <text class="t-s" x="855" y="218" text-anchor="middle">SET_TIME sozinha no contato</text>
+  <text class="t-b" x="855" y="242" text-anchor="middle">0 de 231 frames perdidos</text>
+
+  <rect class="box done" x="510" y="172" width="200" height="84" rx="8"/>
+  <text class="t-b" x="610" y="198" text-anchor="middle">tracks_to_ndjson</text>
+  <text class="t-s" x="610" y="218" text-anchor="middle">instante refeito pela idade</text>
+  <text class="t-b" x="610" y="242" text-anchor="middle">386 registros</text>
+
+  <rect class="box done" x="265" y="172" width="200" height="84" rx="8"/>
+  <text class="t-b" x="365" y="198" text-anchor="middle">estimador</text>
+  <text class="t-s" x="365" y="218" text-anchor="middle">origem e destino</text>
+  <text class="t-b" x="365" y="242" text-anchor="middle">4 de 4 conclusões iguais</text>
+
+  <line class="edge" x1="755" y1="214" x2="712" y2="214" marker-end="url(#ah4)"/>
+  <text class="t-e" x="733" y="206" text-anchor="middle">JSON</text>
+  <line class="edge" x1="510" y1="214" x2="467" y2="214" marker-end="url(#ah4)"/>
+
+  <text class="t-e" x="20" y="196">comparado com o mesmo</text>
+  <text class="t-e" x="20" y="214">estimador lendo as 1894</text>
+  <text class="t-e" x="20" y="232">mensagens, sem rádio</text>
+</svg>
+  </div>
+  <figcaption>Figura 4 — Cada etapa com o que passou por ela. A linha de baixo corre da direita para a esquerda.</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Etapa</th><th>Resultado</th></tr></thead>
+  <tbody>
+    <tr><td>Entrada</td><td>a saída do <code>simular_trajetorias.py</code> do colega: 4 voos, 1894 mensagens em 600 s</td></tr>
+    <tr><td><code>sbs_replay</code> → <code>adsbd</code></td><td>cada mensagem vira as linhas SBS que o <code>dump1090</code> escreveria — identificação, posição, velocidade: 5682 linhas; o <code>adsbd</code> gravou as 5682, nenhuma rejeitada</td></tr>
+    <tr><td>Tempo</td><td>a <code>gs_cli</code> mandou o <code>SET_TIME</code> sozinha no contato; o <code>adsbd</code> registrou 1 âncora, com salto de 0 ms — a ground e a Pi eram a mesma máquina</td></tr>
+    <tr><td>Downlink</td><td>231 frames recebidos, 0 perdidos, 0 com erro; entre eles, 125 frames de tracks com 412 registros</td></tr>
+    <tr><td>Uplink</td><td>22 telecomandos confirmados em 24 transmissões, 0 falhas: o <code>SET_TIME</code>, o início do streaming e os keepalives de cada 30 s de silêncio do operador</td></tr>
+    <tr><td>Adaptador</td><td>412 registros recebidos: 386 escritos e 26 repetidos descartados</td></tr>
+    <tr><td>Latência de bordo</td><td>p95 de 2000 ms, medido pelo próprio <code>ttcd</code> e enviado no <code>TM_STAT</code>; pela idade dos registros escritos, mediana 1,9 s, p95 1,9 s e máximo 14,9 s</td></tr>
+  </tbody>
+</table></div>
+
+<p>O estimador rodou sobre cada versão da mesma missão, com o mesmo banco de aeroportos. Os instantes contam da primeira mensagem de cada fluxo:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Voo</th><th>Fluxo completo<br><span class="small">1894 mensagens</span></th><th>Pela cadeia<br><span class="small">386 registros</span></th><th>Emulado, a cada 5 s<br><span class="small">382 registros</span></th><th>Emulado, 10% dos frames perdidos<br><span class="small">336 registros</span></th></tr></thead>
+  <tbody>
+    <tr><td><code>F00001</code></td><td>destino SBBR, 470 s</td><td>destino SBBR, 470 s</td><td>destino SBBR, 475 s</td><td>destino SBBR, 470 s</td></tr>
+    <tr><td><code>F00002</code></td><td>origem SBBR, 191 s</td><td>origem SBBR, 140 s</td><td>origem SBBR, 145 s</td><td>origem SBBR, 145 s</td></tr>
+    <tr><td><code>F00003</code></td><td>sem conclusão</td><td>sem conclusão</td><td>sem conclusão</td><td>sem conclusão</td></tr>
+    <tr><td><code>F00004</code></td><td>destino SBBR, 590 s</td><td>destino SBBR, 590 s</td><td>destino SBBR, 590 s</td><td>destino SBBR, 590 s</td></tr>
+  </tbody>
+</table></div>
+
+<div class="callout warn">
+  <p><b>O que isso mostra, e o que não mostra.</b> Mostra que a cadeia inteira preserva o que o estimador precisa, na cadência do rádio: com um quinto das observações, as conclusões são as mesmas. <b>Não mostra desempenho na missão real</b>: o cenário é sintético (quatro voos do simulador), o banco de aeroportos foi montado para o experimento — o de referência mais três aeroportos-isca, porque o <code>referencias.db</code> de verdade não está no repositório —, e o rádio UDP não perde frames por RF. A origem de F00002 sai antes pelo downlink do que pelo fluxo completo; entender por que o estimador decide antes com menos pontos é pergunta para o autor dele.</p>
+</div>
+
+<h2 id="decisoes"><span class="n">10</span>Decisões registradas</h2>
+
+<div class="adr">
+  <h3>ADR-0009 — Relógio monotônico em todo lugar, uma âncora de horário vinda da ground</h3>
+  <p class="sub"><span class="badge b-warn">proposto</span> · HLR-ADS-07, ADS-08, SW-02</p>
+  <dl>
+    <dt>Decisão</dt><dd>Todo processo carimba com <code>CLOCK_MONOTONIC</code> e nada acerta o relógio do sistema. O horário de parede é o monotônico mais um deslocamento que vem da ground: ela manda <code>SET_TIME</code> sozinha a cada contato, o <code>ttcd</code> ancora no início da transmissão e repassa <code>IPC_TIME_SET</code> ao OBC e ao <code>adsbd</code> — também a quem se conectar depois. O formato da linha do registro não muda. O enlace ao vivo continua com a idade de cada registro.</dd>
+    <dt>Por quê</dt><dd>Um relógio monotônico nunca salta: o registro só muda de ritmo numa âncora, e toda âncora entra no log com o tamanho do salto. A âncora vem do relógio que importa — as trajetórias que a banca vê são montadas na ground, na hora da ground. E o primeiro salto, possivelmente grande, acontece no contato, antes da missão.</dd>
+    <dt>Rejeitado</dt><dd><code>CLOCK_REALTIME</code>, como o protótipo: certo só se algo acertasse o relógio antes, e sem rede nada acerta. Acertar o relógio do sistema pelo <code>SET_TIME</code>: exige privilégio num processo que roda sem ele, e move o relógio de todos os processos de uma vez. Os dois relógios em cada linha: ~25 bytes a mais por linha, 7,34 viraria ~8,5 MiB, com errata em três documentos. NTP ou chrony: precisam de enlace IP. GPS: não está na lista de hardware.</dd>
+    <dt>Custo aceito</dt><dd>Antes do primeiro contato, os horários absolutos do registro são o palpite da Pi, talvez com dias de erro — coerentes entre si e marcados no log. Cada âncora dá um salto, de milissegundos depois da primeira. E o carimbo é a chegada no socket SBS, não a recepção em RF, como o ADR-0008 já registrava.</dd>
+  </dl>
+</div>
+
+<p>Com ele, são onze ADRs: 0001 a 0009, 0011 e 0012. Três seguem <i>Proposed</i> — 0007, 0009 e 0012 — e descrevem código já implementado e testado; enquanto não forem revisados, são propostas com código, não decisões fechadas. O ADR-0010 (armazenamento a bordo) é o único da lista sem texto, embora a política dele já esteja no data-budget §7 e no <code>ndjson_max_bytes</code>.</p>
+
+<h2 id="requisitos"><span class="n">11</span>Requisitos</h2>
+
+<p>O <code>docs/requisitos.md</code> <b>ainda não foi atualizado</b> com a fase 3: a mudança de estado de um requisito é decisão do time, e fica aqui como proposta.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Requisito</th><th>Estado hoje</th><th>Proposta</th><th>Evidência nova</th></tr></thead>
+  <tbody>
+    <tr><td>HLR-ADS-03 — várias aeronaves simultâneas</td><td><span class="badge b-todo">projetado</span></td><td><span class="badge b-warn">parcial</span></td><td>tabela de 128 aeronaves; 20 aeronaves por 10 min em <code>test_tracks</code>; falta o SDR</td></tr>
+    <tr><td>HLR-ADS-05 — 10 min contínuos, até 20 aeronaves</td><td><span class="badge b-todo">projetado</span></td><td><span class="badge b-warn">parcial</span></td><td>a cadeia rodou 10 min sem perda; falta a Pi com o <code>dump1090</code> e a medição de CPU</td></tr>
+    <tr><td>HLR-ADS-07 — timestamp por mensagem</td><td><span class="badge b-warn">parcial</span></td><td>parcial</td><td>ADR-0009 implementado; falta medir o erro da âncora na Pi</td></tr>
+    <tr><td>HLR-ADS-08 — critérios de sucesso</td><td><span class="badge b-warn">parcial</span></td><td>parcial</td><td>linhas lidas, aplicadas e rejeitadas, aeronaves deixadas de fora e latência p95 contadas e transmitidas; falta a medição com dados reais</td></tr>
+    <tr><td>HLR-SW-02 — dados estruturados e reproduzíveis</td><td><span class="badge b-warn">parcial</span></td><td>parcial</td><td>registro de bordo e logs de eventos de todos os processos; falta o ICD que documenta os formatos</td></tr>
+    <tr><td>HLR-ADS-01, ADS-02 — receber e decodificar</td><td><span class="badge b-warn">parcial</span></td><td>parcial</td><td>o parser do SBS está testado; a recepção e a decodificação são do <code>dump1090</code>, e só a Pi com o SDR as verifica</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="numeros"><span class="n">12</span>Os números que mudaram</h2>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Grandeza</th><th class="r">20/09</th><th class="r">Agora</th><th>Por quê</th></tr></thead>
+  <tbody>
+    <tr><td>Suítes no CTest</td><td class="r">15</td><td class="r">23</td><td>seis suítes do <code>adsbd</code> e da cadeia, e os dois conjuntos em Python</td></tr>
+    <tr><td>Verificações em C</td><td class="r">3102</td><td class="r">3406</td><td>293 do <code>adsbd</code> e da cadeia, 11 no núcleo do <code>ttcd</code></td></tr>
+    <tr><td>Testes em Python</td><td class="r">0</td><td class="r">56</td><td>49 do estimador, 7 do adaptador</td></tr>
+    <tr><td>Unidades de compilação</td><td class="r">33</td><td class="r">45</td><td>o <code>adsbd</code> e as suítes novas</td></tr>
+    <tr><td>Latência de bordo p95, recepção → transmissão</td><td class="r">3,2 s</td><td class="r">2,0 s</td><td>cenários diferentes: a simulação do ADR-0007, com 20 aeronaves, contra a cadeia com os 4 voos do simulador. Os dois abaixo dos 5 s do data-budget §8</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="falta"><span class="n">13</span>O que falta</h2>
+
+<h3>13.1 Na Pi e na bancada</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>O quê</th><th>Como</th><th>Aceite</th></tr></thead>
+  <tbody>
+    <tr><td>Instalar o <code>dump1090-fa</code></td><td>no caminho do <code>dump1090_cmd</code>; depois <code>make install</code> e <code>make adsbd-enable</code></td><td>o log do <code>adsbd</code> mostra <code>dump1090_start</code> e <code>sbs_up</code></td></tr>
+    <tr><td>CPU do <code>dump1090</code> a 2,4 MS/s</td><td><code>pidstat -p &lt;pid&gt; 1</code> durante uma captura</td><td>abaixo de um núcleo; senão, 2,0 MS/s e remedir</td></tr>
+    <tr><td>Varredura de ganho</td><td>o <code>-10</code> do protótipo contra valores medidos — o significado dele muda com a versão do <code>dump1090</code></td><td>a maior taxa de decodificação num cenário conhecido</td></tr>
+    <tr><td>Acesso ao SDR sob a unidade</td><td>primeira execução como serviço</td><td>o <code>dump1090</code> abre o SDR com o <code>DeviceAllow</code> restrito</td></tr>
+    <tr><td>Erro da âncora de tempo</td><td>a hora da ground contra a hora ancorada de um evento conhecido</td><td>registrado no ADR-0009</td></tr>
+    <tr><td>Bancada da fase 2</td><td><code>make bench</code> com os dois RA-02</td><td>os critérios do <a href="2026-09-20-estado-do-projeto.html#falta">relatório de 20/09</a></td></tr>
+  </tbody>
+</table></div>
+<p>Tudo isso vai para <code>docs/budgets/data-budget.md</code> §9 e para <code>docs/vv/bancada/</code>. É o caminho crítico: sem essas medições, não existe ainda nenhum número de RF nem do SDR.</p>
+
+<h3>13.2 Decisões</h3>
+<ul>
+  <li><b>O bit de <code>dump1090</code> vivo no <code>TM_HK</code></b> precisa de um campo novo no <code>IPC_STAT</code>, que muda um payload fixado pelos vetores dourados.</li>
+  <li><b>A tabela ICAO → callsign para o <code>REQ_ROSTER</code></b> precisa de uma mensagem IPC nova; o <code>adsbd</code> já guarda o callsign.</li>
+  <li><b>Revisar os ADRs 0007, 0009 e 0012</b> e escrever o 0010.</li>
+  <li><b>A errata do ADR-0002:</b> as duas cópias do <code>struct control</code> do legado tinham seis campos de um lado e oito do outro, não cinco.</li>
+  <li><b>Atualizar o <code>AGENTS.md</code>, o <code>README.md</code> e o <code>docs/requisitos.md</code></b>, que ainda descrevem o <code>adsbd</code> e a ground como não começados (F1).</li>
+  <li><b>Como o banco de aeroportos chega à ground no dia</b>: o <code>referencias.db</code> não é versionado, e o importador precisa dos CSVs do OurAirports com o manifesto.</li>
+</ul>
+
+<h3>13.3 As fases seguintes</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Fase</th><th>O que entrega</th><th>Observação</th></tr></thead>
+  <tbody>
+    <tr><td class="nw"><b>4 · ground e ICD</b></td><td>firmware do ESP32, o painel do estimador ligado ao downlink ao vivo, ICD do enlace e ICD OBC↔TT&amp;C</td><td>o ESP32 compila o <code>gama_gs_link</code> pronto; o painel já tem <code>--input</code>, e a saída do adaptador é o formato dele — falta experimentar a ligação</td></tr>
+    <tr><td class="nw"><b>5 · ensaio</b></td><td>missão de 10 min com o SDR e as métricas do HLR-ADS-08</td><td>inclui matar o <code>dump1090</code> no meio e desligar a ground por 2 min</td></tr>
+    <tr><td class="nw"><b>6 · documentos</b></td><td>ConOps, plano de V&amp;V, matriz de rastreabilidade</td><td>a matriz sai das citações de HLR no código, que o <code>adsbd</code> também segue</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="riscos"><span class="n">14</span>Riscos abertos</h2>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Risco</th><th>Impacto</th><th>Situação</th></tr></thead>
+  <tbody>
+    <tr><td><b>Nada foi medido em RF nem com o SDR</b></td><td>toda a missão depende de modelo, simulação e rádio UDP</td><td><span class="badge b-bad">aberto</span> os procedimentos e as ferramentas estão prontos; falta executar</td></tr>
+    <tr><td><b>CPU do <code>dump1090</code> na Pi Zero 2 W</b></td><td>missão inviável</td><td><span class="badge b-bad">aberto</span> agora mensurável: o <code>adsbd</code> sobe o <code>dump1090</code> com a configuração de voo; fallback para 2,0 MS/s</td></tr>
+    <tr><td><b>Ganho do SDR mal ajustado</b></td><td>taxa de decodificação baixa</td><td><span class="badge b-bad">aberto</span> varredura do PLANO 3.4</td></tr>
+    <tr><td><b>A camada Linux do rádio nunca rodou</b></td><td>problemas de SPI, reset ou borda no DIO0 no primeiro contato</td><td><span class="badge b-bad">aberto</span> sem mudança desde 20/09</td></tr>
+    <tr><td><b>O banco de aeroportos não está garantido</b></td><td>sem ele o estimador não conclui nada</td><td><span class="badge b-warn">novo</span> o importador existe; falta combinar como o banco é gerado e levado</td></tr>
+    <tr><td><b>Time do OBC não integra o cliente IPC</b></td><td>sem telecomando de modo (HLR-COMM-01)</td><td><span class="badge b-warn">mitigado em parte</span> o contrato está testado; o OBC agora também precisa tratar o <code>IPC_TIME_SET</code>; falta o ICD</td></tr>
+    <tr><td><b>Troca de taxa dessincroniza as pontas</b></td><td>perda do enlace</td><td><span class="badge b-warn">mitigado em simulação</span> falta o passo 5 da bancada</td></tr>
+    <tr><td><b>Registro de bordo fora da hora da ground</b></td><td>trajetórias quebradas no estimador</td><td><span class="badge b-ok">mitigado</span> ADR-0009: âncora no contato e na reconexão, saltos no log; falta medir o erro na Pi</td></tr>
+    <tr><td><b>Ruído de 433 MHz no local</b></td><td>margem menor que a modelada</td><td><span class="badge b-bad">aberto</span> medir ao chegar; SAFE como recurso</td></tr>
+    <tr><td><b>Throttling térmico da Pi em TVAC</b></td><td>HLR-ENV-02</td><td><span class="badge b-warn">instrumentado</span> a temperatura do SoC vai no housekeeping</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="lacunas"><span class="n">15</span>Lacunas e inconsistências</h2>
+
+<p>As lacunas de 20/09 estão na <a href="#mudou">seção 2.2</a>. Estas apareceram nesta fase; nenhuma bloqueia o desenvolvimento.</p>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>#</th><th>Lacuna</th><th>Por que importa</th><th>Onde resolver</th></tr></thead>
+  <tbody>
+    <tr><td class="nw"><b>F1</b><br><span class="badge b-bad">alta</span></td><td>O <code>AGENTS.md</code> e o <code>docs/requisitos.md</code> dizem que <code>flight/adsbd/</code> e <code>ground/</code> "ainda não começaram", e o <code>README.md</code> os marca como fases 3 e 4 por fazer.</td><td>São os documentos que alguém lê primeiro — e o <code>AGENTS.md</code> é o que orienta as sessões de desenvolvimento. O estado dos requisitos alimenta o Design Package.</td><td>atualização dos três, com o time</td></tr>
+    <tr><td class="nw"><b>F2</b><br><span class="badge b-warn">média</span></td><td>O ADR-0002 diz que as duas cópias do <code>struct control</code> do legado tinham "seis campos de um lado e cinco do outro"; são seis e oito.</td><td>É um documento aceito que alimenta o DP, e o número é a prova do argumento dele.</td><td>errata no ADR-0002</td></tr>
+    <tr><td class="nw"><b>F3</b><br><span class="badge b-warn">média</span></td><td>O <code>referencias.db</code> do estimador não é versionado, e os experimentos daqui usaram um banco sintético de quatro aeroportos.</td><td>O resultado do estimador depende inteiramente do banco. Nenhuma conclusão sobre aeroportos reais foi testada.</td><td>combinar com o autor do estimador</td></tr>
+    <tr><td class="nw"><b>F4</b><br><span class="badge b-todo">baixa</span></td><td>O modelo da linha no orçamento supõe que todo transponder declara estar em voo no campo CA (CA 5): é o que faz o <code>dump1090</code> escrever <code>0</code> no "no solo" de toda mensagem. Um transponder que declara CA 6 deixa o campo vazio, e o registro escreve −1: um byte a mais em cada linha.</td><td>No pior caso, 161,4 B em vez de 160,4 (+0,6%), sem efeito em nenhuma decisão. Mas a suposição não está escrita em lugar nenhum.</td><td>uma frase no data-budget</td></tr>
+    <tr><td class="nw"><b>F5</b><br><span class="badge b-todo">baixa</span></td><td>Os dois READMEs do estimador pedem versões diferentes do Python (3.10 e 3.11) e trazem exemplos com <code>/home/pedro/...</code>.</td><td>Só documentação: o código recebe os caminhos por <code>--input</code>. Mas confunde quem for rodar na máquina da ground.</td><td>README do estimador</td></tr>
+    <tr><td class="nw"><b>F6</b><br><span class="badge b-todo">baixa</span></td><td>O <code>IPC_TIME_SET</code> já tem o OBC como destinatário, e o tratamento do lado dele não está combinado.</td><td>O ADR-0009 lista isso como acompanhamento; sem o ICD, o time do OBC não tem onde ler.</td><td>ICD OBC↔TT&amp;C</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="qa"><span class="n">16</span>Perguntas e respostas</h2>
+
+<p>As perguntas que o código novo levanta para quem for lê-lo. Cada resposta foi conferida contra o código, os testes e a execução da cadeia.</p>
+
+<div class="qa-tools">
+  <button class="btn" type="button" id="qa-open">Expandir todas</button>
+  <button class="btn" type="button" id="qa-close">Recolher todas</button>
+</div>
+
+<details class="qa" id="q1">
+<summary><span class="qn">Q1</span>Por que o <code>adsbd</code> manda um retrato por segundo, se o rádio só transmite a cada 5 s?</summary>
+<div class="body">
+  <p>Porque o <code>ttcd</code> transmite <b>o retrato mais recente</b> quando chega a vez do snapshot, e os dois processos não têm relógio em comum para combinar o momento. Se o <code>adsbd</code> mandasse a cada 5 s, o retrato que sai no ar poderia ter até 5 s a mais de idade; mandando a cada segundo, o atraso do retrato fica abaixo de 1 s, e a latência passa a ser dominada pela idade da própria posição.</p>
+  <p>É a cadência que a simulação do ADR-0007 supôs. O custo é pequeno: um retrato de 24 aeronaves são dois datagramas locais por segundo. E um retrato vazio também vai, para uma aeronave que sumiu não ser transmitida de novo com os dados antigos.</p>
+</div>
+</details>
+
+<details class="qa" id="q2">
+<summary><span class="qn">Q2</span>O que acontece quando o <code>dump1090</code> morre? E quando o <code>ttcd</code> reinicia?</summary>
+<div class="body">
+  <p><b>O <code>dump1090</code> morrendo:</b> o <code>adsbd</code> fica sabendo pelo <code>signalfd</code> (<code>SIGCHLD</code>), registra a saída no log e sobe outro depois de 1 s; se ele morrer de novo, a espera dobra até 30 s, e volta a 1 s depois de uma execução de um minuto. Cada reinício é contado e chega à ground no <code>TM_STAT</code>. Enquanto isso, o <code>adsbd</code> tenta a porta SBS a cada segundo, porque o <code>dump1090</code> só a abre depois de achar o SDR.</p>
+  <p><b>O <code>ttcd</code> reiniciando:</b> o <code>adsbd</code> continua gravando o registro de bordo e tenta a conexão IPC a cada segundo; ao voltar, manda o <code>HELLO</code> e o <code>ttcd</code> responde com a hora, se já tiver uma âncora. Nenhum lado espera o outro.</p>
+  <p><b>O <code>adsbd</code> morrendo:</b> o systemd sobe outro em 2 s. O <code>dump1090</code> está no grupo de controle da unidade e tem <code>PR_SET_PDEATHSIG</code>, então não sobra um <code>dump1090</code> órfão segurando o SDR. E o rádio não percebe nada: o <code>test_adsb_chain</code> mata o <code>adsbd</code> no meio e confere que o <code>ttcd</code> segue respondendo e mandando housekeeping.</p>
+</div>
+</details>
+
+<details class="qa" id="q3">
+<summary><span class="qn">Q3</span>Como o registro de bordo tem horário, se a Pi não tem relógio de tempo real?</summary>
+<div class="body">
+  <p>O <code>adsbd</code> carimba cada mensagem com o relógio monotônico, que conta desde o boot e nunca salta, e soma um deslocamento para chegar ao horário de parede. No início, esse deslocamento é o do relógio do sistema — um palpite, possivelmente com dias de erro. Quando a ground faz contato, manda a própria hora; o <code>ttcd</code> desconta o tempo no ar e repassa ao <code>adsbd</code>, que troca o deslocamento e registra o salto no log (<a href="#tempo">figura 3</a>).</p>
+  <p>Daí em diante, o registro está na linha do tempo da ground, que é onde as trajetórias são montadas. As âncoras seguintes só corrigem a deriva do cristal da Pi: a 50 ppm, 30 ms em 10 minutos. E as linhas gravadas antes do primeiro contato continuam coerentes entre si — o log diz que não estavam sincronizadas e qual foi o salto, então dá para recalculá-las.</p>
+</div>
+</details>
+
+<details class="qa" id="q4">
+<summary><span class="qn">Q4</span>Por que a linha do registro de bordo continua igual à do protótipo?</summary>
+<div class="body">
+  <p>Por dois motivos. O orçamento de dados inteiro é calculado a partir dela — 160,4 B por linha, 7,34 MiB por missão, 129 vezes o que o rádio leva —, e o <code>test_sbs</code> fixa byte a byte as três linhas de que o <code>lora_budget.py</code> parte. E o estimador da ground já lê esse formato.</p>
+  <p>Há uma diferença de propósito: <code>on_ground</code> passou a sair como <code>1</code> para aeronave no solo (<a href="#q10">Q10</a>). E uma suposição do orçamento ficou explícita: o <code>dump1090</code> tira o "no solo" de cada mensagem do campo CA do transponder — <code>0</code> para quem declara estar em voo (CA 5), vazio para quem não declara (CA 0, 6 ou 7). O modelo do orçamento escreve <code>0</code> em todas as linhas, ou seja, supõe CA 5. Um transponder com CA 6 faria cada linha ter um byte a mais, +0,6% no pior caso; está listado como F4, para virar uma frase no data-budget.</p>
+</div>
+</details>
+
+<details class="qa" id="q5">
+<summary><span class="qn">Q5</span>Como o downlink chega ao estimador do colega?</summary>
+<div class="body">
+  <p>Pelo adaptador <code>ground/host/tracks_to_ndjson.py</code>. Ele lê o log da ground — um JSON por evento, como a <code>gs_cli</code> escreve e como o ESP32 vai mandar pela UART — e, para cada registro de aeronave de um <code>TM_TRACKS</code>, escreve uma linha no formato que o estimador já lê. O instante é refeito como <code>chegada − tempo no ar − 0,1 s × idade</code>, sem sincronizar relógio nenhum, e só os campos marcados como válidos entram.</p>
+  <p>Como o satélite manda todas as aeronaves em todo retrato, uma aeronave que não mandou nada novo entre dois retratos chega repetida; o adaptador reconhece a mesma atualização (o mesmo instante refeito, a menos de 250 ms, com a mesma posição e altitude) e escreve uma vez só. Na cadeia, foram 26 repetições descartadas em 412 registros.</p>
+</div>
+</details>
+
+<details class="qa" id="q6">
+<summary><span class="qn">Q6</span>O resultado do estimador pela cadeia vale para a missão real?</summary>
+<div class="body">
+  <p>Ainda não. O que ele mostra é que <b>nada do que o estimador precisa se perde no caminho</b>: com um registro por aeronave a cada 5 s em vez de todas as mensagens, quantizado no formato de 20 bytes e com o instante refeito pela idade, as conclusões são as mesmas — também na emulação com 10% dos frames perdidos.</p>
+  <p>O que ele não mostra: o cenário é o do simulador (quatro voos em torno de um aeroporto), o banco de aeroportos é sintético (o de referência e três iscas) e o rádio UDP não perde nada por RF. Para uma afirmação sobre a missão, falta rodar o mesmo com uma captura real, o banco real e, depois, o rádio real. As ferramentas para isso estão prontas: o <code>make adsb-chain</code> aceita uma captura SBS, e o <code>downlink_emulation.py</code> compara o fluxo completo com o emulado sem esperar o tempo real.</p>
+</div>
+</details>
+
+<details class="qa" id="q7">
+<summary><span class="qn">Q7</span>Como rodar a cadeia inteira sem hardware?</summary>
+<div class="body">
+  <p>Com um comando, a partir de um NDJSON (o registro de bordo, ou a saída do simulador do estimador) ou de uma captura SBS:</p>
+<pre><code>make adsb-chain INPUT=eventos.ndjson        # ou uma captura .sbs</code></pre>
+  <p>Ele sobe o <code>ttcd</code> no rádio UDP, o <code>sbs_replay</code> no papel do <code>dump1090</code>, o <code>adsbd</code>, e a <code>gs_cli</code> como ground, transmitindo a cada 5 s e mandando a hora no contato; a saída da ground passa pelo adaptador. Tudo fica em <code>build/adsb-chain/&lt;data&gt;-&lt;hora&gt;/</code>: o registro de bordo, os logs dos dois daemons, o que a ground recebeu e o <code>ground.ndjson</code> para o estimador:</p>
+<pre><code>cd ground/host/ground-aeronaves
+python -m ground --input ../../../build/adsb-chain/&lt;data&gt;-&lt;hora&gt;/ground.ndjson</code></pre>
+  <p>Leva o tempo da missão, em tempo real. Para estudar capturas sem esperar, o <code>tools/analysis/downlink_emulation.py</code> aplica as mesmas regras e, com <code>--compare</code>, roda o estimador nos dois fluxos e põe as conclusões lado a lado.</p>
+</div>
+</details>
+
+<details class="qa" id="q8">
+<summary><span class="qn">Q8</span>Por que o projeto do colega mudou de pasta, e o que muda para quem trabalha nele?</summary>
+<div class="body">
+  <p>A branch <code>ADSB-ground</code> trazia o projeto em <code>ground- adsb/</code> — com um espaço no nome, que obriga a aspas em todo comando e quebra ferramentas que não as esperam. O mapa do repositório põe o lado da ground que roda no PC em <code>ground/host/</code>, que é onde o adaptador também mora. A branch entrou por merge, com o commit do autor intacto no histórico, e um segundo commit moveu as pastas.</p>
+  <p>Para quem trabalha no estimador, nada no código mudou: o <code>config.py</code> acha o banco relativo à própria pasta, e isso continuou valendo. Mudaram os caminhos no README, e os testes dele passaram a rodar no <code>make test</code>. O trabalho novo segue a partir da <code>feat/nova_arquitetura</code>, em <code>ground/host/ground-aeronaves/</code>.</p>
+</div>
+</details>
+
+<details class="qa" id="q9">
+<summary><span class="qn">Q9</span>O que fica de fora de um retrato, e isso é contado?</summary>
+<div class="body">
+  <p>Três coisas ficam de fora, todas por regra (<a href="#adsbd">seção 6.2</a>): a posição com mais de 10 s, os campos com mais de 60 s e as aeronaves além das 24 do retrato. As duas primeiras não são perda — o registro sai com o que ainda vale. A terceira é: com mais de 24 aeronaves com dados válidos, as excedentes não descem naquele retrato, e o <code>adsbd</code> conta cada uma (<code>left_out</code>), além das linhas rejeitadas, das mensagens sem endereço ICAO e das aeronaves expulsas de uma tabela cheia.</p>
+  <p>Todos esses contadores vão para o log de eventos a cada minuto. Os que o <code>TM_STAT</code> já carrega — linhas lidas e aplicadas, aeronaves, reinícios do <code>dump1090</code>, latência p95 — chegam à ground pelo rádio (HLR-ADS-08).</p>
+</div>
+</details>
+
+<details class="qa" id="q10">
+<summary><span class="qn">Q10</span>O que era o defeito do "no solo", e por que importava?</summary>
+<div class="body">
+  <p>No formato BaseStation, que o <code>dump1090</code> escreve na porta 30003, os campos booleanos usam <code>-1</code> para verdadeiro, <code>0</code> para falso e vazio para desconhecido — conferido no <code>net_io.c</code> do dump1090-fa. O <code>adsb_capture.c</code> só aceitava <code>"1"</code> como verdadeiro, então toda aeronave no solo era gravada com <code>on_ground</code> desconhecido.</p>
+  <p>Importava porque o estimador usa o "no solo" como âncora de decolagem para achar a origem — o <code>test_takeoff_anchor.py</code> dele testa exatamente isso. Com o protótipo, essa âncora nunca aparecia num registro real. O <code>sbs.c</code> aceita <code>-1</code> e <code>1</code> como verdadeiro, e o <code>test_sbs</code> cobre os quatro casos: <code>-1</code>, <code>1</code>, <code>0</code> e vazio.</p>
+</div>
+</details>
+
+<h2 id="glossario"><span class="n">17</span>Glossário</h2>
+
+<p>Só os termos que entraram com a fase 3; os demais estão nos glossários de <a href="2026-09-18-estado-do-projeto.html#glossario">18/09</a> e de <a href="2026-09-20-estado-do-projeto.html#glossario">20/09</a>.</p>
+
+<dl class="gloss">
+  <dt>Âncora</dt><dd>o par "instante monotônico ↔ horário da ground" que o <code>ttcd</code> forma a cada <code>SET_TIME</code>; dele sai o horário de parede de cada processo.</dd>
+  <dt>BaseStation, SBS-1</dt><dd>o formato de texto, uma mensagem por linha, que o <code>dump1090</code> serve na porta 30003.</dd>
+  <dt><code>CLOCK_MONOTONIC</code></dt><dd>o relógio do Linux que conta desde o boot e nunca salta nem volta, mesmo que alguém acerte o relógio do sistema.</dd>
+  <dt><code>dump1090-fa</code></dt><dd>o decodificador de ADS-B da FlightAware: lê as amostras do SDR e entrega mensagens decodificadas.</dd>
+  <dt>Endereço ICAO</dt><dd>o identificador de 24 bits de cada aeronave, em seis dígitos hexadecimais. Mensagens com endereço não-ICAO (TIS-B e anônimas, marcadas com <code>~</code>) são contadas e não gravadas.</dd>
+  <dt>Estimador</dt><dd>o programa do colega que, pela trajetória, estima de que aeroporto uma aeronave decolou e para qual vai.</dd>
+  <dt>NDJSON</dt><dd>um objeto JSON por linha — o formato do registro de bordo e da entrada do estimador.</dd>
+  <dt>Registro de bordo</dt><dd>o arquivo em que o <code>adsbd</code> grava toda mensagem recebida, no cartão da Pi; é o dado completo da missão, recuperado depois.</dd>
+  <dt>Retrato</dt><dd>o estado atual de cada aeronave, num registro de 20 bytes, que o <code>adsbd</code> manda ao <code>ttcd</code> a cada segundo.</dd>
+  <dt><code>sbs_replay</code></dt><dd>a ferramenta que faz o papel do <code>dump1090</code>, servindo linhas SBS de uma captura ou de uma simulação.</dd>
+  <dt>TTL de campo</dt><dd>quanto tempo um campo de uma aeronave continua valendo sem ser atualizado: 60 s.</dd>
+</dl>
+
+<h2 id="reproduzir"><span class="n">18</span>Como reproduzir</h2>
+
+<pre><code>make check                 # build, 23 suítes, ASan+UBSan com warnings como erro, citações
+make budget-check          # os números dos ADRs
+
+# a missão simulada pela cadeia inteira, 10 min em tempo real
+make adsb-chain INPUT=&lt;saída do simular_trajetorias.py&gt;
+
+# o downlink emulado e as conclusões do estimador lado a lado
+python3 tools/analysis/downlink_emulation.py &lt;captura.ndjson&gt; \
+    --compare ground/host/ground-aeronaves --reference-db &lt;referencias.db&gt;</code></pre>
+
+<p>Os arquivos que mais explicam esta fase:</p>
+<ul>
+  <li><code>flight/adsbd/README.md</code>: o que o <code>adsbd</code> entrega, como rodar e o que falta;</li>
+  <li><code>flight/adsbd/tracks.h</code>: as regras do retrato, uma por uma, no comentário do topo;</li>
+  <li><code>docs/adr/0009-time-reference-and-synchronisation.md</code>: o tempo;</li>
+  <li><code>tests/test_adsb_chain.c</code>: a cadeia, e as duas propriedades que só os processos juntos mostram;</li>
+  <li><code>ground/host/README.md</code>: o estimador e o adaptador;</li>
+  <li><code>PLANO.md</code>, "Fase 3": o que foi entregue e o que falta.</li>
+</ul>
+
+<footer>
+  <p>Gerado em 28/09/2026 a partir do commit <code>8d3ac9b</code>, com apoio do Claude Code. O build, os testes com e sem sanitizers, a cadeia com a missão simulada, a emulação do downlink e os scripts de verificação foram executados nesta data.</p>
+  <p>Relatórios anteriores: <a href="2026-09-18-estado-do-projeto.html">18/09/2026</a>, <a href="2026-09-20-estado-do-projeto.html">20/09/2026</a> e o <a href="2026-09-28-comparativo-ultima-missao.html">comparativo com a missão anterior</a>. Para o próximo, gere um novo arquivo datado nesta pasta.</p>
+</footer>
+
+</main>
+</div>
+<script>
+(function () {
+  function setAll(open) {
+    var items = document.querySelectorAll('details.qa');
+    for (var i = 0; i < items.length; i++) { items[i].open = open; }
+  }
+  var openBtn = document.getElementById('qa-open');
+  var closeBtn = document.getElementById('qa-close');
+  if (openBtn) { openBtn.addEventListener('click', function () { setAll(true); }); }
+  if (closeBtn) { closeBtn.addEventListener('click', function () { setAll(false); }); }
+  window.addEventListener('beforeprint', function () { setAll(true); });
+  if (location.hash && location.hash.indexOf('#q') === 0) {
+    var target = document.querySelector(location.hash);
+    if (target && target.tagName === 'DETAILS') { target.open = true; }
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="#q"]');
+    if (!a) { return; }
+    var d = document.querySelector(a.getAttribute('href'));
+    if (d && d.tagName === 'DETAILS') { d.open = true; }
+  });
+})();
+</script>
+</body>
+</html>

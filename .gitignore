@@ -1,1 +1,29 @@
-/venv
+# build trees
+/build*/
+/venv/
+
+# ESP-IDF
+/ground/esp32/build/
+/ground/esp32/sdkconfig
+/ground/esp32/sdkconfig.old
+
+# mission data: regenerated per run, never committed
+*.ndjson
+*.jsonl
+/flight/**/*.log
+# ...except the bench logs and onboard records: test evidence for the Design
+# Package (make bench, adsbd with the SDR)
+!/docs/vv/bancada/**/*.jsonl
+!/docs/vv/bancada/**/*.ndjson
+
+# per-machine Makefile settings (PI_HOST, ...)
+/local.mk
+
+# python
+__pycache__/
+*.pyc
+
+# editor
+.vscode/
+.idea/
+compile_commands.json

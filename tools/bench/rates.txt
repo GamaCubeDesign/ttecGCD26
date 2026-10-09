@@ -1,0 +1,13 @@
+# Bench step 4 — rate change in both directions, between every pair.
+# Accept: every ack with status OK and a rate event to the profile asked
+# for; in ttcd's log, one rate_commit per change.
+rate safe
+rate nominal
+rate fast
+rate nominal
+rate fast
+rate safe
+rate nominal
+# The satellite commits a change only once it hears the ground at the new
+# profile; without this the last change would end the step unconfirmed.
+ping 3

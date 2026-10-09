@@ -1,0 +1,10 @@
+# Bench step 3 — packet error rate, 1000 frames per profile.
+# Each per prints uplink_per, from the satellite's TM_STAT before and after,
+# and downlink_per, from the gaps in its sequence numbers. At SAFE, 1000
+# PINGs would take more than an hour; 200 are enough.
+per 1000
+rate fast
+per 1000
+rate safe
+per 200
+rate nominal

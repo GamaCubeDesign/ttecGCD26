@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TT&amp;C GCD26 — Da última missão à nova arquitetura (28/09/2026)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+<style>
+/* Acréscimos deste relatório; o bloco acima é o mesmo dos relatórios anteriores. */
+.tag{display:inline-block;font-size:11.5px;font-weight:600;line-height:1;padding:3px 7px;border-radius:999px;white-space:nowrap;margin:0 4px 4px 0}
+.t-mis{color:var(--accent);background:var(--accent-soft)}
+.t-def{color:var(--bad);background:var(--bad-soft)}
+.t-met{color:var(--ok);background:var(--ok-soft)}
+table.cmp{min-width:760px}
+table.cmp td:first-child{font-weight:600;width:15%}
+table.cmp td:nth-child(2),table.cmp td:nth-child(3){width:34%}
+table.cmp td:nth-child(4){width:17%;font-size:13.5px}
+tr.grp td{background:var(--surface-2);font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-top:10px}
+table.tl td.r{width:70px}
+.cols2{display:grid;grid-template-columns:1fr;gap:12px;margin:0 0 16px}
+@media (min-width:720px){.cols2{grid-template-columns:1fr 1fr}}
+.cols2>div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.cols2 h4{margin:0 0 8px}
+.cols2 ul{margin:0}
+.sw.bad{border:2px solid var(--bad)}
+svg.diagram .box.bad{stroke:var(--bad);stroke-width:2}
+svg.diagram .box.proc{fill:none;stroke:var(--line-strong);stroke-width:1.2;stroke-dasharray:2 3}
+svg.diagram .t-bad{font-size:12px;fill:var(--bad)}
+svg.diagram .t-p{font-size:12px;letter-spacing:.05em;fill:var(--muted)}
+.nw{white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#origens">Por que tanta coisa mudou</a></li>
+    <li><a href="#figuras">As duas arquiteturas</a></li>
+    <li><a href="#quadro">O quadro comparativo</a></li>
+    <li><a href="#operacao">A mesma tarefa nos dois sistemas</a></li>
+    <li><a href="#reuso">O que foi reaproveitado</a></li>
+    <li><a href="#decisoes">As decisões, uma por uma</a></li>
+    <li><a href="#planejamento">O planejamento</a></li>
+    <li><a href="#falta">O que ainda não existe</a></li>
+    <li><a href="#cdr">Como levar isto ao CDR</a></li>
+    <li><a href="#qa">Perguntas e respostas</a></li>
+    <li><a href="#inconsistencias">Inconsistências achadas</a></li>
+    <li><a href="#glossario">Glossário</a></li>
+    <li><a href="#reproduzir">Como reproduzir</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header class="doc">
+  <p class="eyebrow">Gama Cube Design · CubeDesign 2026 · TT&amp;C</p>
+  <h1>Da última missão à nova arquitetura</h1>
+  <p class="lede">Quadro comparativo do TT&amp;C: o que a missão anterior implementou, o que está sendo implementado agora e por que cada coisa mudou. Serve de base para escrever as decisões de arquitetura do CDR.</p>
+  <div class="meta">
+    <span>Data: <b>28/09/2026</b></span>
+    <span>Branch: <b><code>feat/nova_arquitetura</code></b></span>
+    <span>Commit: <b><code>cd0a554</code></b></span>
+    <span>Legado: <b><code>ultima_missao/</code></b>, 27 arquivos</span>
+    <span>Teste na UNSAM: <b>24/11/2026</b> (57 dias)</span>
+  </div>
+</header>
+
+<div class="callout" style="margin-top:18px">
+  <p><b>Base deste relatório.</b> Li os 27 arquivos de <code>ultima_missao/</code> inteiros — 1713 linhas do satélite, 606 da ground — e cito cada defeito pelo arquivo e pela linha. Os números do legado saem das fórmulas de tempo no ar de <code>tools/analysis/lora_budget.py</code> aplicadas à configuração que o legado usava; os do sistema novo saem do mesmo script, do <code>make check</code> rodado nesta data (15 suítes, também sob ASan e UBSan, zero warnings, 71 citações do regulamento conferidas) e de uma execução do <code>ttcd</code> real contra a ground de bancada no rádio UDP. Os relatórios de <a href="2026-09-18-estado-do-projeto.html">18/09</a> e <a href="2026-09-20-estado-do-projeto.html">20/09</a> continuam valendo para o estado de cada componente; este só compara.</p>
+</div>
+
+<div class="callout warn">
+  <p><b>Como ler as colunas.</b> <b>Antes</b> é o que está em <code>ultima_missao/</code>, escrito contra o hardware real (pigpio, pinos, I²C). <b>Agora</b> é o que está no branch, em um de três estados:
+  <span class="badge b-ok">em software</span> implementado e testado, nunca rodou em RF ·
+  <span class="badge b-warn">projetado</span> decidido em ADR, sem código ·
+  <span class="badge b-todo">a fazer</span>.
+  A comparação é desigual num ponto que o CDR não pode esconder: o legado foi feito para rodar nos rádios; o sistema novo ainda não transmitiu um frame em RF.</p>
+</div>
+
+<h2 id="resumo"><span class="n">1</span>Resumo</h2>
+
+<ul>
+  <li><b>A missão mudou, e isso sozinho já exige outra arquitetura.</b> O legado era um TT&amp;C de pergunta e resposta para um satélite de plataforma: dados de saúde, comandos de ADCS por I²C, controle térmico. Não havia payload de dados. Agora o payload ADS-B gera <b>7,34 MiB</b> em 10 minutos, e o enlace NOMINAL carrega <b>58,3 KB</b> na missão inteira — 129 vezes menos. Com o rádio configurado como no legado, seriam <b>2,6 KB</b>: 2 881 vezes menos. Esse abismo é a causa da maior parte das decisões.</li>
+  <li><b>O rádio era o gargalo, não o payload.</b> O legado usava SF12 / BW 62,5 kHz / CR 4:8, sem registro do porquê: 71 bps. O perfil NOMINAL (SF9 / 125 kHz / 4:5) entrega 22 vezes isso e ainda sobra margem de 85,8 dB a 100 m — sem trocar hardware, só registradores (ADR-0004).</li>
+  <li><b>De um processo cheio de esperas para quatro processos sem nenhuma.</b> O legado era um programa C++ com laço sem espera, <code>sleep(10)</code> em 8 handlers e uma thread nova a cada pacote recebido; uma falha no I²C do ADCS derrubava o rádio junto. Agora são <code>ttcd</code>, <code>adsbd</code>, <code>dump1090-fa</code> e o <code>obc</code>, cada um sob systemd; o <code>ttcd</code> é uma thread que espera num único <code>epoll_wait</code> (ADR-0005, ADR-0012).</li>
+  <li><b>De duas cópias do formato para uma.</b> O legado mandava structs C pelo rádio por cast, com o formato escrito à mão duas vezes — e as duas cópias já tinham divergido. Não havia versão, número de sequência nem checagem de CRC. Agora há um frame, definido uma vez em <code>common/</code>, fixado byte a byte por vetores dourados e usado tanto no rádio quanto no IPC (ADR-0002).</li>
+  <li><b>De "pede e espera" para um protocolo com limite.</b> No legado, pedir três temperaturas levava cerca de <b>17,5 s</b>, e o satélite passava 27 de cada 29 s sem processar comandos. Agora a telemetria flui sozinha, todo telecomando tem ACK, retransmissão e reversão de taxa, e o HLR-COMM-01 tem um número: <b>1,40 s</b> em NOMINAL. Um pedido de HK no rádio UDP voltou em <b>0,63 s</b> (ADR-0007).</li>
+  <li><b>De nada escrito para decisões rastreáveis.</b> O legado não tinha teste, requisito rastreado nem decisão registrada. Agora são 15 suítes com 3102 verificações, 10 ADRs, orçamentos que o CTest confere e um catálogo de requisitos com o texto literal do regulamento.</li>
+  <li><b>O que o legado tem e o novo ainda não: horas em RF.</b> O <code>adsbd</code>, o firmware do ESP32 e o host não começaram; os ICDs não foram escritos; ADR-0007 e ADR-0012 estão <i>Proposed</i>. O CDR precisa dizer isso com todas as letras (<a href="#falta">seção 9</a>).</li>
+</ul>
+
+<div class="tiles">
+  <div class="tile"><div class="v">22×</div><div class="l">capacidade de downlink na missão: 2,6 KB → 58,3 KB, só com registradores</div></div>
+  <div class="tile"><div class="v">1 → 4</div><div class="l">processos a bordo; uma queda do payload não derruba o rádio</div></div>
+  <div class="tile"><div class="v">10 → 0</div><div class="l">chamadas a <code>sleep()</code> no caminho de um comando</div></div>
+  <div class="tile"><div class="v">2 → 1</div><div class="l">definições do formato de pacote (as duas do legado já divergiam)</div></div>
+  <div class="tile"><div class="v">17,5 s → 0,63 s</div><div class="l">de pedir a telemetria de saúde até recebê-la (calculado × medido no rádio UDP)</div></div>
+  <div class="tile"><div class="v">0 → 3102</div><div class="l">verificações automáticas, em 15 suítes; e 0 → 10 ADRs</div></div>
+</div>
+
+<h2 id="origens"><span class="n">2</span>Por que tanta coisa mudou</h2>
+
+<p>Quase nada foi reescrito por gosto. Cada mudança tem uma de três origens, e para o CDR vale separá-las, porque são argumentos diferentes:</p>
+
+<div class="cols2">
+  <div>
+    <h4><span class="tag t-mis">missão</span> O problema mudou</h4>
+    <p>A última missão só movia poucos bytes sob demanda. A de agora precisa mover o estado de até 20 aeronaves, continuamente, por um rádio 129 vezes menor que os dados. Daí saem o processamento a bordo (ADR-0003), os perfis de taxa (ADR-0004), o snapshot periódico, o tempo de cada track (<code>age_ds</code>) e o processo dono do SDR (ADR-0008).</p>
+  </div>
+  <div>
+    <h4><span class="tag t-def">defeito</span> O legado tinha falhas concretas</h4>
+    <p>Onze delas estão na tabela abaixo, com arquivo e linha. Viraram as regras rígidas do <code>AGENTS.md</code> e do <code>PLANO.md</code> e o motivo de vários ADRs. Nenhuma é hipotética: todas estão no código que está no repositório.</p>
+  </div>
+  <div>
+    <h4><span class="tag t-met">método</span> O modo de trabalhar mudou</h4>
+    <p>Decisão registrada no momento em que é tomada (ADR-0001), número que sai de script e é conferido no CTest, requisito citado literalmente, núcleo testável antes do hardware, zero warnings. Isso não muda o que o satélite faz; muda o quanto dá para defender o que ele faz.</p>
+  </div>
+  <div>
+    <h4>Por que isso importa no CDR</h4>
+    <p>"Mudamos porque a missão pediu" e "mudamos porque havia um defeito" pedem evidências diferentes: o primeiro se defende com o orçamento; o segundo, com a linha do código antigo e o teste do código novo. Misturar os dois enfraquece os dois.</p>
+  </div>
+</div>
+
+<h3>Os defeitos do legado e o que os substituiu</h3>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Defeito</th><th>Onde</th><th>O que acontecia</th><th>O que existe agora</th></tr></thead>
+<tbody>
+<tr><td>Struct enviado por cast</td><td class="nw"><code>Integration.cpp:149</code><br><code>Module.cpp:46</code></td><td>O formato no ar dependia do padding do compilador, e o header era mantido à mão em duas cópias</td><td>Campo a campo por <code>gama_bytes.h</code>; regra 1, ADR-0002</td></tr>
+<tr><td><code>sleep(10)</code> dentro do handler</td><td class="nw"><code>Module.cpp:139</code> e mais 7</td><td>Depois de cada comando, 10 s sem ler comando nenhum</td><td>Nenhum handler bloqueia; regra 2</td></tr>
+<tr><td>Espera fixa pelo fim da transmissão</td><td class="nw"><code>Moden.cpp:91</code></td><td><code>sleep(int(Tpkt)/1000 + 1)</code>: 4 s parados para um pacote de 3,29 s</td><td>Interrupção TxDone no DIO0; ADR-0012</td></tr>
+<tr><td>Laço sem espera</td><td class="nw"><code>main.cpp:37</code><br><code>Module.cpp:59</code></td><td>O laço gira sem parar, imprimindo "Waiting for packet" a cada volta — gastando CPU na mesma Pi que agora precisa rodar o <code>dump1090</code></td><td>Espera em <code>epoll_wait</code>; ADR-0005</td></tr>
+<tr><td>IPC por arquivo de nome fixo</td><td class="nw"><code>Integration.cpp:110</code> × <code>:173</code></td><td>A guarda conferia <code>sensor_data.json</code>; o leitor abria <code>HealthData.json</code></td><td>Socket <code>SOCK_SEQPACKET</code>; regra 5, ADR-0006</td></tr>
+<tr><td>CRC do PHY ignorado</td><td class="nw"><code>LoRa.c:208</code><br><code>Moden.cpp:25</code></td><td>A flag de erro de CRC era lida e só impressa; o pacote corrompido seguia para o despacho</td><td>Frame que falha versão, tamanho ou CRC é rejeitado e contado; regra 6</td></tr>
+<tr><td>Thread por pacote, buffer sem trava</td><td class="nw"><code>LoRa.c:214–221</code><br><code>Moden.cpp:30–32</code></td><td><code>malloc</code> e <code>pthread_create</code> a cada recepção; a thread escrevia o <code>rxBuffer</code> global enquanto o laço o lia</td><td>Uma thread; o DIO0 é um descritor no epoll; ADR-0012</td></tr>
+<tr><td><code>exit(1)</code> no acesso ao I²C</td><td class="nw"><code>Module.cpp:22, 27</code></td><td>Se o microcontrolador do ADCS não respondesse, o processo do rádio morria</td><td>Processos separados; o TT&amp;C não fala com subsistemas; ADR-0005</td></tr>
+<tr><td><code>clock()</code> usado como relógio</td><td class="nw"><code>Timing.cpp:6</code></td><td>Mede tempo de CPU, que não anda durante <code>sleep()</code>; o timeout de contato estava comentado</td><td><code>CLOCK_MONOTONIC</code> + âncora de wall-clock; regra 8</td></tr>
+<tr><td>Caminhos compilados no binário</td><td class="nw"><code>Integration.cpp:219</code><br><code>adsb_capture.c:42–44</code></td><td><code>./controletermico.o</code> dependia do diretório corrente; o protótipo de ADS-B tem <code>/home/pedro/...</code></td><td>Arquivo de configuração + <code>-o chave=valor</code>; regra 4</td></tr>
+<tr><td>Desligamento sem proteção</td><td class="nw"><code>Module.cpp:282</code></td><td>Sete bytes quaisquer com protocolo 6 e operação 4 desligavam o sistema, sem resposta</td><td><code>SHUTDOWN</code> exige <code>0xA5A5</code>, recebe ACK e executa uma vez só</td></tr>
+</tbody>
+</table></div>
+
+<p class="small">O <code>adsb_capture.c</code>, na raiz do repositório, não é da missão anterior: é o protótipo de ADS-B de 15/09, ponto de partida do <code>adsbd</code>. Entra nesta tabela porque herdou o mesmo defeito.</p>
+
+<h2 id="figuras"><span class="n">3</span>As duas arquiteturas</h2>
+
+<figure>
+<div class="frame">
+<svg class="diagram" viewBox="0 0 980 500" role="img" aria-labelledby="f1t f1d">
+  <title id="f1t">Arquitetura da última missão</title>
+  <desc id="f1d">Na Raspberry Pi, um único processo C++ chamado lora_app contém o laço principal sem espera, os handlers de comando com sleep de 10 segundos, uma thread de callback criada a cada pacote e um buffer global sem trava. Fora dele, arquivos JSON de nome fixo, o microcontrolador do ADCS por I2C e o programa de controle térmico disparado por fork. O rádio SX1278 é acessado via pigpio. Na ground, um ESP32 com sketch Arduino e menu serial, lido por um operador; um coletor Python espera um formato que o sketch não imprime. Embaixo, o arquivo de protocolo em duas cópias divergentes.</desc>
+  <defs>
+    <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="a1rf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah-rf" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <rect class="zone" x="10" y="12" width="620" height="410" rx="14"/>
+  <text class="zone-label" x="26" y="36">SATÉLITE · RASPBERRY PI · "IARASAT"</text>
+  <rect class="zone" x="700" y="12" width="270" height="410" rx="14"/>
+  <text class="zone-label" x="716" y="36">GROUND STATION</text>
+
+  <rect class="box proc" x="22" y="52" width="410" height="244" rx="10"/>
+  <text class="t-p" x="36" y="74">lora_app · UM PROCESSO C++17</text>
+
+  <rect class="box" x="36" y="92" width="160" height="56" rx="8"/>
+  <text class="t-b" x="116" y="115" text-anchor="middle">rxBuffer global</text>
+  <text class="t-bad" x="116" y="134" text-anchor="middle">lido e escrito sem trava</text>
+
+  <rect class="box" x="258" y="92" width="160" height="56" rx="8"/>
+  <text class="t-b" x="338" y="115" text-anchor="middle">callback rx_f()</text>
+  <text class="t-bad" x="338" y="134" text-anchor="middle">uma thread por pacote</text>
+
+  <rect class="box" x="36" y="222" width="160" height="56" rx="8"/>
+  <text class="t-b" x="116" y="245" text-anchor="middle">laço principal</text>
+  <text class="t-bad" x="116" y="264" text-anchor="middle">while(run), gira sem parar</text>
+
+  <rect class="box" x="258" y="222" width="160" height="56" rx="8"/>
+  <text class="t-b" x="338" y="245" text-anchor="middle">handlers</text>
+  <text class="t-bad" x="338" y="264" text-anchor="middle">8 × sleep(10)</text>
+
+  <rect class="box hw" x="466" y="92" width="152" height="56" rx="8"/>
+  <text class="t-b" x="542" y="115" text-anchor="middle">SX1278 / RA-02</text>
+  <text class="t-s" x="542" y="134" text-anchor="middle">pigpio · exige root</text>
+
+  <line class="edge" x1="464" y1="120" x2="420" y2="120" marker-end="url(#a1)"/>
+  <text class="t-e" x="449" y="112" text-anchor="middle">ISR</text>
+  <line class="edge" x1="256" y1="120" x2="198" y2="120" marker-end="url(#a1)"/>
+  <text class="t-e" x="227" y="112" text-anchor="middle">memcpy</text>
+  <line class="edge" x1="116" y1="150" x2="116" y2="220" marker-end="url(#a1)"/>
+  <text class="t-e" x="124" y="190">lê byte a byte</text>
+  <line class="edge" x1="198" y1="250" x2="256" y2="250" marker-end="url(#a1)"/>
+  <text class="t-e" x="227" y="242" text-anchor="middle">switch</text>
+  <polyline class="edge" points="420,250 542,250 542,150" marker-end="url(#a1)"/>
+  <text class="t-e" x="534" y="196" text-anchor="end">tx_send(struct)</text>
+  <text class="t-e" x="534" y="213" text-anchor="end">+ sleep(Tpkt+1)</text>
+
+  <rect class="box hw bad" x="22" y="342" width="190" height="56" rx="8"/>
+  <text class="t-b" x="117" y="365" text-anchor="middle">*.json, nome fixo</text>
+  <text class="t-bad" x="117" y="384" text-anchor="middle">guarda e leitor divergem</text>
+
+  <rect class="box ext" x="232" y="342" width="190" height="56" rx="8"/>
+  <text class="t-b" x="327" y="365" text-anchor="middle">ADCS · µC</text>
+  <text class="t-bad" x="327" y="384" text-anchor="middle">I²C 0x12 · exit(1) se falha</text>
+
+  <rect class="box ext" x="442" y="342" width="176" height="56" rx="8"/>
+  <text class="t-b" x="530" y="365" text-anchor="middle">controletermico.o</text>
+  <text class="t-s" x="530" y="384" text-anchor="middle">fork + exec · SIGKILL</text>
+
+  <line class="edge" x1="318" y1="280" x2="130" y2="340" marker-end="url(#a1)"/>
+  <text class="t-e" x="146" y="318" text-anchor="middle">lê JSON</text>
+  <line class="edge" x1="330" y1="280" x2="327" y2="340" marker-end="url(#a1)"/>
+  <text class="t-e" x="335" y="324">I²C</text>
+  <line class="edge" x1="344" y1="280" x2="520" y2="340" marker-end="url(#a1)"/>
+  <text class="t-e" x="470" y="312">fork</text>
+
+  <text class="t-e" x="26" y="414">Um erro em qualquer parte derruba o processo — e o rádio junto.</text>
+
+  <line class="edge rf" x1="620" y1="120" x2="714" y2="120" marker-start="url(#a1rf)" marker-end="url(#a1rf)"/>
+  <text class="t-e" x="665" y="94" text-anchor="middle">LoRa</text>
+  <text class="t-e" x="665" y="110" text-anchor="middle">433 MHz</text>
+  <text class="t-e" x="665" y="142" text-anchor="middle">SF12</text>
+  <text class="t-e" x="665" y="158" text-anchor="middle">62,5 kHz</text>
+  <text class="t-e" x="665" y="174" text-anchor="middle">71 bps</text>
+
+  <rect class="box hw" x="716" y="92" width="238" height="56" rx="8"/>
+  <text class="t-b" x="835" y="115" text-anchor="middle">SX1278 / RA-02</text>
+  <text class="t-s" x="835" y="134" text-anchor="middle">biblioteca LoRa do Arduino</text>
+
+  <rect class="box" x="716" y="190" width="238" height="56" rx="8"/>
+  <text class="t-b" x="835" y="213" text-anchor="middle">ESP32 · sketch Arduino</text>
+  <text class="t-bad" x="835" y="232" text-anchor="middle">menu; bloqueia esperando</text>
+
+  <rect class="box ext" x="716" y="274" width="238" height="52" rx="8"/>
+  <text class="t-b" x="835" y="296" text-anchor="middle">monitor serial</text>
+  <text class="t-s" x="835" y="314" text-anchor="middle">o operador lê texto</text>
+
+  <rect class="box bad" x="716" y="352" width="238" height="56" rx="8"/>
+  <text class="t-b" x="835" y="375" text-anchor="middle">coletor → CSV → PDF</text>
+  <text class="t-bad" x="835" y="394" text-anchor="middle">espera outro formato de linha</text>
+
+  <line class="edge" x1="835" y1="150" x2="835" y2="188" marker-start="url(#a1)" marker-end="url(#a1)"/>
+  <text class="t-e" x="843" y="174">SPI</text>
+  <line class="edge" x1="835" y1="248" x2="835" y2="272" marker-end="url(#a1)"/>
+  <line class="edge" x1="835" y1="328" x2="835" y2="350" marker-end="url(#a1)"/>
+
+  <rect class="box bad" x="10" y="436" width="960" height="56" rx="12"/>
+  <text class="t-b" x="490" y="459" text-anchor="middle">CommunicationProtocol.h — duas cópias escritas à mão, uma de cada lado</text>
+  <text class="t-bad" x="490" y="479" text-anchor="middle">structs enviados por cast · já divergentes: SEND_CT_DATA só na ground; struct control com 6 campos no satélite e 8 na ground</text>
+</svg>
+</div>
+<figcaption>Figura 1 — A última missão. Tudo o que roda na Pi está num processo só; o que a Pi troca com o resto do satélite passa por arquivos, I²C e <code>fork</code>. Em vermelho, os defeitos da <a href="#origens">tabela acima</a>.</figcaption>
+</figure>
+
+<figure>
+<div class="frame">
+<svg class="diagram" viewBox="0 0 980 500" role="img" aria-labelledby="f2t f2d">
+  <title id="f2t">A arquitetura nova e o estado de cada parte</title>
+  <desc id="f2d">No CubeSat: o SDR alimenta o dump1090-fa, que entrega mensagens SBS-1 ao adsbd, ainda não escrito; o adsbd grava o log NDJSON e manda tracks ao ttcd por IPC. O ttcd, pronto em software, é o hub: fala com o rádio SX1278 por SPI e DIO0 e com o processo do OBC por IPC. Cada processo roda sob systemd. Na ground: um segundo rádio serve hoje a ground de bancada gs_cli, pronta, e na fase 4 servirá o ESP32 e o host em Python. Embaixo, a biblioteca common, compilada nos dois lados.</desc>
+  <defs>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="a2rf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah-rf" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <rect class="zone" x="10" y="12" width="620" height="410" rx="14"/>
+  <text class="zone-label" x="26" y="36">CUBESAT · RASPBERRY PI ZERO 2 W · systemd</text>
+  <rect class="zone" x="700" y="12" width="270" height="410" rx="14"/>
+  <text class="zone-label" x="716" y="36">GROUND STATION</text>
+
+  <rect class="box hw" x="26" y="58" width="164" height="58" rx="8"/>
+  <text class="t-b" x="108" y="82" text-anchor="middle">NESDR Nano 3</text>
+  <text class="t-s" x="108" y="101" text-anchor="middle">RTL-SDR · 1090 MHz</text>
+
+  <rect class="box ext" x="236" y="58" width="164" height="58" rx="8"/>
+  <text class="t-b" x="318" y="82" text-anchor="middle">dump1090-fa</text>
+  <text class="t-s" x="318" y="101" text-anchor="middle">decodifica · terceiros</text>
+
+  <rect class="box hw" x="446" y="58" width="168" height="58" rx="8"/>
+  <text class="t-b" x="530" y="82" text-anchor="middle">SX1278 / RA-02</text>
+  <text class="t-s" x="530" y="101" text-anchor="middle">spidev + GPIO · sem root</text>
+
+  <rect class="box hw" x="26" y="188" width="164" height="58" rx="8"/>
+  <text class="t-b" x="108" y="212" text-anchor="middle">eventos.ndjson</text>
+  <text class="t-s" x="108" y="231" text-anchor="middle">log completo · SD</text>
+
+  <rect class="box plan" x="236" y="188" width="164" height="58" rx="8"/>
+  <text class="t-b" x="318" y="212" text-anchor="middle">adsbd</text>
+  <text class="t-s" x="318" y="231" text-anchor="middle">fase 3 · não começou</text>
+
+  <rect class="box done" x="446" y="188" width="168" height="58" rx="8"/>
+  <text class="t-b" x="530" y="212" text-anchor="middle">ttcd</text>
+  <text class="t-s" x="530" y="231" text-anchor="middle">núcleo puro + casca epoll</text>
+
+  <rect class="box ext" x="446" y="306" width="168" height="58" rx="8"/>
+  <text class="t-b" x="530" y="330" text-anchor="middle">obc</text>
+  <text class="t-s" x="530" y="349" text-anchor="middle">outro time · dono do modo</text>
+
+  <text class="t-e" x="26" y="306">O ttcd é o hub: um socket SEQPACKET,</text>
+  <text class="t-e" x="26" y="324">dois clientes. Cada processo tem sua</text>
+  <text class="t-e" x="26" y="342">unidade systemd; se o adsbd cai, o</text>
+  <text class="t-e" x="26" y="360">rádio continua no ar e ele reinicia.</text>
+  <text class="t-e" x="26" y="400">Nenhum sleep() no laço; uma só thread.</text>
+
+  <line class="edge" x1="190" y1="87" x2="234" y2="87" marker-end="url(#a2)"/>
+  <text class="t-e" x="212" y="79" text-anchor="middle">USB</text>
+  <line class="edge" x1="318" y1="116" x2="318" y2="186" marker-end="url(#a2)"/>
+  <text class="t-e" x="310" y="156" text-anchor="end">TCP :30003 · SBS-1</text>
+  <line class="edge" x1="236" y1="217" x2="192" y2="217" marker-end="url(#a2)"/>
+  <text class="t-e" x="214" y="209" text-anchor="middle">grava</text>
+  <line class="edge" x1="400" y1="217" x2="444" y2="217" marker-end="url(#a2)"/>
+  <text class="t-e" x="422" y="209" text-anchor="middle">IPC</text>
+  <line class="edge" x1="530" y1="186" x2="530" y2="118" marker-start="url(#a2)" marker-end="url(#a2)"/>
+  <text class="t-e" x="538" y="156">SPI + DIO0</text>
+  <line class="edge" x1="530" y1="248" x2="530" y2="304" marker-start="url(#a2)" marker-end="url(#a2)"/>
+  <text class="t-e" x="538" y="281">IPC</text>
+
+  <line class="edge rf" x1="616" y1="87" x2="714" y2="87" marker-start="url(#a2rf)" marker-end="url(#a2rf)"/>
+  <text class="t-e" x="665" y="62" text-anchor="middle">LoRa</text>
+  <text class="t-e" x="665" y="78" text-anchor="middle">433 MHz</text>
+  <text class="t-e" x="665" y="108" text-anchor="middle">SF9</text>
+  <text class="t-e" x="665" y="124" text-anchor="middle">125 kHz</text>
+  <text class="t-e" x="665" y="140" text-anchor="middle">1592 bps</text>
+
+  <rect class="box hw" x="716" y="58" width="238" height="58" rx="8"/>
+  <text class="t-b" x="835" y="82" text-anchor="middle">SX1278 / RA-02</text>
+  <text class="t-s" x="835" y="101" text-anchor="middle">mesmo driver do satélite</text>
+
+  <rect class="box done" x="716" y="160" width="114" height="54" rx="8"/>
+  <text class="t-b" x="773" y="183" text-anchor="middle">gs_cli</text>
+  <text class="t-s" x="773" y="201" text-anchor="middle">bancada · pronta</text>
+
+  <rect class="box plan" x="840" y="160" width="114" height="54" rx="8"/>
+  <text class="t-b" x="897" y="183" text-anchor="middle">ESP32</text>
+  <text class="t-s" x="897" y="201" text-anchor="middle">fase 4</text>
+
+  <rect class="box plan" x="840" y="262" width="114" height="54" rx="8"/>
+  <text class="t-b" x="897" y="285" text-anchor="middle">host</text>
+  <text class="t-s" x="897" y="303" text-anchor="middle">fase 4 · Python</text>
+
+  <line class="edge" x1="773" y1="118" x2="773" y2="158" marker-end="url(#a2)"/>
+  <text class="t-e" x="765" y="142" text-anchor="end">SPI</text>
+  <line class="edge" x1="897" y1="118" x2="897" y2="158" marker-end="url(#a2)"/>
+  <line class="edge" x1="897" y1="216" x2="897" y2="260" marker-end="url(#a2)"/>
+  <text class="t-e" x="889" y="242" text-anchor="end">UART · JSON</text>
+  <text class="t-e" x="716" y="354">Hoje a ground é a gs_cli, num segundo</text>
+  <text class="t-e" x="716" y="372">RA-02 na mesma Pi, ou no rádio UDP,</text>
+  <text class="t-e" x="716" y="390">sem rádio nenhum.</text>
+
+  <rect class="box done" x="10" y="436" width="960" height="56" rx="12"/>
+  <text class="t-b" x="490" y="459" text-anchor="middle">common/ — um só formato, um só codec, o lado da ground do protocolo · pronto</text>
+  <text class="t-s" x="490" y="479" text-anchor="middle">os mesmos arquivos .c no ttcd, na gs_cli, no futuro adsbd, no adaptador do obc e no firmware do ESP32 · vetores dourados fixam cada byte</text>
+</svg>
+</div>
+<figcaption>Figura 2 — A arquitetura nova. O rádio fica num processo que não depende do payload; o formato existe uma vez só; tudo que fala com outro processo passa pelo mesmo frame.</figcaption>
+<div class="legend">
+  <span><i class="sw done"></i> pronto em software</span>
+  <span><i class="sw plan"></i> ainda não escrito</span>
+  <span><i class="sw ext"></i> terceiros ou outro time</span>
+  <span><i class="sw hw"></i> hardware ou arquivo</span>
+  <span><i class="sw bad"></i> defeito do legado (figura 1)</span>
+</div>
+</figure>
+
+<h2 id="quadro"><span class="n">4</span>O quadro comparativo</h2>
+
+<p>Agrupado por tema. A última coluna diz de onde veio a mudança e onde ela está justificada. Linha sem selo de estado na coluna "Agora" está <span class="badge b-ok">em software</span>.</p>
+
+<div class="table-wrap"><table class="cmp">
+<thead><tr><th>Aspecto</th><th>Última missão</th><th>Agora</th><th>Origem · onde</th></tr></thead>
+<tbody>
+
+<tr class="grp"><td colspan="4">Missão e requisitos</td></tr>
+<tr><td>O que o TT&amp;C atende</td><td>Satélite de plataforma: saúde (3 temperaturas), comandos de ADCS, controle térmico. Os protocolos AIS, MEC e IMAGING existem no enum e têm handlers vazios</td><td>Payload ADS-B: até 20 aeronaves por 10 min, trajetória e métricas de desempenho (HLR-ADS-01 a 08), mais a telemetria de plataforma que o OBC publica</td><td><span class="tag t-mis">missão</span></td></tr>
+<tr><td>Volume a mover</td><td>12 bytes úteis por leitura de saúde, sob demanda</td><td>7,34 MiB de ADS-B decodificado na missão; 48,5 KB descem como estado de track</td><td><span class="tag t-mis">missão</span> <span class="nw">ADR-0003</span></td></tr>
+<tr><td>Requisitos</td><td>Nenhum rastreamento</td><td><code>docs/requisitos.md</code>: 32 HLR e 30 itens do regulamento, com texto literal (71 citações conferidas por script); ID do requisito citado no código que o atende</td><td><span class="tag t-met">método</span></td></tr>
+
+<tr class="grp"><td colspan="4">Processos e execução a bordo</td></tr>
+<tr><td>Processos</td><td>Um: <code>lora_app</code>, C++17, mais a thread do pigpio e o filho <code>controletermico.o</code></td><td>Quatro, sob systemd: <code>ttcd</code> (rádio), <code>adsbd</code> (payload) <span class="badge b-todo">a fazer</span>, <code>dump1090-fa</code>, <code>obc</code> (outro time). O <code>ttcd</code> é o hub</td><td><span class="tag t-mis">missão</span><span class="tag t-def">defeito</span> <span class="nw">ADR-0005</span></td></tr>
+<tr><td>Isolamento de falhas</td><td>Nenhum: <code>i2c_open()</code> chama <code>exit(1)</code> (<code>Module.cpp:22</code>)</td><td>O rádio sobrevive a uma queda do payload; systemd reinicia (<code>Restart=always</code>). Demonstrável só quando o <code>adsbd</code> existir</td><td><span class="tag t-def">defeito</span> <span class="nw">ADR-0005</span></td></tr>
+<tr><td>Concorrência</td><td>Callback de recepção numa thread nova por pacote, escrevendo um buffer global que o laço lê sem trava</td><td>Uma thread por processo; a borda do DIO0 é um descritor no mesmo epoll dos sockets e do timer</td><td><span class="tag t-def">defeito</span> <span class="nw">ADR-0012</span></td></tr>
+<tr><td>Espera</td><td>10 <code>sleep()</code> no caminho de um comando: 8 × <code>sleep(10)</code>, 1 por transmissão, 1 entre pacotes; mais <code>sleep(5)</code> na partida</td><td>Uma espera, em <code>epoll_wait</code>. A única pausa é o pulso de reset do rádio, antes do laço</td><td><span class="tag t-def">defeito</span> <span class="nw">regra 2</span></td></tr>
+<tr><td>CPU ociosa</td><td>Laço sem espera, com duas impressões por volta: gira o tempo todo, mesmo sem nada para fazer</td><td>Processo parado até haver evento. A CPU fica para o <code>dump1090</code>, o maior risco aberto</td><td><span class="tag t-def">defeito</span></td></tr>
+<tr><td>Arquitetura interna</td><td>Lógica misturada com pigpio, <code>sleep</code> e <code>printf</code></td><td>Núcleo puro (<code>link.c</code>, <code>tc_dispatch.c</code>, <code>tm_sched.c</code>) sem chamadas de sistema, dentro de uma casca que tem os descritores e o relógio</td><td><span class="tag t-met">método</span> <span class="nw">ADR-0005</span></td></tr>
+<tr><td>Relógio</td><td><code>clock()</code>, que mede tempo de CPU; timeout de contato comentado</td><td><code>CLOCK_MONOTONIC</code> com uma âncora de wall-clock dada pela ground (<code>SET_TIME</code>)</td><td><span class="tag t-def">defeito</span> <span class="nw">regra 8</span></td></tr>
+<tr><td>Configuração</td><td>Compilada: pinos, frequência, nomes de arquivo, <code>./controletermico.o</code></td><td>Arquivo + <code>-o chave=valor</code>; <code>--check-config</code> valida sem tocar no rádio</td><td><span class="tag t-def">defeito</span> <span class="nw">regra 4</span></td></tr>
+<tr><td>Implantação</td><td>Executado à mão; pigpio exige root</td><td>Unidade systemd, usuário <code>gama</code> sem root, <code>NoNewPrivileges</code>, <code>ProtectSystem=strict</code>; <code>make install</code></td><td><span class="tag t-met">método</span> <span class="nw">ADR-0012</span></td></tr>
+
+<tr class="grp"><td colspan="4">Integração com o OBC e os subsistemas</td></tr>
+<tr><td>Troca entre processos</td><td>Arquivos JSON de nome fixo; o gerador do JSON nunca foi escrito ("Falta adicionar a execução do código de OBC", <code>Integration.cpp:197</code>)</td><td><code>AF_UNIX SOCK_SEQPACKET</code>: um datagrama é um frame GAMA completo; <code>HELLO</code> identifica o papel; nada bloqueia; a morte de um par é vista na hora</td><td><span class="tag t-def">defeito</span> <span class="nw">ADR-0006</span></td></tr>
+<tr><td>Contrato com o OBC</td><td>Implícito</td><td>ICD escrito + implementação de referência do cliente para o OBC <span class="badge b-todo">a fazer</span></td><td><span class="tag t-met">método</span> <span class="nw">ADR-0006</span></td></tr>
+<tr><td>Modo da missão</td><td>Não existia</td><td>O OBC é a única fonte; o <code>ttcd</code> traduz o telecomando em evento e reporta o modo que o OBC anuncia — sem segunda máquina de estados</td><td><span class="tag t-met">método</span> <span class="nw">ADR-0005</span></td></tr>
+<tr><td>ADCS e térmico</td><td>O TT&amp;C falava I²C direto com o ADCS e disparava o controle térmico por <code>fork</code></td><td>O TT&amp;C não fala com subsistemas: atitude e temperaturas chegam do OBC (<code>IPC_TELEMETRY</code>) e descem no <code>TM_HK</code></td><td><span class="tag t-met">método</span> <span class="nw">ADR-0005</span></td></tr>
+
+<tr class="grp"><td colspan="4">O formato no ar</td></tr>
+<tr><td>Serialização</td><td>Struct C por cast, com o layout que o compilador escolher</td><td>Campo a campo, little-endian explícito (<code>common/gama_bytes.h</code>)</td><td><span class="tag t-def">defeito</span> <span class="nw">ADR-0002</span></td></tr>
+<tr><td>Onde o formato é definido</td><td>Duas cópias à mão, já divergentes: <code>SEND_CT_DATA = 13</code> só na ground; <code>struct control</code> com 6 campos no satélite e 8 na ground</td><td>Uma vez, em <code>common/</code>, compilada nos dois lados; 50 verificações de vetores dourados travam cada byte</td><td><span class="tag t-def">defeito</span> <span class="nw">ADR-0002</span></td></tr>
+<tr><td>Enquadramento</td><td><code>length</code> no primeiro byte — exceto no <code>healthData</code>, onde fica no fim; sem versão; a ground reconhece o pacote pelo tamanho</td><td><code>ver · type · seq · len · payload · crc16</code>: 7 bytes de overhead, até 248 de payload</td><td><span class="tag t-def">defeito</span> <span class="nw">ADR-0007</span></td></tr>
+<tr><td>Integridade</td><td>CRC do PHY lido e só impresso; pacote corrompido processado</td><td>CRC do PHY + CRC-16 do frame; todo frame rejeitado é contado (<code>tc_frames_bad</code>)</td><td><span class="tag t-def">defeito</span> <span class="nw">regra 6</span></td></tr>
+<tr><td>Perda</td><td>Sem número de sequência: uma perda não deixa rastro</td><td><code>seq</code> por direção; as lacunas dão a perda exata (HLR-ADS-08)</td><td><span class="tag t-mis">missão</span> <span class="nw">ADR-0007</span></td></tr>
+<tr><td>Recepção</td><td>Remontagem byte a byte dentro do struct global; um byte a mais escreve fora dele (<code>Module.cpp:65</code>)</td><td>Um pacote é um frame, decodificado com checagem de tamanho antes de qualquer índice</td><td><span class="tag t-def">defeito</span></td></tr>
+<tr><td>Catálogo</td><td>7 "protocolos" e até 14 operações; comando desconhecido ignorado sem resposta</td><td>13 telecomandos, 4 tipos de telemetria e beacon; comando desconhecido recebe <code>ACK UNKNOWN_CMD</code>. <code>REQ_ROSTER</code> e <code>BULK_*</code> respondem <code>FAILED</code> até o <code>adsbd</code> existir</td><td><span class="tag t-mis">missão</span></td></tr>
+
+<tr class="grp"><td colspan="4">O rádio</td></tr>
+<tr><td>Configuração</td><td>SF12 / BW 62,5 kHz / CR 4:8, preâmbulo 6, fixa; ninguém sabia dizer por quê</td><td>Três perfis a BW 125 kHz: SAFE (SF12, 4:8), NOMINAL (SF9, 4:5), FAST (SF7, 4:5), trocados por telecomando</td><td><span class="tag t-mis">missão</span><span class="tag t-def">defeito</span> <span class="nw">ADR-0004</span></td></tr>
+<tr><td>Tempo no ar, 208 B</td><td>23,3 s</td><td>1,05 s em NOMINAL; 0,33 s em FAST</td><td><span class="nw">ADR-0004</span></td></tr>
+<tr><td>Capacidade em 600 s a 50%</td><td>2,6 KB</td><td>58,3 KB em NOMINAL; 185,8 KB em FAST</td><td><span class="nw">ADR-0004</span></td></tr>
+<tr><td>Margem de enlace</td><td>Não calculada</td><td>70 dB de degradações somadas e SF9 a 100 m ainda fecha com 15,8 dB</td><td><span class="tag t-met">método</span> <span class="nw">link-budget.md</span></td></tr>
+<tr><td>Driver</td><td>pigpio: daemon ou root, callback em thread</td><td>spidev + GPIO character device; registradores testados contra um chip emulado (92 verificações). <span class="badge b-warn">nunca rodou na Pi</span></td><td><span class="tag t-def">defeito</span> <span class="nw">ADR-0012</span></td></tr>
+<tr><td>Fim da transmissão</td><td><code>sleep(int(Tpkt)/1000 + 1)</code></td><td>Interrupção TxDone no DIO0, com consulta de segurança a cada 250 ms</td><td><span class="tag t-def">defeito</span> <span class="nw">ADR-0012</span></td></tr>
+<tr><td>LDRO</td><td>Recalculado só dentro de <code>send</code>/<code>receive</code>; inofensivo com um perfil fixo, errado com troca de perfil</td><td>Escrito junto com o perfil, nos três registradores de configuração</td><td><span class="tag t-mis">missão</span></td></tr>
+
+<tr class="grp"><td colspan="4">Protocolo e operação</td></tr>
+<tr><td>Quem inicia</td><td>O operador pede; a ground bloqueia esperando (<code>delay(7000)</code>, timeouts fixos)</td><td>A telemetria flui sozinha — snapshot a cada 5 s, HK a cada 10 s, STAT a cada 30 s — e o operador comanda por cima</td><td><span class="tag t-mis">missão</span> <span class="nw">ADR-0007</span></td></tr>
+<tr><td>Acesso ao meio</td><td>Não tratado</td><td>Janela de resposta após cada frame do satélite + listen-before-talk; keepalive só na janela <span class="badge b-warn">Proposed</span></td><td><span class="nw">ADR-0007</span></td></tr>
+<tr><td>Confirmação</td><td>Nenhuma</td><td>Um <code>TC_ACK</code> com status para todo telecomando; retransmissão com backoff; execução no máximo uma vez, exceto <code>SET_RATE</code>, idempotente de propósito</td><td><span class="nw">ADR-0007</span></td></tr>
+<tr><td>Tempo de resposta</td><td>Não definido; cerca de 17,5 s para três temperaturas (<a href="#operacao">seção 5</a>)</td><td>Definido e verificado em simulação: 1,40 s em NOMINAL sem perda, 3,37 s com uma perda (HLR-COMM-01)</td><td><span class="tag t-mis">missão</span> <span class="nw">ADR-0007</span></td></tr>
+<tr><td>Perda de contato</td><td>Não tratada</td><td>120 s sem ouvir a ground → SAFE e beacon; a ground recomanda a taxa e o enlace volta sem operador</td><td><span class="nw">ADR-0007</span></td></tr>
+<tr><td>Tempo nos dados</td><td>Nenhum a bordo; o PC carimba na chegada (<code>serial_data_collector.py:109</code>)</td><td><code>age_ds</code> em cada track: a ground reconstrói o instante de cada atualização sem sincronizar relógios</td><td><span class="tag t-mis">missão</span> <span class="nw">ADR-0007</span></td></tr>
+<tr><td>Registro a bordo</td><td>Nenhum</td><td>NDJSON com cada mensagem, no SD, com teto de tamanho (HLR-SW-02) <span class="badge b-todo">fase 3</span></td><td><span class="tag t-mis">missão</span> <span class="nw">ADR-0003</span></td></tr>
+
+<tr class="grp"><td colspan="4">Ground</td></tr>
+<tr><td>Firmware</td><td>Sketch Arduino com biblioteca LoRa de terceiros e menu pela serial</td><td>ESP-IDF compilando o mesmo <code>common/</code> e o mesmo driver <span class="badge b-todo">fase 4</span>; hoje, a <code>gs_cli</code> faz esse papel na bancada</td><td><span class="tag t-def">defeito</span> <span class="nw">ADR-0002</span></td></tr>
+<tr><td>Saída para o PC</td><td>Texto para humano; o coletor Python espera <code>sistema,chave=valor</code>, que o sketch não imprime</td><td>Um JSON por evento, com o frame bruto em hex e tempos monotônico e de parede (<code>gs_cli</code>)</td><td><span class="tag t-def">defeito</span></td></tr>
+<tr><td>Relatório</td><td><code>gerarRelatorio.py</code> + LaTeX a partir de CSV</td><td>Reaproveitar no relatório de evidência <span class="badge b-todo">fase 4</span></td><td>reaproveitado</td></tr>
+
+<tr class="grp"><td colspan="4">Verificação e documentação</td></tr>
+<tr><td>Testes</td><td>Nenhum; o único "teste" é um sketch que ecoa a serial</td><td>15 suítes, 3102 verificações, também sob ASan e UBSan (<code>make check</code>)</td><td><span class="tag t-met">método</span></td></tr>
+<tr><td>Teste sem hardware</td><td>Impossível: a lógica depende do pigpio e dos <code>sleep</code></td><td>Simulação dos dois lados num canal half-duplex em tempo virtual; o <code>ttcd</code> real contra a ground no rádio UDP</td><td><span class="tag t-met">método</span> <span class="nw">ADR-0005</span></td></tr>
+<tr><td>Avisos do compilador</td><td><code>-Wall</code></td><td><code>-Wall</code> <code>-Wextra</code> <code>-Wpedantic</code> <code>-Wconversion</code> <code>-Wsign-conversion</code> <code>-Wstrict-prototypes</code>; zero warnings, e warning vira erro no <code>make check</code></td><td><span class="tag t-met">método</span></td></tr>
+<tr><td>Números da documentação</td><td>Nenhum documento</td><td>Saem do <code>lora_budget.py</code>; o <code>--check</code> roda no CTest, e a documentação não diverge do código em silêncio</td><td><span class="tag t-met">método</span></td></tr>
+<tr><td>Decisões</td><td>Nenhuma escrita; reconstituir o porquê do SF12 exigiu reler o driver (ADR-0001)</td><td>10 ADRs — 8 <i>Accepted</i>, 2 <i>Proposed</i>; o que muda depois vira errata ou ADR novo</td><td><span class="tag t-met">método</span> <span class="nw">ADR-0001</span></td></tr>
+<tr><td>Linguagem</td><td>C++17 na Pi e C++ Arduino no ESP32: dois códigos para o mesmo formato</td><td>C11 em todo software embarcado; Python só no host e na análise</td><td><span class="tag t-def">defeito</span> <span class="nw">ADR-0002</span></td></tr>
+<tr><td>Rodou em RF</td><td>Escrito contra os rádios reais</td><td><span class="badge b-bad">nenhum frame ainda</span> A bancada está roteirizada (<code>make bench</code>, 6 passos) e só foi ensaiada no rádio UDP</td><td><span class="nw">PLANO 2.7</span></td></tr>
+</tbody>
+</table></div>
+
+<h2 id="operacao"><span class="n">5</span>A mesma tarefa nos dois sistemas</h2>
+
+<p>Tarefa: <b>obter do satélite a telemetria de saúde.</b> No legado, o comando <code>ghdata</code>; no sistema novo, o <code>REQ_HK</code>. Os instantes do legado são calculados a partir do código (<code>groundStation.ino</code>, <code>Module.cpp</code>, <code>Moden.cpp</code>) e do tempo no ar de cada pacote na configuração dele; não há medição. Os do sistema novo foram medidos nesta data no rádio UDP, que segura cada frame pelo seu tempo no ar exato — não é RF.</p>
+
+<h3>Última missão — calculado</h3>
+<div class="table-wrap"><table class="tl">
+<thead><tr><th class="r">t (s)</th><th>Ground (ESP32)</th><th>Satélite (Pi)</th></tr></thead>
+<tbody>
+<tr><td class="r">0,00</td><td>transmite <code>GENERATE_HEALTH_DATA</code> — 7 B, 2,25 s no ar</td><td>ouvindo</td></tr>
+<tr><td class="r">2,25</td><td></td><td>recebe; lê <code>HealthData.json</code>; transmite <code>HealthStatus</code> — 4 B, 1,72 s</td></tr>
+<tr><td class="r">3,97</td><td>recebe o status; entra no <code>delay(7000)</code></td><td>no <code>sleep(2)</code> do <code>tx_send</code></td></tr>
+<tr><td class="r">4,25</td><td></td><td>entra no <code>sleep(10)</code> do handler — não processa nada</td></tr>
+<tr><td class="r">10,97</td><td>transmite <code>CONFIRMATION_HEALTH_DATA</code> — 7 B, 2,25 s</td><td>dormindo; o pacote fica no <code>rxBuffer</code></td></tr>
+<tr><td class="r">14,25</td><td></td><td>acorda, processa a confirmação, transmite o <code>healthData</code> — 16 B, 3,29 s</td></tr>
+<tr><td class="r"><b>17,54</b></td><td><b>recebe as três temperaturas</b></td><td>no <code>sleep(4)</code> do <code>tx_send</code></td></tr>
+<tr><td class="r">19,25</td><td></td><td>termina o <code>sleep(1)</code> entre pacotes; entra em outro <code>sleep(10)</code></td></tr>
+<tr><td class="r">29,25</td><td></td><td>volta a processar comandos</td></tr>
+</tbody>
+</table></div>
+
+<h3>Agora — medido no rádio UDP, perfil NOMINAL</h3>
+<div class="table-wrap"><table class="tl">
+<thead><tr><th class="r">t (s)</th><th>Ground (<code>gs_cli</code>)</th><th>Satélite (<code>ttcd</code>)</th></tr></thead>
+<tbody>
+<tr><td class="r">—</td><td colspan="2">Sem pedir nada, o HK chega a cada 10 s (medido: 10,000 s entre dois HK); durante o streaming, o snapshot das aeronaves a cada 5 s.</td></tr>
+<tr><td class="r">0,000</td><td>o operador digita <code>hk</code>: <code>REQ_HK</code> — 8 B, 0,12 s no ar</td><td>ouvindo</td></tr>
+<tr><td class="r">0,124</td><td></td><td>recebe e executa; transmite o <code>TC_ACK</code> — 11 B, 0,14 s</td></tr>
+<tr><td class="r">0,268</td><td>recebe o ACK: status OK, primeira tentativa</td><td>janela de resposta, 112 ms em silêncio para a ground poder falar</td></tr>
+<tr><td class="r">0,380</td><td></td><td>transmite o <code>TM_HK</code> — 32 B, 0,25 s</td></tr>
+<tr><td class="r"><b>0,627</b></td><td><b>recebe o HK</b></td><td>ouvindo</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout">
+  <p><b>O que a comparação mostra, e o que não mostra.</b> No legado, dos 17,5 s, 9,5 s são de ar — o preço do SF12 a 62,5 kHz — e 8 s são espera pura: o <code>delay(7000)</code> e o arredondamento dos <code>sleep</code>. Só essa espera já é 13 vezes o ciclo inteiro do sistema novo. E o pior número do legado não está no tempo de resposta: é o satélite passar <b>27 de cada 29 s</b> sem processar comando nenhum. No sistema novo, o <code>ttcd</code> só deixa de ouvir enquanto transmite. O que a comparação <i>não</i> mostra é o comportamento em RF real: o valor do sistema novo ainda é de simulação.</p>
+</div>
+
+<h2 id="reuso"><span class="n">6</span>O que foi reaproveitado e o que foi descartado</h2>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Do legado</th><th>Destino</th><th>O que ficou</th><th>O que saiu, e por quê</th></tr></thead>
+<tbody>
+<tr><td><code>satellite/LoRa.c</code> (463 linhas)</td><td><code>flight/radio/sx1278.c</code> <span class="badge b-ok">portado</span></td><td>Mapa de registradores, sequência de inicialização, leitura de RSSI e SNR</td><td>pigpio (root e thread), <code>malloc</code> e thread por pacote, LDRO calculado só no envio. Ganhou um barramento abstrato e testes contra chip emulado</td></tr>
+<tr><td>Enums de SF, BW e CR (<code>LoRa.h</code>)</td><td><code>common/gama_lora.*</code></td><td>—</td><td>Só três perfis são alcançáveis; não existe API para mexer em SF ou BW soltos (ADR-0004)</td></tr>
+<tr><td>Configuração do rádio (<code>Moden.cpp:49–62</code>)</td><td>ADR-0004</td><td>433 MHz, 20 dBm em PA_BOOST, sync word 0x12, CRC do PHY, header explícito</td><td>SF12 / 62,5 kHz vira linha de base no <code>lora_budget.py</code>; preâmbulo 6 → 8</td></tr>
+<tr><td>Fiação: reset no GPIO20, DIO0 no GPIO21</td><td><code>flight/ttcd/config.c:22</code></td><td>Os mesmos pinos, como padrão</td><td>Agora são configuração, não código</td></tr>
+<tr><td><code>Moden.cpp</code></td><td><span class="badge b-bad">descartado</span></td><td>—</td><td><code>sleep</code> por transmissão e buffer global compartilhado entre threads</td></tr>
+<tr><td><code>Module.cpp</code>, <code>Integration.cpp</code></td><td><span class="badge b-bad">descartados</span></td><td>A ideia de um despacho por comando, refeita em <code>tc_dispatch.c</code></td><td><code>sleep</code> nos handlers, arquivos JSON, I²C direto, <code>fork</code> do térmico, fila com <code>malloc</code>, <code>exit(1)</code></td></tr>
+<tr><td><code>CommunicationProtocol.h</code> (duas cópias)</td><td><code>common/gama_frame.h</code>, <code>gama_tc.h</code>, <code>gama_tm.h</code></td><td>—</td><td>Structs por cast e a segunda cópia; o formato novo não tem nada em comum com o antigo</td></tr>
+<tr><td>Pinos do ESP32 (<code>groundStation.ino:6–11</code>)</td><td>Firmware do ESP32 <span class="badge b-todo">fase 4</span></td><td>Base para a fiação da ground</td><td>O sketch Arduino e a biblioteca LoRa de terceiros</td></tr>
+<tr><td><code>gerarRelatorio.py</code> + <code>template.tex</code></td><td>Relatório de evidência <span class="badge b-todo">fase 4</span></td><td>Planejado inteiro</td><td>—</td></tr>
+<tr><td><code>serial_data_collector.py</code></td><td>Base do host <span class="badge b-todo">fase 4</span></td><td>Leitura da serial e gravação por sistema</td><td>O formato de linha, que não batia com o sketch; o host vai ler um JSON por evento</td></tr>
+<tr><td><code>adsb_capture.c</code> — protótipo de 15/09, não é do legado</td><td><code>flight/adsbd/</code> <span class="badge b-todo">fase 3</span></td><td><code>fork</code>/<code>execv</code> sem shell, remontagem de linha SBS, carimbo por mensagem, <code>fflush</code> por linha</td><td><code>/home/pedro/...</code>, <code>CLOCK_REALTIME</code>, <code>sleep(2)</code>, ganho <code>"-10"</code> ambíguo; falta supervisionar o <code>dump1090</code></td></tr>
+</tbody>
+</table></div>
+
+<h2 id="decisoes"><span class="n">7</span>As decisões, uma por uma</h2>
+
+<p>Para cada ADR: o que o legado fazia, o que se decidiu, com que evidência, e o ponto fraco que o CDR deve admitir antes que a banca o encontre. A ordem é a de consequência, não a de número.</p>
+
+<div class="adr">
+  <h3>ADR-0003 — Processamento híbrido, com corte no estado do track</h3>
+  <p class="sub"><span class="badge b-ok">Accepted</span> · HLR-ADS-04, 05, 07, 08 · <span class="tag t-mis">missão</span></p>
+  <dl>
+    <dt>No legado</dt><dd>Não se aplica: não havia payload.</dd>
+    <dt>Decisão</dt><dd>Decodificar e agregar a bordo; descer 20 bytes por aeronave a cada 5 s; analisar trajetória, origem e destino na ground. O log bruto fica no SD e sai por USB depois da missão.</dd>
+    <dt>Argumento</dt><dd>Estado de track é o primeiro corte que cabe no enlace e o último que ainda carrega trajetória. Mandar tudo para a ground estoura o orçamento 129 vezes; resumir por aeronave cabe, mas perde a trajetória.</dd>
+    <dt>Evidência</dt><dd>7,34 MiB → 48,5 KB, redução de 155:1; 48,5 KB ocupam 83% dos 58,3 KB e o resto leva HK, STAT e ACKs. <code>lora_budget.py --check</code> no CTest.</dd>
+    <dt>Ponto fraco</dt><dd>A CPU do <code>dump1090</code> a 2,4 MS/s na Pi Zero 2 W não foi medida; um frame perdido tira até 12 aeronaves de um snapshot.</dd>
+  </dl>
+</div>
+
+<div class="adr">
+  <h3>ADR-0004 — Configuração do PHY e perfis de taxa</h3>
+  <p class="sub"><span class="badge b-ok">Accepted</span> · HLR-COMM-01, 03 · <span class="tag t-mis">missão</span><span class="tag t-def">defeito</span></p>
+  <dl>
+    <dt>No legado</dt><dd>SF12 / 62,5 kHz / 4:8, sem justificativa: 23,3 s por frame de 208 B, 2,6 KB na missão.</dd>
+    <dt>Decisão</dt><dd>Três perfis fixos a 125 kHz — SAFE, NOMINAL, FAST —, escolhidos por telecomando, com ACK e reversão por timeout.</dd>
+    <dt>Argumento</dt><dd>Menor SF cuja margem sobrevive a toda degradação justificável, somada: SF9 a 100 m fecha com 15,8 dB depois de 70 dB de pessimismo. Perfis fixos, e não parâmetros livres, porque uma troca malfeita que deixa as pontas sem se ouvir é irrecuperável.</dd>
+    <dt>Evidência</dt><dd>Tempo no ar do <code>common/gama_lora.c</code> bate no microssegundo com o script (832 verificações).</dd>
+    <dt>Ponto fraco</dt><dd>Nada medido em RF; ruído de 433 MHz no local desconhecido; a distância de "dezenas de metros" até a ground não tem fonte.</dd>
+  </dl>
+</div>
+
+<div class="adr">
+  <h3>ADR-0005 — Processos separados, com o <code>ttcd</code> como hub</h3>
+  <p class="sub"><span class="badge b-ok">Accepted</span> · HLR-GEN-03, HLR-COMM-01 · <span class="tag t-def">defeito</span><span class="tag t-met">método</span></p>
+  <dl>
+    <dt>No legado</dt><dd>Um processo com tudo dentro; falha no I²C encerrava o rádio.</dd>
+    <dt>Decisão</dt><dd><code>ttcd</code>, <code>adsbd</code>, <code>dump1090-fa</code> e <code>obc</code>, cada um sob systemd; só o <code>ttcd</code> escuta num socket, e os outros se conectam a ele; o OBC é dono do modo; o <code>ttcd</code> é um núcleo puro dentro de uma casca.</dd>
+    <dt>Argumento</dt><dd>O rádio é o único meio de diagnosticar e recuperar o satélite: uma queda do payload degrada a missão, uma queda do rádio a perde. O núcleo sem chamadas de sistema deixa testar horas de enlace em milissegundos.</dd>
+    <dt>Evidência</dt><dd><code>test_ttcd_core</code> (188), <code>test_link_sim</code> (63), <code>test_ttcd_integration</code> (29, o binário real).</dd>
+    <dt>Ponto fraco</dt><dd>Quatro processos para configurar e supervisionar; a pureza do núcleo é disciplina de revisão, o compilador não a garante.</dd>
+  </dl>
+</div>
+
+<div class="adr">
+  <h3>ADR-0007 — O protocolo do enlace</h3>
+  <p class="sub"><span class="badge b-warn">Proposed</span> · HLR-COMM-01, 03, HLR-ADS-07, 08 · <span class="tag t-mis">missão</span><span class="tag t-def">defeito</span></p>
+  <dl>
+    <dt>No legado</dt><dd>Pergunta e resposta com esperas fixas; sem ACK, sem retransmissão, sem regra de quem fala quando, sem timeout de contato.</dd>
+    <dt>Decisão</dt><dd>Janela de resposta e listen-before-talk; ACK para todo telecomando; stop-and-wait com backoff; execução no máximo uma vez; <code>SET_RATE</code> confirmado no perfil antigo e revertido em 20 s sem confirmação; SAFE após 120 s sem contato; <code>age_ds</code> medido até o início da transmissão.</dd>
+    <dt>Argumento</dt><dd>Cada regra impede uma falha específica, e a maioria foi achada pela simulação: a primeira versão tinha 170 colisões em 401 comandos.</dd>
+    <dt>Evidência</dt><dd>Limite do HLR-COMM-01: 1,40 s / 3,37 s em NOMINAL. Simulação: p95 de 1,78 s durante o streaming, nenhum comando perdido; recuperação sozinha de ACK perdido e de apagões nos dois sentidos; latência de bordo p95 de 3,2 s contra o alvo de 5 s.</dd>
+    <dt>Ponto fraco</dt><dd>12% dos comandos precisam de retransmissão durante o streaming, no modelo pessimista de detecção; recuperar de um apagão do uplink leva cerca de um minuto; nada disso rodou em RF.</dd>
+  </dl>
+</div>
+
+<div class="adr">
+  <h3>ADR-0002 — C11 para o software embarcado</h3>
+  <p class="sub"><span class="badge b-ok">Accepted</span> · HLR-SYS-01, HLR-COST-02 · <span class="tag t-def">defeito</span></p>
+  <dl>
+    <dt>No legado</dt><dd>C++17 na Pi, C++ Arduino no ESP32 e o formato escrito duas vezes, já divergente.</dd>
+    <dt>Decisão</dt><dd>C11 em tudo que é embarcado; o codec em <code>common/</code>, compilado dos mesmos arquivos na Pi, no ESP32 e no adaptador do OBC. Python só na análise e no host.</dd>
+    <dt>Argumento</dt><dd>O critério é "o codec é compilado uma vez, não implementado duas". C11 é o que os três alvos aceitam nativamente. O C++ do legado não impediu o defeito: o cast e a cópia dupla são tão legais em C++ quanto em C.</dd>
+    <dt>Evidência</dt><dd>Vetores dourados em <code>tests/test_vectors.c</code>; zero warnings com <code>-Wconversion</code>; limpo sob ASan e UBSan.</dd>
+    <dt>Ponto fraco</dt><dd>Os vetores ainda não rodam no ESP32 — a afirmação "os dois lados geram bytes idênticos" é um argumento, não uma demonstração, até o build xtensa existir. O ADR diz "em CI", e não há CI.</dd>
+  </dl>
+</div>
+
+<div class="adr">
+  <h3>ADR-0006 — <code>AF_UNIX SOCK_SEQPACKET</code> entre processos</h3>
+  <p class="sub"><span class="badge b-ok">Accepted</span> · HLR-COMM-01, 02, HLR-GEN-03 · <span class="tag t-def">defeito</span></p>
+  <dl>
+    <dt>No legado</dt><dd>Arquivos JSON de nome fixo, com a guarda e o leitor apontando para arquivos diferentes.</dd>
+    <dt>Decisão</dt><dd>Socket de datagramas com conexão; cada datagrama é um frame GAMA; o primeiro é um <code>HELLO</code>; nenhuma chamada bloqueia.</dd>
+    <dt>Argumento</dt><dd>Fronteira de mensagem garantida pelo kernel, o que elimina a remontagem; cabe no laço de 1 Hz do OBC com um <code>recv(..., MSG_DONTWAIT)</code>; a morte do par aparece como fim de arquivo, sem heartbeat.</dd>
+    <dt>Evidência</dt><dd>10 000 frames em cada sentido entre dois processos, sem perda nem bloqueio (<code>test_libipc</code>).</dd>
+    <dt>Ponto fraco</dt><dd>O time do OBC precisa adotar o cliente; o ICD que diz isso não foi escrito.</dd>
+  </dl>
+</div>
+
+<div class="adr">
+  <h3>ADR-0008 — O <code>adsbd</code> é dono do SDR, via <code>dump1090-fa</code></h3>
+  <p class="sub"><span class="badge b-ok">Accepted</span> · HLR-ADS-01 a 04, 07 · <span class="tag t-mis">missão</span></p>
+  <dl>
+    <dt>No legado</dt><dd>Não se aplica. No repositório do OBC, o branch <code>feat/modulo-aocs</code> tinha um <code>sdr.c</code> para um receptor serial que decodifica sozinho.</dd>
+    <dt>Decisão</dt><dd>O <code>adsbd</code> sobe, supervisiona e reinicia o <code>dump1090-fa</code>, mantém a tabela de tracks e grava o NDJSON. O OBC não abre o SDR.</dd>
+    <dt>Argumento</dt><dd>O receptor que o time tem é um RTL-SDR (NESDR Nano 3), que entrega IQ bruto; o hardware que o <code>sdr.c</code> supunha não existe no sistema.</dd>
+    <dt>Evidência</dt><dd>A especificação do hardware. Nenhum código do <code>adsbd</code> ainda.</dd>
+    <dt>Ponto fraco</dt><dd>O risco de CPU na Pi é aceito aqui; o plano B é um decodificador em hardware, que não foi comprado.</dd>
+  </dl>
+</div>
+
+<div class="adr">
+  <h3>ADR-0012 — Rádio pelas interfaces do kernel, sem pigpio</h3>
+  <p class="sub"><span class="badge b-warn">Proposed</span> · HLR-COMM-01, 03 · <span class="tag t-def">defeito</span></p>
+  <dl>
+    <dt>No legado</dt><dd>pigpio: root ou daemon, e o DIO0 atendido por um callback numa thread do pigpio.</dd>
+    <dt>Decisão</dt><dd>spidev para o SPI e GPIO character device (uAPI v2) para reset e DIO0; o descritor do DIO0 entra direto no epoll.</dd>
+    <dt>Argumento</dt><dd>Uma interrupção vira um descritor legível: sem thread, sem callback, sem root, sem biblioteca.</dd>
+    <dt>Evidência</dt><dd>Lógica de registradores testada contra chip emulado (92 verificações); a camada Linux compila em todo build.</dd>
+    <dt>Ponto fraco</dt><dd>A camada Linux nunca rodou na Pi. O GPIO entrega bordas e o DIO0 é nível: uma borda perdida é coberta por uma consulta a cada 250 ms.</dd>
+  </dl>
+</div>
+
+<div class="adr">
+  <h3>ADR-0001 e ADR-0011 — Registrar decisões; inglês no DP</h3>
+  <p class="sub"><span class="badge b-ok">Accepted</span> · HLR-SYS-01, HLR-COST-02, REG-04 · <span class="tag t-met">método</span></p>
+  <dl>
+    <dt>No legado</dt><dd>Nenhuma decisão escrita.</dd>
+    <dt>Decisão</dt><dd>Toda decisão de arquitetura vira um ADR numerado, escrito em inglês no momento em que o código a materializa, imutável depois de aceito.</dd>
+    <dt>Argumento</dt><dd>O regulamento pontua justificativa e rastreabilidade (HLR-COST-02, HLR-COMM-03, HLR-ADS-04), e o DP é montado a partir desses documentos.</dd>
+    <dt>Ponto fraco</dt><dd>Os ADRs 0009 (referência de tempo) e 0010 (armazenamento a bordo), previstos no PLANO, ainda não existem.</dd>
+  </dl>
+</div>
+
+<h2 id="planejamento"><span class="n">8</span>O planejamento</h2>
+
+<p>A diferença de planejamento é tão grande quanto a de código, e é a que menos aparece lendo o código.</p>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Aspecto</th><th>Última missão</th><th>Agora</th></tr></thead>
+<tbody>
+<tr><td>Plano</td><td>Nenhum registrado; o histórico tem 3 commits, de abril e maio de 2026</td><td><code>PLANO.md</code> em 6 fases, cada item com critério de aceite</td></tr>
+<tr><td>Ponto de partida</td><td>O hardware e o menu de comandos</td><td>A conta: quantos bytes a missão gera e quantos o rádio leva (<code>lora_budget.py</code>)</td></tr>
+<tr><td>Ordem de construção</td><td>Direto no hardware</td><td>Do que não depende de hardware para o que depende: codec → IPC → núcleo → simulação → driver → daemon → bancada. O hardware entra por último e encontra a lógica já testada</td></tr>
+<tr><td>Riscos</td><td>Não registrados</td><td>Tabela com impacto, mitigação e data. O maior: CPU do <code>dump1090</code> na Pi</td></tr>
+<tr><td>Requisitos</td><td>Não rastreados</td><td>Catálogo com estado, dono e lacunas; 8 perguntas para a organização</td></tr>
+<tr><td>Outros times</td><td>Contrato implícito (um JSON que ninguém gerava)</td><td>ICD + implementação de referência entregue ao OBC, para eles só incorporarem <span class="badge b-todo">a fazer</span></td></tr>
+<tr><td>Bancada</td><td>Manual</td><td>Seis passos roteirizados, cada um com critério de aceite, logs gravados em <code>docs/vv/bancada/</code> (<code>make bench</code>)</td></tr>
+<tr><td>Lições do legado</td><td>—</td><td>Oito regras rígidas, cada uma com a linha do código antigo que a motivou (<code>AGENTS.md</code>)</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="falta"><span class="n">9</span>O que ainda não existe</h2>
+
+<div class="callout bad">
+  <p>Esta seção existe para o CDR não prometer o que o repositório não entrega. Tudo abaixo foi conferido no commit <code>cd0a554</code>.</p>
+</div>
+
+<div class="table-wrap"><table>
+<thead><tr><th>Item</th><th>Estado</th><th>Onde está previsto</th></tr></thead>
+<tbody>
+<tr><td>Qualquer medição em RF</td><td><span class="badge b-bad">nenhuma</span> Procedimento pronto, ensaiado só no rádio UDP</td><td>PLANO 2.7, <code>flight/ttcd/README.md</code></td></tr>
+<tr><td><code>adsbd</code></td><td><span class="badge b-todo">não começou</span> Só o protótipo <code>adsb_capture.c</code></td><td>PLANO fase 3</td></tr>
+<tr><td>CPU do <code>dump1090</code> e ganho do SDR</td><td><span class="badge b-todo">não medidos</span></td><td>PLANO 3.4</td></tr>
+<tr><td>Firmware do ESP32 e host</td><td><span class="badge b-todo">não começaram</span></td><td>PLANO fase 4</td></tr>
+<tr><td>Vetores dourados no ESP32 (xtensa)</td><td><span class="badge b-todo">não feito</span></td><td>ADR-0002, PLANO 4.1</td></tr>
+<tr><td>ICDs (enlace e OBC↔TT&amp;C)</td><td><span class="badge b-todo">não escritos</span> <code>docs/icd/</code> está vazio</td><td>PLANO 4.3, requisitos §7 item 6</td></tr>
+<tr><td>Plano de V&amp;V e matriz de rastreabilidade</td><td><span class="badge b-todo">não escritos</span></td><td>PLANO fase 6</td></tr>
+<tr><td>ADR-0007 e ADR-0012</td><td><span class="badge b-warn">Proposed</span> aguardam revisão do time</td><td><code>docs/adr/</code></td></tr>
+<tr><td><code>REQ_ROSTER</code>, <code>BULK_START</code>, <code>BULK_ABORT</code></td><td><span class="badge b-warn">respondem FAILED</span></td><td>Esperam o <code>adsbd</code>; bulk adiado no ADR-0007</td></tr>
+<tr><td>Temperatura da bateria no <code>TM_HK</code></td><td><span class="badge b-todo">falta</span> chega pelo IPC e não desce</td><td>HLR-EPS-04, requisitos §7 item 3</td></tr>
+<tr><td>CI</td><td><span class="badge b-todo">não existe</span> o <code>make check</code> roda à mão</td><td>—</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="cdr"><span class="n">10</span>Como levar isto ao CDR</h2>
+
+<h3>10.1 Uma narrativa que se sustenta</h3>
+<ol>
+  <li><b>Comece pelo número.</b> 7,34 MiB de dados contra 58,3 KB de enlace. Com o rádio como estava, 2,6 KB. Quase todas as decisões seguintes são consequência desse abismo, e a banca entende a arquitetura inteira a partir dele.</li>
+  <li><b>Para cada decisão, a mesma estrutura:</b> o problema concreto (com a linha do legado, quando houver) → a decisão → o número ou o teste que a sustenta → o que ainda falta medir. É a estrutura dos cartões da <a href="#decisoes">seção 7</a>.</li>
+  <li><b>Separe três níveis de evidência</b> e use sempre as mesmas palavras: <i>projetado</i> (há ADR), <i>verificado em software</i> (há teste ou simulação), <i>medido em hardware</i> (há log de bancada). Hoje quase tudo está no segundo nível e nada no terceiro.</li>
+  <li><b>Trate o legado como aprendizado, não como culpa.</b> O ADR-0001 dá o tom: "é este repositório, uma missão atrás, com as mesmas pessoas". Citar a linha mostra que o defeito é concreto; adjetivo sobre o código antigo não acrescenta nada.</li>
+</ol>
+
+<h3>10.2 O que dá para afirmar hoje, e o que ainda não</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Pode afirmar</th><th>Ainda não pode afirmar</th></tr></thead>
+<tbody>
+<tr><td>O limite de execução de um telecomando é 1,40 s em NOMINAL, derivado analiticamente e verificado em simulação</td><td>…que foi medido</td></tr>
+<tr><td>O formato é definido uma vez e fixado byte a byte por vetores dourados</td><td>…que Pi e ESP32 geram bytes idênticos — falta o build xtensa</td></tr>
+<tr><td>O rádio fica num processo que não depende do payload</td><td>…que ele sobrevive a uma queda do payload — o <code>adsbd</code> não existe</td></tr>
+<tr><td>A suíte roda limpa sob ASan e UBSan com zero warnings</td><td>…que isso roda em CI</td></tr>
+<tr><td>A capacidade de 58,3 KB e a margem de 15,8 dB são calculadas e conferidas no CTest</td><td>…qualquer taxa de erro de pacote</td></tr>
+<tr><td>O enlace se recupera sozinho de ACK perdido e de apagões, em simulação</td><td>…em RF</td></tr>
+<tr><td>A latência de bordo p95 é 3,2 s contra o alvo de 5 s, em simulação</td><td>…com o <code>dump1090</code> e aeronaves reais</td></tr>
+</tbody>
+</table></div>
+
+<h3>10.3 Onde está cada coisa que o CDR vai citar</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Tema do CDR</th><th>Fonte no repositório</th></tr></thead>
+<tbody>
+<tr><td>Arquitetura de processamento (HLR-ADS-04)</td><td>ADR-0003, <code>docs/budgets/data-budget.md</code></td></tr>
+<tr><td>Arquitetura de comunicação (HLR-COMM-03)</td><td>ADR-0004, ADR-0007, <code>docs/budgets/link-budget.md</code></td></tr>
+<tr><td>Arquitetura de software de bordo</td><td>ADR-0005, ADR-0006, ADR-0008, ADR-0012</td></tr>
+<tr><td>Tempo de resposta a telecomando (HLR-COMM-01)</td><td>ADR-0007 §7, <code>make budget</code></td></tr>
+<tr><td>Métricas de sucesso (HLR-ADS-08)</td><td><code>data-budget.md</code> §8, ADR-0007 §6</td></tr>
+<tr><td>Justificativa de escolhas (HLR-COST-02)</td><td>"Alternatives considered" de cada ADR</td></tr>
+<tr><td>Estado de cada requisito</td><td><code>docs/requisitos.md</code> §1 e §7</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="qa"><span class="n">11</span>Perguntas e respostas</h2>
+
+<div class="qa-tools">
+  <button class="btn" id="qa-open" type="button">Abrir todas</button>
+  <button class="btn" id="qa-close" type="button">Fechar todas</button>
+</div>
+
+<details class="qa" id="q1">
+  <summary><span class="qn">1</span>Se o SF12 funcionou na última missão, por que trocar?</summary>
+  <div class="body">
+    <p>Porque ele funcionava para o que a última missão movia: poucos bytes, de vez em quando. Para esta, o SF12 a 62,5 kHz carrega 2,6 KB em 10 minutos, contra 7,34 MiB de dados — faltam três ordens de grandeza, e nenhum processamento a bordo fecha essa conta com folga.</p>
+    <p>O que o SF12 comprava era sensibilidade: cerca de 8 dB a mais que o SF9. A 100 m o SF9 já tem 85,8 dB de margem; mesmo depois de descontar 70 dB de degradações somadas, sobram 15,8 dB. O legado pagava 22 vezes a taxa de dados por uma sensibilidade de que não precisava. O SF12 não saiu: virou o perfil SAFE, a 125 kHz, para o caso de as premissas estarem erradas.</p>
+  </div>
+</details>
+
+<details class="qa" id="q2">
+  <summary><span class="qn">2</span>O rádio não pode simplesmente ler o arquivo do ADS-B e mandar para a ground, e a ground processa o resto?</summary>
+  <div class="body">
+    <p>Não, por dois motivos independentes.</p>
+    <p><b>Não cabe.</b> O arquivo da missão tem 7,34 MiB; o enlace leva 58,3 KB. Mesmo em FAST, com o rádio transmitindo 100% do tempo, seriam cerca de 3,4 horas de ar. Processar na ground não alivia o gargalo, porque fica depois dele: para a ground decodificar, os dados precisariam atravessar o rádio primeiro (ADR-0003). O que vai para a ground é a <i>análise</i> — trajetória, origem, destino —, não a decodificação.</p>
+    <p><b>Arquivo como canal entre processos é exatamente o defeito do legado.</b> A guarda olhava um arquivo e o leitor abria outro (<code>Integration.cpp:110</code> × <code>:173</code>). Agora o <code>adsbd</code> manda o snapshot ao <code>ttcd</code> por socket, e o arquivo NDJSON é só o registro completo, recuperado por USB depois (ADR-0006).</p>
+  </div>
+</details>
+
+<details class="qa" id="q3">
+  <summary><span class="qn">3</span>Como fica o timestamp se a Pi não tem RTC? A ground não passa o horário na conexão?</summary>
+  <div class="body">
+    <p>A ground pode passar — é o <code>SET_TIME</code>, que dá ao satélite uma âncora de wall-clock sobre o <code>CLOCK_MONOTONIC</code>, e é reenviado com o horário atualizado se o ACK se perder. Mas a trajetória não depende disso.</p>
+    <p>Cada track desce com <code>age_ds</code>: quanto tempo passou entre a última atualização da aeronave e o início da transmissão que a carrega, em décimos de segundo. A ground carimba a chegada do frame com o próprio relógio e calcula <code>chegada − tempo no ar − 100 ms × age_ds</code>. A trajetória fica no relógio da ground, sem sincronizar nada. De quebra, o <code>age_ds</code> de cada registro já é a latência que o HLR-ADS-08 pede (ADR-0007 §6).</p>
+    <p>O legado não tinha tempo nenhum a bordo: o PC carimbava na hora em que a linha chegava pela serial.</p>
+  </div>
+</details>
+
+<details class="qa" id="q4">
+  <summary><span class="qn">4</span>Por que quatro processos, e não um programa só como antes?</summary>
+  <div class="body">
+    <p>Porque o que precisa continuar funcionando quando algo falha não é simétrico. O rádio é o único meio de diagnosticar e recuperar o satélite. No legado, um microcontrolador de ADCS que não respondesse no I²C encerrava o processo — e o rádio com ele (<code>Module.cpp:22</code>). Com processos separados, um erro no parser de ADS-B derruba o <code>adsbd</code>, o systemd o reinicia, e o <code>ttcd</code> continua transmitindo HK e respondendo telecomandos. Processos separados são o isolamento mais barato que o Linux oferece.</p>
+    <p>A divisão também segue a das equipes: a de ADS-B testa o <code>adsbd</code> contra um fluxo SBS gravado, a de LoRa testa o <code>ttcd</code> contra um <code>adsbd</code> falso, e o contrato entre eles são dois payloads de IPC.</p>
+  </div>
+</details>
+
+<details class="qa" id="q5">
+  <summary><span class="qn">5</span>Por que C e não C++, se o legado era C++ e funcionava?</summary>
+  <div class="body">
+    <p>O critério não é a linguagem, é "o formato compilado uma vez, não implementado duas". O ESP-IDF é C, o OBC é C11, e o mesmo arquivo precisa entrar nos três. O C++ do legado não evitou o defeito que motivou a decisão: o cast de struct e a segunda cópia do header são tão válidos em C++ quanto em C. Nada impede C++ na interface do ESP32 acima do codec, desde que <code>common/</code> continue em C (ADR-0002).</p>
+  </div>
+</details>
+
+<details class="qa" id="q6">
+  <summary><span class="qn">6</span>Por que um socket e não arquivo, pipe, TCP ou MQTT?</summary>
+  <div class="body">
+    <p>A propriedade decisiva é a fronteira de mensagem: com <code>SOCK_SEQPACKET</code>, um envio é uma recepção, e um frame chega inteiro ou não chega. Pipe e TCP são fluxos de bytes e exigiriam remontar frames — o que quebrava o parser do legado. Fila POSIX não avisa quando o outro lado morre. D-Bus ou MQTT trazem um daemon e uma dependência que o time do OBC teria de adotar. E o socket cabe no laço de 1 Hz do OBC sem mudá-lo: <code>radio_poll_tc()</code> vira um <code>recv(..., MSG_DONTWAIT)</code> (ADR-0006).</p>
+  </div>
+</details>
+
+<details class="qa" id="q7">
+  <summary><span class="qn">7</span>O que acontece se o ACK de uma troca de taxa se perder?</summary>
+  <div class="body">
+    <p>O satélite troca de perfil depois de mandar o ACK no perfil antigo. Se a ground não ouve esse ACK, ela continua no perfil antigo e retransmite o <code>SET_RATE</code>; o satélite, sem ouvir a ground no perfil novo, volta sozinho ao antigo em 20 s, ouve a retransmissão e troca de novo. Na simulação, os dois ficaram em FAST 23,4 s depois do comando. Por isso o <code>SET_RATE</code> é a única exceção à regra de executar uma vez só: se fosse tratado como duplicado, as pontas ficariam em perfis diferentes para sempre (ADR-0007 §3–4). Esse caso é o passo 5 da bancada.</p>
+  </div>
+</details>
+
+<details class="qa" id="q8">
+  <summary><span class="qn">8</span>Por que três perfis fixos e não adaptação automática de taxa?</summary>
+  <div class="body">
+    <p>Adaptação automática é um sistema de controle, com modos de falha próprios, e precisa de dados de enlace que não teremos até o teste; e uma adaptação errada é indistinguível de uma falha do enlace. Três perfis com um humano no laço dão a mesma capacidade. Perfis fixos, em vez de SF e BW livres, deixam o espaço de estados pequeno o bastante para testar todas as transições (ADR-0004).</p>
+  </div>
+</details>
+
+<details class="qa" id="q9">
+  <summary><span class="qn">9</span>O que dá para demonstrar hoje, sem nenhum hardware?</summary>
+  <div class="body">
+    <ul>
+      <li><code>make check</code>: 15 suítes, também sob ASan e UBSan, zero warnings e as citações do regulamento.</li>
+      <li><code>make budget</code>: todas as tabelas de orçamento e o limite do HLR-COMM-01.</li>
+      <li><code>./build/tests/test_link_sim</code>: os números do ADR-0007, reproduzidos exatamente.</li>
+      <li><code>make bench-ttcd RADIO=udp</code> num terminal e <code>make bench-gs RADIO=udp</code> em outro: o <code>ttcd</code> real conversando com a ground; <code>ping 5</code>, <code>hk</code>, <code>rate fast</code>.</li>
+    </ul>
+  </div>
+</details>
+
+<details class="qa" id="q10">
+  <summary><span class="qn">10</span>Alguma coisa da última missão continua valendo sem mudança?</summary>
+  <div class="body">
+    <p>Sim: a banda de 433 MHz e o módulo RA-02, a potência de 20 dBm em PA_BOOST, o sync word 0x12, o CRC do PHY, a fiação de reset e DIO0 na Pi, o mapa de registradores do driver e o gerador de relatório em LaTeX. A <a href="#reuso">seção 6</a> tem a lista completa. O que não sobreviveu foi a forma de estruturar o software em volta disso.</p>
+  </div>
+</details>
+
+<h2 id="inconsistencias"><span class="n">12</span>Inconsistências achadas ao escrever este relatório</h2>
+
+<ol>
+  <li><b>ADR-0002 conta errado os campos do <code>struct control</code>.</b> Diz "six fields on one side and five on the other"; o código tem <b>6 no satélite</b> (<code>satellite/CommunicationProtocol.h</code>) e <b>8 na ground</b> (<code>ground_station/CommunicationProtocol.h</code>, com <code>vector1b</code> e <code>vector2b</code>). O argumento fica mais forte, não mais fraco. Como o ADR está <i>Accepted</i>, a correção é uma errata no fim dele, como as dos ADRs 0003 e 0004 — não uma edição do texto.</li>
+  <li><b>O <code>README.md</code> e o <code>AGENTS.md</code> dizem que o contrato com o OBC "está em" <code>docs/icd/obc-ttec-icd.md</code>.</b> O arquivo não existe. Até ser escrito, melhor dizer "vai estar".</li>
+  <li><b>O <code>PLANO.md</code> ainda lista os ADRs 0008 (fase 3) e 0011 (fase 4) como "[ ] já em dívida".</b> Os dois estão escritos e aceitos desde 19/09.</li>
+  <li><b>Continuam abertas, já registradas antes:</b> o ADR-0002 fala em CI, que não existe; o ADR-0004 afirma que a ground fica a "dezenas de metros" sem fonte; o <code>ttcd</code> grava a chave <code>"event"</code> e a <code>gs_cli</code>, <code>"ev"</code> (conferido de novo nesta data). Detalhes no <a href="2026-09-20-estado-do-projeto.html#lacunas">relatório de 20/09</a>.</li>
+</ol>
+
+<h2 id="glossario"><span class="n">13</span>Glossário</h2>
+
+<dl class="gloss">
+  <dt>ACK</dt><dd>Confirmação que o satélite manda para cada telecomando, com um status (OK, comando desconhecido, argumento inválido, rejeitado no estado atual, falhou).</dd>
+  <dt>ADR</dt><dd>Architecture Decision Record: um documento por decisão, com contexto, alternativas rejeitadas e consequências. Imutável depois de aceito.</dd>
+  <dt><code>age_ds</code></dt><dd>Idade de um track, em décimos de segundo, da última atualização até o início da transmissão que o carrega.</dd>
+  <dt>Casca / núcleo puro</dt><dd>O <code>ttcd</code> é dividido em uma parte sem chamadas de sistema (núcleo), que recebe eventos com horário, e uma parte fina que tem os descritores, o epoll e o relógio (casca).</dd>
+  <dt>DIO0</dt><dd>Pino do SX1278 que sobe quando um pacote termina de ser enviado ou recebido.</dd>
+  <dt>epoll</dt><dd>Mecanismo do Linux para esperar, num único ponto, por qualquer um de vários descritores: sockets, timers, sinais, a linha do DIO0.</dd>
+  <dt>LBT</dt><dd>Listen-before-talk: antes de transmitir, perguntar ao rádio se há uma recepção em curso.</dd>
+  <dt>LDRO</dt><dd>Low Data Rate Optimize, bit do SX1278 obrigatório quando o símbolo passa de 16 ms (SF12 a 125 kHz, por exemplo). Precisa acompanhar a troca de perfil.</dd>
+  <dt>NDJSON</dt><dd>Um objeto JSON por linha. Formato do log bruto de ADS-B a bordo.</dd>
+  <dt>SBS-1</dt><dd>Formato de texto em que o <code>dump1090</code> publica cada mensagem decodificada, na porta 30003.</dd>
+  <dt><code>SOCK_SEQPACKET</code></dt><dd>Tipo de socket local que preserva a fronteira de cada mensagem e tem conexão: o lado que fica sabe quando o outro morre.</dd>
+  <dt>SF, BW, CR</dt><dd>Spreading factor, largura de banda e taxa de código do LoRa. Mais SF e menos BW dão mais alcance e menos taxa.</dd>
+  <dt>Snapshot</dt><dd>O estado de todas as aeronaves num instante, em dois frames para 20 aeronaves, a cada 5 s.</dd>
+  <dt>Vetor dourado</dt><dd>Sequência de bytes esperada para uma mensagem conhecida, escrita no teste. Se o formato muda, o teste falha.</dd>
+</dl>
+
+<h2 id="reproduzir"><span class="n">14</span>Como reproduzir</h2>
+
+<pre><code># o sistema novo: build, testes, sanitizers, citações
+make check
+
+# todas as tabelas de orçamento, o limite do HLR-COMM-01 e a linha de base do legado
+make budget
+
+# tempo no ar dos pacotes do legado, na configuração dele (SF12, 62,5 kHz, 4:8, preâmbulo 6)
+python3 -c "import sys; sys.path.insert(0, 'tools/analysis'); import lora_budget as lb
+for n in (4, 7, 16): print(n, 'B', round(lb.time_on_air(n, 12, 62_500, 4, preamble=6), 3), 's')"
+
+# as esperas do legado
+grep -n 'sleep(' ultima_missao/satellite/*.cpp
+
+# o REQ_HK da seção 5, no rádio UDP: o satélite num terminal...
+make bench-ttcd RADIO=udp
+# ...e a ground no outro; digite hk e compare os mono_ms do comando, do ack e do hk
+make bench-gs RADIO=udp</code></pre>
+
+<footer>
+  <p>Gerado em 28/09/2026 a partir do commit <code>cd0a554</code>, com apoio do Claude Code. O <code>make check</code>, o <code>lora_budget.py</code> e o <code>REQ_HK</code> no rádio UDP foram executados nesta data; os instantes do legado são calculados a partir do código.</p>
+  <p>Relatórios anteriores: <a href="2026-09-18-estado-do-projeto.html">18/09/2026</a> (fase 1) · <a href="2026-09-20-estado-do-projeto.html">20/09/2026</a> (fase 2).</p>
+</footer>
+
+</main>
+</div>
+<script>
+(function () {
+  function setAll(open) {
+    var items = document.querySelectorAll('details.qa');
+    for (var i = 0; i < items.length; i++) { items[i].open = open; }
+  }
+  var openBtn = document.getElementById('qa-open');
+  var closeBtn = document.getElementById('qa-close');
+  if (openBtn) { openBtn.addEventListener('click', function () { setAll(true); }); }
+  if (closeBtn) { closeBtn.addEventListener('click', function () { setAll(false); }); }
+  window.addEventListener('beforeprint', function () { setAll(true); });
+  if (location.hash && location.hash.indexOf('#q') === 0) {
+    var target = document.querySelector(location.hash);
+    if (target && target.tagName === 'DETAILS') { target.open = true; }
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="#q"]');
+    if (!a) { return; }
+    var d = document.querySelector(a.getAttribute('href'));
+    if (d && d.tagName === 'DETAILS') { d.open = true; }
+  });
+})();
+</script>
+</body>
+</html>

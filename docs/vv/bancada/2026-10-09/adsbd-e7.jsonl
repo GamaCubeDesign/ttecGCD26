@@ -1,0 +1,9 @@
+{"mono_ms":2101626,"event":"start","version":"769834a-dirty","sbs":"127.0.0.1:30003","ipc_path":"/tmp/ttec-bench.sock","ndjson_path":"docs/vv/bancada/2026-10-09/adsb-e7.ndjson","record_bytes":0,"dump1090":"/usr/bin/dump1090-fa","wall_s":1791556240,"wall_note":"system clock until the ground's SET_TIME"}
+{"mono_ms":2101626,"event":"dump1090_start","pid":3714,"path":"/usr/bin/dump1090-fa"}
+{"mono_ms":2101626,"event":"ipc_connect_failed","path":"/tmp/ttec-bench.sock","why":"No such file or directory"}
+{"mono_ms":2101627,"event":"sbs_connect_failed","why":"Connection refused"}
+{"mono_ms":2102626,"event":"ipc_up","path":"/tmp/ttec-bench.sock"}
+{"mono_ms":2102628,"event":"sbs_up","host":"127.0.0.1","port":30003}
+{"mono_ms":2122807,"event":"time_anchor","unix_s":1791556261,"nsec":756912359,"step_ms":-4}
+{"mono_ms":2161626,"event":"stats","lines":0,"decoded":0,"ignored":0,"non_icao":0,"rejected":0,"aircraft":0,"evictions":0,"expired":0,"snapshots":60,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":1,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":2221626,"event":"stats","lines":1,"decoded":1,"ignored":0,"non_icao":0,"rejected":0,"aircraft":1,"evictions":0,"expired":0,"snapshots":120,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":1,"dump1090_restarts":0,"time_synced":true}

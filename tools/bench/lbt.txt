@@ -1,0 +1,8 @@
+# Bench step 6 — listen-before-talk: how early the SX1278 reports a
+# reception in progress (the follow-up of ADR-0007). make bench-lbt runs this
+# twice, with ttcd sending HK every second: lbt=header, then lbt=preamble.
+# Compare attempts in ping_summary and the loss in per between the two. The
+# simulation predicts that PINGs needing a retry fall from ~12% to ~2% if
+# "signal detected" is reliable; if it is, make preamble the default and
+# record it in ADR-0007.
+per 400

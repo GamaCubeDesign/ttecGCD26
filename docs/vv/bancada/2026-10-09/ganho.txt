@@ -1,0 +1,157 @@
+== ganho -10
+Statistics: Fri Oct  9 10:59:37 2026 -03 - Fri Oct  9 11:00:37 2026 -03
+             0 samples dropped
+              27 accepted with correct CRC
+  -14.1 dBFS noise power
+  -11.1 dBFS mean signal power
+   -7.9 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  58.6dB current SDR gain
+         3 unique aircraft tracks
+CPU load:  21.0%
+Statistics: Fri Oct  9 11:00:37 2026 -03 - Fri Oct  9 11:01:37 2026 -03
+             0 samples dropped
+              36 accepted with correct CRC
+  -14.4 dBFS noise power
+   -7.8 dBFS mean signal power
+   -3.9 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  58.6dB current SDR gain
+         0 unique aircraft tracks
+CPU load:  20.6%
+Statistics: Fri Oct  9 10:59:37 2026 -03 - Fri Oct  9 11:01:47 2026 -03
+             0 samples dropped
+              68 accepted with correct CRC
+  -14.3 dBFS noise power
+   -9.0 dBFS mean signal power
+   -3.9 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  58.6dB current SDR gain
+         3 unique aircraft tracks
+CPU load:  20.9%
+== ganho 49.6
+Statistics: Fri Oct  9 11:01:47 2026 -03 - Fri Oct  9 11:02:47 2026 -03
+             0 samples dropped
+              16 accepted with correct CRC
+  -24.9 dBFS noise power
+  -20.7 dBFS mean signal power
+  -15.2 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  49.6dB current SDR gain
+         2 unique aircraft tracks
+CPU load:  20.6%
+Statistics: Fri Oct  9 11:02:47 2026 -03 - Fri Oct  9 11:03:47 2026 -03
+             0 samples dropped
+               5 accepted with correct CRC
+  -25.4 dBFS noise power
+  -24.5 dBFS mean signal power
+  -23.0 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  49.6dB current SDR gain
+         0 unique aircraft tracks
+CPU load:  21.3%
+== ganho 42.1
+Statistics: Fri Oct  9 11:03:57 2026 -03 - Fri Oct  9 11:04:57 2026 -03
+             0 samples dropped
+              14 accepted with correct CRC
+  -30.3 dBFS noise power
+  -23.0 dBFS mean signal power
+  -20.7 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  42.1dB current SDR gain
+         2 unique aircraft tracks
+CPU load:  20.1%
+Statistics: Fri Oct  9 11:04:57 2026 -03 - Fri Oct  9 11:05:57 2026 -03
+             0 samples dropped
+              21 accepted with correct CRC
+  -30.7 dBFS noise power
+  -22.5 dBFS mean signal power
+  -19.1 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  42.1dB current SDR gain
+         1 unique aircraft tracks
+CPU load:  20.4%
+== ganho 36.4
+Statistics: Fri Oct  9 11:06:07 2026 -03 - Fri Oct  9 11:07:07 2026 -03
+             0 samples dropped
+              35 accepted with correct CRC
+  -35.6 dBFS noise power
+  -28.9 dBFS mean signal power
+  -24.8 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  36.4dB current SDR gain
+         2 unique aircraft tracks
+CPU load:  19.0%
+Statistics: Fri Oct  9 11:07:07 2026 -03 - Fri Oct  9 11:08:08 2026 -03
+             0 samples dropped
+              15 accepted with correct CRC
+  -35.6 dBFS noise power
+  -29.6 dBFS mean signal power
+  -27.8 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  36.4dB current SDR gain
+         0 unique aircraft tracks
+CPU load:  19.5%
+== ganho 28.0
+Statistics: Fri Oct  9 11:08:17 2026 -03 - Fri Oct  9 11:09:18 2026 -03
+             0 samples dropped
+               3 accepted with correct CRC
+  -38.5 dBFS noise power
+  -34.2 dBFS mean signal power
+  -33.9 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  28.0dB current SDR gain
+         1 unique aircraft tracks
+CPU load:  18.4%
+Statistics: Fri Oct  9 11:09:18 2026 -03 - Fri Oct  9 11:10:18 2026 -03
+             0 samples dropped
+               5 accepted with correct CRC
+  -38.8 dBFS noise power
+  -33.8 dBFS mean signal power
+  -31.9 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  28.0dB current SDR gain
+         1 unique aircraft tracks
+CPU load:  18.7%
+Statistics: Fri Oct  9 11:08:17 2026 -03 - Fri Oct  9 11:10:27 2026 -03
+             0 samples dropped
+               8 accepted with correct CRC
+  -38.7 dBFS noise power
+  -34.0 dBFS mean signal power
+  -31.9 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  28.0dB current SDR gain
+         2 unique aircraft tracks
+CPU load:  18.6%
+== ganho 20.7
+Statistics: Fri Oct  9 11:10:27 2026 -03 - Fri Oct  9 11:11:28 2026 -03
+             0 samples dropped
+              55 accepted with correct CRC
+  -43.3 dBFS noise power
+  -23.5 dBFS mean signal power
+  -17.1 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  20.7dB current SDR gain
+         1 unique aircraft tracks
+CPU load:  16.6%
+Statistics: Fri Oct  9 11:11:28 2026 -03 - Fri Oct  9 11:12:28 2026 -03
+             0 samples dropped
+               3 accepted with correct CRC
+  -43.4 dBFS noise power
+  -31.8 dBFS mean signal power
+  -31.0 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  20.7dB current SDR gain
+         0 unique aircraft tracks
+CPU load:  17.5%
+Statistics: Fri Oct  9 11:10:27 2026 -03 - Fri Oct  9 11:12:37 2026 -03
+             0 samples dropped
+              58 accepted with correct CRC
+  -43.4 dBFS noise power
+  -23.7 dBFS mean signal power
+  -17.1 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  20.7dB current SDR gain
+         1 unique aircraft tracks
+CPU load:  17.1%
+FIM

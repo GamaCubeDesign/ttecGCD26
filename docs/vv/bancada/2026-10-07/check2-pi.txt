@@ -1,0 +1,264 @@
+cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+-- Configuring done (1.2s)
+-- Generating done (0.6s)
+-- Build files have been written to: /home/pi/ttec/build
+cmake --build build -j2
+[  2%] Built target ttec_ipc
+[ 12%] Built target gama_common
+[ 15%] Built target ttec_sx1278
+[ 20%] Built target ttcd_core
+[ 26%] Built target test_crc16
+[ 29%] Built target adsbd_core
+[ 33%] Built target test_frame
+[ 33%] Building C object tests/CMakeFiles/test_tm.dir/test_tm.c.o
+[ 35%] Built target test_tc
+[ 38%] Built target test_vectors
+[ 41%] Built target test_lora
+[ 43%] Built target test_ipc_codec
+[ 46%] Built target test_gs_link
+[ 48%] Built target test_libipc
+[ 51%] Built target test_ttcd_core
+[ 53%] Built target test_link_sim
+[ 56%] Built target test_sx1278
+[ 58%] Built target test_sbs
+[ 61%] Built target test_tracks
+[ 64%] Built target test_adsbd_core
+[ 66%] Built target test_adsbd_integration
+[ 69%] Built target gen_vectors
+[ 71%] Built target ttec_sx1278_linux
+[ 73%] Linking C executable test_tm
+[ 75%] Built target ttcd_config
+[ 78%] Built target adsbd_config
+[ 78%] Built target test_tm
+[ 80%] Built target test_config
+[ 83%] Built target test_adsbd_config
+[ 87%] Built target ttec_radio
+[ 89%] Built target adsbd
+[ 92%] Built target ttcd
+[ 94%] Built target test_ttcd_integration
+[ 97%] Built target test_adsb_chain
+[100%] Built target gs_cli
+cd build && ctest --output-on-failure 
+Test project /home/pi/ttec/build
+      Start  1: test_crc16
+ 1/23 Test  #1: test_crc16 .......................   Passed    0.01 sec
+      Start  2: test_frame
+ 2/23 Test  #2: test_frame .......................   Passed    0.01 sec
+      Start  3: test_tm
+ 3/23 Test  #3: test_tm ..........................   Passed    0.01 sec
+      Start  4: test_tc
+ 4/23 Test  #4: test_tc ..........................   Passed    0.01 sec
+      Start  5: test_vectors
+ 5/23 Test  #5: test_vectors .....................   Passed    0.01 sec
+      Start  6: test_lora
+ 6/23 Test  #6: test_lora ........................   Passed    0.01 sec
+      Start  7: test_ipc_codec
+ 7/23 Test  #7: test_ipc_codec ...................   Passed    0.01 sec
+      Start  8: test_gs_link
+ 8/23 Test  #8: test_gs_link .....................   Passed    0.01 sec
+      Start  9: test_libipc
+ 9/23 Test  #9: test_libipc ......................   Passed    0.09 sec
+      Start 10: test_ttcd_core
+10/23 Test #10: test_ttcd_core ...................   Passed    0.02 sec
+      Start 11: test_link_sim
+11/23 Test #11: test_link_sim ....................   Passed    0.69 sec
+      Start 12: test_sx1278
+12/23 Test #12: test_sx1278 ......................   Passed    0.01 sec
+      Start 13: test_config
+13/23 Test #13: test_config ......................   Passed    0.01 sec
+      Start 14: test_sbs
+14/23 Test #14: test_sbs .........................   Passed    0.01 sec
+      Start 15: test_tracks
+15/23 Test #15: test_tracks ......................   Passed    0.41 sec
+      Start 16: test_adsbd_core
+16/23 Test #16: test_adsbd_core ..................   Passed    0.01 sec
+      Start 17: test_adsbd_config
+17/23 Test #17: test_adsbd_config ................   Passed    0.01 sec
+      Start 18: test_ttcd_integration
+18/23 Test #18: test_ttcd_integration ............   Passed    4.55 sec
+      Start 19: test_adsbd_integration
+19/23 Test #19: test_adsbd_integration ...........   Passed    4.02 sec
+      Start 20: test_adsb_chain
+20/23 Test #20: test_adsb_chain ..................   Passed    8.10 sec
+      Start 21: budget_matches_adrs
+21/23 Test #21: budget_matches_adrs ..............   Passed    0.27 sec
+      Start 22: ground_aeronaves
+22/23 Test #22: ground_aeronaves .................   Passed    2.43 sec
+      Start 23: tracks_to_ndjson
+23/23 Test #23: tracks_to_ndjson .................   Passed    0.48 sec
+
+100% tests passed, 0 tests failed out of 23
+
+Total Test time (real) =  21.22 sec
+cmake -S . -B build-asan -DCMAKE_BUILD_TYPE=Debug -DTTEC_SANITIZE=ON \
+      -DTTEC_SANITIZERS='undefined' -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+-- Configuring done (1.0s)
+-- Generating done (0.6s)
+-- Build files have been written to: /home/pi/ttec/build-asan
+cmake --build build-asan -j2
+[  1%] Building C object flight/CMakeFiles/ttec_ipc.dir/libipc/ipc.c.o
+[  2%] Building C object common/CMakeFiles/gama_common.dir/crc16.c.o
+[  3%] Building C object common/CMakeFiles/gama_common.dir/gama_frame.c.o
+[  5%] Linking C static library libttec_ipc.a
+[  6%] Building C object common/CMakeFiles/gama_common.dir/gama_tm.c.o
+[  6%] Built target ttec_ipc
+[  7%] Building C object common/CMakeFiles/gama_common.dir/gama_tc.c.o
+[  8%] Building C object common/CMakeFiles/gama_common.dir/gama_lora.c.o
+[ 10%] Building C object common/CMakeFiles/gama_common.dir/gama_ipc.c.o
+[ 11%] Building C object common/CMakeFiles/gama_common.dir/gama_gs_link.c.o
+[ 12%] Linking C static library libgama_common.a
+[ 12%] Built target gama_common
+[ 14%] Building C object flight/CMakeFiles/ttec_sx1278.dir/radio/sx1278.c.o
+[ 15%] Building C object flight/CMakeFiles/ttcd_core.dir/ttcd/link.c.o
+[ 16%] Linking C static library libttec_sx1278.a
+[ 16%] Built target ttec_sx1278
+[ 17%] Building C object flight/CMakeFiles/adsbd_core.dir/adsbd/sbs.c.o
+[ 19%] Building C object flight/CMakeFiles/ttcd_core.dir/ttcd/tc_dispatch.c.o
+[ 20%] Building C object flight/CMakeFiles/adsbd_core.dir/adsbd/tracks.c.o
+[ 21%] Building C object flight/CMakeFiles/ttcd_core.dir/ttcd/tm_sched.c.o
+[ 23%] Building C object flight/CMakeFiles/adsbd_core.dir/adsbd/ndjson.c.o
+[ 24%] Building C object flight/CMakeFiles/adsbd_core.dir/adsbd/core.c.o
+[ 25%] Linking C static library libttcd_core.a
+[ 25%] Built target ttcd_core
+[ 26%] Building C object tests/CMakeFiles/test_crc16.dir/test_crc16.c.o
+[ 28%] Linking C executable test_crc16
+[ 29%] Linking C static library libadsbd_core.a
+[ 29%] Built target adsbd_core
+[ 30%] Building C object tests/CMakeFiles/test_frame.dir/test_frame.c.o
+[ 30%] Built target test_crc16
+[ 32%] Building C object tests/CMakeFiles/test_tm.dir/test_tm.c.o
+[ 33%] Linking C executable test_frame
+[ 34%] Linking C executable test_tm
+[ 34%] Built target test_frame
+[ 35%] Building C object tests/CMakeFiles/test_tc.dir/test_tc.c.o
+[ 35%] Built target test_tm
+[ 37%] Building C object tests/CMakeFiles/test_vectors.dir/test_vectors.c.o
+[ 38%] Linking C executable test_tc
+[ 38%] Built target test_tc
+[ 39%] Building C object tests/CMakeFiles/test_lora.dir/test_lora.c.o
+[ 41%] Linking C executable test_vectors
+[ 42%] Linking C executable test_lora
+[ 42%] Built target test_vectors
+[ 43%] Building C object tests/CMakeFiles/test_ipc_codec.dir/test_ipc_codec.c.o
+[ 43%] Built target test_lora
+[ 44%] Building C object tests/CMakeFiles/test_gs_link.dir/test_gs_link.c.o
+[ 46%] Linking C executable test_ipc_codec
+[ 47%] Linking C executable test_gs_link
+[ 47%] Built target test_ipc_codec
+[ 48%] Building C object tests/CMakeFiles/test_libipc.dir/test_libipc.c.o
+[ 48%] Built target test_gs_link
+[ 50%] Building C object tests/CMakeFiles/test_ttcd_core.dir/test_ttcd_core.c.o
+[ 51%] Linking C executable test_libipc
+[ 51%] Built target test_libipc
+[ 52%] Building C object tests/CMakeFiles/test_link_sim.dir/test_link_sim.c.o
+[ 53%] Linking C executable test_ttcd_core
+[ 53%] Built target test_ttcd_core
+[ 55%] Building C object tests/CMakeFiles/test_sx1278.dir/test_sx1278.c.o
+[ 56%] Linking C executable test_link_sim
+[ 56%] Built target test_link_sim
+[ 57%] Building C object tests/CMakeFiles/test_sbs.dir/test_sbs.c.o
+[ 58%] Linking C executable test_sx1278
+[ 58%] Built target test_sx1278
+[ 60%] Linking C executable test_sbs
+[ 61%] Building C object tests/CMakeFiles/test_tracks.dir/test_tracks.c.o
+[ 61%] Built target test_sbs
+[ 62%] Building C object tests/CMakeFiles/test_adsbd_core.dir/test_adsbd_core.c.o
+[ 64%] Linking C executable test_tracks
+[ 64%] Built target test_tracks
+[ 65%] Building C object tests/CMakeFiles/test_adsbd_integration.dir/test_adsbd_integration.c.o
+[ 66%] Linking C executable test_adsbd_core
+[ 66%] Built target test_adsbd_core
+[ 67%] Building C object tools/gen_vectors/CMakeFiles/gen_vectors.dir/gen_vectors.c.o
+[ 69%] Linking C executable test_adsbd_integration
+[ 70%] Linking C executable gen_vectors
+[ 70%] Built target test_adsbd_integration
+[ 71%] Building C object flight/CMakeFiles/ttec_sx1278_linux.dir/radio/sx1278_linux.c.o
+[ 71%] Built target gen_vectors
+[ 73%] Building C object flight/CMakeFiles/ttcd_config.dir/ttcd/config.c.o
+[ 74%] Linking C static library libttec_sx1278_linux.a
+[ 74%] Built target ttec_sx1278_linux
+[ 75%] Building C object flight/CMakeFiles/adsbd_config.dir/adsbd/config.c.o
+[ 76%] Linking C static library libttcd_config.a
+[ 76%] Built target ttcd_config
+[ 78%] Building C object flight/CMakeFiles/ttec_radio.dir/radio/radio_sx1278.c.o
+[ 79%] Linking C static library libadsbd_config.a
+[ 80%] Building C object flight/CMakeFiles/ttec_radio.dir/radio/radio_udp.c.o
+[ 80%] Built target adsbd_config
+[ 82%] Building C object tests/CMakeFiles/test_config.dir/test_config.c.o
+[ 83%] Linking C static library libttec_radio.a
+[ 83%] Built target ttec_radio
+[ 84%] Linking C executable test_config
+[ 85%] Building C object tests/CMakeFiles/test_adsbd_config.dir/test_adsbd_config.c.o
+[ 85%] Built target test_config
+[ 87%] Linking C executable test_adsbd_config
+[ 88%] Building C object tests/CMakeFiles/test_ttcd_integration.dir/test_ttcd_integration.c.o
+[ 88%] Built target test_adsbd_config
+[ 89%] Building C object tests/CMakeFiles/test_adsb_chain.dir/test_adsb_chain.c.o
+[ 91%] Linking C executable test_ttcd_integration
+[ 91%] Built target test_ttcd_integration
+[ 92%] Linking C executable test_adsb_chain
+[ 93%] Building C object tools/gs_cli/CMakeFiles/gs_cli.dir/gs_cli.c.o
+[ 93%] Built target test_adsb_chain
+[ 94%] Building C object flight/CMakeFiles/ttcd.dir/ttcd/main.c.o
+[ 96%] Linking C executable gs_cli
+[ 97%] Linking C executable ttcd
+[ 97%] Built target gs_cli
+[ 98%] Building C object flight/CMakeFiles/adsbd.dir/adsbd/main.c.o
+[ 98%] Built target ttcd
+[100%] Linking C executable adsbd
+[100%] Built target adsbd
+cd build-asan && ctest --output-on-failure 
+Test project /home/pi/ttec/build-asan
+      Start  1: test_crc16
+ 1/23 Test  #1: test_crc16 .......................   Passed    0.01 sec
+      Start  2: test_frame
+ 2/23 Test  #2: test_frame .......................   Passed    0.01 sec
+      Start  3: test_tm
+ 3/23 Test  #3: test_tm ..........................   Passed    0.01 sec
+      Start  4: test_tc
+ 4/23 Test  #4: test_tc ..........................   Passed    0.01 sec
+      Start  5: test_vectors
+ 5/23 Test  #5: test_vectors .....................   Passed    0.01 sec
+      Start  6: test_lora
+ 6/23 Test  #6: test_lora ........................   Passed    0.01 sec
+      Start  7: test_ipc_codec
+ 7/23 Test  #7: test_ipc_codec ...................   Passed    0.01 sec
+      Start  8: test_gs_link
+ 8/23 Test  #8: test_gs_link .....................   Passed    0.01 sec
+      Start  9: test_libipc
+ 9/23 Test  #9: test_libipc ......................   Passed    0.14 sec
+      Start 10: test_ttcd_core
+10/23 Test #10: test_ttcd_core ...................   Passed    0.02 sec
+      Start 11: test_link_sim
+11/23 Test #11: test_link_sim ....................   Passed    3.17 sec
+      Start 12: test_sx1278
+12/23 Test #12: test_sx1278 ......................   Passed    0.01 sec
+      Start 13: test_config
+13/23 Test #13: test_config ......................   Passed    0.01 sec
+      Start 14: test_sbs
+14/23 Test #14: test_sbs .........................   Passed    0.01 sec
+      Start 15: test_tracks
+15/23 Test #15: test_tracks ......................   Passed    0.77 sec
+      Start 16: test_adsbd_core
+16/23 Test #16: test_adsbd_core ..................   Passed    0.01 sec
+      Start 17: test_adsbd_config
+17/23 Test #17: test_adsbd_config ................   Passed    0.01 sec
+      Start 18: test_ttcd_integration
+18/23 Test #18: test_ttcd_integration ............   Passed    4.55 sec
+      Start 19: test_adsbd_integration
+19/23 Test #19: test_adsbd_integration ...........   Passed    4.04 sec
+      Start 20: test_adsb_chain
+20/23 Test #20: test_adsb_chain ..................   Passed    8.10 sec
+      Start 21: budget_matches_adrs
+21/23 Test #21: budget_matches_adrs ..............   Passed    0.28 sec
+      Start 22: ground_aeronaves
+22/23 Test #22: ground_aeronaves .................   Passed    2.67 sec
+      Start 23: tracks_to_ndjson
+23/23 Test #23: tracks_to_ndjson .................   Passed    0.48 sec
+
+100% tests passed, 0 tests failed out of 23
+
+Total Test time (real) =  24.41 sec
+python3 tools/analysis/check_requirements.py
+71 of 71 quotations match cubedesign2026.pdf verbatim
+exit=0
