@@ -194,7 +194,13 @@ latest overview is `docs/relatorios/2026-10-06-panorama-ttec-cdr.html`. As of
   frame lost, rate changes and the lost-ACK recovery as designed. It found
   one driver defect, fixed: the real SX1278 keeps RegModemStat's "RX
   on-going" bit set throughout RX continuous, so it must not count as a busy
-  channel. Next: the SDR and dump1090-fa (stage 5, PLANO 3.4).
+  channel. Stages 5–7 too: dump1090-fa 11.1 uses 21.9% of one core on the
+  Pi (the project's largest unquantified risk, now measured), `adsbd` runs
+  the real dump1090-fa, and the whole chain SDR → `adsbd` → `ttcd` → LoRa →
+  ground worked, with no aircraft position to send. What the bench left
+  open — repeating with air traffic, the link at mission distance, the
+  flight image in `make provision` — is listed in PLANO, "Atualização de
+  09/10".
 - **ADRs**: 0009 accepted 2026-10-05; 0007 and 0012 *Proposed* — the bench
   has run and their verification sections carry its results; acceptance
   awaits team review. 0010 (onboard storage) still to write.
