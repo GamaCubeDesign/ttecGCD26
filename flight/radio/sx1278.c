@@ -196,7 +196,11 @@ int sx1278_rx_busy(sx1278_t *d, bool *busy)
     if (sx1278_read(d, SX_REG_MODEM_STAT, &stat) != 0) {
         return -1;
     }
-    uint8_t mask = SX_STAT_SIGNAL_SYNCED | SX_STAT_RX_ONGOING | SX_STAT_HEADER_VALID;
+    /* Not SX_STAT_RX_ONGOING: on the real chip it stays set for as long as
+     * the modem is in RX continuous, with an empty channel too (0x04 on both
+     * RA-02, bench of 2026-10-09). Counting it, listen before talk never let
+     * a frame out. */
+    uint8_t mask = SX_STAT_SIGNAL_SYNCED | SX_STAT_HEADER_VALID;
     if (d->lbt == SX_LBT_PREAMBLE) {
         mask |= SX_STAT_SIGNAL_DETECTED;
     }

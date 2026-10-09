@@ -83,7 +83,7 @@ enum {
 /* RegModemStat */
 #define SX_STAT_SIGNAL_DETECTED 0x01u
 #define SX_STAT_SIGNAL_SYNCED   0x02u
-#define SX_STAT_RX_ONGOING      0x04u
+#define SX_STAT_RX_ONGOING      0x04u   /* set throughout RX continuous: not a busy channel */
 #define SX_STAT_HEADER_VALID    0x08u
 
 /* RegVersion of every SX1276/77/78/79. Anything else is no chip, or a

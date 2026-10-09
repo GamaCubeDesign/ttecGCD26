@@ -268,6 +268,15 @@ int main(void)
         CHECK_EQ_INT(init_nominal(), 0);
         CHIP.regs[SX_REG_MODEM_STAT] = 0x00;
         sx1278_rx_busy(&D, &busy); CHECK(!busy);
+        /* What both RA-02 read in RX continuous with nothing on the air
+         * (bench of 2026-10-09): RX on-going stays set. A free channel. */
+        CHIP.regs[SX_REG_MODEM_STAT] = SX_STAT_RX_ONGOING;
+        sx1278_rx_busy(&D, &busy); CHECK(!busy);
+        D.lbt = SX_LBT_PREAMBLE;
+        sx1278_rx_busy(&D, &busy); CHECK(!busy);
+        D.lbt = SX_LBT_HEADER;
+        CHIP.regs[SX_REG_MODEM_STAT] = SX_STAT_RX_ONGOING | SX_STAT_SIGNAL_SYNCED;
+        sx1278_rx_busy(&D, &busy); CHECK(busy);
         CHIP.regs[SX_REG_MODEM_STAT] = SX_STAT_HEADER_VALID;
         sx1278_rx_busy(&D, &busy); CHECK(busy);
         CHIP.regs[SX_REG_MODEM_STAT] = SX_STAT_SIGNAL_DETECTED;
