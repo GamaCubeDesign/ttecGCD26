@@ -172,7 +172,7 @@ built from those.
 
 See `PLANO.md` for what is done, what is next, and the open risks; the
 latest overview is `docs/relatorios/2026-10-06-panorama-ttec-cdr.html`. As of
-2026-10-07:
+2026-10-09:
 
 - **Phases 1–3 are done in software**: shared codec, IPC, `ttcd`, the ground
   side of the protocol, the SX1278 driver, the channel simulation, the bench
@@ -188,12 +188,16 @@ latest overview is `docs/relatorios/2026-10-06-panorama-ttec-cdr.html`. As of
   the PC's own Wi-Fi access point — NetworkManager *shared*, described in
   that README) runs **64-bit** Debian 13 with gcc 14.2, SPI enabled (the OBC
   team chose 64 bits on 2026-10-07; the 2026-10-05 decision of 32 bits is
-  superseded), and `make check` passes there with zero warnings. Next: wiring
-  the two RA-02 (stage 3), then the phase-2 radio bench (`make bench`,
-  procedure in `flight/ttcd/README.md`) and the phase-3 measurements
-  (dump1090-fa CPU, gain, decode rate).
-- **ADRs**: 0009 accepted 2026-10-05; 0007 and 0012 *Proposed*, to accept
-  after the bench; 0010 (onboard storage) still to write.
+  superseded), and `make check` passes there with zero warnings. Stages 3
+  and 4 are done (2026-10-09): the two RA-02 on a perfboard, and the phase-2
+  radio bench passed all six steps at 0.8 m — time on air within 1.9%, no
+  frame lost, rate changes and the lost-ACK recovery as designed. It found
+  one driver defect, fixed: the real SX1278 keeps RegModemStat's "RX
+  on-going" bit set throughout RX continuous, so it must not count as a busy
+  channel. Next: the SDR and dump1090-fa (stage 5, PLANO 3.4).
+- **ADRs**: 0009 accepted 2026-10-05; 0007 and 0012 *Proposed* — the bench
+  has run and their verification sections carry its results; acceptance
+  awaits team review. 0010 (onboard storage) still to write.
 - **Decided on 2026-10-05, not implemented** (PLANO, "Decisões de 05/10"): one
   protocol version bump (battery temperature in `TM_HK`, dump1090-alive in
   `IPC_STAT`, an ICAO→callsign IPC message for `REQ_ROSTER`); `ttcd` and
