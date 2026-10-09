@@ -7,9 +7,10 @@ Documento de trabalho. As decisões consolidadas ficam nos ADRs
 **Prioridade atual (05/10):** hardware — a bancada da fase 2 e as medições
 na Pi, pelo roteiro `docs/relatorios/2026-10-05-roteiro-testes-raspberry.html`.
 Em paralelo, sem hardware: a troca de formatos, o TT&C seguindo o modo do
-OBC, o ICD do enlace e a CI (decisões de 05/10, abaixo). Etapas 1 a 4 do
-roteiro concluídas (07 e 09/10), a bancada dos rádios inclusive; progresso em
-`docs/vv/bancada/`.
+OBC, o ICD do enlace e a CI (decisões de 05/10, abaixo). Etapas 1 a 7 do
+roteiro concluídas (07 e 09/10): a bancada dos rádios, a CPU do dump1090 e a
+cadeia da missão em hardware; pendências e progresso em `docs/vv/bancada/` e
+na atualização de 09/10, abaixo.
 
 ---
 
@@ -139,7 +140,8 @@ em Python —, zero warnings, limpo sob ASan e UBSan.
 
 #### Falta para fechar a fase 3 — depende do hardware ou de decisão
 
-- [ ] Instalar o `dump1090-fa` na Pi e medir (3.4)
+- [x] Instalar o `dump1090-fa` na Pi e medir (3.4) — 09/10: instalado,
+      CPU medida; ganho e taxa de decodificação esperam tráfego
 - [ ] `IPC_STAT` com o indicador de `dump1090` vivo — decidido em 05/10:
       entra na troca de versão do protocolo
 - [ ] Mensagem IPC ICAO → callsign para o `REQ_ROSTER` — idem
@@ -218,7 +220,42 @@ Etapas 3 e 4 do roteiro concluídas; detalhe em
 - Os resultados entraram nas seções de verificação dos ADRs 0007 e 0012,
   que seguem *Proposed* até a equipe revisar.
 
-Próximo: a etapa 5 (o SDR e o `dump1090-fa`, PLANO 3.4).
+Etapas 5 a 7, no mesmo dia (PLANO 3.4):
+
+- **`dump1090-fa` 11.1 instalado** (repositório da FlightAware, trixie
+  arm64), serviço próprio desabilitado, driver DVB do kernel na blacklist,
+  `lighttpd` desligado. O NESDR (R820T) roda a 2,4 MS/s sem perder amostras.
+- **CPU do `dump1090-fa`: 21,9% de um núcleo** (`pidstat`), a Pi inteira 5%
+  ocupada, 46 °C, sem throttling — o maior risco não quantificado fica
+  medido, com folga. Com 0 a 3 aeronaves no ar.
+- **Ganho: inconclusivo.** Com tão pouco tráfego, a contagem de mensagens
+  variou mais entre dois minutos do mesmo ganho do que entre ganhos. O AGC
+  (`-10`) leva o R820T ao máximo, 58,6 dB, com ruído em −14 dBFS. Fica `-10`
+  por enquanto.
+- **`adsbd` com o SDR real:** sobe o dump1090-fa, conecta em 1 s, grava as
+  mensagens e para limpo, com o dump1090 junto (ADR-0008 com o programa real).
+- **Cadeia da missão em hardware:** SDR → `adsbd` → `ttcd` → LoRa → ground,
+  com o `SET_TIME` automático chegando ao `adsbd` (ADR-0009 de ponta a
+  ponta), 0 perdas. Nenhum `TM_TRACKS` desceu: o único avião do período não
+  mandou posição.
+
+#### Pendências que a bancada deixou
+
+- [ ] **Repetir com tráfego** (janela, área aberta, ou fonte conhecida): a
+      varredura de ganho, a CPU com ~20 aeronaves e a etapa 7 com tracks
+      descendo pelo LoRa
+- [ ] **Enlace LoRa na distância da missão**, com as antenas da equipe: a
+      80 cm o PER é zero e não diz nada do enlace real
+- [ ] **Automatizar o cartão de voo no `make provision`:** `dump1090-fa` (com
+      o repositório da FlightAware), serviço dele desabilitado, blacklist do
+      `dvb_usb_rtl28xxu`, `lighttpd` desligado, `poppler-utils` e `sysstat` —
+      hoje feitos à mão
+- [ ] **UBSan reprovando o teste:** `-fno-sanitize-recover=undefined` no
+      `make asan`; hoje um erro é impresso e o teste passa
+- [ ] **Revisão dos ADRs 0007 e 0012 pela equipe** — a evidência está nas
+      seções de verificação deles
+- [ ] **Números medidos no `docs/budgets/data-budget.md` §9** (tempo no ar,
+      CPU do dump1090), como o roteiro previa
 
 ### Dívida imediata
 
@@ -375,8 +412,9 @@ por mensagem, append + `fflush`. Ajustes:
 
 ### 3.4 Medições na Pi — **o maior risco não quantificado**
 
-- [ ] CPU do `dump1090` a 2,4 MS/s (`pidstat -p <pid> 1`)
-- [ ] Se saturar um core: o `dump1090-fa` v11 roda o RTL-SDR fixo a 2,4 MS/s
+- [x] CPU do `dump1090` a 2,4 MS/s (`pidstat -p <pid> 1`) — 21,9% de um
+      núcleo, 09/10, com 0 a 3 aeronaves; repetir com tráfego
+- [x] ~~Se saturar um core~~ — não satura: o `dump1090-fa` v11 roda o RTL-SDR fixo a 2,4 MS/s
       (`Modes.sample_rate` no código), então cair para 2,0 MS/s exigiria
       outro decodificador — estudar com o número medido
 - [ ] Afinidade de CPU: `dump1090` e `ttcd` em cores distintos
@@ -384,7 +422,8 @@ por mensagem, append + `fflush`. Ajustes:
       dump1090-fa v11, `-10` liga o AGC do sintonizador; qualquer outro valor
       é em dB, arredondado para o passo mais próximo (`sdr_rtlsdr.c`). O
       ambiente de teste é SDR a curta distância → sinal forte, AGC pode
-      saturar
+      saturar. 09/10: feita, inconclusiva por falta de tráfego; o AGC vai
+      a 58,6 dB com ruído em −14 dBFS
 - [ ] Taxa de decodificação contra cenário conhecido
 - [ ] Registrar tudo em `docs/budgets/data-budget.md` §9
 
