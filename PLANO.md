@@ -7,8 +7,9 @@ Documento de trabalho. As decisões consolidadas ficam nos ADRs
 **Prioridade atual (05/10):** hardware — a bancada da fase 2 e as medições
 na Pi, pelo roteiro `docs/relatorios/2026-10-05-roteiro-testes-raspberry.html`.
 Em paralelo, sem hardware: a troca de formatos, o TT&C seguindo o modo do
-OBC, o ICD do enlace e a CI (decisões de 05/10, abaixo). Em 07/10, etapas 1
-e 2 do roteiro concluídas; progresso em `docs/vv/bancada/`.
+OBC, o ICD do enlace e a CI (decisões de 05/10, abaixo). Etapas 1 a 4 do
+roteiro concluídas (07 e 09/10), a bancada dos rádios inclusive; progresso em
+`docs/vv/bancada/`.
 
 ---
 
@@ -35,7 +36,7 @@ e 2 do roteiro concluídas; progresso em `docs/vv/bancada/`.
 make test             # compila e roda a suíte; make check antes de um merge
 ```
 
-### Fase 2 — concluída em software; falta a bancada (dias 3–4)
+### Fase 2 — concluída; bancada dos rádios feita em 09/10 (dias 3–4)
 
 | Item | Onde | Evidência |
 |---|---|---|
@@ -77,14 +78,13 @@ make test             # compila e roda a suíte; make check antes de um merge
 
 #### Falta para fechar a fase 2 — depende do hardware
 
-- [ ] Executar o teste de bancada de `flight/ttcd/README.md` — `make bench`
-      na Pi, ou `make pi-bench` do PC: tempo no ar dentro de 5%, PER sobre
-      1000 frames por perfil, trocas de taxa, ACK perdido, LBT `header` ×
-      `preamble`
-- [ ] Registrar em `docs/vv/bancada/AAAA-MM-DD/` — os logs já vão para lá;
-      falta a `notas.md` com a montagem e os resultados
-- [ ] Revisar e aceitar o ADR-0007 e o ADR-0012 (estão *Proposed*) — depois
-      da bancada, decidido em 05/10: o passo 6 pode mudar o padrão do LBT
+- [x] Executar o teste de bancada de `flight/ttcd/README.md` — feito em
+      09/10, os seis passos passaram (resultados na atualização de 09/10,
+      abaixo)
+- [x] Registrar em `docs/vv/bancada/2026-10-09/` — `notas.md` e os logs
+- [ ] Revisar e aceitar o ADR-0007 e o ADR-0012 (estão *Proposed*) — a
+      bancada rodou e os resultados estão nas seções de verificação deles;
+      o passo 6 manteve o LBT em `header`. Falta a decisão da equipe
 
 ### Fase 3 — concluída em software; faltam as medições na Pi (2026-09-28)
 
@@ -198,6 +198,28 @@ Próximo: a etapa 3 (ligar os dois RA-02) e a bancada dos rádios (2.7).
 Pendente da etapa 2: um erro do UBSan hoje é impresso mas não reprova o
 teste (falta `-fno-sanitize-recover=undefined`).
 
+### Atualização de 09/10/2026 — a bancada dos rádios (2.7)
+
+Etapas 3 e 4 do roteiro concluídas; detalhe em
+`docs/vv/bancada/2026-10-09/notas.md`.
+
+- **Fiação:** na protoboard nenhum dos dois chips respondia no SPI; numa
+  placa perfurada, os dois leem RegVersion `0x12`.
+- **Defeito achado no driver** (commit `72deaa5`): no chip real, o bit
+  *RX on-going* do RegModemStat fica ligado o tempo todo em recepção
+  contínua. O LBT o contava como canal ocupado e não deixava nada ir ao ar.
+  O teste modelava o canal livre como `0x00`; agora tem o `0x04` medido.
+- **Os seis passos passaram**, a 80 cm e 2 dBm: tempo no ar dentro de 1,9%
+  do modelo; nenhuma perda em 1000/1000/200 PINGs (NOMINAL/FAST/SAFE) nem em
+  2220 frames de downlink; 7 de 7 trocas de taxa; o ACK perdido recuperado
+  em 23,2 s (a simulação dava 23,4 s); LBT `header` e `preamble` com 0% de
+  retransmissão — fica `header`. Resposta a telecomando: 81 ms em FAST,
+  276 ms em NOMINAL, 2,7 s em SAFE (HLR-COMM-01).
+- Os resultados entraram nas seções de verificação dos ADRs 0007 e 0012,
+  que seguem *Proposed* até a equipe revisar.
+
+Próximo: a etapa 5 (o SDR e o `dump1090-fa`, PLANO 3.4).
+
 ### Dívida imediata
 
 ~~Três ADRs citados por documentos aceitos não existiam~~ — **quitada em
@@ -283,12 +305,14 @@ Procedimento completo em `flight/ttcd/README.md`. `make bench` roda os passos
 1 a 6 a partir dos roteiros de `tools/bench/`, sobre `tools/gs_cli` e
 `tools/analysis/toa_from_log.py`, e grava os logs em `docs/vv/bancada/`.
 
-- [ ] Dois RA-02 a ~1 m, potência de 2 dBm
-- [ ] PER sobre 1000 frames em cada perfil
-- [ ] Troca `SAFE ↔ NOMINAL ↔ FAST` nos dois sentidos
-- [ ] **Caso do ACK perdido**: a troca aconteceu mas o ACK sumiu — a reversão
-      tem que recuperar sozinha
-- [ ] Registrar resultados em `docs/vv/`
+- [x] Dois RA-02 a ~1 m, potência de 2 dBm — 80 cm, 09/10
+- [x] PER sobre 1000 frames em cada perfil — 0 perdas (200 em SAFE)
+- [x] Troca `SAFE ↔ NOMINAL ↔ FAST` nos dois sentidos — 7 de 7
+- [x] **Caso do ACK perdido**: a troca aconteceu mas o ACK sumiu — a reversão
+      tem que recuperar sozinha — recuperou em 23,2 s
+- [x] Registrar resultados em `docs/vv/` — `docs/vv/bancada/2026-10-09/`
+- [ ] O mesmo enlace na distância da missão, com as antenas da equipe: a
+      80 cm o PER é zero e não diz nada sobre o enlace real
 
 ### ADRs desta fase
 
