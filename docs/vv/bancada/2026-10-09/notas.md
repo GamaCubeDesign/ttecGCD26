@@ -258,3 +258,38 @@ sem `ttcd`, não há para quem mandar o retrato.
 
 A supervisão do dump1090 (ADR-0008), até aqui testada só com um substituto,
 funciona com o programa real: sobe, conecta, lê, e encerra junto.
+
+## Etapa 7 — ADS-B real pelo LoRa real, 11:30 a 11:34, ✅ a cadeia; ⚠️ sem tracks
+
+Os três terminais do roteiro como janelas de um tmux na Pi, dirigidas por
+script: `make bench-ttcd` (rádio A), o `adsbd` com o SDR (`adsbd-e7.jsonl`,
+`adsb-e7.ndjson`) e `make bench-gs GS_OPTS='--auto-time on'` (rádio B;
+`manual-ground.jsonl`), com `stream 5`, 130 s, `stop`, `quit`, e Ctrl+C no
+`adsbd` e no `ttcd` (`manual-ttcd.jsonl`). Versão `769834a`.
+
+| | Instante | |
+|---|---|---|
+| `adsbd`: `dump1090_start`, `ipc_up` com o `ttcd`, `sbs_up` | 0 a 1,0 s | ✅ |
+| ground: contato, `SET_TIME` automático, ACK em 318 ms | 20,0 s | ✅ |
+| `ttcd` → `adsbd`: âncora de tempo (`time_anchor`, `step_ms` −4) | 20,2 s | ✅ ADR-0009 de ponta a ponta |
+| `STREAM_START` 5 s, ACK em 521 ms | 20,6 s | ✅ |
+| `adsbd` → `ttcd`: 120 retratos em 2 min, `time_synced: true` | | ✅ |
+| `STREAM_STOP`, ACK em 276 ms | 150,5 s | ✅ |
+| parada: `ipc_drop_peer` (o `adsbd` saiu), `stop` | | ✅ |
+
+Downlink: 24 frames (17 `TM_HK`, 4 `TM_STAT`, 6 `TC_ACK` no satélite), 0
+perdidos, 0 corrompidos; 6 TCs, todos confirmados na primeira tentativa.
+O `TM_STAT` passou a mostrar `msgs_decoded: 1, aircraft: 1` — o contador do
+`adsbd` chegando à ground pelo rádio.
+
+**Nenhum `TM_TRACKS` desceu.** A única aeronave do período, `E4A275`, mandou
+2 mensagens do tipo 8 (resposta de *all-call*), sem posição, altitude nem
+indicativo — nada para pôr num retrato. É o caso do roteiro "sem aviões ao
+alcance, os tracks não aparecem". A cadeia com tracks reais fica para uma
+sessão com tráfego (janela, área aberta).
+
+Os PINGs de *keepalive* da ground (`id 0`) tiveram 9,6 e 10,3 s de latência:
+pelo ADR-0007 §2, o keepalive só sai na janela de resposta depois de um frame
+do satélite — com o HK a cada 10 s e nada mais no ar, ele espera o próximo
+HK. Comportamento previsto, não defeito. Os telecomandos do operador saíram
+na hora (276 a 521 ms).
