@@ -405,9 +405,9 @@ nada é transmitido ainda
 - `docs/budgets/power-budget.md` não existe (PLANO fase 6).
 - Contribuição do TT&C, a medir em bancada: Pi Zero 2 W com o `dump1090`
   rodando, NESDR Nano 3, SX1278 em recepção contínua e em transmissão a
-  20 dBm.
-- Pico: transmissão a 20 dBm ao mesmo tempo que o `dump1090` em carga
-  máxima. A fração de tempo transmitindo por modo sai do `data-budget.md`:
+  14 dBm, a potência de voo (ADR-0015).
+- Pico: transmissão a 14 dBm ao mesmo tempo que o `dump1090` em carga
+  máxima; 20 dBm só se a ground comandar (`SET_TX_POWER`). A fração de tempo transmitindo por modo sai do `data-budget.md`:
   até 50% em `STREAM`, maior em `BULK`, mínima em `SAFE`.
 
 ### HLR-EPS-04

@@ -140,12 +140,13 @@ vezes. Decisões 2, 3 e 4 de 05/10.
 
 ### 1.3 Frequência e potência do CDR (TTC-01, TTC-03)
 
-- [ ] 433,92 MHz em `common/gama_lora.h` (hoje 433,000 MHz), no `test_sx1278`
+- [x] 433,92 MHz em `common/gama_lora.h` (era 433,000 MHz), no `test_sx1278`
       e no `lora_budget.py`
-- [ ] 14 dBm de voo, 2,15 dBi e 2,3 dB de perdas no `lora_budget.py`, no
-      `link-budget.md` e no `ttcd.conf.example` (hoje 20 dBm)
-- [ ] ADR que substitui a frequência e a potência do ADR-0004
-- [ ] `data-budget.md` §8 com a latência máxima de 10 s (TTC-09); §9 com a CPU
+- [x] 14 dBm de voo, 2,15 dBi e 2,3 dB de perdas no `lora_budget.py`, no
+      `link-budget.md` e no `ttcd.conf.example` (era 20 dBm)
+- [x] ADR que substitui a frequência e a potência do ADR-0004 — ADR-0015,
+      em 24/10; em 433,000 MHz o canal saía 12,5 kHz abaixo de 433,05
+- [x] `data-budget.md` §8 com a latência máxima de 10 s (TTC-09); §9 com a CPU
       medida (21,9%) e sem o recuo de 2,0 MS/s
 
 ---
