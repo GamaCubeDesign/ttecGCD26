@@ -96,14 +96,16 @@ static void inject_rx(const uint8_t *bytes, uint8_t len, uint8_t at,
 
 int main(void)
 {
-    TEST_GROUP("sx1278: init configures 433 MHz LoRa at NOMINAL and listens");
+    TEST_GROUP("sx1278: init configures 433.92 MHz LoRa at NOMINAL and listens");
     {
         CHECK_EQ_INT(init_nominal(), 0);
         CHECK_EQ_INT(CHIP.resets, 1);
-        /* Frf = 433 MHz * 2^19 / 32 MHz = 7094272 = 0x6C4000. */
+        /* Frf = 433.92 MHz * 2^19 / 32 MHz = 7109345.28, truncated to
+         * 7109345 = 0x6C7AE1: 433.919983 MHz, 17 Hz low, against the
+         * crystal's +/-10 ppm (4.3 kHz). TTC-01. */
         CHECK_EQ_INT(CHIP.regs[SX_REG_FRF_MSB], 0x6C);
-        CHECK_EQ_INT(CHIP.regs[SX_REG_FRF_MID], 0x40);
-        CHECK_EQ_INT(CHIP.regs[SX_REG_FRF_LSB], 0x00);
+        CHECK_EQ_INT(CHIP.regs[SX_REG_FRF_MID], 0x7A);
+        CHECK_EQ_INT(CHIP.regs[SX_REG_FRF_LSB], 0xE1);
         CHECK_EQ_INT(CHIP.regs[SX_REG_SYNC_WORD], 0x12);
         CHECK_EQ_INT(CHIP.regs[SX_REG_PREAMBLE_MSB], 0x00);
         CHECK_EQ_INT(CHIP.regs[SX_REG_PREAMBLE_LSB], 0x08);

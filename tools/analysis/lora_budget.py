@@ -2,8 +2,8 @@
 """
 LoRa time-on-air, data budget and link budget for the CubeDesign 2026 mission.
 
-Every number quoted in docs/adr/0003, docs/adr/0004 and docs/budgets/ comes
-from this script. It takes no arguments and needs no dependencies beyond the
+Every number quoted in docs/adr/0003, docs/adr/0004, docs/adr/0015 and
+docs/budgets/ comes from this script. It takes no arguments and needs no dependencies beyond the
 standard library, so a reviewer can reproduce the figures that justify the
 architecture:
 
@@ -24,10 +24,18 @@ MAX_AIRCRAFT = 20        # HLR-ADS-05: up to 20 aircraft per test
 
 # --- radio constants, from the hardware we have -------------------------
 
-FREQ_MHZ = 433.0         # Ai-Thinker RA-02 / SX1278, band is fixed
-TX_DBM = 20.0            # PA_BOOST maximum
-CABLE_LOSS_DB = 2.0      # connectors and feedline, both ends combined
-ANT_GAIN_DBI = 2.0       # quarter-wave whip, each end
+# The flight link, as the CDR's link budget states it (ADR-0015).
+FREQ_MHZ = 433.92        # TTC-01: the centre of the 433.05-434.79 MHz allocation
+TX_DBM = 14.0            # TTC-03: flight power; commandable from 2 to 20 dBm
+LOSS_DB = 2.3            # baluns, cables and connectors, both ends combined
+ANT_GAIN_DBI = 2.15      # half-wave dipole, each end
+
+# ADR-0004's link budget, before ADR-0015 superseded its frequency and power.
+# Kept so that the figures that accepted record quotes can still be checked.
+ADR0004_LINK = dict(tx_dbm=20.0, freq_mhz=433.0, loss_db=2.0, gain_dbi=2.0)
+
+# Every degradation of link-budget.md §4, applied at once.
+DEGRADATION_DB = 70.0
 
 # Datasheet typical sensitivity at BW = 125 kHz, per spreading factor.
 SENSITIVITY_DBM = {7: -123.0, 8: -126.0, 9: -129.0,
@@ -114,11 +122,16 @@ def fspl_db(distance_m, freq_mhz=FREQ_MHZ):
             + 20 * math.log10(freq_mhz) + 32.44)
 
 
-def link_margin_db(distance_m, sf):
-    """Margin above the receiver's sensitivity, in dB."""
-    received = (TX_DBM - CABLE_LOSS_DB + 2 * ANT_GAIN_DBI
-                - fspl_db(distance_m))
-    return received - SENSITIVITY_DBM[sf]
+def rx_power_dbm(distance_m, tx_dbm=TX_DBM, freq_mhz=FREQ_MHZ,
+                 loss_db=LOSS_DB, gain_dbi=ANT_GAIN_DBI):
+    """Received power in free space, in dBm."""
+    return tx_dbm - loss_db + 2 * gain_dbi - fspl_db(distance_m, freq_mhz)
+
+
+def link_margin_db(distance_m, sf, **link):
+    """Margin above the receiver's sensitivity, in dB. `link` overrides the
+    flight parameters, e.g. **ADR0004_LINK."""
+    return rx_power_dbm(distance_m, **link) - SENSITIVITY_DBM[sf]
 
 
 def snapshot_frames(aircraft=MAX_AIRCRAFT):
@@ -228,21 +241,25 @@ def print_data_volume():
 def print_link_budget():
     print()
     print("=" * 78)
-    print(f"LINK BUDGET  ({TX_DBM:.0f} dBm, {FREQ_MHZ:.0f} MHz, "
-          f"{ANT_GAIN_DBI:.0f} dBi each end, {CABLE_LOSS_DB:.0f} dB losses)")
+    print(f"LINK BUDGET  ({TX_DBM:.0f} dBm, {FREQ_MHZ:.2f} MHz, "
+          f"{ANT_GAIN_DBI:.2f} dBi each end, {LOSS_DB:.1f} dB losses)")
     print("=" * 78)
     print(f"{'distance':>10}{'FSPL':>9}{'Rx power':>11}"
           f"{'margin SF7':>12}{'margin SF9':>12}{'margin SF12':>13}")
     print("-" * 78)
     for d in (10, 50, 100, 500, 1000, 5000):
         print(f"{d:>8} m{fspl_db(d):>8.1f}d"
-              f"{TX_DBM - CABLE_LOSS_DB + 2*ANT_GAIN_DBI - fspl_db(d):>10.1f}d"
+              f"{rx_power_dbm(d):>10.1f}d"
               f"{link_margin_db(d, 7):>11.1f}d"
               f"{link_margin_db(d, 9):>11.1f}d"
               f"{link_margin_db(d, 12):>12.1f}d")
     print()
+    print(f"After the {DEGRADATION_DB:.0f} dB degradation allowance at 100 m:"
+          f" SF7 {link_margin_db(100, 7) - DEGRADATION_DB:.1f} dB,"
+          f" SF9 {link_margin_db(100, 9) - DEGRADATION_DB:.1f} dB,"
+          f" SF12 {link_margin_db(100, 12) - DEGRADATION_DB:.1f} dB.")
     print("The competition ground station operates within tens of metres of")
-    print("the CubeSat. Even at 1 km, SF9 retains more than 60 dB of margin.")
+    print("the CubeSat. At 1 km, SF9 still has about 60 dB of free-space margin.")
 
 
 # --- telecommand response bound (HLR-COMM-01, ADR-0007) -----------------
@@ -307,8 +324,19 @@ def check():
     expect("ADR-0004 NOMINAL ToA of a 208 B frame (s)",
            time_on_air(208, 9, 125_000, 1), 1.046, 0.01)
 
-    expect("ADR-0004 margin at 100 m, SF9 (dB)", link_margin_db(100, 9), 85.8, 0.5)
-    expect("ADR-0004 margin at 10 m, SF9 (dB)", link_margin_db(10, 9), 105.8, 0.5)
+    expect("ADR-0004 margin at 100 m, SF9 (dB)",
+           link_margin_db(100, 9, **ADR0004_LINK), 85.8, 0.5)
+    expect("ADR-0004 margin at 10 m, SF9 (dB)",
+           link_margin_db(10, 9, **ADR0004_LINK), 105.8, 0.5)
+
+    # ADR-0015 and the CDR's link budget, at 433.92 MHz and 14 dBm.
+    expect("ADR-0015 margin at 10 m, SF9 (dB)", link_margin_db(10, 9), 99.8, 0.05)
+    expect("ADR-0015 margin at 100 m, SF9 (dB)", link_margin_db(100, 9), 79.8, 0.05)
+    expect("ADR-0015 margin at 1 km, SF9 (dB)", link_margin_db(1000, 9), 59.8, 0.05)
+    expect("ADR-0015 SF9 at 100 m after the allowance (dB)",
+           link_margin_db(100, 9) - DEGRADATION_DB, 9.8, 0.05)
+    expect("ADR-0015 SF7 at 100 m after the allowance (dB)",
+           link_margin_db(100, 7) - DEGRADATION_DB, 3.8, 0.05)
 
     expect("ADR-0004 fastest cadence the air time allows (s)",
            snapshot_air_time(9, 125_000, 1) / TX_DUTY, 4.2, 0.3)

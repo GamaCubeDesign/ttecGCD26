@@ -126,7 +126,7 @@ typedef enum {
     SX_EVENT_TX_DONE
 } sx1278_event_t;
 
-/* Resets the chip, checks its version, and configures it: LoRa mode, 433 MHz,
+/* Resets the chip, checks its version, and configures it: LoRa mode, GAMA_LORA_FREQ_HZ,
  * sync word, preamble, the given profile and power, then continuous reception.
  * Returns 0, or -1 with the reason in *why (never NULL on failure). */
 int sx1278_init(sx1278_t *d, const sx1278_bus_t *bus, uint8_t profile,

@@ -34,7 +34,7 @@
 void ttcd_params_default(ttcd_params_t *p)
 {
     p->initial_profile    = GAMA_RATE_NOMINAL;
-    p->tx_power_dbm       = 20;
+    p->tx_power_dbm       = 14;      /* TTC-03, ADR-0015 */
     p->hk_period          = 10000;
     p->stat_period        = 30000;
     p->stream_period      = 5000;

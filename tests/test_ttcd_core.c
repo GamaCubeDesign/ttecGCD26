@@ -98,7 +98,7 @@ int main(void)
     {
         boot();
         CHECK_EQ_INT(H.profile, GAMA_RATE_NOMINAL);
-        CHECK_EQ_INT(H.power, 20);
+        CHECK_EQ_INT(H.power, 14);                      /* TTC-03 */
         CHECK(step_to(&C, H.now + 1));
         CHECK_EQ_INT(H.n_tx, 1);
         CHECK_EQ_INT(tx_type(0), GAMA_FRAME_TM_HK);
@@ -499,7 +499,7 @@ int main(void)
         CHECK(step_to(&C, H.now + 1000));
         ack_of(find_tx(from, GAMA_FRAME_TC_ACK), &cmd, &st, &echo);
         CHECK_EQ_INT(st, GAMA_ACK_BAD_ARGS);
-        CHECK_EQ_INT(H.power, 20);
+        CHECK_EQ_INT(H.power, 14);                      /* TTC-03 */
 
         uint8_t magic[2] = { 0x12, 0x34 };
         from = H.n_tx;
