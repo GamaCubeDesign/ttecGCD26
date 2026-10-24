@@ -1,0 +1,5023 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-10-06T19:51:10",
+    "ignored_checks": [
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "PTH inside courtyard",
+            "key": "pth_inside_courtyard"
+        },
+        {
+            "description": "NPTH inside courtyard",
+            "key": "npth_inside_courtyard"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.6",
+    "schematic_parity": [],
+    "source": "CUBETSCHEK_AOCS.kicad_pcb",
+    "unconnected_items": [],
+    "violations": [
+        {
+            "description": "A serigrafia foi cortada pela borda da placa (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no Edge.Cuts",
+                    "pos": {
+                        "x": 138.392408,
+                        "y": 95.432408
+                    },
+                    "uuid": "5c781dfa-6739-470c-a494-94be7b707b67"
+                },
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AS5048A2",
+                    "pos": {
+                        "x": 148.80868,
+                        "y": 135.44
+                    },
+                    "uuid": "0c9f9440-6a4b-4f01-a8e2-587146d9b6d6"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint REF**",
+                    "pos": {
+                        "x": 185.46868,
+                        "y": 68.50868
+                    },
+                    "uuid": "273db7c4-2e3e-49d1-9abf-0ea4c1577030"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint DRV8313",
+                    "pos": {
+                        "x": 179.09,
+                        "y": 106.66668
+                    },
+                    "uuid": "305a707a-3b4f-4110-8441-c77947a7a63b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint REF**",
+                    "pos": {
+                        "x": 111.46868,
+                        "y": 142.50868
+                    },
+                    "uuid": "40ce830d-c08c-4396-ae50-887c377edd7f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint X+1",
+                    "pos": {
+                        "x": 185.65868,
+                        "y": 74.83663
+                    },
+                    "uuid": "4dd1c197-f200-43e7-b63e-a50e59c5ffb2"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint Barramento1",
+                    "pos": {
+                        "x": 148.30868,
+                        "y": 68.33868
+                    },
+                    "uuid": "4f20e805-fa5b-4ec8-8b64-42c3035803fc"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint REF**",
+                    "pos": {
+                        "x": 111.46868,
+                        "y": 68.50868
+                    },
+                    "uuid": "59aaa3dc-d8b5-4009-beee-248373179a67"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint logo",
+                    "pos": {
+                        "x": 148.477543,
+                        "y": 105.498594
+                    },
+                    "uuid": "644cbaf6-1dbf-47b7-b222-88af4625b5ec"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint REF**",
+                    "pos": {
+                        "x": 185.46868,
+                        "y": 142.50868
+                    },
+                    "uuid": "846f2d2a-11a1-44ac-a9e1-4e9c3d84e2db"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint G***",
+                    "pos": {
+                        "x": 170.884341,
+                        "y": 83.734287
+                    },
+                    "uuid": "8e4a4966-3cf0-40a8-ad8d-bde3c52f416e"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint GM2804",
+                    "pos": {
+                        "x": 171.82,
+                        "y": 132.2475
+                    },
+                    "uuid": "abb1c471-1d0f-453d-bd9b-b10449b19bf8"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint Y-1",
+                    "pos": {
+                        "x": 111.64,
+                        "y": 136.97073
+                    },
+                    "uuid": "cfb0d910-1f08-4d15-bba0-537009ac1b43"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint X-1",
+                    "pos": {
+                        "x": 111.56,
+                        "y": 74.58663
+                    },
+                    "uuid": "d0ca0774-79fe-42e5-af4b-234c09b56b3f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint Y+1",
+                    "pos": {
+                        "x": 185.84868,
+                        "y": 136.20073
+                    },
+                    "uuid": "d69988b6-c32d-4d87-9568-ed58b946c3e5"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint BMI008",
+                    "pos": {
+                        "x": 147.70868,
+                        "y": 80.285275
+                    },
+                    "uuid": "dfe2a526-20b7-441b-bf6f-37c84bb387ff"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint ESP32",
+                    "pos": {
+                        "x": 122.13,
+                        "y": 106.63618
+                    },
+                    "uuid": "569e7c93-a0ab-4752-a741-d0b42259acc3"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint G***",
+                    "pos": {
+                        "x": 170.88434,
+                        "y": 83.734287
+                    },
+                    "uuid": "aeb0e2ad-fcad-4b6d-a405-85b50a20e976"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint logo",
+                    "pos": {
+                        "x": 148.459818,
+                        "y": 105.498594
+                    },
+                    "uuid": "d9e81c7e-676c-46bb-8ad1-7d911e309fe0"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A serigrafia foi cortado pela máscara de solda (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "A serigrafia foi cortado pela máscara de solda (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Ilha PTH 6 [Net-(DRV8313-IN3)] de ESP32",
+                    "pos": {
+                        "x": 134.13,
+                        "y": 108.28618
+                    },
+                    "uuid": "b0a1758f-94de-4305-ad82-c015c8dced04"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "A serigrafia foi cortado pela máscara de solda (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Ilha PTH 7 [Net-(DRV8313-IN2)] de ESP32",
+                    "pos": {
+                        "x": 134.13,
+                        "y": 105.74618
+                    },
+                    "uuid": "04024dc8-cf88-4351-b0e2-470aacebbb0f"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "A serigrafia foi cortado pela máscara de solda (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Ilha PTH 8 [Net-(DRV8313-IN1)] de ESP32",
+                    "pos": {
+                        "x": 134.13,
+                        "y": 103.20618
+                    },
+                    "uuid": "659496f2-f986-47ed-9394-1c8e10ab39b8"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "A serigrafia foi cortado pela máscara de solda (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0693 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Ilha PTH 9 [Net-(ESP32-D33)] de ESP32",
+                    "pos": {
+                        "x": 134.13,
+                        "y": 100.66618
+                    },
+                    "uuid": "8870709a-5b6d-408a-901c-01372212754f"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de AS5048A2 (AS5048A)",
+                    "pos": {
+                        "x": 154.02,
+                        "y": 127.91
+                    },
+                    "uuid": "c7f1aa56-7846-4419-9801-75acd916f206"
+                },
+                {
+                    "description": "Segmento de AS5048A2 em F.Courtyard",
+                    "pos": {
+                        "x": 157.66868,
+                        "y": 128.41
+                    },
+                    "uuid": "62a4db8d-bb09-4b64-a9fc-d509bef7bfec"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de BMI008 (BMI088\n)",
+                    "pos": {
+                        "x": 155.94,
+                        "y": 75.245275
+                    },
+                    "uuid": "6e0b3cee-63c2-479a-96b5-b600d646fb1b"
+                },
+                {
+                    "description": "Retângulo de BMI008 em F.Courtyard",
+                    "pos": {
+                        "x": 138.21868,
+                        "y": 75.79718
+                    },
+                    "uuid": "f94a2e9e-8af8-49da-bf2b-ae85d6d81f37"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto da PCI 'CUBETSCHEK' em F.Silkscreen",
+                    "pos": {
+                        "x": 142.517252,
+                        "y": 146.54543
+                    },
+                    "uuid": "9ec03605-57a4-4bb6-99c7-25effea66d4e"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0930 mm)",
+            "items": [
+                {
+                    "description": "Texto da PCI 'CUBETSCHEK' em F.Silkscreen",
+                    "pos": {
+                        "x": 142.517252,
+                        "y": 146.54543
+                    },
+                    "uuid": "9ec03605-57a4-4bb6-99c7-25effea66d4e"
+                },
+                {
+                    "description": "Via [GND] no F.Cu - B.Cu",
+                    "pos": {
+                        "x": 143.61918,
+                        "y": 145.15918
+                    },
+                    "uuid": "588500fa-0b46-4eed-8888-4582d8849d97"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto da PCI 'CUBETSCHEK' em F.Silkscreen",
+                    "pos": {
+                        "x": 142.517252,
+                        "y": 146.54543
+                    },
+                    "uuid": "9ec03605-57a4-4bb6-99c7-25effea66d4e"
+                },
+                {
+                    "description": "Via [GND] no F.Cu - B.Cu",
+                    "pos": {
+                        "x": 145.61918,
+                        "y": 145.15918
+                    },
+                    "uuid": "adf763c6-70c7-498c-a48e-7c62a1744ac5"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto da PCI 'CUBETSCHEK' em F.Silkscreen",
+                    "pos": {
+                        "x": 142.517252,
+                        "y": 146.54543
+                    },
+                    "uuid": "9ec03605-57a4-4bb6-99c7-25effea66d4e"
+                },
+                {
+                    "description": "Via [GND] no F.Cu - B.Cu",
+                    "pos": {
+                        "x": 147.61918,
+                        "y": 145.15918
+                    },
+                    "uuid": "8faf0338-23bd-4da5-b661-1ea6be933424"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto da PCI 'AOCS' em F.Silkscreen",
+                    "pos": {
+                        "x": 145.974395,
+                        "y": 144.70868
+                    },
+                    "uuid": "e1e3a0aa-102c-4467-a4e7-059fa8c419aa"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0852 mm)",
+            "items": [
+                {
+                    "description": "Texto da PCI 'CUBETSCHEK' em F.Silkscreen",
+                    "pos": {
+                        "x": 142.517252,
+                        "y": 146.54543
+                    },
+                    "uuid": "9ec03605-57a4-4bb6-99c7-25effea66d4e"
+                },
+                {
+                    "description": "Via [GND] no F.Cu - B.Cu",
+                    "pos": {
+                        "x": 149.61918,
+                        "y": 145.15918
+                    },
+                    "uuid": "8b9bbcbe-c35a-4b29-8e0b-88af9c23bed9"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto da PCI 'CUBETSCHEK' em F.Silkscreen",
+                    "pos": {
+                        "x": 142.517252,
+                        "y": 146.54543
+                    },
+                    "uuid": "9ec03605-57a4-4bb6-99c7-25effea66d4e"
+                },
+                {
+                    "description": "Via [GND] no F.Cu - B.Cu",
+                    "pos": {
+                        "x": 151.61918,
+                        "y": 145.15918
+                    },
+                    "uuid": "edc7e6cf-f6e3-4900-9c7a-37b724d7332c"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0930 mm)",
+            "items": [
+                {
+                    "description": "Texto da PCI 'CUBETSCHEK' em F.Silkscreen",
+                    "pos": {
+                        "x": 142.517252,
+                        "y": 146.54543
+                    },
+                    "uuid": "9ec03605-57a4-4bb6-99c7-25effea66d4e"
+                },
+                {
+                    "description": "Via [GND] no F.Cu - B.Cu",
+                    "pos": {
+                        "x": 153.61918,
+                        "y": 145.15918
+                    },
+                    "uuid": "7035db8e-c565-490c-a5c4-e7feb9e4b938"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 139.65868,
+                        "y": 134.77
+                    },
+                    "uuid": "8663bf7f-23cd-4e68-9133-47eb809854ae"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 139.65868,
+                        "y": 134.77
+                    },
+                    "uuid": "8663bf7f-23cd-4e68-9133-47eb809854ae"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-MOSI)] no F.Cu, comprimento 7,0687 mm",
+                    "pos": {
+                        "x": 144.720347,
+                        "y": 136.258333
+                    },
+                    "uuid": "ca2a0619-9135-4890-93b5-cebf4a3f6cf7"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 139.65868,
+                        "y": 134.77
+                    },
+                    "uuid": "8663bf7f-23cd-4e68-9133-47eb809854ae"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-SCn)] no F.Cu, comprimento 11,2218 mm",
+                    "pos": {
+                        "x": 146.78368,
+                        "y": 139.195
+                    },
+                    "uuid": "7688242c-f783-41f0-a56c-60181ac7f1f5"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 153.96868,
+                        "y": 129.56
+                    },
+                    "uuid": "b8abbfbb-4e9d-49d9-8148-33bb623b2e5d"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 156.51868,
+                        "y": 134.01
+                    },
+                    "uuid": "14dbbef4-f243-4808-8aa0-c5b2a994ba3d"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 156.51868,
+                        "y": 134.01
+                    },
+                    "uuid": "14dbbef4-f243-4808-8aa0-c5b2a994ba3d"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-SCn)] no F.Cu, comprimento 11,2218 mm",
+                    "pos": {
+                        "x": 146.78368,
+                        "y": 139.195
+                    },
+                    "uuid": "7688242c-f783-41f0-a56c-60181ac7f1f5"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 157.27868,
+                        "y": 128.8
+                    },
+                    "uuid": "64c6b697-a06b-439c-9a63-1106542cae23"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 157.27868,
+                        "y": 128.8
+                    },
+                    "uuid": "64c6b697-a06b-439c-9a63-1106542cae23"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-3V3)] no F.Cu, comprimento 35,9413 mm",
+                    "pos": {
+                        "x": 144.71868,
+                        "y": 131.26
+                    },
+                    "uuid": "5d3f7666-a1df-4c6b-92a6-979b1b419042"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 157.27868,
+                        "y": 134.77
+                    },
+                    "uuid": "45ad4193-be10-4c4b-a4e3-b61ccd99b7b6"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 155.46868,
+                        "y": 128.81
+                    },
+                    "uuid": "b7e4aaf3-ae9e-4fb0-a59b-4f3e0302a96b"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0899 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 155.46868,
+                        "y": 129.56
+                    },
+                    "uuid": "03aef916-d326-4fad-9c05-37698b0ca921"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0681 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 156.51868,
+                        "y": 131.06
+                    },
+                    "uuid": "c597fbf1-c4d5-4095-af67-708adf42035e"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 157.26868,
+                        "y": 128.81
+                    },
+                    "uuid": "14e69e3a-4989-41ce-b228-09935dfc72ba"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 157.26868,
+                        "y": 129.56
+                    },
+                    "uuid": "dce93efd-183e-4c76-a2fc-161a2c7c73b2"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 157.26868,
+                        "y": 131.06
+                    },
+                    "uuid": "0ff25c83-3b3b-4d05-9ac4-244c46282e41"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,1029 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de AS5048A2 (GND 3V3 MISO MOSI CLK SCn)",
+                    "pos": {
+                        "x": 139.314156,
+                        "y": 136.73
+                    },
+                    "uuid": "97c0a65b-69fb-413a-b4d3-f43ded116a81"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 139.66868,
+                        "y": 128.81
+                    },
+                    "uuid": "5e6aaf8d-99f7-41a1-b1db-bd4beb89ab8e"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0326 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 139.66868,
+                        "y": 129.56
+                    },
+                    "uuid": "a1771970-9ca5-44e3-b612-c6f31ee28d75"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 141.46868,
+                        "y": 128.81
+                    },
+                    "uuid": "69876ef9-bdd7-49c2-9f63-de729e91f357"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 141.46868,
+                        "y": 129.56
+                    },
+                    "uuid": "322ee54b-5deb-42e6-bf39-0f15adf62988"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0709 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de AS5048A2 (GND 3V3 MISO MOSI CLK SCn)",
+                    "pos": {
+                        "x": 139.314156,
+                        "y": 136.73
+                    },
+                    "uuid": "97c0a65b-69fb-413a-b4d3-f43ded116a81"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-MOSI)] no F.Cu, comprimento 6,5520 mm",
+                    "pos": {
+                        "x": 138.168333,
+                        "y": 136.258333
+                    },
+                    "uuid": "87a1c837-b80b-4a9a-966c-7e4f90939dc0"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 139.65868,
+                        "y": 128.8
+                    },
+                    "uuid": "764dca39-8390-4379-bb63-02264ab25fb5"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 139.66868,
+                        "y": 131.06
+                    },
+                    "uuid": "452098f8-206d-43c9-a8bf-778cad636b43"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 140.41868,
+                        "y": 131.06
+                    },
+                    "uuid": "2b517d91-978a-4c01-9b5b-eb3ae4be4a82"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 140.41868,
+                        "y": 134.01
+                    },
+                    "uuid": "3c79f58d-65f4-4677-a5a1-b646cf14a384"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 140.41868,
+                        "y": 134.01
+                    },
+                    "uuid": "3c79f58d-65f4-4677-a5a1-b646cf14a384"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-MOSI)] no F.Cu, comprimento 7,0687 mm",
+                    "pos": {
+                        "x": 144.720347,
+                        "y": 136.258333
+                    },
+                    "uuid": "ca2a0619-9135-4890-93b5-cebf4a3f6cf7"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 142.96868,
+                        "y": 128.81
+                    },
+                    "uuid": "b795cd1f-f7ad-4cdd-80aa-182696c112d3"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0529 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de AS5048A2 (GND 3V3 MISO MOSI CLK SCn)",
+                    "pos": {
+                        "x": 139.314156,
+                        "y": 136.73
+                    },
+                    "uuid": "97c0a65b-69fb-413a-b4d3-f43ded116a81"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-MOSI)] no F.Cu, comprimento 7,0687 mm",
+                    "pos": {
+                        "x": 144.720347,
+                        "y": 136.258333
+                    },
+                    "uuid": "ca2a0619-9135-4890-93b5-cebf4a3f6cf7"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 142.96868,
+                        "y": 129.56
+                    },
+                    "uuid": "192b2a15-34ca-4231-a73b-ba0a57c5d911"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 142.96868,
+                        "y": 129.56
+                    },
+                    "uuid": "192b2a15-34ca-4231-a73b-ba0a57c5d911"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-3V3)] no F.Cu, comprimento 35,9413 mm",
+                    "pos": {
+                        "x": 144.71868,
+                        "y": 131.26
+                    },
+                    "uuid": "5d3f7666-a1df-4c6b-92a6-979b1b419042"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 153.96868,
+                        "y": 128.81
+                    },
+                    "uuid": "1334e7c1-cef8-4292-bc5c-b293f8a5a81e"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 153.96868,
+                        "y": 128.81
+                    },
+                    "uuid": "1334e7c1-cef8-4292-bc5c-b293f8a5a81e"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-3V3)] no F.Cu, comprimento 35,9413 mm",
+                    "pos": {
+                        "x": 144.71868,
+                        "y": 131.26
+                    },
+                    "uuid": "5d3f7666-a1df-4c6b-92a6-979b1b419042"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de AS5048A2 (GND 3V3 MISO MOSI CLK SCn)",
+                    "pos": {
+                        "x": 139.314156,
+                        "y": 136.73
+                    },
+                    "uuid": "97c0a65b-69fb-413a-b4d3-f43ded116a81"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-SCn)] no F.Cu, comprimento 11,2218 mm",
+                    "pos": {
+                        "x": 146.78368,
+                        "y": 139.195
+                    },
+                    "uuid": "7688242c-f783-41f0-a56c-60181ac7f1f5"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de AS5048A2 (AS5048A)",
+                    "pos": {
+                        "x": 154.02,
+                        "y": 127.91
+                    },
+                    "uuid": "c7f1aa56-7846-4419-9801-75acd916f206"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de DRV8313 (EN IN3 IN2 IN1 GND)",
+                    "pos": {
+                        "x": 175.62,
+                        "y": 114.711798
+                    },
+                    "uuid": "0169d719-f360-4b44-811b-379471596ab6"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,1157 mm)",
+            "items": [
+                {
+                    "description": "Campo de referência do GM2804",
+                    "pos": {
+                        "x": 172.83,
+                        "y": 128.4475
+                    },
+                    "uuid": "09bc1e15-11ee-4536-b3d7-38404aa33521"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0002 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 167.12,
+                        "y": 129.3775
+                    },
+                    "uuid": "f6905c97-030c-4150-9991-bbe5fe2c7f15"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0984 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 167.42,
+                        "y": 130.9875
+                    },
+                    "uuid": "8c3d2271-10b8-424b-bce7-0b2641fa5adf"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 168.37,
+                        "y": 129.3775
+                    },
+                    "uuid": "5cede850-51ef-4905-b16f-1b61f95cbdcf"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 167.42,
+                        "y": 132.2875
+                    },
+                    "uuid": "60da5991-4dc7-41c2-8e85-3a65e98c2f24"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 168.03,
+                        "y": 130.2875
+                    },
+                    "uuid": "d6d9eace-7e54-43b3-86aa-b0e77b3485c8"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 169.18,
+                        "y": 129.6775
+                    },
+                    "uuid": "13a4d3e9-8220-45f5-b063-2925a07e7aaf"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 172.98,
+                        "y": 130.2875
+                    },
+                    "uuid": "eeb66c8c-0c12-458f-b242-34671aa9fc7f"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 174.93,
+                        "y": 130.2875
+                    },
+                    "uuid": "8fb2496f-fbd2-43fa-b1ce-d099d549e1d5"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0548 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 175.54,
+                        "y": 130.9875
+                    },
+                    "uuid": "ccdc9709-a41a-41fc-9f8d-34e4eae1cda3"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 168.03,
+                        "y": 133.7875
+                    },
+                    "uuid": "26d2276d-78a6-4c3e-ae2c-dc19719c8338"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 174.93,
+                        "y": 133.7875
+                    },
+                    "uuid": "5b543184-4152-4a07-9629-1bd91cde0f84"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 175.54,
+                        "y": 132.2875
+                    },
+                    "uuid": "e3c6c33f-d28a-4aa6-98eb-3d14e01cd418"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Retângulo de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 167.42,
+                        "y": 129.6775
+                    },
+                    "uuid": "1fc82668-5206-4846-b513-91da11fc4b5c"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 168.88,
+                        "y": 129.4775
+                    },
+                    "uuid": "c974c7e6-b801-455d-8ca9-1de82c13fcb6"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 169.18,
+                        "y": 129.4775
+                    },
+                    "uuid": "aaa05119-65bf-4746-be86-1d69b3218658"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 169.18,
+                        "y": 129.5775
+                    },
+                    "uuid": "cd2143bd-99f2-40f5-af61-6ce9d5b66978"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 169.98,
+                        "y": 129.6775
+                    },
+                    "uuid": "629679d9-63d4-42d9-abd8-2c5cbd26c1a2"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0920 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 169.98,
+                        "y": 130.2875
+                    },
+                    "uuid": "c41f58e8-1459-48bc-a6ac-c6e60302c6bb"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0791 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 170.38,
+                        "y": 133.2875
+                    },
+                    "uuid": "a3ae3cb9-4452-48d3-8531-87da730f9dbd"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 170.38,
+                        "y": 133.7875
+                    },
+                    "uuid": "82bb432a-0b01-4ce0-a488-3a3d7366f7a0"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0479 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 170.48,
+                        "y": 133.7875
+                    },
+                    "uuid": "226c8a4a-1350-493d-80cf-e9d2e6afdeb4"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0976 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 170.58,
+                        "y": 133.2875
+                    },
+                    "uuid": "5daa4ee8-468d-45f1-acc7-8573c2891ce4"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 172.38,
+                        "y": 133.2875
+                    },
+                    "uuid": "ccf6334c-9441-491e-891e-3159763efd53"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 172.38,
+                        "y": 133.7875
+                    },
+                    "uuid": "0005a449-2ce2-446e-a28e-a9e2279df151"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0399 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 172.48,
+                        "y": 133.7875
+                    },
+                    "uuid": "cb20277e-5bd0-4a84-b9fd-194fe9cb4032"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0691 mm)",
+            "items": [
+                {
+                    "description": "Segmento de GM2804 em F.Silkscreen",
+                    "pos": {
+                        "x": 172.58,
+                        "y": 133.2875
+                    },
+                    "uuid": "6e3aef98-b758-4ad0-ae15-5530dcfec8d1"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,1263 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de GM2804 (M3)",
+                    "pos": {
+                        "x": 167.961905,
+                        "y": 135.9675
+                    },
+                    "uuid": "c2fa4790-48a3-4648-8b79-1e9246bfa5c7"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de GM2804 (M1)",
+                    "pos": {
+                        "x": 173.031905,
+                        "y": 135.9675
+                    },
+                    "uuid": "6fa21217-2795-4955-bdbb-8aefc3c4b8fc"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0621 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de GM2804 (M2)",
+                    "pos": {
+                        "x": 170.496905,
+                        "y": 135.9675
+                    },
+                    "uuid": "c7fc6753-b863-4ce2-b631-ae819bdcc016"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.16868,
+                        "y": 132.87073
+                    },
+                    "uuid": "5d8eae02-6231-4cb4-ab49-c049afcce469"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 183.95868,
+                        "y": 139.59073
+                    },
+                    "uuid": "4ae6e737-5f63-4dff-9654-ce065384e852"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 183.95868,
+                        "y": 139.59073
+                    },
+                    "uuid": "4ae6e737-5f63-4dff-9654-ce065384e852"
+                },
+                {
+                    "description": "Trilha [Net-(ESP32-D32)] no F.Cu, comprimento 47,4083 mm",
+                    "pos": {
+                        "x": 151.64595,
+                        "y": 101.458
+                    },
+                    "uuid": "038c8203-90bc-404f-a8fd-8d3d80921c8d"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Retângulo de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 183.45868,
+                        "y": 140.09073
+                    },
+                    "uuid": "d56730bd-77aa-4056-8428-2e622d908c63"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Retângulo de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 183.45868,
+                        "y": 140.09073
+                    },
+                    "uuid": "d56730bd-77aa-4056-8428-2e622d908c63"
+                },
+                {
+                    "description": "Trilha [Net-(ESP32-D32)] no F.Cu, comprimento 47,4083 mm",
+                    "pos": {
+                        "x": 151.64595,
+                        "y": 101.458
+                    },
+                    "uuid": "038c8203-90bc-404f-a8fd-8d3d80921c8d"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de Y+1 (- +)",
+                    "pos": {
+                        "x": 182.78868,
+                        "y": 137.974777
+                    },
+                    "uuid": "7f9c0a9b-ec01-4f7c-bbe9-d2cf23c10eaa"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de Y+1 (JST PLACA)",
+                    "pos": {
+                        "x": 188.15868,
+                        "y": 134.20073
+                    },
+                    "uuid": "76ebace7-c50c-49b8-bb5c-5a2d63660930"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 183.95868,
+                        "y": 132.87073
+                    },
+                    "uuid": "693f1c39-1bf7-4577-9b59-b3d580935111"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.97868,
+                        "y": 132.37073
+                    },
+                    "uuid": "73bab431-24ff-4eaa-80c3-3b6f83a64df4"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.97868,
+                        "y": 133.37073
+                    },
+                    "uuid": "c2c5e28c-0395-4799-b213-8f9a1d7cfb1c"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.16868,
+                        "y": 139.59073
+                    },
+                    "uuid": "a29ca4a1-8801-456e-b70d-9a5959f6055a"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.16868,
+                        "y": 140.09073
+                    },
+                    "uuid": "db91bfec-520d-48b8-b369-eec9063a4c63"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.27868,
+                        "y": 140.39073
+                    },
+                    "uuid": "09bf92b4-ac29-48ac-88bd-69d85bd9093e"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.97868,
+                        "y": 139.09073
+                    },
+                    "uuid": "5ca93ee7-9ee5-4a44-a0eb-5f4e8545d923"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.97868,
+                        "y": 140.09073
+                    },
+                    "uuid": "3210829c-64cd-4185-9c8c-6ccc7335efd5"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Y+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 187.77868,
+                        "y": 140.39073
+                    },
+                    "uuid": "5dabde98-2b8f-4ee1-b7e8-a3c1f6dfd586"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto da PCI 'IT'S TIME TO GO TO BED\n' em F.Silkscreen",
+                    "pos": {
+                        "x": 112.158333,
+                        "y": 128.42
+                    },
+                    "uuid": "079076af-0e71-4d01-8fa8-b679581c574a"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,1196 mm)",
+            "items": [
+                {
+                    "description": "Texto da PCI 'IT'S TIME TO GO TO BED\n' em F.Silkscreen",
+                    "pos": {
+                        "x": 112.158333,
+                        "y": 128.42
+                    },
+                    "uuid": "079076af-0e71-4d01-8fa8-b679581c574a"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-MOSI)] no F.Cu, comprimento 30,8452 mm",
+                    "pos": {
+                        "x": 116.3575,
+                        "y": 114.4475
+                    },
+                    "uuid": "62993363-2ce2-43a3-a181-747e804b4d36"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0274 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 139.36868,
+                        "y": 128.51
+                    },
+                    "uuid": "22d7cf50-4a97-4a9d-b227-15db4e45bf18"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de AS5048A2 em F.Silkscreen",
+                    "pos": {
+                        "x": 140.61868,
+                        "y": 128.51
+                    },
+                    "uuid": "349bcfc8-a617-4bd9-8e6a-645ffd58fb03"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 150.717543,
+                        "y": 111.018594
+                    },
+                    "uuid": "284aabc2-ede2-4446-ad3e-a94326c61d7f"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 152.375007,
+                        "y": 110.566094
+                    },
+                    "uuid": "bfa884dd-8910-4516-8333-fb755823309a"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 151.539678,
+                        "y": 110.49312
+                    },
+                    "uuid": "3b91f4a1-29e2-4428-8f7c-2e17736203f0"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (GND)",
+                    "pos": {
+                        "x": 130.585715,
+                        "y": 117.97043
+                    },
+                    "uuid": "fc84c15e-63cc-4d2c-a477-483376c77514"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Trilha [Net-(ESP32-D33)] no F.Cu, comprimento 4,6384 mm",
+                    "pos": {
+                        "x": 137.40982,
+                        "y": 103.946
+                    },
+                    "uuid": "80137f43-cabb-4e30-b32c-8cc077a83430"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Trilha [Net-(ESP32-D32)] no F.Cu, comprimento 4,7119 mm",
+                    "pos": {
+                        "x": 137.46182,
+                        "y": 101.458
+                    },
+                    "uuid": "b9d6e6be-6c78-4ec6-9a7c-23c2bf523f39"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-3V3)] no F.Cu, comprimento 35,9413 mm",
+                    "pos": {
+                        "x": 144.71868,
+                        "y": 131.26
+                    },
+                    "uuid": "5d3f7666-a1df-4c6b-92a6-979b1b419042"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Trilha [Net-(ESP32-D32)] no F.Cu, comprimento 47,4083 mm",
+                    "pos": {
+                        "x": 151.64595,
+                        "y": 101.458
+                    },
+                    "uuid": "038c8203-90bc-404f-a8fd-8d3d80921c8d"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Trilha [Net-(ESP32-D33)] no F.Cu, comprimento 16,0428 mm",
+                    "pos": {
+                        "x": 162.5,
+                        "y": 115.29
+                    },
+                    "uuid": "a759451b-dfa2-4a73-86ca-fad13c4ccb1c"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Via [GND] no F.Cu - B.Cu",
+                    "pos": {
+                        "x": 161.61918,
+                        "y": 100.65918
+                    },
+                    "uuid": "ff3ae23b-c8f0-4809-9314-c5a523e1b53f"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Via [GND] no F.Cu - B.Cu",
+                    "pos": {
+                        "x": 153.61918,
+                        "y": 118.65918
+                    },
+                    "uuid": "5abe9a27-4bec-4661-bfae-1d7b01cdc967"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Via [GND] no F.Cu - B.Cu",
+                    "pos": {
+                        "x": 143.11918,
+                        "y": 118.65918
+                    },
+                    "uuid": "20492553-7774-4487-90c5-7e3e320fb3c9"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 148.46868,
+                        "y": 105.50868
+                    },
+                    "uuid": "a0393ba5-b4a5-4883-a83f-83ac45f18562"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-3V3)] no F.Cu, comprimento 7,4246 mm",
+                    "pos": {
+                        "x": 144.71868,
+                        "y": 95.31868
+                    },
+                    "uuid": "24e9b8dc-ca29-40b2-8882-3bbd59c1da54"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de DRV8313 em F.Silkscreen",
+                    "pos": {
+                        "x": 188.89,
+                        "y": 115.69068
+                    },
+                    "uuid": "06c233d0-a009-4e83-9cd8-fc04e841b4da"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de DRV8313 em F.Silkscreen",
+                    "pos": {
+                        "x": 188.89,
+                        "y": 115.69068
+                    },
+                    "uuid": "06c233d0-a009-4e83-9cd8-fc04e841b4da"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-3V3)] no F.Cu, comprimento 22,2739 mm",
+                    "pos": {
+                        "x": 156.93,
+                        "y": 87.93
+                    },
+                    "uuid": "05a6ffb2-ea38-4c34-a376-36d95415a125"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 150.062265,
+                        "y": 110.493504
+                    },
+                    "uuid": "a5c8f9fa-2f51-442d-b38c-b5393e39c45b"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 151.976426,
+                        "y": 107.700902
+                    },
+                    "uuid": "9b9b0570-8a5b-495c-aea9-6093de3b79d9"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 149.045043,
+                        "y": 110.479339
+                    },
+                    "uuid": "e34a7dc3-772c-43b0-a0ee-c1abcfb5c735"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 145.116992,
+                        "y": 107.696669
+                    },
+                    "uuid": "abdca7a2-819c-4bd5-86d5-523c52b5439b"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 145.116992,
+                        "y": 107.696669
+                    },
+                    "uuid": "abdca7a2-819c-4bd5-86d5-523c52b5439b"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-3V3)] no F.Cu, comprimento 35,9413 mm",
+                    "pos": {
+                        "x": 144.71868,
+                        "y": 131.26
+                    },
+                    "uuid": "5d3f7666-a1df-4c6b-92a6-979b1b419042"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 147.323125,
+                        "y": 107.700416
+                    },
+                    "uuid": "be2c10fe-a5ce-4b92-8bd0-a8ce0b3399bd"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 150.551687,
+                        "y": 107.760926
+                    },
+                    "uuid": "e3dde04e-fbd0-401e-b4f5-f4ab4cc4836e"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 149.913048,
+                        "y": 99.476094
+                    },
+                    "uuid": "5add9e52-eefc-41bf-ad2e-4e13cd451cb6"
+                },
+                {
+                    "description": "Via [Net-(ESP32-D32)] no F.Cu - B.Cu",
+                    "pos": {
+                        "x": 146.92,
+                        "y": 101.458
+                    },
+                    "uuid": "dc6900fe-5050-43cf-b05c-eadb3bd6a33d"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 149.913048,
+                        "y": 99.476094
+                    },
+                    "uuid": "5add9e52-eefc-41bf-ad2e-4e13cd451cb6"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 149.913048,
+                        "y": 99.476094
+                    },
+                    "uuid": "5add9e52-eefc-41bf-ad2e-4e13cd451cb6"
+                },
+                {
+                    "description": "Trilha [Net-(ESP32-D32)] no F.Cu, comprimento 4,7059 mm",
+                    "pos": {
+                        "x": 146.94,
+                        "y": 101.458
+                    },
+                    "uuid": "a792c233-9bd6-4bce-87f7-669001941077"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 149.913048,
+                        "y": 99.476094
+                    },
+                    "uuid": "5add9e52-eefc-41bf-ad2e-4e13cd451cb6"
+                },
+                {
+                    "description": "Trilha [Net-(ESP32-D33)] no F.Cu, comprimento 4,0060 mm",
+                    "pos": {
+                        "x": 151.156,
+                        "y": 103.946
+                    },
+                    "uuid": "98058c89-9785-453f-b948-44ca7927352c"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 149.913048,
+                        "y": 99.476094
+                    },
+                    "uuid": "5add9e52-eefc-41bf-ad2e-4e13cd451cb6"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-3V3)] no F.Cu, comprimento 35,9413 mm",
+                    "pos": {
+                        "x": 144.71868,
+                        "y": 131.26
+                    },
+                    "uuid": "5d3f7666-a1df-4c6b-92a6-979b1b419042"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 149.913048,
+                        "y": 99.476094
+                    },
+                    "uuid": "5add9e52-eefc-41bf-ad2e-4e13cd451cb6"
+                },
+                {
+                    "description": "Trilha [Net-(ESP32-D32)] no F.Cu, comprimento 47,4083 mm",
+                    "pos": {
+                        "x": 151.64595,
+                        "y": 101.458
+                    },
+                    "uuid": "038c8203-90bc-404f-a8fd-8d3d80921c8d"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 149.913048,
+                        "y": 99.476094
+                    },
+                    "uuid": "5add9e52-eefc-41bf-ad2e-4e13cd451cb6"
+                },
+                {
+                    "description": "Trilha [Net-(ESP32-D33)] no F.Cu, comprimento 16,0428 mm",
+                    "pos": {
+                        "x": 162.5,
+                        "y": 115.29
+                    },
+                    "uuid": "a759451b-dfa2-4a73-86ca-fad13c4ccb1c"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (D35)",
+                    "pos": {
+                        "x": 130.7,
+                        "y": 95.23868
+                    },
+                    "uuid": "d39753d0-bd0e-4419-9adf-b25fb1f199f1"
+                },
+                {
+                    "description": "Trilha [Net-(ESP32-D35)] no F.Cu, comprimento 2,8038 mm",
+                    "pos": {
+                        "x": 131.32618,
+                        "y": 95.58618
+                    },
+                    "uuid": "92dce658-0d86-4a06-9324-615f70af77fb"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (D35)",
+                    "pos": {
+                        "x": 130.7,
+                        "y": 95.23868
+                    },
+                    "uuid": "d39753d0-bd0e-4419-9adf-b25fb1f199f1"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (VIN)",
+                    "pos": {
+                        "x": 131.119049,
+                        "y": 120.49618
+                    },
+                    "uuid": "38b8c172-7333-4b41-8271-07f651c9d30b"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 145.675628,
+                        "y": 110.490781
+                    },
+                    "uuid": "a74db4c9-0802-4505-b13d-31b79049c45e"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0044 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 145.675628,
+                        "y": 110.490781
+                    },
+                    "uuid": "a74db4c9-0802-4505-b13d-31b79049c45e"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-3V3)] no F.Cu, comprimento 35,9413 mm",
+                    "pos": {
+                        "x": 144.71868,
+                        "y": 131.26
+                    },
+                    "uuid": "5d3f7666-a1df-4c6b-92a6-979b1b419042"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 144.60848,
+                        "y": 110.496121
+                    },
+                    "uuid": "c87667e7-d4b8-40eb-aacc-660b70d78ca6"
+                },
+                {
+                    "description": "Trilha [Net-(AS5048A2-3V3)] no F.Cu, comprimento 35,9413 mm",
+                    "pos": {
+                        "x": 144.71868,
+                        "y": 131.26
+                    },
+                    "uuid": "5d3f7666-a1df-4c6b-92a6-979b1b419042"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 144.60848,
+                        "y": 110.496121
+                    },
+                    "uuid": "c87667e7-d4b8-40eb-aacc-660b70d78ca6"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 147.942543,
+                        "y": 110.484319
+                    },
+                    "uuid": "2e1d23a5-1ff9-4e39-9ce7-f2139c2b300e"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 147.237648,
+                        "y": 110.487581
+                    },
+                    "uuid": "5ffd4b24-f4a7-4cc3-b82e-0744847d58c3"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de logo em F.Silkscreen",
+                    "pos": {
+                        "x": 146.35905,
+                        "y": 110.485248
+                    },
+                    "uuid": "b2741632-a120-4ad0-9f82-ed4ff61f09c0"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (D26)",
+                    "pos": {
+                        "x": 130.7,
+                        "y": 105.34168
+                    },
+                    "uuid": "25ca344a-047e-4c98-82ad-eaaba443aafa"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,1151 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (D27)",
+                    "pos": {
+                        "x": 130.7,
+                        "y": 107.86743
+                    },
+                    "uuid": "7f5d1d36-e9d4-41a1-bd7c-ba45bb7fe032"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (D14)",
+                    "pos": {
+                        "x": 130.7,
+                        "y": 110.39318
+                    },
+                    "uuid": "ec69ced1-b06c-4bc3-a176-e3547ba8ccf8"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,1046 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (D33)",
+                    "pos": {
+                        "x": 130.7,
+                        "y": 100.29018
+                    },
+                    "uuid": "b81605e2-c535-410d-b876-2d76faf7f211"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (D25)",
+                    "pos": {
+                        "x": 130.7,
+                        "y": 102.81593
+                    },
+                    "uuid": "5c835422-c94b-48a3-94b6-018afaf80aa1"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0523 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (D12)",
+                    "pos": {
+                        "x": 130.7,
+                        "y": 112.91893
+                    },
+                    "uuid": "71c8620f-d66d-480f-b420-14e0410e31c3"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (D13)",
+                    "pos": {
+                        "x": 130.7,
+                        "y": 115.44468
+                    },
+                    "uuid": "4ac37d01-5a46-4e52-8287-898df6456bda"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (D35)",
+                    "pos": {
+                        "x": 130.7,
+                        "y": 95.23868
+                    },
+                    "uuid": "d39753d0-bd0e-4419-9adf-b25fb1f199f1"
+                },
+                {
+                    "description": "Trilha [Net-(ESP32-D35)] no F.Cu, comprimento 27,6283 mm",
+                    "pos": {
+                        "x": 111.79,
+                        "y": 76.05
+                    },
+                    "uuid": "1ce455ee-c85e-4610-adce-ba283ed22799"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de ESP32 (D32)",
+                    "pos": {
+                        "x": 130.7,
+                        "y": 97.76443
+                    },
+                    "uuid": "4c3a65e5-bde1-4980-8e72-8e75528f81db"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de DRV8313 (-)",
+                    "pos": {
+                        "x": 172.4,
+                        "y": 97.32843
+                    },
+                    "uuid": "9af49e0a-055e-4232-af21-10f7bdf49ae0"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de DRV8313 (nFT nSP nRT GND 3V3)",
+                    "pos": {
+                        "x": 177.71,
+                        "y": 115.426085
+                    },
+                    "uuid": "65fe24f4-1822-42a3-bb7b-5a348a2fd61d"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de DRV8313 em F.Silkscreen",
+                    "pos": {
+                        "x": 188.89,
+                        "y": 115.69068
+                    },
+                    "uuid": "06c233d0-a009-4e83-9cd8-fc04e841b4da"
+                },
+                {
+                    "description": "Trilha [Net-(Barramento1-Pin_37)] no F.Cu, comprimento 11,1600 mm",
+                    "pos": {
+                        "x": 180.07,
+                        "y": 85.9
+                    },
+                    "uuid": "042c56da-5bb7-4358-9879-5dc3692e2e9a"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0116 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de DRV8313 (M1 M2 M3)",
+                    "pos": {
+                        "x": 186.09,
+                        "y": 111.866443
+                    },
+                    "uuid": "918804c0-a150-4600-b276-65ab4aeaf92e"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de DRV8313 (+)",
+                    "pos": {
+                        "x": 181.21,
+                        "y": 97.32843
+                    },
+                    "uuid": "1069ce0b-e7c6-400f-bb63-cc66fc763968"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de DRV8313 (DRV8313)",
+                    "pos": {
+                        "x": 185.75,
+                        "y": 94.21668
+                    },
+                    "uuid": "c1e8d5fb-ba29-4326-89dc-c01f7301e97b"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de X+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.27868,
+                        "y": 78.946629
+                    },
+                    "uuid": "457c8ee1-a9a3-4d28-88e4-45b4d10ca2c1"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de X+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 183.95868,
+                        "y": 71.426629
+                    },
+                    "uuid": "efe35837-86b8-4871-b1dd-1550f294522b"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0603 mm)",
+            "items": [
+                {
+                    "description": "Segmento de X+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.16868,
+                        "y": 71.42663
+                    },
+                    "uuid": "6f53f819-11c5-43c0-aac2-1d978d73d20c"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0488 mm)",
+            "items": [
+                {
+                    "description": "Segmento de X+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.97868,
+                        "y": 70.92663
+                    },
+                    "uuid": "2360ccc6-b1ec-43a2-99d0-bb2464702f47"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de X+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.97868,
+                        "y": 71.92663
+                    },
+                    "uuid": "ab966b5e-95e7-4b08-94b9-6450ce36581c"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de X+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 183.45868,
+                        "y": 78.64663
+                    },
+                    "uuid": "2b10669d-6cd9-4bfd-90c4-d07ab46c90ae"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de X+1 (JST PLACA)",
+                    "pos": {
+                        "x": 188.15868,
+                        "y": 72.75663
+                    },
+                    "uuid": "faf0353e-f418-4b3d-8b7d-4bb7076c4419"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de X+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.16868,
+                        "y": 78.14663
+                    },
+                    "uuid": "3615297e-aee1-4a23-8ff0-3e46581a7cba"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de X+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.16868,
+                        "y": 78.64663
+                    },
+                    "uuid": "6a5dcd46-e217-4487-835a-f426f875b636"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de X+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.97868,
+                        "y": 77.64663
+                    },
+                    "uuid": "0db1a39d-88d8-4515-9f37-3fbafa8e18f4"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de X+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 185.97868,
+                        "y": 78.64663
+                    },
+                    "uuid": "6818ee25-8ab5-4b70-9361-0dc1c0d127aa"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de X+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 187.77868,
+                        "y": 78.946629
+                    },
+                    "uuid": "c596ecdf-a43f-492c-bd26-dfc3cd5f2ea9"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de X+1 em F.Silkscreen",
+                    "pos": {
+                        "x": 183.95868,
+                        "y": 78.14663
+                    },
+                    "uuid": "312757d7-58f5-44c9-8284-a06b9878bea8"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de X+1 (- +)",
+                    "pos": {
+                        "x": 182.78868,
+                        "y": 76.530678
+                    },
+                    "uuid": "b581b028-7539-45ab-9651-d9231f1d2a2c"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de Barramento1 (SDA)",
+                    "pos": {
+                        "x": 161.57868,
+                        "y": 65.53868
+                    },
+                    "uuid": "4880832d-8d1e-4c89-92cb-4ea1c2fe406a"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0611 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de Barramento1 (SCL)",
+                    "pos": {
+                        "x": 157.82868,
+                        "y": 65.53868
+                    },
+                    "uuid": "ae690aa5-66ec-4ff3-9c40-28ca11b9049a"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de BMI008 (BMI088\n)",
+                    "pos": {
+                        "x": 155.94,
+                        "y": 75.245275
+                    },
+                    "uuid": "6e0b3cee-63c2-479a-96b5-b600d646fb1b"
+                },
+                {
+                    "description": "Trilha [Net-(Barramento1-Pin_37)] no F.Cu, comprimento 36,3619 mm",
+                    "pos": {
+                        "x": 131.758125,
+                        "y": 74.658125
+                    },
+                    "uuid": "484b4374-dcc3-4823-9ac5-326dca448607"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,1036 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de BMI008 (BMI088\n)",
+                    "pos": {
+                        "x": 155.94,
+                        "y": 75.245275
+                    },
+                    "uuid": "6e0b3cee-63c2-479a-96b5-b600d646fb1b"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Segmento de Barramento1 em F.Silkscreen",
+                    "pos": {
+                        "x": 174.11868,
+                        "y": 66.00868
+                    },
+                    "uuid": "bca87aef-85d5-4acf-a82d-13bef23db5e4"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Texto do footprint de Barramento1 (GND)",
+                    "pos": {
+                        "x": 170.90868,
+                        "y": 72.55868
+                    },
+                    "uuid": "8da4f913-449c-48d0-8d27-cf01146c5908"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0334 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 167.812803,
+                        "y": 76.048976
+                    },
+                    "uuid": "9305aa57-00bd-4222-8d89-0ad17193db99"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 168.621103,
+                        "y": 76.533956
+                    },
+                    "uuid": "62ad6794-a5af-47cf-8026-3fd54c995f6c"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 168.782762,
+                        "y": 76.695616
+                    },
+                    "uuid": "b4b71a17-0117-4265-9a14-8fc97a1d848f"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 169.106082,
+                        "y": 76.614786
+                    },
+                    "uuid": "1c230e03-ad22-42b6-a644-2317453744e0"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 170.399361,
+                        "y": 76.048976
+                    },
+                    "uuid": "5934fd08-d84a-41c1-ab96-9308b543f7dd"
+                },
+                {
+                    "description": "Trilha [Net-(Barramento1-Pin_37)] no F.Cu, comprimento 15,8984 mm",
+                    "pos": {
+                        "x": 168.828125,
+                        "y": 74.658125
+                    },
+                    "uuid": "468d48fe-e23d-48e1-96b7-9d412afc29d0"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 168.782762,
+                        "y": 77.827235
+                    },
+                    "uuid": "2a41c7ef-e406-4bf7-8ce3-f4b30c0f0cc1"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 170.561021,
+                        "y": 77.180595
+                    },
+                    "uuid": "ee0c35ff-d2e3-45db-b66e-6f45c64e53ab"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0012 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 170.561021,
+                        "y": 77.180595
+                    },
+                    "uuid": "ee0c35ff-d2e3-45db-b66e-6f45c64e53ab"
+                },
+                {
+                    "description": "Trilha [Net-(Barramento1-Pin_37)] no F.Cu, comprimento 15,8984 mm",
+                    "pos": {
+                        "x": 168.828125,
+                        "y": 74.658125
+                    },
+                    "uuid": "468d48fe-e23d-48e1-96b7-9d412afc29d0"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 168.782762,
+                        "y": 76.048976
+                    },
+                    "uuid": "a65afed6-9f78-451e-a053-812d926f130d"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0012 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 168.782762,
+                        "y": 76.048976
+                    },
+                    "uuid": "a65afed6-9f78-451e-a053-812d926f130d"
+                },
+                {
+                    "description": "Trilha [Net-(Barramento1-Pin_37)] no F.Cu, comprimento 15,8984 mm",
+                    "pos": {
+                        "x": 168.828125,
+                        "y": 74.658125
+                    },
+                    "uuid": "468d48fe-e23d-48e1-96b7-9d412afc29d0"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 171.36932,
+                        "y": 76.857276
+                    },
+                    "uuid": "b7685877-52b0-43ac-9e5a-85edd33c900c"
+                },
+                {
+                    "description": "Trilha [Net-(Barramento1-Pin_37)] no F.Cu, comprimento 15,8984 mm",
+                    "pos": {
+                        "x": 168.828125,
+                        "y": 74.658125
+                    },
+                    "uuid": "468d48fe-e23d-48e1-96b7-9d412afc29d0"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 171.8543,
+                        "y": 77.503915
+                    },
+                    "uuid": "765b3664-feb8-466c-b44c-8f232117116a"
+                },
+                {
+                    "description": "Trilha [Net-(Barramento1-Pin_37)] no F.Cu, comprimento 15,8984 mm",
+                    "pos": {
+                        "x": 168.828125,
+                        "y": 74.658125
+                    },
+                    "uuid": "468d48fe-e23d-48e1-96b7-9d412afc29d0"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 172.824259,
+                        "y": 76.695616
+                    },
+                    "uuid": "69347d07-0045-4e80-8533-1d6f0f9e3160"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0276 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 172.985919,
+                        "y": 77.827235
+                    },
+                    "uuid": "7bafc342-a3d1-4280-86e5-d28766a63f55"
+                },
+                {
+                    "description": "Trilha [Net-(Barramento1-Pin_37)] no F.Cu, comprimento 15,8984 mm",
+                    "pos": {
+                        "x": 168.828125,
+                        "y": 74.658125
+                    },
+                    "uuid": "468d48fe-e23d-48e1-96b7-9d412afc29d0"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 172.985919,
+                        "y": 77.827235
+                    },
+                    "uuid": "7bafc342-a3d1-4280-86e5-d28766a63f55"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 172.985919,
+                        "y": 78.150555
+                    },
+                    "uuid": "6ae79de3-5e61-4230-a923-4226d7786c47"
+                },
+                {
+                    "description": "Trilha [Net-(Barramento1-Pin_37)] no F.Cu, comprimento 15,8984 mm",
+                    "pos": {
+                        "x": 168.828125,
+                        "y": 74.658125
+                    },
+                    "uuid": "468d48fe-e23d-48e1-96b7-9d412afc29d0"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0739 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 172.985919,
+                        "y": 78.150555
+                    },
+                    "uuid": "6ae79de3-5e61-4230-a923-4226d7786c47"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 173.309239,
+                        "y": 76.048976
+                    },
+                    "uuid": "0e8992c5-199d-43ee-8c07-4ab0ed7775e2"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 164.256286,
+                        "y": 82.353711
+                    },
+                    "uuid": "e4b08763-2328-494e-9667-408e90c409d7"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 165.064585,
+                        "y": 81.060432
+                    },
+                    "uuid": "8cf47829-fa33-4494-94c2-6bacf7057498"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 164.579606,
+                        "y": 81.060432
+                    },
+                    "uuid": "4f2ed5be-bec9-4e17-8941-f674d94273ad"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 164.741265,
+                        "y": 81.545412
+                    },
+                    "uuid": "9c9ce297-dcc4-4202-9272-6c6ed087201b"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 165.387905,
+                        "y": 81.868732
+                    },
+                    "uuid": "43229da2-41c6-4155-845d-2795aa1fc503"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 164.741265,
+                        "y": 80.575453
+                    },
+                    "uuid": "61e95e6c-ec40-48d8-bb6d-281009e5ab7f"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 165.387905,
+                        "y": 80.009643
+                    },
+                    "uuid": "9208d96b-16bc-42ee-980c-935220b3139f"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 165.872885,
+                        "y": 81.060432
+                    },
+                    "uuid": "a26c501b-956e-4dd6-b552-5d7d43f789bc"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 166.034544,
+                        "y": 80.898772
+                    },
+                    "uuid": "b0b51aeb-e466-42df-aba7-329a7afc8e38"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 166.196204,
+                        "y": 81.060432
+                    },
+                    "uuid": "d06d8112-cb29-45d2-a871-7507695ed288"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Folga da serigrafia (regra 'circuibras_serigrafia_pad' isolamento 0,1270 mm; atual 0,0000 mm)",
+            "items": [
+                {
+                    "description": "Polígono de G*** em F.Silkscreen",
+                    "pos": {
+                        "x": 164.417946,
+                        "y": 79.928813
+                    },
+                    "uuid": "b50111f7-d988-48e8-9bcf-4e659518577e"
+                },
+                {
+                    "description": "Zona 'GND PLANE_2' [GND] no F.Cu e B.Cu, prioridade 0",
+                    "pos": {
+                        "x": 111.09,
+                        "y": 64.04
+                    },
+                    "uuid": "25a0e519-c924-4080-8b8a-4450c1ec7a3b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        }
+    ]
+}

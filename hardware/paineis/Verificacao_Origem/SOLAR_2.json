@@ -1,0 +1,106 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-10-06T19:52:32",
+    "ignored_checks": [
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.6",
+    "schematic_parity": [],
+    "source": "PCB_SOLAR_PANEL.kicad_pcb",
+    "unconnected_items": [],
+    "violations": [
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SC40",
+                    "pos": {
+                        "x": 85.99,
+                        "y": 94.14
+                    },
+                    "uuid": "16bc1b6d-646c-4d38-8e76-6b9e5cee5869"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SC41",
+                    "pos": {
+                        "x": 147.26,
+                        "y": 94.14
+                    },
+                    "uuid": "282327ba-6b06-462a-ac69-7d4fd9693f96"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SC42",
+                    "pos": {
+                        "x": 208.53,
+                        "y": 94.14
+                    },
+                    "uuid": "4595880f-5103-4b4a-98f2-7c354198f711"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "Campo de referência do SaidaSistema2",
+                    "pos": {
+                        "x": 159.39,
+                        "y": 59.16
+                    },
+                    "uuid": "5f1f05da-c90c-49cb-bf1b-c43cfd331aea"
+                },
+                {
+                    "description": "Campo de referência do SaidaSistema1",
+                    "pos": {
+                        "x": 159.44,
+                        "y": 62.99
+                    },
+                    "uuid": "9b884b5f-4e73-45ff-a379-7e561da20551"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        }
+    ]
+}

@@ -1,0 +1,279 @@
+(footprint "JST_PLACA"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(property "Reference" "JST_PLACA"
+		(at 0 -0.5 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "8d9925f1-80cc-422d-b43a-781d8a640ca2")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(property "Value" "JST_PLACA"
+		(at 0 1 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "ea715eea-7f16-4320-9bb7-f2d8f9b7191c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "ac7b79d7-eeb5-4b82-aac7-bea49866f640")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "04aec427-4f9a-4944-8313-3716b8686b3d")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_line
+		(start -4.16 -1.26)
+		(end -4.16 1.24)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "2f0a76a2-ae16-4f4a-82b2-36a566408214")
+	)
+	(fp_line
+		(start -4.16 1.24)
+		(end -1.66 1.24)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "364d4b6d-e216-4b75-8131-816802aa7afe")
+	)
+	(fp_line
+		(start -3.86 -1.37)
+		(end -3.36 -1.37)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "47f4b713-50ee-4a58-bc82-be534e024d13")
+	)
+	(fp_line
+		(start -3.86 -0.56)
+		(end -2.86 -0.56)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "d2fa0b82-f039-4f63-9bf6-9dbf4c180271")
+	)
+	(fp_line
+		(start -3.36 -2.58)
+		(end 3.36 -2.58)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "f19ae238-9f2c-4eff-8c80-7be136384dde")
+	)
+	(fp_line
+		(start -3.36 -1.37)
+		(end -3.36 -2.58)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "e2c50904-2702-41a6-9787-8afdfa80fffa")
+	)
+	(fp_line
+		(start -2.86 -0.56)
+		(end -2.86 0.94)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "5e801dab-28e2-4684-87d8-9d54f0603394")
+	)
+	(fp_line
+		(start 2.86 -0.56)
+		(end 2.86 0.94)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "50a460ab-0fc9-47a2-91df-f1879040f1e6")
+	)
+	(fp_line
+		(start 3.36 -2.58)
+		(end 3.36 -1.37)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "30007275-80e7-41e4-b799-a3e60ae133fc")
+	)
+	(fp_line
+		(start 3.36 -1.37)
+		(end 3.86 -1.37)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "afe02cc0-29d6-47bf-bdc1-2a2e914a8a25")
+	)
+	(fp_line
+		(start 3.86 -0.56)
+		(end 2.86 -0.56)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "8c0034dd-ec02-4020-9111-77369f8efa6e")
+	)
+	(fp_rect
+		(start -3.86 -3.08)
+		(end 3.86 0.94)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "9bc17568-5f22-4fa5-9955-32f38cf45b64")
+	)
+	(fp_rect
+		(start -4.25 -3.47)
+		(end 4.25 1.33)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "c380bbf6-fec0-4750-abd4-4ee932e2f38a")
+	)
+	(fp_line
+		(start -4.16 -1.26)
+		(end -4.16 1.24)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "38c9cac6-2da9-4c6b-9805-6d7c285ce909")
+	)
+	(fp_line
+		(start -4.16 1.24)
+		(end -1.66 1.24)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "6ef80654-3e98-41cc-83a5-4f13501e7d07")
+	)
+	(fp_rect
+		(start -3.75 -2.97)
+		(end 3.75 0.83)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "a443681f-3261-4ca1-a736-ef3bd89c4d8d")
+	)
+	(fp_text user "- +"
+		(at -1.744047 -3.75 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "b8926112-3ed1-4766-b17f-85a49b23ba5a")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
+	(fp_text user "JST PLACA"
+		(at 2.03 1.62 180)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "8549daf4-b004-4713-951c-2f1d1ab49263")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+				(bold yes)
+			)
+			(justify left bottom)
+		)
+	)
+	(pad "1" thru_hole roundrect
+		(at -1.25 -1.37)
+		(size 1.7 2)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(roundrect_rratio 0.147059)
+		(uuid "b0b27aeb-fec8-4cd2-b850-9a41f76f563b")
+	)
+	(pad "2" thru_hole oval
+		(at 1.25 -1.37)
+		(size 1.7 2)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "5c6b383a-539a-4e39-8fba-54cdad70850e")
+	)
+	(embedded_fonts no)
+	(model "C:/Users/Laura Monte/Downloads/jst2pins.step"
+		(offset
+			(xyz -28.5 -27 0.5)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -0 -0)
+		)
+	)
+)

@@ -27,3 +27,17 @@ __pycache__/
 .vscode/
 .idea/
 compile_commands.json
+
+# CDR LaTeX source: local backup only; the Overleaf project is the source of
+# truth and the delivered PDF is in docs/cdr/
+/docs/cdr/fonte-overleaf/
+
+# per-machine notes with credentials (the Pi's login)
+/rasp_config.md
+
+# KiCad: per-user and generated files, if a board is opened from hardware/
+*.kicad_prl
+*-backups/
+fp-info-cache
+*.lck
+*.kicad_pro.bak

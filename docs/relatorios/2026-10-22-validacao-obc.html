@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — O que validar antes do software do OBC (22/10/2026)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+<style>
+/* Acréscimos desta lista; o bloco acima é o mesmo dos relatórios. */
+.callout.ok{border-color:var(--ok);background:var(--ok-soft)}
+.cmd{position:relative}
+.cmd pre{padding-right:78px}
+.copy{position:absolute;top:8px;right:8px;font:inherit;font-size:12px;padding:3px 9px;border-radius:5px;border:1px solid var(--line-strong);background:var(--surface);color:var(--muted);cursor:pointer}
+.copy:hover{color:var(--accent);border-color:var(--accent)}
+ul.check{list-style:none;padding-left:4px}
+ul.check li{display:flex;gap:10px;align-items:flex-start;margin:6px 0}
+ul.check input{margin-top:5px;width:16px;height:16px;flex:none;accent-color:var(--ok)}
+ul.check label{cursor:pointer}
+.progress{font-size:14px;color:var(--muted);margin:6px 0 0}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px 10px;margin:0 0 16px;scroll-margin-top:12px}
+.item h3{margin:0 0 4px;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.item h3 .id{font-family:var(--mono);font-size:15px;color:var(--muted);font-weight:600}
+.item .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.item textarea{width:100%;min-height:54px;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--fg);resize:vertical;margin:4px 0 6px}
+.item .notes-l{font-size:12.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin:6px 0 0}
+td.mis{color:var(--bad);font-weight:600}
+td.okc{color:var(--ok)}
+.order{counter-reset:o;list-style:none;padding-left:0}
+.order li{counter-increment:o;display:flex;gap:12px;margin:8px 0}
+.order li::before{content:counter(o);flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+@media print{.item textarea{border:1px dashed var(--line-strong);background:#fff}.copy{display:none}}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Resumo e ordem</a></li>
+    <li><a href="#fontes">De onde vêm os achados</a></li>
+    <li><a href="#barramento">O barramento de 40 pinos</a></li>
+    <li><a href="#hw">A. Hardware — medir no stack</a></li>
+    <li><a href="#sw">B. Decisões de software do OBC</a></li>
+    <li><a href="#ipc">C. Contrato com o <code>ttcd</code></a></li>
+    <li><a href="#org">D. Perguntas à organização</a></li>
+    <li><a href="#cmds">Comandos de bancada</a></li>
+  </ol>
+  <p class="progress" id="progress"></p>
+</nav>
+
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · OBC · lista de validação</p>
+  <h1>O que validar antes do software do OBC</h1>
+  <p class="lede">Os pontos que precisam estar acertados para começar o <code>flight/obcd/</code>: o que as placas finais realmente ligam, o que medir no stack montado e as decisões de comportamento que o código vai materializar.</p>
+  <div class="meta">
+    <span><b>Data:</b> 22/10/2026</span>
+    <span><b>Fontes:</b> <code>hardware/</code> (placas fabricadas), CDR v4 (<code>docs/cdr/</code>), <code>common/</code></span>
+    <span><b>Plano:</b> <code>PLANO.md</code>, fase 5</span>
+  </div>
+</header>
+
+<h2 id="resumo"><span class="n">1</span>Resumo e ordem</h2>
+
+<div class="callout bad">
+<p><b>Antes de energizar o stack com as placas de voo, confira A1, A2 e A8.</b> Pelos arquivos KiCad, o 8 V que alimenta todos os conversores não chega a eles (A1), o barramento do LoRa está trocado entre a placa do OBC e a do TT&amp;C (A2), e um disparo do burn-wire no boot seria irreversível (A8).</p>
+</div>
+
+<p>Os números de pino da alimentação coincidem em todas as placas (1 = GND, 15 = 5 V, 37 = 12 V, 39 = 3,3 V). As divergências abaixo, portanto, são ligações erradas, não um conector espelhado. Ainda assim, cada achado sai de arquivo de projeto: só a medição na placa fabricada confirma.</p>
+
+<ol class="order">
+  <li><span><b>A1, A2, A8</b> — o stack liga, o rádio fala, é seguro energizar.</span></li>
+  <li><span><b>A3, A4</b> — como o OBC conversa com o ESP32 do AOCS; muda o desenho do <code>obcd</code>.</span></li>
+  <li><span><b>A5, A6, A7, A9</b> — atuadores e sensores com as placas de voo.</span></li>
+  <li><span><b>B</b> — decisões de comportamento; dá para fechar numa conversa.</span></li>
+  <li><span><b>C, D</b> — dependem da fase 4 e da organização.</span></li>
+</ol>
+
+<h2 id="fontes"><span class="n">2</span>De onde vêm os achados</h2>
+
+<p>As fontes das placas como foram fabricadas (os painéis de 08/10, <code>PCBS_GCD_Com_Paineis.zip</code>) estão em <code>hardware/</code>, uma pasta por placa; o OBC e a EPS são as revisões de 08/10, que não mudaram nenhuma ligação do barramento. As netlists foram exportadas com <code>kicad-cli sch export netlist</code> dos esquemáticos e conferidas contra os pads de cada <code>.kicad_pcb</code>, porque a placa fabricada segue o layout, não o esquemático.</p>
+
+<div class="table-wrap"><table>
+<tr><th>Placa</th><th>Arquivo</th><th>Observação</th></tr>
+<tr><td>OBC</td><td><code>hardware/obc/</code></td><td>esquemático e layout <b>divergem</b> no I²C (A3); fontes em <code>hardware/obc/</code></td></tr>
+<tr><td>TT&amp;C</td><td><code>hardware/ttec/</code></td><td>esquemático e layout coincidem</td></tr>
+<tr><td>EPS (potência)</td><td><code>hardware/eps-potencia/</code></td><td>BMS 2S, conversores de 5 V, 3,3 V e 12 V</td></tr>
+<tr><td>Bateria de cima</td><td><code>hardware/bateria-cima/</code></td><td>DS18B20, TIP120 e 4 aquecedores</td></tr>
+<tr><td>Bateria de baixo</td><td><code>hardware/bateria-baixo/</code></td><td>TIP120 e 4 aquecedores, sem sensor</td></tr>
+<tr><td>AOCS</td><td><code>hardware/aocs/</code></td><td>o esquemático estava dentro de <code>AOCS/grb/</code> no zip; coincide com o layout no barramento</td></tr>
+<tr><td>Mecanismo</td><td>—</td><td><b>não está no zip</b>; só o conector J4 do TT&amp;C</td></tr>
+</table></div>
+
+<h2 id="barramento"><span class="n">3</span>O barramento de 40 pinos</h2>
+
+<p>Só os pinos usados por alguma placa. Em vermelho, onde duas placas discordam.</p>
+
+<div class="table-wrap"><table>
+<tr><th class="r">Pino</th><th>OBC (layout)</th><th>TT&amp;C</th><th>EPS</th><th>Baterias</th><th>AOCS</th></tr>
+<tr><td class="r">1</td><td>GND</td><td>GND</td><td>GND</td><td>GND</td><td>GND</td></tr>
+<tr><td class="r">3 · 5 · 17 · 19</td><td>—</td><td>—</td><td colspan="2">ligação série das baterias (2S)</td><td>—</td></tr>
+<tr><td class="r">9</td><td>DS18B20 (GPIO17 via 4,7 kΩ)</td><td>—</td><td>—</td><td>DQ do DS18B20 (cima)</td><td>—</td></tr>
+<tr><td class="r">10</td><td class="mis">SCL</td><td>—</td><td>—</td><td>—</td><td class="mis">SDA (BMI088, ESP32)</td></tr>
+<tr><td class="r">11</td><td>TIP120 (CT) — GPIO23 via 4,7 kΩ</td><td>—</td><td>—</td><td>base dos dois TIP120</td><td>—</td></tr>
+<tr><td class="r">12</td><td class="mis">SDA</td><td>—</td><td>—</td><td>—</td><td class="mis">SCL (BMI088, ESP32)</td></tr>
+<tr><td class="r">13</td><td>TIP120 (Mec) — GPIO22 via 4,7 kΩ</td><td>sinal_mec → J4</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td class="r">15</td><td>5 V</td><td>+5 V</td><td>5 V</td><td>—</td><td>—</td></tr>
+<tr><td class="r">21</td><td class="mis">NSS (GPIO8)</td><td class="mis">SCK</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td class="r">23</td><td class="mis">MOSI (GPIO10)</td><td class="mis">MISO</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td class="r">25</td><td class="mis">MISO (GPIO9)</td><td class="mis">MOSI</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td class="r">27</td><td class="mis">SCK (GPIO11)</td><td class="mis">NSS</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td class="r">29</td><td class="mis">DIO0 (GPIO4)</td><td class="mis">RST</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td class="r">31</td><td class="mis">RESET (GPIO25)</td><td class="mis">DIO0</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td class="r">33</td><td>8V(INA) — saída do INA219</td><td>—</td><td>8V(Liq) → conversores</td><td>8VLiq → aquecedores</td><td>—</td></tr>
+<tr><td class="r">35</td><td class="mis">8V Bruto — entrada do INA219</td><td>—</td><td class="mis">vazio</td><td>—</td><td>—</td></tr>
+<tr><td class="r">37</td><td>—</td><td>—</td><td>12 V</td><td>—</td><td>12 V (DRV8313)</td></tr>
+<tr><td class="r">38</td><td class="mis">vazio</td><td>—</td><td class="mis">8V(Bruto)</td><td>—</td><td>—</td></tr>
+<tr><td class="r">39</td><td>3,3 V</td><td>+3,3 V</td><td>3,3 V</td><td>3,3 V</td><td>3,3 V</td></tr>
+</table></div>
+<p class="small">A UART da Pi (GPIO14/15) e os pinos de 3,3 V próprios da Pi não estão ligados a nada. O 3,3 V do barramento vem do conversor da EPS.</p>
+
+<h2 id="hw"><span class="n">4</span>A. Hardware — medir no stack</h2>
+
+<div class="item" id="a1">
+<h3><span class="id">A1</span>O 8 V passa pelo INA219 por pinos que não coincidem <span class="badge b-bad">bloqueia tudo</span></h3>
+<p class="sub">OBC J1-35/33 × EPS J1-38/33</p>
+<p>O INA219 da placa do OBC está em série no caminho principal: entra pelo pino 35 (8V Bruto) e sai pelo 33 (8V(INA)). O pino 33 é o 8V(Liq) da EPS, que alimenta os conversores de 5 V, 3,3 V e 12 V e os aquecedores. Mas a EPS entrega o 8V Bruto no <b>pino 38</b>, e o 35 dela está vazio. Como desenhado, nada recebe energia. E, mesmo corrigido, sem a placa do OBC no stack o satélite não liga — o que pesa no HLR-EPS-05 (operar com fonte externa).</p>
+<ul class="check">
+  <li><input type="checkbox" id="a1-cont"><label for="a1-cont">Continuidade entre os pinos 35 e 38 no stack montado (deve dar aberto, pelo projeto)</label></li>
+  <li><input type="checkbox" id="a1-8v"><label for="a1-8v">Com bateria ou fonte, tensão no pino 33 e saídas de 5 V e 3,3 V da EPS</label></li>
+  <li><input type="checkbox" id="a1-fix"><label for="a1-fix">Conserto escolhido (jumper 35↔38 na placa do OBC, ou outro) e registrado</label></li>
+  <li><input type="checkbox" id="a1-shunt"><label for="a1-shunt">Shunt do módulo INA219 (R100 → 3,2 A máx.) contra o pico: Pi + SDR + LoRa + burn-wire + aquecedores + motor</label></li>
+</ul>
+<p class="notes-l">Resultado</p><textarea id="n-a1" aria-label="Resultado A1"></textarea>
+</div>
+
+<div class="item" id="a2">
+<h3><span class="id">A2</span>Barramento do LoRa trocado entre OBC e TT&amp;C <span class="badge b-bad">bloqueia o rádio</span></h3>
+<p class="sub">pinos 21 a 31 — tabela da seção 3</p>
+<p>Os seis sinais discordam: o CE0 da Pi chega ao SCK do Ra-02, o MOSI ao MISO, o SCK ao NSS, e o DIO0 e o RESET estão trocados. O <code>ttcd.conf</code> ainda usa os GPIO 20 e 21 da fiação de bancada.</p>
+<p>Duas saídas:</p>
+<ul>
+  <li><b>Retrabalho</b> na placa do TT&amp;C (cortar e jumpear) — sem mudança de software além dos GPIO.</li>
+  <li><b>Só software</b>: SPI por GPIO (<code>spi-gpio</code>) com <code>sck=8</code>, <code>mosi=9</code>, <code>miso=10</code>, <code>cs=11</code>, o SPI de hardware desligado, e no <code>ttcd.conf</code> <code>reset_line = 4</code>, <code>dio0_line = 25</code>. O driver não muda: continua falando com um <code>spidev</code>. Mais lento, mas o SX1278 troca poucos bytes por frame.</li>
+</ul>
+<ul class="check">
+  <li><input type="checkbox" id="a2-cont"><label for="a2-cont">Continuidade dos seis sinais, da Pi ao Ra-02, no stack</label></li>
+  <li><input type="checkbox" id="a2-dec"><label for="a2-dec">Decisão: retrabalho ou <code>spi-gpio</code></label></li>
+  <li><input type="checkbox" id="a2-ver"><label for="a2-ver">RegVersion lido como <code>0x12</code> no stack (<code>make bench-ping</code> passo 1)</label></li>
+</ul>
+<p class="notes-l">Resultado</p><textarea id="n-a2" aria-label="Resultado A2"></textarea>
+</div>
+
+<div class="item" id="a3">
+<h3><span class="id">A3</span>I²C com SDA e SCL trocados no layout do OBC <span class="badge b-warn">bloqueia o AOCS</span></h3>
+<p class="sub">esquemático: 10 = SDA, 12 = SCL · layout fabricado: 10 = SCL, 12 = SDA · AOCS: 10 = SDA, 12 = SCL</p>
+<p>O layout do OBC não foi atualizado a partir do esquemático. O INA219, na própria placa, não é afetado; o BMI088 e o ESP32 do AOCS, sim.</p>
+<ul class="check">
+  <li><input type="checkbox" id="a3-cont"><label for="a3-cont">Continuidade GPIO2 (SDA) da Pi → pino 10 ou 12 do barramento</label></li>
+  <li><input type="checkbox" id="a3-det"><label for="a3-det"><code>i2cdetect -y 1</code> sem o AOCS: só <code>0x40</code> (INA219)</label></li>
+  <li><input type="checkbox" id="a3-det2"><label for="a3-det2">Com o AOCS: aparecem também <code>0x18</code>/<code>0x19</code> e <code>0x68</code>/<code>0x69</code> (BMI088)?</label></li>
+</ul>
+<p class="notes-l">Resultado</p><textarea id="n-a3" aria-label="Resultado A3"></textarea>
+</div>
+
+<div class="item" id="a4">
+<h3><span class="id">A4</span>Não há caminho para o OBC falar com o ESP32 do AOCS <span class="badge b-warn">muda o desenho</span></h3>
+<p class="sub">CDR §9.2.2: "AOCS Communication Thread (UART/I2C)"</p>
+<p>A UART da Pi não está ligada em nenhuma placa. O único meio comum é o I²C, onde o ESP32 é mestre do BMI088 e a Pi é mestre do INA219: dois mestres no mesmo barramento, e o controlador I²C da Pi não faz arbitragem. Como o ESP32 fica sempre ligado, o conflito existe desde o boot.</p>
+<div class="table-wrap"><table>
+<tr><th>Opção</th><th>Custo</th><th>Consequência</th></tr>
+<tr><td><b>UART por fio</b> (GPIO14/15 da Pi → UART2 do ESP32, GPIO16/17, livres na placa do AOCS, por pinos livres do barramento) — recomendada</td><td>2 fios + retrabalho</td><td>enlace dedicado; I²C só da Pi; cada lado com seu sensor</td></tr>
+<tr><td>Dividir o I²C no tempo</td><td>só firmware</td><td>sem INA219 no <code>ADVANCED_AOCS</code> — contradiz o CDR (OBC-7); como avisar o ESP32 sem enlace?</td></tr>
+<tr><td>ESP32 como escravo I²C</td><td>firmware</td><td>o ESP32 precisa ser mestre do BMI088 nos mesmos pinos</td></tr>
+</table></div>
+<ul class="check">
+  <li><input type="checkbox" id="a4-dec"><label for="a4-dec">Enlace escolhido</label></li>
+  <li><input type="checkbox" id="a4-dono"><label for="a4-dono">Quem escreve o firmware do ESP32 (equipe de AOCS?)</label></li>
+  <li><input type="checkbox" id="a4-proto"><label for="a4-proto">Protocolo: iniciar detumbling, iniciar azimute, parar, atitude (taxa e formato), "terminei", timeout</label></li>
+  <li><input type="checkbox" id="a4-boot"><label for="a4-boot">O ESP32 mexe no I²C ao ligar, fora do <code>ADVANCED_AOCS</code>?</label></li>
+</ul>
+<p class="notes-l">Resultado</p><textarea id="n-a4" aria-label="Resultado A4"></textarea>
+</div>
+
+<div class="item" id="a5">
+<h3><span class="id">A5</span>Burn-wire com corrente de base insuficiente <span class="badge b-warn">REG-07</span></h3>
+<p class="sub">GPIO22 → 4,7 kΩ → pino 13 → TT&amp;C J4 (GND, +5 V, sinal) → placa do mecanismo</p>
+<p>A corrente de base fica em ≈ (3,3 − 1,3) V / 4,7 kΩ ≈ <b>0,43 mA</b>; com o hFE mínimo de 1000 do TIP120, isso dá Ic ≈ <b>0,4 A</b>. O ensaio do CDR (§6.4) precisou de <b>1 A a 5 V</b>, com 220 Ω na base. O burn-wire sai do mesmo 5 V que alimenta a Pi e o SDR: um degrau de 1 A pode derrubar a Pi.</p>
+<ul class="check">
+  <li><input type="checkbox" id="a5-esq"><label for="a5-esq">Esquemático da placa do mecanismo (não veio no zip)</label></li>
+  <li><input type="checkbox" id="a5-i"><label for="a5-i">Corrente no fio de NiCr com as placas de voo, acionado pelo GPIO22</label></li>
+  <li><input type="checkbox" id="a5-v"><label for="a5-v">Queda do 5 V durante o acionamento; a Pi não reinicia (<code>journalctl -b -1</code> vazio, <code>uptime</code>)</label></li>
+  <li><input type="checkbox" id="a5-r"><label for="a5-r">Resistor de base trocado, se preciso (≈ 220 Ω, como no ensaio)</label></li>
+</ul>
+<p class="notes-l">Resultado</p><textarea id="n-a5" aria-label="Resultado A5"></textarea>
+</div>
+
+<div class="item" id="a6">
+<h3><span class="id">A6</span>Aquecedores: um resistor para duas bases <span class="badge b-warn">HLR-EPS-04</span></h3>
+<p class="sub">GPIO23 → 4,7 kΩ → pino 11 → bases dos TIP120 das duas placas de bateria</p>
+<p>Cada base recebe ≈ 0,2 mA, o que limita cada placa a ≈ 0,2 A. Os quatro aquecedores de cada placa estão em série a partir do 8VLiq, e o esquemático não diz o valor ("Heater"). Sem o valor não dá para saber se o transistor satura. O controle térmico, que o CDR descreve como malha fechada de 10 °C a 12 °C, só pode ser feito pelo OBC: não há comparador nas placas.</p>
+<ul class="check">
+  <li><input type="checkbox" id="a6-r"><label for="a6-r">Resistência de cada aquecedor (e da série)</label></li>
+  <li><input type="checkbox" id="a6-i"><label for="a6-i">Corrente em cada placa com GPIO23 alto; V<sub>CE</sub> do TIP120</label></li>
+  <li><input type="checkbox" id="a6-fix"><label for="a6-fix">Resistor de base trocado, se preciso</label></li>
+</ul>
+<p class="notes-l">Resultado</p><textarea id="n-a6" aria-label="Resultado A6"></textarea>
+</div>
+
+<div class="item" id="a7">
+<h3><span class="id">A7</span>DS18B20 sem pull-up <span class="badge b-warn">HLR-EPS-04</span></h3>
+<p class="sub">GPIO17 → 4,7 kΩ em série → pino 9 → DQ · um único sensor, na bateria de cima</p>
+<p>O 1-Wire precisa de um pull-up no barramento; aqui o 4,7 kΩ está em série e não há pull-up em nenhuma placa. Só existe um sensor, mas o CDR fala em temperatura interna e externa e o <code>IPC_TELEMETRY</code> tem <code>temp_bat</code> e <code>temp_ext</code>.</p>
+<ul class="check">
+  <li><input type="checkbox" id="a7-w1"><label for="a7-w1"><code>dtoverlay=w1-gpio,gpiopin=17</code>: aparece <code>/sys/bus/w1/devices/28-*</code>?</label></li>
+  <li><input type="checkbox" id="a7-read"><label for="a7-read">Leitura estável por alguns minutos, sem CRC errado (<code>crc=... YES</code>)</label></li>
+  <li><input type="checkbox" id="a7-fix"><label for="a7-fix">Se falhar: 4,7 kΩ do pino 9 ao 3,3 V e curto no resistor em série</label></li>
+  <li><input type="checkbox" id="a7-ext"><label for="a7-ext">Decisão: o que vai em <code>temp_ext</code> (a do SoC? nenhum?)</label></li>
+</ul>
+<p class="notes-l">Resultado</p><textarea id="n-a7" aria-label="Resultado A7"></textarea>
+</div>
+
+<div class="item" id="a8">
+<h3><span class="id">A8</span>Estado dos GPIOs no boot <span class="badge b-bad">segurança</span></h3>
+<p class="sub">GPIO22 (burn-wire) e GPIO23 (aquecedores)</p>
+<p>No reset, os GPIO 9 a 27 da Pi ficam como entrada com pull-down, então nenhum dos dois TIP120 deveria conduzir no boot. Um disparo do burn-wire antes do comando seria irreversível: vale medir, não supor.</p>
+<ul class="check">
+  <li><input type="checkbox" id="a8-boot"><label for="a8-boot">Tensão na base dos dois TIP120 do instante em que liga até o <code>obcd</code> subir: perto de 0 V</label></li>
+  <li><input type="checkbox" id="a8-pin"><label for="a8-pin"><code>pinctrl get 22,23</code> logo após o boot: entrada, pull-down</label></li>
+  <li><input type="checkbox" id="a8-kill"><label for="a8-kill">Matar o processo com o GPIO alto: a linha volta a baixo (o descritor fechado libera a linha)</label></li>
+</ul>
+<p class="notes-l">Resultado</p><textarea id="n-a8" aria-label="Resultado A8"></textarea>
+</div>
+
+<div class="item" id="a9">
+<h3><span class="id">A9</span>O INA219 mede o consumo, não a bateria <span class="badge b-todo">REG-09</span></h3>
+<p class="sub">EPS: BMS → diodo D1 → chave → 8V Bruto → INA219 · solar: boost → D3 → direto no BMS</p>
+<p>A carga solar entra no BMS sem passar pelo INA219. Ele mede a corrente de todo o satélite e a tensão depois do diodo, nunca a corrente de carga: o "negativo = carregando" do <code>IPC_TELEMETRY</code> não vai acontecer, e acompanhar a recarga no <code>BASIC_INTERMEDIATE</code> só dá pela tensão.</p>
+<ul class="check">
+  <li><input type="checkbox" id="a9-sig"><label for="a9-sig">Decisão: o que significam os campos de tensão e corrente na telemetria e no CDR</label></li>
+  <li><input type="checkbox" id="a9-cmp"><label for="a9-cmp">Leitura do INA219 contra multímetro em série (OBC-7)</label></li>
+</ul>
+<p class="notes-l">Resultado</p><textarea id="n-a9" aria-label="Resultado A9"></textarea>
+</div>
+
+<div class="item" id="a10">
+<h3><span class="id">A10</span>Conferências rápidas</h3>
+<ul class="check">
+  <li><input type="checkbox" id="a10-sdr"><label for="a10-sdr">O SDR enumera (<code>lsusb</code>) pelos fios do TT&amp;C J2 até os pads USB da Pi</label></li>
+  <li><input type="checkbox" id="a10-ant"><label for="a10-ant">Qual antena o burn-wire libera (pelo CDR, as fitas do LoRa) — o enlace opera recolhido até lá</label></li>
+  <li><input type="checkbox" id="a10-esp"><label for="a10-esp">O ESP32 do AOCS liga pelo pino de 3,3 V (EN não ligado; o DevKit tem pull-up próprio)</label></li>
+</ul>
+<p class="notes-l">Resultado</p><textarea id="n-a10" aria-label="Resultado A10"></textarea>
+</div>
+
+<h2 id="sw"><span class="n">5</span>B. Decisões de software do OBC</h2>
+
+<p>São o comportamento que o núcleo do <code>obcd</code> vai fixar em teste. Para cada uma há uma proposta; falta a validação.</p>
+
+<div class="item" id="b1">
+<h3><span class="id">B1</span>Tabela de transições</h3>
+<p>Proposta: a Fig. 44 do CDR, com <code>PRE_TEST</code> como centro. Em <code>PRE_TEST</code>, qualquer <code>EV_TC_*</code>; nos outros modos, só <code>EV_TASK_DONE</code> (e, em <code>MISSION_ADSB</code>, <code>EV_TC_DOWNLINK</code> e <code>EV_ADSB_TIMEOUT</code>). A figura só entra em <code>ENV_SURVIVAL</code> a partir de <code>PRE_TEST</code>; a decisão de 05/10 falava em qualquer modo.</p>
+<ul class="check">
+  <li><input type="checkbox" id="b1-tab"><label for="b1-tab">Tabela estado × evento aprovada</label></li>
+  <li><input type="checkbox" id="b1-surv"><label for="b1-surv"><code>ENV_SURVIVAL</code>: só de <code>PRE_TEST</code> ou de qualquer modo</label></li>
+  <li><input type="checkbox" id="b1-ack"><label for="b1-ack">O ACK do <code>SET_MODE</code> quer dizer "entregue ao OBC"; a recusa aparece no modo do HK e no log</label></li>
+</ul>
+<p class="notes-l">Decisão</p><textarea id="n-b1" aria-label="Decisão B1"></textarea>
+</div>
+
+<div class="item" id="b2">
+<h3><span class="id">B2</span>Quem gera o fim de cada tarefa (<code>EV_TASK_DONE</code>)</h3>
+<div class="table-wrap"><table>
+<tr><th>Modo</th><th>Proposta</th></tr>
+<tr><td><code>BASIC_INTERMEDIATE</code></td><td>o próprio OBC, ao terminar o pulso do burn-wire</td></tr>
+<tr><td><code>ADVANCED_AOCS</code></td><td>o ESP32 avisa; timeout no OBC</td></tr>
+<tr><td><code>MISSION_DOWNLINK</code></td><td>o <code>ttcd</code>, depois do roster e das estatísticas</td></tr>
+<tr><td><code>ENV_SURVIVAL</code></td><td>telecomando</td></tr>
+</table></div>
+<ul class="check"><li><input type="checkbox" id="b2-ok"><label for="b2-ok">Aprovado</label></li></ul>
+<p class="notes-l">Decisão</p><textarea id="n-b2" aria-label="Decisão B2"></textarea>
+</div>
+
+<div class="item" id="b3">
+<h3><span class="id">B3</span>Burn-wire</h3>
+<ul class="check">
+  <li><input type="checkbox" id="b3-dur"><label for="b3-dur">Duração do pulso e número de tentativas (vem de A5)</label></li>
+  <li><input type="checkbox" id="b3-once"><label for="b3-once">Uma vez por entrada no modo; nunca fora de <code>BASIC_INTERMEDIATE</code></label></li>
+  <li><input type="checkbox" id="b3-magic"><label for="b3-magic">Argumento de confirmação, como o do <code>SHUTDOWN</code> (REG-07)?</label></li>
+</ul>
+<p class="notes-l">Decisão</p><textarea id="n-b3" aria-label="Decisão B3"></textarea>
+</div>
+
+<div class="item" id="b4">
+<h3><span class="id">B4</span>Termostato em software</h3>
+<ul class="check">
+  <li><input type="checkbox" id="b4-lim"><label for="b4-lim">Liga a 10 °C, desliga a 12 °C (CDR §7.3.1), em todos os modos?</label></li>
+  <li><input type="checkbox" id="b4-fail"><label for="b4-fail">Sensor falhou: aquecedor desligado ou ligado?</label></li>
+  <li><input type="checkbox" id="b4-dead"><label for="b4-dead">O <code>obcd</code> morreu: o GPIO cai para desligado (ver A8)</label></li>
+</ul>
+<p class="notes-l">Decisão</p><textarea id="n-b4" aria-label="Decisão B4"></textarea>
+</div>
+
+<div class="item" id="b5">
+<h3><span class="id">B5</span>Reinício, telemetria, log e sistema</h3>
+<ul class="check">
+  <li><input type="checkbox" id="b5-rst"><label for="b5-rst">Reinício no meio da missão: volta a <code>PRE_TEST</code> sem guardar estado (proposta), ou retoma o timer de 600 s</label></li>
+  <li><input type="checkbox" id="b5-tm"><label for="b5-tm"><code>IPC_TELEMETRY</code> a cada 1 s; valor sentinela para "sem dado"</label></li>
+  <li><input type="checkbox" id="b5-log"><label for="b5-log">Log: manter o <code>log_schema.md</code> do OBC (chaves em português) ou unificar com <code>ttcd</code>/<code>adsbd</code>; caminho e teto</label></li>
+  <li><input type="checkbox" id="b5-sys"><label for="b5-sys">systemd: ordem dos serviços, <code>Restart=always</code>, watchdog de hardware (<code>RuntimeWatchdogSec</code>), grupos <code>gpio</code> e <code>i2c</code>, sem root</label></li>
+  <li><input type="checkbox" id="b5-boot"><label for="b5-boot">Tempo do boot até <code>PRE_TEST</code> (OBC-1): meta?</label></li>
+  <li><input type="checkbox" id="b5-thr"><label for="b5-thr">DS18B20 bloqueia ~750 ms por leitura: thread ou processo auxiliar (ADR)</label></li>
+</ul>
+<p class="notes-l">Decisão</p><textarea id="n-b5" aria-label="Decisão B5"></textarea>
+</div>
+
+<h2 id="ipc"><span class="n">6</span>C. Contrato com o <code>ttcd</code></h2>
+<p>Depende da fase 4 do <code>PLANO.md</code> (troca de versão do protocolo).</p>
+<div class="item" id="c1">
+<h3><span class="id">C1</span>Protocolo v2 e o fluxo do downlink</h3>
+<ul class="check">
+  <li><input type="checkbox" id="c1-hk"><label for="c1-hk">Temperatura da bateria no <code>TM_HK</code> (OBC-7, EPS-04.1)</label></li>
+  <li><input type="checkbox" id="c1-mode"><label for="c1-mode">Mensagem de modo do <code>ttcd</code> para o <code>adsbd</code></label></li>
+  <li><input type="checkbox" id="c1-dl"><label for="c1-dl"><code>MISSION_DOWNLINK</code>: roster e estatísticas (260 B, 1,4 s no ar), depois <code>EV_TASK_DONE</code> ao OBC</label></li>
+</ul>
+<p class="notes-l">Resultado</p><textarea id="n-c1" aria-label="Resultado C1"></textarea>
+</div>
+
+<h2 id="org"><span class="n">7</span>D. Perguntas à organização</h2>
+<div class="item" id="d1">
+<h3><span class="id">D1</span>Como as provas são disparadas e avaliadas</h3>
+<ul class="check">
+  <li><input type="checkbox" id="d1-07"><label for="d1-07">REG-07: o "comando remoto" da implantação é o nosso <code>SET_MODE</code> pela nossa ground?</label></li>
+  <li><input type="checkbox" id="d1-09"><label for="d1-09">REG-09: como avaliam a corrente e a tensão de recarga (o INA219 não vê a carga — A9)?</label></li>
+  <li><input type="checkbox" id="d1-seq"><label for="d1-seq">Ordem das provas no dia e quanto tempo entre elas</label></li>
+</ul>
+<p class="notes-l">Respostas</p><textarea id="n-d1" aria-label="Respostas D1"></textarea>
+</div>
+
+<h2 id="cmds"><span class="n">8</span>Comandos de bancada</h2>
+<p>Na Pi, com o stack montado. As linhas do <code>config.txt</code> exigem reboot.</p>
+
+<h3>I²C (A3, A9)</h3>
+<div class="cmd"><pre><code>sudo apt install -y i2c-tools
+i2cdetect -y 1          # 0x40 = INA219; 0x18/0x19 e 0x68/0x69 = BMI088</code></pre></div>
+
+<h3>1-Wire (A7)</h3>
+<div class="cmd"><pre><code>echo 'dtoverlay=w1-gpio,gpiopin=17' | sudo tee -a /boot/firmware/config.txt
+sudo reboot
+ls /sys/bus/w1/devices/
+cat /sys/bus/w1/devices/28-*/w1_slave   # "crc=.. YES" e "t=23125" = 23,125 °C</code></pre></div>
+
+<h3>GPIOs no boot (A8)</h3>
+<div class="cmd"><pre><code>pinctrl get 22,23       # esperado: ip pd | lo</code></pre></div>
+
+<h3>Acionar um GPIO à mão (A5, A6) — só com o burn-wire desconectado ou com carga de teste</h3>
+<div class="cmd"><pre><code>gpioset -t 0 -c gpiochip0 23=1    # aquecedores ligados até Ctrl-C (libgpiod 2.x)
+gpioset -t 0 -c gpiochip0 22=1    # burn-wire: CUIDADO, irreversível com o nylon no lugar</code></pre></div>
+
+<h3>SDR e rádio (A2, A10)</h3>
+<div class="cmd"><pre><code>lsusb                   # Realtek RTL2838 = NESDR
+make bench-ping RADIO=sx1278      # passo 1 lê RegVersion</code></pre></div>
+
+<footer>
+  Gerado a partir das netlists de <code>hardware/</code> (exportadas com <code>kicad-cli</code> e conferidas contra os layouts), do CDR v4 e de <code>common/gama_ipc.h</code>. As marcações e anotações ficam salvas só neste navegador. Plano: <code>PLANO.md</code>, fase 5. Relatório anterior: <a href="2026-10-06-panorama-ttec-cdr.html">panorama TT&amp;C para o CDR (06/10)</a>.
+</footer>
+</main>
+</div>
+
+<script>
+(function () {
+  var KEY = 'validacao-obc-2026-10-22:';
+  function load(id) { try { return localStorage.getItem(KEY + id); } catch (e) { return null; } }
+  function save(id, v) { try { localStorage.setItem(KEY + id, v); } catch (e) {} }
+  var boxes = document.querySelectorAll('ul.check input[type=checkbox]');
+  function progress() {
+    var done = 0;
+    for (var i = 0; i < boxes.length; i++) { if (boxes[i].checked) { done++; } }
+    var p = document.getElementById('progress');
+    if (p) { p.textContent = done + ' de ' + boxes.length + ' conferências feitas'; }
+  }
+  for (var i = 0; i < boxes.length; i++) {
+    boxes[i].checked = load(boxes[i].id) === '1';
+    boxes[i].addEventListener('change', function (e) { save(e.target.id, e.target.checked ? '1' : '0'); progress(); });
+  }
+  var notes = document.querySelectorAll('.item textarea');
+  for (var k = 0; k < notes.length; k++) {
+    var v = load(notes[k].id); if (v) { notes[k].value = v; }
+    notes[k].addEventListener('input', function (e) { save(e.target.id, e.target.value); });
+  }
+  progress();
+  var blocks = document.querySelectorAll('.cmd');
+  for (var j = 0; j < blocks.length; j++) {
+    (function (block) {
+      var btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'copy'; btn.textContent = 'copiar';
+      btn.addEventListener('click', function () {
+        var text = block.querySelector('code').innerText;
+        function done(ok) { btn.textContent = ok ? 'copiado' : 'selecionado'; setTimeout(function () { btn.textContent = 'copiar'; }, 1500); }
+        function select() {
+          var r = document.createRange(); r.selectNodeContents(block.querySelector('code'));
+          var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done(false);
+        }
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () { done(true); }, select);
+          } else { select(); }
+        } catch (e) { select(); }
+      });
+      block.appendChild(btn);
+    })(blocks[j]);
+  }
+})();
+</script>
+</body>
+</html>
