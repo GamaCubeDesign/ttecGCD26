@@ -88,7 +88,8 @@ add_executable(test_adsb_chain test_adsb_chain.c)
 target_link_libraries(test_adsb_chain PRIVATE ttec_radio gama_common)
 target_include_directories(test_adsb_chain PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_adsb_chain
-         COMMAND test_adsb_chain $<TARGET_FILE:ttcd> $<TARGET_FILE:adsbd>)
+         COMMAND test_adsb_chain $<TARGET_FILE:ttcd> $<TARGET_FILE:adsbd>
+                 $<TARGET_FILE:obc_standin>)
 set_tests_properties(test_adsb_chain PROPERTIES TIMEOUT 90)
 
 # test_tm exercises NaN handling and quantisation bounds.

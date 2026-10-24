@@ -32,6 +32,7 @@ void adsbd_params_default(adsbd_params_t *p)
     p->field_ttl        = 60000;
     p->snapshot_max     = 24;      /* two frames: the data budget's 20 aircraft */
     p->table_capacity   = ADSBD_TRACKS_MAX;
+    p->decoder_always   = false;
 }
 
 static void core_log(adsbd_core_t *c, uint64_t now_ns, const char *event,
@@ -62,6 +63,7 @@ void adsbd_init(adsbd_core_t *c, const adsbd_params_t *p, const adsbd_ops_t *ops
     c->ops = *ops;
     c->wall_offset_ns = wall_offset_ns;
     c->obc_mode = GAMA_OBC_ST_UNKNOWN;
+    c->decoder_on = c->p.decoder_always;
     tracks_init(&c->table, c->p.table_capacity);
     c->next_snapshot = now + (uint64_t)c->p.snapshot_period * NS_PER_MS;
     c->next_stat = now + (uint64_t)c->p.stat_period * NS_PER_MS;
@@ -293,13 +295,24 @@ void adsbd_on_ipc_frame(adsbd_core_t *c, uint64_t now, const uint8_t *buf, size_
         return;
     }
     if (f.type == GAMA_FRAME_IPC_MODE && f.len == GAMA_IPC_MODE_LEN) {
-        /* The OBC's mode, forwarded by ttcd. What adsbd does in each mode
-         * is PLANO 1.2; for now it is recorded. */
-        if (f.payload[0] != c->obc_mode) {
+        /* The OBC's mode, forwarded by ttcd (CDR Table 55). The decoder runs
+         * only in MISSION_ADSB. UNKNOWN — no OBC behind ttcd — changes
+         * nothing: a crash of the OBC process must not stop the payload
+         * mid-mission (ADR-0005, ADR-0014). */
+        uint8_t mode = f.payload[0];
+        if (mode != c->obc_mode) {
             core_log(c, now, "obc_mode", "\"from\":\"%s\",\"to\":\"%s\"",
-                     gama_obc_state_name(c->obc_mode), gama_obc_state_name(f.payload[0]));
+                     gama_obc_state_name(c->obc_mode), gama_obc_state_name(mode));
         }
-        c->obc_mode = f.payload[0];
+        c->obc_mode = mode;
+        if (!c->p.decoder_always && mode != GAMA_OBC_ST_UNKNOWN) {
+            bool on = mode == GAMA_OBC_ST_MISSION_ADSB;
+            if (on != c->decoder_on) {
+                core_log(c, now, "decoder", "\"on\":%s,\"mode\":\"%s\"",
+                         on ? "true" : "false", gama_obc_state_name(mode));
+            }
+            c->decoder_on = on;
+        }
         return;
     }
     if (f.type != GAMA_FRAME_IPC_TIME_SET) {
@@ -366,6 +379,11 @@ void adsbd_on_tick(adsbd_core_t *c, uint64_t now)
                  c->time_synced ? "true" : "false");
         c->next_report = advance(c->next_report, now, c->p.report_period);
     }
+}
+
+bool adsbd_decoder_wanted(const adsbd_core_t *c)
+{
+    return c->decoder_on;
 }
 
 uint64_t adsbd_next_deadline(const adsbd_core_t *c)

@@ -21,7 +21,7 @@
  * Commands:
  *   ping [N]              N sequential PINGs (default 1), latency of each
  *   per N                 N PINGs, then uplink and downlink loss from TM_STAT
- *   hk | stat             request housekeeping / statistics
+ *   hk | stat | roster    request housekeeping / statistics / the roster
  *   rate safe|nominal|fast
  *   power DBM             satellite transmit power, 2..20
  *   mode EVENT            OBC event: basic_inter aocs mission_adsb downlink
@@ -386,6 +386,8 @@ static void run_command(char *line)
         per_start(atoi(arg));
     } else if (strcmp(cmd, "hk") == 0) {
         submit(GAMA_TC_REQ_HK, NULL, 0);
+    } else if (strcmp(cmd, "roster") == 0) {
+        submit(GAMA_TC_REQ_ROSTER, NULL, 0);
     } else if (strcmp(cmd, "stat") == 0) {
         submit(GAMA_TC_REQ_STAT, NULL, 0);
     } else if (strcmp(cmd, "rate") == 0 && arg != NULL) {

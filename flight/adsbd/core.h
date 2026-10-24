@@ -50,6 +50,7 @@ typedef struct {
     uint32_t field_ttl;         /* older fields are left out of a record     */
     uint32_t snapshot_max;      /* aircraft per snapshot, <= ADSBD_SNAPSHOT_MAX */
     uint32_t table_capacity;    /* aircraft tracked at once, <= ADSBD_TRACKS_MAX */
+    bool     decoder_always;    /* run dump1090 whatever the mode (bench only) */
 } adsbd_params_t;
 
 void adsbd_params_default(adsbd_params_t *p);
@@ -99,6 +100,7 @@ typedef struct {
     bool             ipc_up;
     bool             dump1090_up;       /* dump1090's SBS connection is open  */
     uint8_t          obc_mode;          /* gama_obc_state_t, from ttcd        */
+    bool             decoder_on;        /* dump1090 should be running         */
     uint32_t         roster_count;
     adsbd_roster_entry_t roster[ADSBD_ROSTER_MAX];
     uint16_t         ipc_seq;
@@ -126,6 +128,11 @@ void adsbd_on_dump1090_link(adsbd_core_t *c, uint64_t now_ns, bool up);
 void adsbd_on_dump1090_restart(adsbd_core_t *c, uint64_t now_ns);
 
 void adsbd_on_tick(adsbd_core_t *c, uint64_t now_ns);
+
+/* Whether dump1090 should be running and its SBS output read (ADR-0014):
+ * only in MISSION_ADSB, unless decoder_always. The shell starts and stops
+ * it to match after every event. */
+bool adsbd_decoder_wanted(const adsbd_core_t *c);
 
 /* The earliest instant adsbd_on_tick() has something to do. */
 uint64_t adsbd_next_deadline(const adsbd_core_t *c);

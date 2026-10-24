@@ -21,7 +21,12 @@ sbs_host       = 127.0.0.1
 sbs_port       = 30003
 retry_ms       = 1000     # reconnection to dump1090 and to ttcd
 restart_min_ms = 1000     # dump1090 died: the first wait before starting it again
-restart_max_ms = 30000    # ... doubling up to this; a run of a minute resets it
+restart_max_ms = 1000     # ... doubling up to this; 1 s: without its SDR, dump1090
+                          # exits at once, and every second of MISSION_ADSB counts
+# mode: dump1090 runs, and its SBS output is read, only in MISSION_ADSB, as
+# the OBC reports it through ttcd (ADR-0014). always: whatever the mode — for
+# the bench without an OBC.
+decoder        = mode
 
 # --- tracks and snapshots (flight/adsbd/tracks.h, ADR-0007) ------------------
 snapshot_period_ms    = 1000    # to ttcd; the link model of ADR-0007 assumes 1 s

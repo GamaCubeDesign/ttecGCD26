@@ -43,12 +43,12 @@
 #define AIRCRAFT       3
 
 static char dir[64], sock_path[128], ttcd_conf[128], ttcd_log[128];
-static char adsbd_conf[128], adsbd_log[128], rec_path[128];
-static const char *ttcd_bin, *adsbd_bin;
+static char adsbd_conf[128], adsbd_log[128], rec_path[128], obc_log[128];
+static const char *ttcd_bin, *adsbd_bin, *obc_bin;
 static radio_t R;
 static gs_link_t G;
 static int ep = -1, tfd = -1, sbs_lfd = -1, sbs_fd = -1;
-static pid_t ttcd_pid, adsbd_pid;
+static pid_t ttcd_pid, adsbd_pid, obc_pid;
 
 static const uint32_t ICAO[AIRCRAFT] = { 0xE48DF5, 0xE49608, 0xE4A669 };
 static const double LAT0[AIRCRAFT] = { -15.70, -15.90, -16.10 };
@@ -63,7 +63,7 @@ static struct {
     gama_track_t track[AIRCRAFT];
     struct { uint32_t id; uint8_t status; bool done; } acks[16];
     int n_acks;
-    int roster_frames;
+    int roster_frames, stat_frames;
     bool named[AIRCRAFT];                /* callsign heard in TM_ROSTER */
 } S;
 
@@ -100,6 +100,19 @@ static pid_t spawn(const char *bin, const char *conf)
         int devnull = open("/dev/null", O_WRONLY);
         dup2(devnull, STDOUT_FILENO);
         execl(bin, bin, "-c", conf, (char *)NULL);
+        _exit(127);
+    }
+    return pid;
+}
+
+/* The OBC, played by tools/obc_standin until flight/obcd exists. */
+static pid_t spawn_obc(void)
+{
+    pid_t pid = fork();
+    if (pid == 0) {
+        int out = open(obc_log, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        dup2(out, STDOUT_FILENO);
+        execl(obc_bin, obc_bin, "--ipc", sock_path, (char *)NULL);
         _exit(127);
     }
     return pid;
@@ -176,6 +189,8 @@ static void g_event(void *c, uint64_t now, const gs_event_t *e)
     } else if (e->kind == GS_EV_FRAME && e->type == GAMA_FRAME_TM_HK) {
         S.hk++;
         gama_hk_decode(e->payload, e->len, &S.last_hk);
+    } else if (e->kind == GS_EV_FRAME && e->type == GAMA_FRAME_TM_STAT) {
+        S.stat_frames++;
     } else if (e->kind == GS_EV_FRAME && e->type == GAMA_FRAME_TM_ROSTER) {
         S.roster_frames++;
         for (size_t r = 0; r + GAMA_ROSTER_WIRE_LEN <= e->len; r += GAMA_ROSTER_WIRE_LEN) {
@@ -281,14 +296,34 @@ static void run(uint64_t ms, const bool *cond)
     }
 }
 
+static uint8_t set_mode(uint8_t ev)
+{
+    int k = submit(GAMA_TC_SET_MODE, &ev, 1);
+    run(3000, &S.acks[k].done);
+    return S.acks[k].done ? S.acks[k].status : 0xFF;
+}
+
+/* Asks for housekeeping and waits for it to arrive. */
+static bool fresh_hk(void)
+{
+    uint32_t before = S.hk;
+    int k = submit(GAMA_TC_REQ_HK, NULL, 0);
+    run(3000, &S.acks[k].done);
+    for (int i = 0; i < 30 && S.hk == before; i++) {
+        run(100, NULL);
+    }
+    return S.hk > before;
+}
+
 int main(int argc, char **argv)
 {
-    if (argc < 3) {
-        fprintf(stderr, "usage: %s /path/to/ttcd /path/to/adsbd\n", argv[0]);
+    if (argc < 4) {
+        fprintf(stderr, "usage: %s /path/to/ttcd /path/to/adsbd /path/to/obc_standin\n", argv[0]);
         return 2;
     }
     ttcd_bin = argv[1];
     adsbd_bin = argv[2];
+    obc_bin = argv[3];
     signal(SIGPIPE, SIG_IGN);
     snprintf(dir, sizeof(dir), "/tmp/adsb-chain-XXXXXX");
     if (mkdtemp(dir) == NULL) { perror("mkdtemp"); return 1; }
@@ -298,6 +333,7 @@ int main(int argc, char **argv)
     snprintf(adsbd_conf, sizeof(adsbd_conf), "%s/adsbd.conf", dir);
     snprintf(adsbd_log, sizeof(adsbd_log), "%s/adsbd.jsonl", dir);
     snprintf(rec_path, sizeof(rec_path), "%s/adsb.ndjson", dir);
+    snprintf(obc_log, sizeof(obc_log), "%s/obc.jsonl", dir);
 
     uint16_t sat_port = free_port(SOCK_DGRAM), gnd_port = free_port(SOCK_DGRAM);
     sbs_lfd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
@@ -317,7 +353,7 @@ int main(int argc, char **argv)
     fclose(cf);
     cf = fopen(adsbd_conf, "w");
     fprintf(cf, "ipc_path = %s\nsbs_port = %u\nndjson_path = %s\nlog_path = %s\n"
-                "dump1090_cmd =\nretry_ms = 200\n",
+                "dump1090_cmd =\nretry_ms = 200\ndecoder = mode\n",
             sock_path, ntohs(a.sin_port), rec_path, adsbd_log);
     fclose(cf);
 
@@ -328,6 +364,7 @@ int main(int argc, char **argv)
         nanosleep(&t, NULL);
     }
     adsbd_pid = spawn(adsbd_bin, adsbd_conf);
+    obc_pid = spawn_obc();
 
     const char *why = "";
     CHECK_EQ_INT(radio_open_udp(&R, "127.0.0.1", gnd_port, "127.0.0.1", sat_port,
@@ -347,15 +384,25 @@ int main(int argc, char **argv)
     epoll_ctl(ep, EPOLL_CTL_ADD, sbs_lfd, &e3);
     next_feed = now_ms();
 
-    TEST_GROUP("chain: aircraft fed to adsbd reach the ground as TM_TRACKS");
+    TEST_GROUP("chain: in PRE_TEST nothing streams, and adsbd reads no SBS");
     {
-        uint8_t period[2] = { 30, 0 };                   /* 3.0 s, the shortest allowed */
-        int k = submit(GAMA_TC_STREAM_START, period, 2);
-        run(3000, &S.acks[k].done);
-        CHECK(S.acks[k].done);
-        CHECK_EQ_INT(S.acks[k].status, GAMA_ACK_OK);
+        bool pre_test = false;
+        for (int i = 0; i < 5 && !pre_test; i++) {
+            pre_test = fresh_hk() && (S.last_hk.flags & GAMA_HK_F_OBC_LINKED) &&
+                       S.last_hk.obc_mode == GAMA_OBC_ST_PRE_TEST;
+        }
+        CHECK(pre_test);
+        run(2000, NULL);
+        CHECK(!S.seen[0] && !S.seen[1] && !S.seen[2]);
+        CHECK(sbs_fd < 0);
+        CHECK(!(S.last_hk.flags & GAMA_HK_F_DUMP1090_UP));
+    }
+
+    TEST_GROUP("chain: SET_MODE MISSION_ADSB alone puts the aircraft on the air (TTC-07)");
+    {
+        CHECK_EQ_INT(set_mode(GAMA_OBC_EV_TC_MISSION_ADSB), GAMA_ACK_OK);
         bool all = false;
-        for (int i = 0; i < 80 && !all; i++) {
+        for (int i = 0; i < 120 && !all; i++) {
             run(100, NULL);
             all = S.seen[0] && S.seen[1] && S.seen[2];
         }
@@ -383,6 +430,7 @@ int main(int argc, char **argv)
         CHECK_EQ_INT(S.roster_frames, 1);
         for (int ac = 0; ac < AIRCRAFT; ac++) {
             CHECK(S.named[ac]);
+            S.named[ac] = false;                         /* for MISSION_DOWNLINK's */
         }
     }
 
@@ -444,8 +492,33 @@ int main(int argc, char **argv)
         CHECK(S.last_hk.flags & GAMA_HK_F_ADSB_LINKED);
     }
 
-    TEST_GROUP("chain: both daemons stop cleanly");
+    TEST_GROUP("chain: MISSION_DOWNLINK sends the roster and statistics, then the OBC is back in PRE_TEST");
     {
+        int rosters = S.roster_frames, stats = S.stat_frames;
+        CHECK_EQ_INT(set_mode(GAMA_OBC_EV_TC_DOWNLINK), GAMA_ACK_OK);
+        for (int i = 0; i < 50 && S.roster_frames == rosters; i++) {
+            run(100, NULL);
+        }
+        CHECK(S.stat_frames > stats);
+        CHECK_EQ_INT(S.roster_frames, rosters + 1);
+        for (int ac = 0; ac < AIRCRAFT; ac++) {
+            CHECK(S.named[ac]);
+        }
+        CHECK_EQ_INT(count_in(ttcd_log, "\"event\":\"downlink_done\",\"task_done_sent\":true"), 1);
+        bool back = false;
+        for (int i = 0; i < 5 && !back; i++) {
+            back = fresh_hk() && S.last_hk.obc_mode == GAMA_OBC_ST_PRE_TEST;
+        }
+        CHECK(back);
+        CHECK_EQ_INT(count_in(obc_log, "\"to\":\"PRE_TEST\",\"by\":\"event\""), 1);
+        CHECK(count_in(adsbd_log, "\"event\":\"decoder\",\"on\":false") >= 1);
+        CHECK(!(S.last_hk.flags & GAMA_HK_F_DUMP1090_UP));
+        CHECK_EQ_INT(S.last_hk.link_state, GAMA_LINK_IDLE);
+    }
+
+    TEST_GROUP("chain: the three processes stop cleanly");
+    {
+        CHECK_EQ_INT(stop(obc_pid), 0);
         CHECK_EQ_INT(stop(adsbd_pid), 0);
         CHECK_EQ_INT(stop(ttcd_pid), 0);
     }
@@ -458,6 +531,7 @@ int main(int argc, char **argv)
     unlink(adsbd_conf);
     unlink(adsbd_log);
     unlink(rec_path);
+    unlink(obc_log);
     rmdir(dir);
     TEST_SUMMARY("test_adsb_chain");
 }
