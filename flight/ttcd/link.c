@@ -320,6 +320,37 @@ void ttcd_on_radio_tx_done(ttcd_core_t *c, uint64_t now)
     core_try_transmit(c, now);
 }
 
+/* Tells adsbd the mission mode (common/gama_ipc.h, IPC_MODE). */
+static void forward_mode(ttcd_core_t *c, uint64_t now)
+{
+    if (c->adsbd_linked) {
+        core_ipc_send(c, now, GAMA_IPC_ROLE_ADSBD, GAMA_FRAME_IPC_MODE,
+                      &c->obc_mode, GAMA_IPC_MODE_LEN);
+    }
+}
+
+/* Stores one IPC_ROSTER record, replacing the callsign already held for its
+ * address. Records stay in arrival order, so a roster being transmitted
+ * only ever grows behind its cursor. */
+static void roster_put(ttcd_core_t *c, uint64_t now, const uint8_t *rec)
+{
+    uint32_t icao = gama_get_u24(rec);
+    for (uint32_t i = 0; i < c->roster_count; i++) {
+        if (gama_get_u24(c->roster[i]) == icao) {
+            memcpy(c->roster[i], rec, GAMA_ROSTER_WIRE_LEN);
+            return;
+        }
+    }
+    if (c->roster_count == TTCD_ROSTER_MAX) {
+        /* Counted, never silently dropped (AGENTS.md, hard rule 6). */
+        if (c->n.roster_full++ == 0) {
+            core_log(c, now, "roster_full", "\"max\":%u", TTCD_ROSTER_MAX);
+        }
+        return;
+    }
+    memcpy(c->roster[c->roster_count++], rec, GAMA_ROSTER_WIRE_LEN);
+}
+
 void ttcd_on_ipc_peer(ttcd_core_t *c, uint64_t now, uint8_t role, bool connected)
 {
     if (role == GAMA_IPC_ROLE_OBC) {
@@ -334,6 +365,12 @@ void ttcd_on_ipc_peer(ttcd_core_t *c, uint64_t now, uint8_t role, bool connected
     }
     core_log(c, now, "ipc_peer", "\"role\":\"%s\",\"connected\":%s",
              gama_ipc_role_name(role), connected ? "true" : "false");
+    /* adsbd follows the OBC's mode: it hears it on connecting, and hears
+     * UNKNOWN when the OBC goes away. */
+    if ((role == GAMA_IPC_ROLE_ADSBD && connected) ||
+        (role == GAMA_IPC_ROLE_OBC && !connected)) {
+        forward_mode(c, now);
+    }
     /* A peer that (re)connects after the ground's SET_TIME is told the time
      * at once: a restarted adsbd would otherwise stamp its record with the
      * unsynchronised system clock until the next SET_TIME (ADR-0009). */
@@ -362,8 +399,8 @@ void ttcd_on_ipc_frame(ttcd_core_t *c, uint64_t now, uint8_t role,
         }
         c->telemetry = t;
         c->have_telemetry = true;
-        /* Logged in full: the onboard log is where battery temperature is
-         * kept until TM_HK carries it (HLR-EPS-04). */
+        /* Logged in full: the onboard record of HLR-EPS-04, between the
+         * housekeeping frames that carry it to the ground. */
         core_log(c, now, "obc_telemetry",
                  "\"battery_mv\":%u,\"current_ma\":%d,\"temp_bat_ccel\":%d,"
                  "\"temp_ext_ccel\":%d,\"roll_cdeg\":%d,\"pitch_cdeg\":%d,\"yaw_cdeg\":%d",
@@ -376,6 +413,7 @@ void ttcd_on_ipc_frame(ttcd_core_t *c, uint64_t now, uint8_t role,
                      gama_obc_state_name(c->obc_mode), gama_obc_state_name(f.payload[0]));
         }
         c->obc_mode = f.payload[0];
+        forward_mode(c, now);
     } else if (role == GAMA_IPC_ROLE_ADSBD && f.type == GAMA_FRAME_IPC_TRACKS) {
         tm_on_tracks(c, now, &f);
     } else if (role == GAMA_IPC_ROLE_ADSBD && f.type == GAMA_FRAME_IPC_STAT) {
@@ -386,6 +424,15 @@ void ttcd_on_ipc_frame(ttcd_core_t *c, uint64_t now, uint8_t role,
         }
         c->payload_stat = s;
         c->have_stat = true;
+    } else if (role == GAMA_IPC_ROLE_ADSBD && f.type == GAMA_FRAME_IPC_ROSTER) {
+        int n = gama_ipc_roster_count(f.len);
+        if (n < 0) {
+            c->n.ipc_rx_bad++;
+            return;
+        }
+        for (int i = 0; i < n; i++) {
+            roster_put(c, now, f.payload + (size_t)i * GAMA_ROSTER_WIRE_LEN);
+        }
     } else {
         c->n.ipc_rx_bad++;
         core_log(c, now, "ipc_unexpected", "\"from\":\"%s\",\"type\":\"%s\"",

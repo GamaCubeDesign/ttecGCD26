@@ -42,9 +42,9 @@ enum {
  * time before its confirmation (50 ms, common/gama_gs_link.c) with margin. */
 #define TTCD_SWITCH_GAP_EXTRA_MS 100u
 
-/* Telemetry field value meaning "no data received yet" (HK has no per-field
- * validity bits). battery_mv uses 0 for the same purpose. */
-#define TTCD_HK_UNKNOWN INT16_MIN
+/* Aircraft whose callsign ttcd remembers for TM_ROSTER: adsbd's table size,
+ * and far above the 20 of the data budget. One more is counted, not stored. */
+#define TTCD_ROSTER_MAX 128u
 
 /* Every duration is in milliseconds. ttcd_params_default() gives the values
  * the data budget and ADR-0007 are built on; the shell overrides them from
@@ -98,6 +98,7 @@ typedef struct {
     uint32_t ipc_rx;
     uint32_t ipc_rx_bad;
     uint32_t ipc_tx_drops;     /* IPC sends that could not be delivered        */
+    uint32_t roster_full;      /* callsigns refused: the roster table was full */
 } ttcd_counters_t;
 
 enum { TTCD_ACK_QUEUE = 8, TTCD_SNAPSHOT_FRAMES = GAMA_IPC_TRACKS_MAX_FRAMES };
@@ -119,7 +120,7 @@ typedef struct {
 
 typedef enum {
     TTCD_TXK_NONE = 0, TTCD_TXK_ACK, TTCD_TXK_HK, TTCD_TXK_STAT,
-    TTCD_TXK_TRACKS, TTCD_TXK_BEACON
+    TTCD_TXK_TRACKS, TTCD_TXK_ROSTER, TTCD_TXK_BEACON
 } ttcd_tx_kind_t;
 
 /* One snapshot of the track table, as received from adsbd. */
@@ -180,6 +181,8 @@ typedef struct {
     bool     has_boundary;
     uint32_t fresh_boundary;        /* epoch of the snapshot sent before this  */
     uint32_t latency_hist[256];     /* ages at transmission, 100 ms bins       */
+    bool     roster_requested;      /* REQ_ROSTER: frames still to send        */
+    uint32_t roster_next;           /* first record of the next TM_ROSTER      */
 
     /* what the peers told us */
     bool     obc_linked, adsbd_linked;
@@ -188,6 +191,8 @@ typedef struct {
     gama_ipc_telemetry_t telemetry;
     bool     have_stat;
     gama_ipc_stat_t      payload_stat;
+    uint32_t roster_count;          /* ICAO -> callsign, from IPC_ROSTER       */
+    uint8_t  roster[TTCD_ROSTER_MAX][GAMA_ROSTER_WIRE_LEN];
     bool     time_synced;
     uint64_t time_anchor_mono;      /* monotonic ms at which ...               */
     uint32_t time_anchor_unix_s;    /* ... this wall-clock time held           */

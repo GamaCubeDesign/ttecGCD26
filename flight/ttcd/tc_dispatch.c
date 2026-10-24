@@ -215,8 +215,11 @@ static tc_result_t dispatch(ttcd_core_t *c, uint64_t now, const gama_frame_t *f,
         c->stat_requested = true;
         return ok();
     case GAMA_TC_REQ_ROSTER:
-        /* Needs the callsign table from adsbd (PLANO phase 3). */
-        return fail(GAMA_ACK_FAILED, "roster not implemented");
+        /* Every callsign heard this mission, from IPC_ROSTER. A request
+         * while one is going out starts it again from the first record. */
+        c->roster_requested = true;
+        c->roster_next = 0;
+        return ok();
     case GAMA_TC_BULK_START:
     case GAMA_TC_BULK_ABORT:
         /* Deferred: the full raw log would take hours even at FAST, and it is
