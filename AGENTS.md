@@ -194,8 +194,11 @@ risks. As of 2026-10-24:
 - **Done in software**: shared codec, IPC, `ttcd`, the ground side of the
   protocol, the SX1278 driver, the channel simulation, the bench tooling,
   `adsbd`, the ADS-B chain without hardware, the downlink adapter and the
-  ground estimator. 23 CTest suites, zero warnings, clean under ASan and
-  UBSan.
+  ground estimator; since 2026-10-24 also PLANO etapa 1: protocol version 2
+  (ADR-0013), `ttcd` and `adsbd` driven by the OBC mode with
+  `tools/obc_standin` as the OBC (ADR-0014), 433.92 MHz and 14 dBm
+  (ADR-0015). 23 CTest suites, zero warnings, clean under ASan and UBSan.
+  Etapa 1 has not been run on the bench yet.
 - **Validated on the bench** (2026-10-07/09, `docs/vv/bancada/`, in
   Portuguese — **update it as each stage closes**): `make check` on the Pi
   (`pi@gamapi.local`, 64-bit Debian 13, reached through `local.mk`); the
@@ -203,8 +206,8 @@ risks. As of 2026-10-24:
   `adsbd` with the real SDR; the chain SDR → `adsbd` → `ttcd` → LoRa →
   ground, without track records (no aircraft position in view).
 - **Priority now: finish the firmware before the hardware.** In order:
-  (1) protocol version 2 and `ttcd`/`adsbd` driven by the OBC mode, plus
-  433.92 MHz and 14 dBm in the code; (2) `flight/obcd/`; (3) the ESP32
+  (1) ~~protocol version 2, mode-driven `ttcd`/`adsbd`, 433.92 MHz and
+  14 dBm~~ — done in software 2026-10-24; (2) `flight/obcd/`; (3) the ESP32
   ground station, which sends the remote commands of the tests, and a
   minimal operator CLI; (4) CI and the flight image (`make provision`); then
   the new OBC board's bring-up and the validation of CDR Table 67.
@@ -212,7 +215,8 @@ risks. As of 2026-10-24:
   contract is I²C); the PCB team's answer on the INA219 on its own I²C bus
   and the date of the new OBC board; the organisers' test order.
 - **ADRs**: 0007 and 0012 *Proposed*, with the bench results in their
-  verification sections; 0010 (onboard storage) still to write.
+  verification sections; 0013, 0014 and 0015 *Proposed*, tested without
+  hardware, bench pending; 0010 (onboard storage) still to write.
 - **The CDR** (`docs/cdr/`) is the reference for what was promised: OBC
   criteria (Table 32), TT&C per mode (Table 55), derived requirements
   TTC-01..16 (Table 65), traceability (Table 66), remaining validation
