@@ -153,8 +153,8 @@ regenerate with `make vectors` (`tools/gen_vectors`) only on a deliberate
 version bump, and review the diff byte by byte.
 
 Record sizes are load-bearing for the data budget: track 20 B, roster 11 B,
-HK 25 B, stat 26 B, framing overhead 7 B. Changing one means revising
-`docs/budgets/data-budget.md` and probably an ADR.
+HK 27 B (protocol v2, ADR-0013), stat 26 B, framing overhead 7 B. Changing
+one means revising `docs/budgets/data-budget.md` and probably an ADR.
 
 ## Where decisions live
 
