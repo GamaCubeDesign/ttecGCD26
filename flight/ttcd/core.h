@@ -54,6 +54,7 @@ typedef struct {
     int8_t   tx_power_dbm;          /* 2 .. 20                                */
     uint32_t hk_period;             /* housekeeping, outside SAFE             */
     uint32_t stat_period;           /* statistics, while streaming            */
+    uint32_t stream_period;         /* snapshots, when MISSION_ADSB starts them */
     uint32_t safe_beacon_period;    /* beacon while in SAFE                   */
     uint32_t safe_hk_period;        /* housekeeping while in SAFE             */
     uint32_t contact_timeout;       /* silence from the ground before SAFE    */
@@ -182,11 +183,13 @@ typedef struct {
     uint32_t fresh_boundary;        /* epoch of the snapshot sent before this  */
     uint32_t latency_hist[256];     /* ages at transmission, 100 ms bins       */
     bool     roster_requested;      /* REQ_ROSTER: frames still to send        */
+    bool     downlink_pending;      /* MISSION_DOWNLINK: EV_TASK_DONE owed     */
     uint32_t roster_next;           /* first record of the next TM_ROSTER      */
 
     /* what the peers told us */
     bool     obc_linked, adsbd_linked;
-    uint8_t  obc_mode;
+    uint8_t  obc_mode;              /* as reported; UNKNOWN while unlinked     */
+    uint8_t  mission_mode;          /* the last known one: what TM follows     */
     bool     have_telemetry;
     gama_ipc_telemetry_t telemetry;
     bool     have_stat;

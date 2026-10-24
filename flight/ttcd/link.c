@@ -37,6 +37,7 @@ void ttcd_params_default(ttcd_params_t *p)
     p->tx_power_dbm       = 20;
     p->hk_period          = 10000;
     p->stat_period        = 30000;
+    p->stream_period      = 5000;
     p->safe_beacon_period = 30000;
     p->safe_hk_period     = 60000;
     p->contact_timeout    = 120000;
@@ -135,6 +136,7 @@ void ttcd_init(ttcd_core_t *c, const ttcd_params_t *p, const ttcd_ops_t *ops,
     c->last_contact = now;       /* the contact timeout counts from boot */
     c->quiet_until = now;
     c->obc_mode = GAMA_OBC_ST_UNKNOWN;
+    c->mission_mode = GAMA_OBC_ST_UNKNOWN;
 
     c->ops.radio_set_profile(c->ops.ctx, c->profile);
     c->ops.radio_set_power(c->ops.ctx, c->tx_power);
@@ -414,6 +416,7 @@ void ttcd_on_ipc_frame(ttcd_core_t *c, uint64_t now, uint8_t role,
         }
         c->obc_mode = f.payload[0];
         forward_mode(c, now);
+        tm_on_mode(c, now, c->obc_mode);
     } else if (role == GAMA_IPC_ROLE_ADSBD && f.type == GAMA_FRAME_IPC_TRACKS) {
         tm_on_tracks(c, now, &f);
     } else if (role == GAMA_IPC_ROLE_ADSBD && f.type == GAMA_FRAME_IPC_STAT) {

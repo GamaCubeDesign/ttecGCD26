@@ -333,6 +333,114 @@ int main(void)
         CHECK_EQ_INT(H.ipc[from + 2][5], GAMA_OBC_ST_UNKNOWN);
     }
 
+    TEST_GROUP("core: MISSION_ADSB starts the snapshots and statistics, with no ground command");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
+        uint8_t mode = GAMA_OBC_ST_PRE_TEST;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        send_snapshot((uint32_t)H.now, 3, 5);
+        CHECK(step_to(&C, H.now + 12000));
+        CHECK_EQ_INT(find_tx(0, GAMA_FRAME_TM_TRACKS), -1);      /* PRE_TEST: none */
+
+        mode = GAMA_OBC_ST_MISSION_ADSB;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        CHECK(C.stream_on);
+        CHECK_EQ_INT(C.stream_period, 5000);                      /* TTC-07 */
+        int from = H.n_tx;
+        for (int k = 0; k < 7; k++) {                             /* 35 s */
+            send_snapshot((uint32_t)H.now, 3, 5);
+            CHECK(step_to(&C, H.now + 5000));
+        }
+        int tracks = 0, stats = 0;
+        for (int i = from; i < H.n_tx; i++) {
+            tracks += tx_type(i) == GAMA_FRAME_TM_TRACKS;
+            stats += tx_type(i) == GAMA_FRAME_TM_STAT;
+        }
+        CHECK(tracks >= 6);
+        CHECK_EQ_INT(stats, 1);                                   /* at 30 s */
+
+        /* The OBC process dies: UNKNOWN changes nothing, the payload goes on. */
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, false);
+        CHECK(C.stream_on);
+
+        /* It comes back in PRE_TEST (PLANO D5): the stream stops. */
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        mode = GAMA_OBC_ST_PRE_TEST;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        CHECK(!C.stream_on);
+        CHECK_EQ_INT(ttcd_link_mode(&C), GAMA_LINK_IDLE);
+    }
+
+    TEST_GROUP("core: STREAM_START still works as an override outside MISSION_ADSB");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        uint8_t mode = GAMA_OBC_ST_PRE_TEST;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        start_stream(1, 50);
+        CHECK(step_to(&C, H.now + 1000));
+        CHECK(C.stream_on);
+        CHECK_EQ_INT(C.stream_period, 5000);
+        /* The same mode again is no transition: the override stands. */
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        CHECK(C.stream_on);
+    }
+
+    TEST_GROUP("core: MISSION_DOWNLINK sends final statistics and roster, then EV_TASK_DONE");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
+        uint8_t mode = GAMA_OBC_ST_MISSION_ADSB;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        uint8_t p[20 * GAMA_ROSTER_WIRE_LEN];
+        for (int i = 0; i < 20; i++) {
+            gama_roster_t r = { .icao = 0x400000u + (uint32_t)i };
+            snprintf(r.callsign, sizeof(r.callsign), "TAM%04d", i);
+            gama_roster_encode(p + (size_t)i * GAMA_ROSTER_WIRE_LEN, GAMA_ROSTER_WIRE_LEN, &r);
+        }
+        ipc_from(GAMA_IPC_ROLE_ADSBD, GAMA_FRAME_IPC_ROSTER, p, sizeof(p));
+        CHECK(step_to(&C, H.now + 6000));
+
+        int from_tx = H.n_tx, from_ipc = H.n_ipc;
+        mode = GAMA_OBC_ST_MISSION_DOWNLINK;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        CHECK(!C.stream_on);
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TC_EVENT), 0);     /* not before the frames */
+        CHECK(step_to(&C, H.now + 5000));
+
+        int st = find_tx(from_tx, GAMA_FRAME_TM_STAT);
+        int ro = find_tx(from_tx, GAMA_FRAME_TM_ROSTER);
+        CHECK(st >= 0 && ro > st);                               /* statistics, then roster */
+        CHECK_EQ_INT(H.tx_len[ro], GAMA_FRAME_OVERHEAD + 20 * GAMA_ROSTER_WIRE_LEN);
+        CHECK_EQ_INT(find_tx(from_tx, GAMA_FRAME_TM_TRACKS), -1);
+        /* 260 B in two frames, as the CDR's Table 55 says. */
+        CHECK_EQ_INT(H.tx_len[st] + H.tx_len[ro], 260);
+
+        int ev = find_ipc(from_ipc, GAMA_FRAME_IPC_TC_EVENT);
+        CHECK(ev >= 0);
+        CHECK_EQ_INT(H.ipc_role[ev], GAMA_IPC_ROLE_OBC);
+        CHECK_EQ_INT(H.ipc[ev][5], GAMA_OBC_EV_TASK_DONE);
+        CHECK(H.tx_done_at <= H.now);                            /* the roster had left */
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TC_EVENT), 1);     /* once */
+        CHECK_EQ_INT(count_log("downlink_done"), 1);
+    }
+
+    TEST_GROUP("core: leaving MISSION_DOWNLINK early owes the OBC no EV_TASK_DONE");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        uint8_t mode = GAMA_OBC_ST_MISSION_DOWNLINK;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        mode = GAMA_OBC_ST_PRE_TEST;                     /* at once, before any frame */
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        CHECK(step_to(&C, H.now + 5000));
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TC_EVENT), 0);
+        CHECK_EQ_INT(count_log("downlink_abandoned"), 1);
+    }
+
     TEST_GROUP("core: with adsbd away, the mode is not sent anywhere");
     {
         boot();
