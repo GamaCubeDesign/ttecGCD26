@@ -50,3 +50,4 @@ Three reasons, in order of importance to the project:
 | [0013](0013-protocol-version-2.md) | Protocol version 2 — battery temperature, "no data" values, roster and mode over IPC | **Proposed** | HLR-COMM-02, HLR-EPS-04, HLR-ADS-05, HLR-ADS-08, HLR-GEN-03 |
 | [0014](0014-ttc-driven-by-obc-mode.md) | The OBC's mission mode drives ttcd's telemetry and adsbd's decoder | **Proposed** | HLR-GEN-03, HLR-ADS-05, HLR-ADS-08, HLR-SW-01 |
 | [0015](0015-carrier-frequency-and-flight-power.md) | 433.92 MHz carrier and 14 dBm flight power | **Proposed** | HLR-COMM-03, HLR-ADS-01 |
+| [0016](0016-obc-software-as-obcd.md) | The OBC software is obcd, a third process built like ttcd and adsbd | **Proposed** | HLR-SW-01, HLR-GEN-02, HLR-GEN-03, HLR-COMM-02, HLR-EPS-04 |

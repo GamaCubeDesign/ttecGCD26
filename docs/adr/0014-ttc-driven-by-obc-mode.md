@@ -56,11 +56,12 @@ it after every event):
 - `decoder = always` restores the old behaviour, for the bench without an
   OBC. The default, and the flight value, is `mode`.
 
-**Until `flight/obcd/` exists**, `tools/obc_standin` plays the OBC: it
-follows every `SET_MODE` event at once, returns to `PRE_TEST` on
-`EV_TASK_DONE`, ends `MISSION_ADSB` after 600 s, and sends `IPC_TELEMETRY`
+**Until `flight/obcd/` existed**, `tools/obc_standin` played the OBC: it
+followed every `SET_MODE` event at once, returned to `PRE_TEST` on
+`EV_TASK_DONE`, ended `MISSION_ADSB` after 600 s, and sent `IPC_TELEMETRY`
 every second with every field "no data". `make adsb-chain` and
-`test_adsb_chain` run with it.
+`test_adsb_chain` ran with it. On the same day `obcd` replaced it
+(ADR-0016), and the stand-in was removed.
 
 ## Rationale
 
@@ -133,7 +134,7 @@ without a ground command".
 ### Negative
 
 - On the bench without an OBC, adsbd decodes nothing unless
-  `decoder = always` is set or `tools/obc_standin` is running. An existing
+  `decoder = always` is set or `obcd` is running. An existing
   `/etc/gama/adsbd.conf` without the key gets `mode`.
 - A dump1090 that keeps failing is restarted every second instead of
   backing off to 30 s: about one process start per second while the SDR is
@@ -144,8 +145,8 @@ without a ground command".
 
 ### Follow-up required
 
-- `flight/obcd/` (PLANO etapa 2) replaces the stand-in, with the real
-  transitions and its own 600 s timeout.
+- ~~`flight/obcd/` (PLANO etapa 2) replaces the stand-in~~ — done the same
+  day, ADR-0016.
 - On the bench, with the RA-02 pair and the SDR: the decoder starting and
   stopping with the mode, and the time from `SET_MODE MISSION_ADSB` to the
   first decoded message.
@@ -158,7 +159,7 @@ without a ground command".
 | STREAM_START remains an override until the next mode change | `test_ttcd_core` | pass |
 | MISSION_DOWNLINK: statistics then roster, 260 B for 20 aircraft, then exactly one EV_TASK_DONE after the roster has left; none if the mode is left early | `test_ttcd_core` | pass |
 | The real adsbd: no dump1090 and no SBS connection before MISSION_ADSB; started on it; kept through UNKNOWN; stopped, SBS closed and nothing counted on leaving it | `test_adsbd_integration` | pass |
-| Real ttcd, adsbd and stand-in OBC on the UDP radio: PRE_TEST silent; one SET_MODE puts aircraft on the air; MISSION_DOWNLINK brings roster and statistics down and the OBC back to PRE_TEST | `test_adsb_chain` | pass |
+| Real ttcd, adsbd and OBC (the stand-in, now obcd) on the UDP radio: PRE_TEST silent; one SET_MODE puts aircraft on the air; MISSION_DOWNLINK brings roster and statistics down and the OBC back to PRE_TEST | `test_adsb_chain` | pass |
 | `make adsb-chain` on a 20 s synthetic capture | by hand, 2026-10-24 | PRE_TEST → MISSION_ADSB → MISSION_DOWNLINK → PRE_TEST; `downlink_done` with `task_done_sent` |
 | On the Pi, with the SDR | — | to do |
 

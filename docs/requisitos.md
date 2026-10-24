@@ -330,10 +330,10 @@ nada é transmitido ainda
 
 - A temperatura da bateria entrou na versão 2 (ADR-0013) — ver
   [HLR-EPS-04](#hlr-eps-04).
-- Potência e atitude virão do OBC por `IPC_TELEMETRY`. Enquanto o `obcd` não
-  existir (PLANO etapa 2), esses campos não têm fonte, e o `TM_HK` os reporta
-  como desconhecidos (`0xFFFF` na tensão, `0x8000` nos demais), não como
-  zero.
+- Potência e atitude vêm do OBC por `IPC_TELEMETRY`. O `obcd` (ADR-0016)
+  manda tensão, corrente e temperatura da bateria a cada 1 s; a atitude espera
+  o AOCS (PLANO 2.4). O que não tem fonte vai como desconhecido (`0xFFFF` na
+  tensão, `0x8000` nos demais), não como zero.
 - O `ttcd` real já transmite `TM_HK`, `TM_STAT` e `TM_TRACKS`; verificado
   pelo teste de integração sobre o rádio UDP. Falta a bancada com RF.
 - "Data inspection" exige que a ground grave os frames brutos, não só os
@@ -424,7 +424,8 @@ nada é transmitido ainda
   tensão, corrente **e temperatura da bateria**. Desde a versão 2 do
   protocolo o `TM_HK` carrega `battery_mv`, `current_ma` e `temp_bat_ccel`
   a cada 10 s; um sensor que o OBC não leu chega como desconhecido
-  (`0x8000`), nunca como zero. Falta o OBC (`flight/obcd/`) medir e enviar.
+  (`0x8000`), nunca como zero. O `obcd` lê o INA219 e o DS18B20 (ADR-0016);
+  falta conferi-los na bancada contra multímetro e termômetro (OBC-7).
 - O teste térmico exige a bateria acima de 0 °C o tempo todo
   ([REG-26](#reg-26)). Sem esse campo, não há como demonstrar isso por
   telemetria **transmitida**.
@@ -712,8 +713,11 @@ nada é transmitido ainda
   modo operacional. Não confundir os dois no DP.
 - Desde 2026-10-24 (ADR-0014) o TT&C segue o modo do OBC (Tabela 55 do CDR):
   retratos e estatísticas só em `MISSION_ADSB`, roster e estatísticas finais
-  em `MISSION_DOWNLINK`, decoder só em `MISSION_ADSB`. Testado com um OBC
-  substituto (`tools/obc_standin`); falta o `obcd`.
+  em `MISSION_DOWNLINK`, decoder só em `MISSION_ADSB`.
+- Desde 2026-10-24 os modos são do `obcd` (ADR-0016): a máquina da Figura 44
+  com cada aresta testada, eventos inválidos recusados e registrados, e toda
+  transição no log (OBC-5). Testado sem placa, inclusive na cadeia com o
+  `ttcd` e o `adsbd` reais; falta a bancada.
 
 ### HLR-SW-02
 

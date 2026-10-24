@@ -162,41 +162,43 @@ que derruba o OBC quando falha e o formato de log em português (D7).
 
 ### 2.1 Núcleo puro (ADR-0005: sem chamadas de sistema)
 
-- [ ] Máquina de estados da Figura 44 com `PRE_TEST` como centro (D1);
+- [x] Máquina de estados da Figura 44 com `PRE_TEST` como centro (D1);
       `EV_TC_*` vindos do `SET_MODE`; o que não vale no modo atual é recusado
       e registrado
-- [ ] Fim de tarefa por modo (D2); janela da missão: `EV_ADSB_TIMEOUT` 600 s
+- [x] Fim de tarefa por modo (D2); janela da missão: `EV_ADSB_TIMEOUT` 600 s
       depois de entrar em `MISSION_ADSB`, ou antes por `EV_TC_DOWNLINK`
       (OBC-6)
-- [ ] Burn-wire na entrada de `BASIC_INTERMEDIATE` (D3), seguido de
+- [x] Burn-wire na entrada de `BASIC_INTERMEDIATE` (D3), seguido de
       `EV_TASK_DONE`
-- [ ] Termostato com histerese 10 → 12 °C em todos os modos, sensor em falha
+- [x] Termostato com histerese 10 → 12 °C em todos os modos, sensor em falha
       → desligado (D4)
-- [ ] Boot e reinício em `PRE_TEST` (D5)
-- [ ] Toda transição no log, com tempo monotônico e âncora (OBC-5, OBC-9)
-- [ ] Testes do núcleo em tempo virtual, cobrindo cada aresta da Figura 44
+- [x] Boot e reinício em `PRE_TEST` (D5)
+- [x] Toda transição no log, com tempo monotônico e âncora (OBC-5, OBC-9)
+- [x] Testes do núcleo em tempo virtual, cobrindo cada aresta da Figura 44
 
 ### 2.2 Casca: epoll, como o `ttcd`
 
-- [ ] `timerfd` de 1 s; cliente IPC do `ttcd` (`HELLO`, `IPC_MODE`,
+- [x] `timerfd` de 1 s; cliente IPC do `ttcd` (`HELLO`, `IPC_MODE`,
       `IPC_TELEMETRY` a cada 1 s; recebe `IPC_TC_EVENT` e `IPC_TIME_SET`),
       reconectando se o `ttcd` cair
-- [ ] Log em JSON por linha (D7); configuração por arquivo + `-o`; unidade
+- [x] Log em JSON por linha (D7); configuração por arquivo + `-o`; unidade
       systemd sem root, `Restart=always`, watchdog (D8, OBC-1)
-- [ ] Teste de integração com o `ttcd` e o `adsbd` reais e o rádio UDP: o
+- [~] Teste de integração com o `ttcd` e o `adsbd` reais e o rádio UDP: o
       `SET_MODE` da ground vira transição no log do OBC dentro do limite + 1 s
       (OBC-3, COMM-01.4), em todos os modos — substitui o cliente substituto
-      dos testes atuais
+      dos testes atuais — 24/10: feito para `MISSION_ADSB` → downlink →
+      `PRE_TEST` (`test_adsb_chain`); falta medir o limite em todos os modos
 
 ### 2.3 Drivers (interfaces do kernel), testados com simulação
 
-- [ ] INA219 por `i2c-dev`: tensão e corrente (OBC-7). Mede o consumo do
+- [x] INA219 por `i2c-dev`: tensão e corrente (OBC-7). Mede o consumo do
       satélite, não a carga da bateria (A9)
-- [ ] DS18B20 pelo 1-Wire do kernel (`w1_therm`) numa thread própria (D9); em
+- [x] DS18B20 pelo 1-Wire do kernel (`w1_therm`) numa thread própria (D9); em
       teste, um arquivo falso no lugar do `w1_slave`
-- [ ] Burn-wire (GPIO22) e aquecedores (GPIO23) por GPIO chardev; em teste, o
-      `gpio-sim` do kernel do PC
-- [ ] Pinos só no arquivo de configuração: os da placa nova do OBC entram
+- [x] Burn-wire (GPIO22) e aquecedores (GPIO23) por GPIO chardev; em teste, o
+      `gpio-sim` do kernel do PC — 24/10: testado com saídas falsas no núcleo;
+      o `gpio-sim` precisa de root e fica para a Pi
+- [x] Pinos só no arquivo de configuração: os da placa nova do OBC entram
       quando ela existir
 
 ### 2.4 Contrato I²C com o AOCS
@@ -219,9 +221,10 @@ que derruba o OBC quando falha e o formato de log em português (D7).
 
 ### 2.5 Documentos
 
-- [ ] ADR do OBC: processo próprio no repositório, núcleo puro + casca epoll,
+- [x] ADR do OBC: processo próprio no repositório, núcleo puro + casca epoll,
       a thread do 1-Wire, o I²C com o AOCS, o que foi descartado do `../obc`
-- [ ] `AGENTS.md`: o OBC deixa de ser "outro repositório, não editar"
+      — ADR-0016, em 24/10; o I²C com o AOCS entra com o 2.4
+- [x] `AGENTS.md`: o OBC deixa de ser "outro repositório, não editar"
 - [ ] `docs/icd/obc-ttec-icd.md` — o CDR cita o ICD; agora documenta a
       interface entre dois processos nossos (corta se apertar)
 
@@ -338,7 +341,7 @@ Na ordem da Tabela 67 do CDR: primeiro o que pode mudar uma decisão.
 
 | # | Questão | Bloqueia |
 |---|---|---|
-| Q1 | Quem escreve o firmware do ESP32 do AOCS — o contrato I²C (2.4) tem de ser combinado com essa pessoa | 2.4, 6 |
+| Q1 | ~~Quem escreve o firmware do ESP32 do AOCS~~ — em 24/10: está sendo escrito e entra no repositório quando terminar; o contrato I²C (2.4) é combinado com quem o escreve | 2.4, 6 |
 | Q2 | Resposta da equipe da PCB: INA219 no I²C0 (proposta de 24/10); a revisão cobre A1, A2, A3, A5, A6 e A7; data da placa nova | 2.4, 5 |
 | Q3 | Placa do mecanismo (burn-wire): esquemático e corrente real; o 5 s de D3 pode mudar | 5 |
 | Q4 | Organização: ordem das provas; como avaliam a tensão e a corrente de recarga (REG-09) — o INA219 não vê a corrente de carga | 6 |

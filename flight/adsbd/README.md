@@ -69,7 +69,7 @@ Tudo fica em `build/adsb-chain/<data>-<hora>/`:
 |---|---|
 | `adsb.ndjson` | o registro de bordo que o `adsbd` gravou |
 | `adsbd.jsonl`, `ttcd.jsonl` | os logs de eventos dos dois daemons |
-| `obc.jsonl` | o OBC substituto (`tools/obc_standin`): cada troca de modo |
+| `obcd.jsonl` | o `obcd`, sem placa: cada troca de modo |
 | `ground.jsonl` | tudo o que a ground recebeu, frame a frame |
 | `ground.ndjson` | o que a ground reconstruiu do rádio, no formato do estimador |
 
@@ -87,7 +87,7 @@ idade`, no relógio da ground (ADR-0007 §6); o adaptador está em
 A missão segue os modos (ADR-0014): a ground manda `mode mission_adsb`, que
 liga o decoder — o replay começa quando o `adsbd` se conecta a ele — e os
 retratos a cada 5 s, sem `STREAM_START`; no fim, `mode downlink` traz o roster
-e as estatísticas finais, e o OBC substituto volta a `PRE_TEST`.
+e as estatísticas finais, e o `obcd` volta a `PRE_TEST`.
 
 Para estudar capturas reais sem esperar o tempo real,
 `tools/analysis/downlink_emulation.py` emula o que desceria pelo rádio, com as
@@ -133,8 +133,8 @@ make adsbd-stop       # libera o SDR, por exemplo para a varredura de ganho
 ```
 
 Na bancada sem OBC, o `dump1090` só sobe com `decoder = always` em
-`/etc/gama/adsbd.conf`, ou com o OBC substituto conectado ao `ttcd`
-(`build/tools/obc_standin/obc_standin --ipc /run/gama/ttec.sock`) e um
+`/etc/gama/adsbd.conf`, ou com o `obcd` conectado ao `ttcd`
+(`make obcd-enable`, `flight/obcd/README.md`) e um
 `mode mission_adsb` na `gs_cli`.
 
 O serviço roda como o usuário `gama`, sem root, no grupo `plugdev` (o
