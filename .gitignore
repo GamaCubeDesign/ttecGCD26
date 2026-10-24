@@ -27,3 +27,10 @@ __pycache__/
 .vscode/
 .idea/
 compile_commands.json
+
+# CDR: the delivered PDF and its LaTeX source are kept locally only; the
+# Overleaf project is the source of truth
+/docs/cdr/
+
+# per-machine notes with credentials (the Pi's login)
+/rasp_config.md
