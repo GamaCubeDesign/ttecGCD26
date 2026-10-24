@@ -24,7 +24,8 @@ proposing anything that moves bytes over the radio, check it against
 | `flight/radio/` | SX1278 driver over an abstract bus; Linux bus (spidev + GPIO chardev); radio backends (sx1278, udp) | Pi |
 | `flight/adsbd/` | Payload daemon: supervises dump1090-fa, parses SBS, track table, NDJSON onboard record, snapshots to `ttcd`; pure core (`sbs.c`, `tracks.c`, `ndjson.c`, `core.c`) + epoll shell (`main.c`) | Pi |
 | `flight/libipc/` | AF_UNIX SOCK_SEQPACKET transport | Pi |
-| `ground/esp32/` | Ground station firmware — **not started (PLANO phase 4.1)** | ESP32 / ESP-IDF |
+| `flight/obcd/` | OBC daemon: mission modes (ConOps state machine), sensors, burn-wire, heaters, I²C link to the AOCS ESP32 — **not started (PLANO etapa 2)** | Pi |
+| `ground/esp32/` | Ground station firmware; sends the remote commands of the on-site tests — **not started (PLANO etapa 3)** | ESP32 / ESP-IDF |
 | `ground/host/` | Downlink → estimator adapter (`tracks_to_ndjson.py`); origin/destination estimator and dashboard (`ground-aeronaves/`, a teammate's project, merged 2026-09-28); airport DB importer. Operator CLI not started | PC, Python |
 | `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check, downlink emulation over full captures (`downlink_emulation.py`) | PC |
 | `tools/gs_cli/` | Bench ground station: the real `gs_link` on a second RA-02 or the UDP radio | Pi / PC |
@@ -33,16 +34,29 @@ proposing anything that moves bytes over the radio, check it against
 | `Makefile` | Entry point for build, tests, bench, Pi install and PC→Pi runs (`make help`) | Pi / PC |
 | `docs/adr/` | Architecture Decision Records | — |
 | `docs/budgets/` | Data and link budgets (figures from `lora_budget.py`) | — |
-| `docs/icd/` | Interface contracts (OBC↔TT&C, over-the-air) — **empty, not written yet** | — |
+| `docs/icd/` | Interface contracts (OBC↔TT&C, over-the-air, OBC↔AOCS I²C) — **empty, not written yet** | — |
+| `docs/cdr/` | The delivered CDR (Design Package, v4, 2026-10-11): what the project promised. Its LaTeX source is a local, gitignored copy | — |
 | `docs/relatorios/` | Dated status reports for the team, in Portuguese (HTML, self-contained) | — |
 | `docs/vv/bancada/` | Hardware bench evidence: progress per roadmap stage and the Pi's setup (`README.md`), one folder per day with `notas.md` and the logs `make pi-fetch` brings back | — |
+| `hardware/` | KiCad sources of the boards as fabricated (panels of 2026-10-08), one folder per board; `hardware/README.md` | — |
 | `ultima_missao/` | Previous competition's code, **frozen**, reference only | — |
 
-The **OBC lives in a separate repository** (`../obc`), maintained by a
-different team. Do not edit it. The contract will be `docs/icd/obc-ttec-icd.md`
-(not written yet: it waits on a meeting with the OBC team, questions P1–P14 of
-`docs/relatorios/2026-10-02-integracao-obc-ttec.html`); we deliver a reference
-implementation (`radio.c`) and they merge it.
+**The OBC software is ours since 2026-10-20** and is written here, in
+`flight/obcd/`, in the same pure-core + epoll-shell pattern as `ttcd` and
+`adsbd`. The other team's repository (`../obc`) is **frozen, reference
+only**, like `ultima_missao/`: keep its mode and event enums (already pinned
+in `common/gama_tc.h`) and the transitions of the CDR's Figure 44; do not
+port its main loop, wiringPi calls or fixed paths. `docs/icd/obc-ttec-icd.md`
+documents the interface between two of our own processes.
+
+**The flight stack has known wiring defects.** The boards as fabricated
+(`hardware/`) cannot run together: the 8 V path through the OBC's INA219, the
+LoRa bus between the OBC and TT&C boards, the OBC's I²C and its TIP120 and
+DS18B20 resistors are being fixed on a new OBC board (no date yet). Until it
+arrives, pins come only from configuration files, and the `ttcd.conf` pins
+(GPIO 20/21) are the bench wiring, not the flight stack. Details:
+`docs/relatorios/2026-10-22-validacao-obc.html` and
+`docs/relatorios/2026-10-24-proposta-i2c-ina219-obc.html`.
 
 ## Build and test
 
@@ -80,10 +94,11 @@ half-duplex channel, virtual time), `test_ttcd_integration` and
 radio). The protocol figures in ADR-0007 come from `test_link_sim`; if you
 change link behaviour, rerun it and update the ADR's verification table.
 
-Keep the `ttcd` and `adsbd` cores free of system calls (ADR-0005): no clock
-reads, no sleeps, no file descriptors in `link.c`, `tc_dispatch.c`,
-`tm_sched.c`, nor in `sbs.c`, `tracks.c`, `ndjson.c`, `core.c`. Everything a
-core needs from the world goes through `ttcd_ops_t` or `adsbd_ops_t`.
+Keep the `ttcd`, `adsbd` and `obcd` cores free of system calls (ADR-0005):
+no clock reads, no sleeps, no file descriptors in `link.c`, `tc_dispatch.c`,
+`tm_sched.c`, nor in `sbs.c`, `tracks.c`, `ndjson.c`, `core.c`, nor in the
+`obcd` core. Everything a core needs from the world goes through its ops
+table (`ttcd_ops_t`, `adsbd_ops_t`, and the same for `obcd`).
 
 The build must stay at **zero warnings** under `-Wall -Wextra -Wpedantic
 -Wconversion -Wsign-conversion -Wstrict-prototypes`. This is not cosmetic: the
@@ -102,9 +117,10 @@ These come from concrete defects in `ultima_missao/`. Each cites where.
    previous mission had `sleep(10)` inside a command handler
    (`Module.cpp:139`), stalling the whole process. `ttcd` uses `epoll` with
    `timerfd`/`eventfd`/`signalfd`.
-3. **Anything we expose to the OBC must be non-blocking and pollable.** Its
-   `master` runs a single-threaded 1 Hz cooperative loop (its CDR text
-   describes threads instead); either way, one blocking call stalls the OBC.
+3. **The OBC's main loop never waits.** It runs the mission modes; one
+   blocking call stalls every mode transition and the heaters' thermostat.
+   The single slow read, the DS18B20's ~750 ms conversion, runs in its own
+   thread (PLANO D9). The previous OBC code slept 1 s per cycle.
 4. **No hardcoded paths.** Config from file plus argv override. The previous
    mission compiled `/home/pedro/adsb/...` into the binary
    (`adsb_capture.c:42-44`).
@@ -170,51 +186,36 @@ built from those.
 
 ## Current state
 
-See `PLANO.md` for what is done, what is next, and the open risks; the
-latest overview is `docs/relatorios/2026-10-06-panorama-ttec-cdr.html`. As of
-2026-10-09:
+See `PLANO.md`: the decisions of 22–24/10 (D1–D12), the priority order with
+dates, what is cut first if time runs short, the open questions and the
+risks. As of 2026-10-24:
 
-- **Phases 1–3 are done in software**: shared codec, IPC, `ttcd`, the ground
-  side of the protocol, the SX1278 driver, the channel simulation, the bench
-  tooling, `adsbd`, the ADS-B chain without hardware, the downlink adapter and
-  the ground estimator. 23 CTest suites, 3406 checks in C plus 56 Python
-  tests, zero warnings, clean under ASan and UBSan.
-- **Hardware tests started on 2026-10-07**, following
-  `docs/relatorios/2026-10-05-roteiro-testes-raspberry.html` (stages 1–8).
-  Progress, the bench Pi's configuration and each day's notes are in
-  `docs/vv/bancada/` (`README.md`, `AAAA-MM-DD/notas.md`) — **update them as
-  each stage closes**, in Portuguese. Stages 1 and 2 are done: the Pi
-  (`pi@gamapi.local`, reached over ssh from this PC through `local.mk`, on
-  the PC's own Wi-Fi access point — NetworkManager *shared*, described in
-  that README) runs **64-bit** Debian 13 with gcc 14.2, SPI enabled (the OBC
-  team chose 64 bits on 2026-10-07; the 2026-10-05 decision of 32 bits is
-  superseded), and `make check` passes there with zero warnings. Stages 3
-  and 4 are done (2026-10-09): the two RA-02 on a perfboard, and the phase-2
-  radio bench passed all six steps at 0.8 m — time on air within 1.9%, no
-  frame lost, rate changes and the lost-ACK recovery as designed. It found
-  one driver defect, fixed: the real SX1278 keeps RegModemStat's "RX
-  on-going" bit set throughout RX continuous, so it must not count as a busy
-  channel. Stages 5–7 too: dump1090-fa 11.1 uses 21.9% of one core on the
-  Pi (the project's largest unquantified risk, now measured), `adsbd` runs
-  the real dump1090-fa, and the whole chain SDR → `adsbd` → `ttcd` → LoRa →
-  ground worked, with no aircraft position to send. What the bench left
-  open — repeating with air traffic, the link at mission distance, the
-  flight image in `make provision` — is listed in PLANO, "Atualização de
-  09/10".
-- **ADRs**: 0009 accepted 2026-10-05; 0007 and 0012 *Proposed* — the bench
-  has run and their verification sections carry its results; acceptance
-  awaits team review. 0010 (onboard storage) still to write.
-- **Decided on 2026-10-05, not implemented** (PLANO, "Decisões de 05/10"): one
-  protocol version bump (battery temperature in `TM_HK`, dump1090-alive in
-  `IPC_STAT`, an ICAO→callsign IPC message for `REQ_ROSTER`); `ttcd` and
-  `adsbd` following the OBC mode; a `MISSION_DOWNLINK` proposal to the OBC; CI
-  running `make check`; the link ICD now, the OBC↔TT&C ICD after the meeting.
-- **Not started**: `ground/esp32/`, the operator CLI, `docs/icd/`, the V&V
-  plan in `docs/vv/` (only the bench evidence exists), `docs/conops.md`.
-- **The CDR is the competition's Design Package, due 2026-10-11.** Its draft
-  chapter is `cdr_tmp/07-eletronics.tex` (untracked); its OBC and payload
-  sections still describe a different design, and the TT&C software
-  subsection is empty (report of 2026-10-06, §12).
+- **Done in software**: shared codec, IPC, `ttcd`, the ground side of the
+  protocol, the SX1278 driver, the channel simulation, the bench tooling,
+  `adsbd`, the ADS-B chain without hardware, the downlink adapter and the
+  ground estimator. 23 CTest suites, zero warnings, clean under ASan and
+  UBSan.
+- **Validated on the bench** (2026-10-07/09, `docs/vv/bancada/`, in
+  Portuguese — **update it as each stage closes**): `make check` on the Pi
+  (`pi@gamapi.local`, 64-bit Debian 13, reached through `local.mk`); the
+  radio bench, all six steps at 0.8 m; dump1090-fa at 21.9% of one core;
+  `adsbd` with the real SDR; the chain SDR → `adsbd` → `ttcd` → LoRa →
+  ground, without track records (no aircraft position in view).
+- **Priority now: finish the firmware before the hardware.** In order:
+  (1) protocol version 2 and `ttcd`/`adsbd` driven by the OBC mode, plus
+  433.92 MHz and 14 dBm in the code; (2) `flight/obcd/`; (3) the ESP32
+  ground station, which sends the remote commands of the tests, and a
+  minimal operator CLI; (4) CI and the flight image (`make provision`); then
+  the new OBC board's bring-up and the validation of CDR Table 67.
+- **Pending answers**: who writes the AOCS ESP32 firmware (the OBC↔AOCS
+  contract is I²C); the PCB team's answer on the INA219 on its own I²C bus
+  and the date of the new OBC board; the organisers' test order.
+- **ADRs**: 0007 and 0012 *Proposed*, with the bench results in their
+  verification sections; 0010 (onboard storage) still to write.
+- **The CDR** (`docs/cdr/`) is the reference for what was promised: OBC
+  criteria (Table 32), TT&C per mode (Table 55), derived requirements
+  TTC-01..16 (Table 65), traceability (Table 66), remaining validation
+  (Table 67).
 - Requirement status and open gaps: `docs/requisitos.md` (§7 lists the
   actions) — its status is still that of 2026-09-19.
 
@@ -223,7 +224,8 @@ latest overview is `docs/relatorios/2026-10-06-panorama-ttec-cdr.html`. As of
 - Numbers, not adjectives. If a decision rests on a calculation, put the script
   in `tools/analysis/` so a reviewer can rerun it. `lora_budget.py --check`
   runs in CTest so the docs cannot drift from the code in silence.
-- The schedule is tight (CDR / Design Package 2026-10-11, on-site 2026-11-24)
+- The schedule is tight (CDR delivered 2026-10-11, team tests until
+  2026-11-20, on-site 2026-11-24)
   and the electronics are in hand: Pi Zero 2 W, two RA-02 modules, NooElec
   NESDR Nano 3, ESP32. The antennas (433.92 MHz and 1090 MHz dipoles with LC
   baluns) are still being characterised and will be fabricated by the team;
