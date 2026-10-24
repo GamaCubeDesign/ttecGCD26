@@ -125,16 +125,18 @@ vezes. Decisões 2, 3 e 4 de 05/10.
 
 ### 1.2 O modo do OBC dirige o `ttcd` e o `adsbd` (Tabela 55)
 
-- [ ] `ttcd` repassa ao `adsbd` cada `IPC_MODE` do OBC; o `adsbd` só roda o
+- [x] `ttcd` repassa ao `adsbd` cada `IPC_MODE` do OBC; o `adsbd` só roda o
       `dump1090` em `MISSION_ADSB` (tentando a cada 1 s até abrir o SDR)
-- [ ] Retratos a cada 5 s e estatísticas a cada 30 s começam e param com o
+- [x] Retratos a cada 5 s e estatísticas a cada 30 s começam e param com o
       modo; `STREAM_START`/`STREAM_STOP` ficam como comando manual (TTC-07,
       GEN-03.3)
-- [ ] `MISSION_DOWNLINK`: o `dump1090` para, o `ttcd` manda o roster e as
+- [x] `MISSION_DOWNLINK`: o `dump1090` para, o `ttcd` manda o roster e as
       estatísticas finais (260 B, 1,4 s no ar) e então `EV_TASK_DONE` ao OBC
       (D2)
-- [ ] Sem OBC conectado, o HK reporta o modo como desconhecido e o enlace segue
-- [ ] ADR novo (TT&C dirigido pelo modo); testes de integração atualizados
+- [x] Sem OBC conectado, o HK reporta o modo como desconhecido e o enlace segue
+- [x] ADR novo (TT&C dirigido pelo modo); testes de integração atualizados
+      — ADR-0014, em 24/10; `UNKNOWN` mantém o modo anterior; até o `obcd`,
+      `tools/obc_standin` faz o papel do OBC
 
 ### 1.3 Frequência e potência do CDR (TTC-01, TTC-03)
 

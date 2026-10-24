@@ -48,3 +48,4 @@ Three reasons, in order of importance to the project:
 | [0011](0011-documentation-language.md) | English for Design Package documents, Portuguese for working notes | Accepted | REG-04, HLR-SYS-01 |
 | [0012](0012-hardware-access-through-kernel-interfaces.md) | Radio hardware through the kernel's spidev and GPIO character device | **Proposed** | HLR-COMM-01, HLR-COMM-03 |
 | [0013](0013-protocol-version-2.md) | Protocol version 2 — battery temperature, "no data" values, roster and mode over IPC | **Proposed** | HLR-COMM-02, HLR-EPS-04, HLR-ADS-05, HLR-ADS-08, HLR-GEN-03 |
+| [0014](0014-ttc-driven-by-obc-mode.md) | The OBC's mission mode drives ttcd's telemetry and adsbd's decoder | **Proposed** | HLR-GEN-03, HLR-ADS-05, HLR-ADS-08, HLR-SW-01 |

@@ -710,6 +710,10 @@ nada é transmitido ainda
   que transmitir em cada fase.
 - O estado de enlace do `ttcd` (`IDLE`, `TX`, `STREAM`, `BULK`, `SAFE`) não é
   modo operacional. Não confundir os dois no DP.
+- Desde 2026-10-24 (ADR-0014) o TT&C segue o modo do OBC (Tabela 55 do CDR):
+  retratos e estatísticas só em `MISSION_ADSB`, roster e estatísticas finais
+  em `MISSION_DOWNLINK`, decoder só em `MISSION_ADSB`. Testado com um OBC
+  substituto (`tools/obc_standin`); falta o `obcd`.
 
 ### HLR-SW-02
 
