@@ -136,6 +136,7 @@ const char *gama_tc_name(uint8_t cmd);
 const char *gama_ack_status_name(uint8_t status);
 const char *gama_rate_profile_name(uint8_t profile);
 const char *gama_obc_state_name(uint8_t state);
+const char *gama_obc_event_name(uint8_t event);
 const char *gama_link_state_name(uint8_t state);
 
 #ifdef __cplusplus
