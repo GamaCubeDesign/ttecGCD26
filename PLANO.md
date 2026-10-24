@@ -18,9 +18,9 @@ OBC e ground rodando ponta a ponta em software e na bancada até ~07/11 —, par
 que a chegada da placa do OBC seja só configurar pinos e medir, sem reescrever
 código.
 
-**A referência é o CDR entregue** (versão 4, 220 p.; cópia local em
-`docs/cdr/`, fora do git — a fonte de verdade é o Overleaf). O que ele
-promete e o plano tem de cumprir está em cinco tabelas:
+**A referência é o CDR entregue:** `docs/cdr/CDR_GCD_Cubedesign_2026.pdf`
+(versão 4, 220 p.; a fonte LaTeX fica fora do git — a de verdade é o
+Overleaf). O que ele promete e o plano tem de cumprir está em cinco tabelas:
 
 | Tabela do CDR | O quê | Etapa |
 |---|---|---|
