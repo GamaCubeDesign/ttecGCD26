@@ -53,12 +53,16 @@ and this budget must be revised.
 | Item | Size | Cadence | Air time | Mission total |
 |---|---|---|---|---|
 | Track snapshot (20 aircraft) | 2 frames, 414 B | 5 s | 2.09 s | 120 x = 251 s, 48.5 KB |
-| Housekeeping (`TM_HK`) | 32 B | 10 s | 0.247 s | 60 x = 15 s, 1.9 KB |
+| Housekeeping (`TM_HK`) | 34 B | 10 s | 0.247 s | 60 x = 15 s, 2.0 KB |
 | Statistics (`TM_STAT`) | 33 B | 30 s | 0.247 s | 20 x = 5 s, 0.6 KB |
 | Telecommand ACKs | 11 B | on demand | 0.144 s | budgeted 20 x = 3 s |
 | **Total** | | | | **274 s of 300 s** |
 
 26 s of margin, about 9% of the transmit allocation.
+
+Protocol version 2 (ADR-0013) grew the housekeeping frame from 32 to 34 B
+for the battery temperature. At SF9 both are 48 symbols, so its air time and
+this allocation are unchanged; the volume grows by 120 B over the mission.
 
 ### Why the snapshot period is 5 s and not 4.2 s
 

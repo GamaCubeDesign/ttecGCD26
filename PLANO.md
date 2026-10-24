@@ -111,16 +111,17 @@ vezes. Decisões 2, 3 e 4 de 05/10.
 
 ### 1.1 Troca de versão do protocolo (`GAMA_FRAME_VERSION` 1 → 2)
 
-- [ ] Temperatura da bateria no `TM_HK` (25 → 27 B) (HLR-EPS-04, TTC-06,
+- [x] Temperatura da bateria no `TM_HK` (25 → 27 B) (HLR-EPS-04, TTC-06,
       OBC-7) — revisar `data-budget.md` (+120 B em 10 min)
-- [ ] Valor reservado de "sem dado" nos campos do `IPC_TELEMETRY` e do `TM_HK`
+- [x] Valor reservado de "sem dado" nos campos do `IPC_TELEMETRY` e do `TM_HK`
       (D6)
-- [ ] Indicador de `dump1090` vivo no `IPC_STAT`, que liga o bit
-      `GAMA_HK_F_DUMP1090_UP` (hoje nunca ligado)
-- [ ] Mensagem IPC `adsbd` → `ttcd` com a tabela ICAO → callsign, que destrava
-      o `REQ_ROSTER` (hoje `FAILED`)
-- [ ] Mensagem IPC `ttcd` → `adsbd` com o modo do OBC
-- [ ] `make vectors`, diff revisado byte a byte; ADR novo da troca de versão
+- [x] Indicador de `dump1090` vivo no `IPC_STAT`, que liga o bit
+      `GAMA_HK_F_DUMP1090_UP` (era nunca ligado)
+- [x] Mensagem IPC `adsbd` → `ttcd` com a tabela ICAO → callsign, que destrava
+      o `REQ_ROSTER` (era `FAILED`)
+- [x] Mensagem IPC `ttcd` → `adsbd` com o modo do OBC
+- [x] `make vectors`, diff revisado byte a byte; ADR novo da troca de versão
+      — ADR-0013, em 24/10; falta a bancada com os dois RA-02
 
 ### 1.2 O modo do OBC dirige o `ttcd` e o `adsbd` (Tabela 55)
 

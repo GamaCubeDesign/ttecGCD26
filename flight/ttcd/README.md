@@ -323,7 +323,8 @@ principais:
 | `rate`, `rate_commit` | troca de perfil (comandada, revertida, por perda de contato) |
 | `contact_lost` | queda para SAFE |
 | `lbt_defer` | transmissão adiada porque havia recepção em curso |
-| `obc_telemetry`, `obc_mode` | o que o OBC reportou (inclui temperatura da bateria) |
+| `obc_telemetry`, `obc_mode` | o que o OBC reportou (inclui temperatura da bateria, que também vai no `TM_HK` desde a versão 2) |
+| `roster_full` | a tabela de callsigns (128) encheu; os seguintes são contados em `roster_full` |
 | `ipc_peer`, `ipc_drop_peer` | clientes IPC conectando e saindo |
 | `time_anchor` | `SET_TIME`: par relógio monotônico ↔ UTC |
 | `shutdown`, `stop`, `log_full` | fim |
