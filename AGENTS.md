@@ -24,13 +24,12 @@ proposing anything that moves bytes over the radio, check it against
 | `flight/radio/` | SX1278 driver over an abstract bus; Linux bus (spidev + GPIO chardev); radio backends (sx1278, udp) | Pi |
 | `flight/adsbd/` | Payload daemon: supervises dump1090-fa, parses SBS, track table, NDJSON onboard record, snapshots to `ttcd`; pure core (`sbs.c`, `tracks.c`, `ndjson.c`, `core.c`) + epoll shell (`main.c`) | Pi |
 | `flight/libipc/` | AF_UNIX SOCK_SEQPACKET transport | Pi |
-| `flight/obcd/` | OBC daemon: mission modes (ConOps state machine), sensors, burn-wire, heaters, I²C link to the AOCS ESP32 — **not started (PLANO etapa 2)** | Pi |
+| `flight/obcd/` | OBC daemon: mission modes (Figure 44), INA219 and DS18B20 in their own threads, burn-wire, heaters; pure core (`core.c`) + epoll shell (`main.c`) (ADR-0016). I²C link to the AOCS ESP32 **not yet (PLANO 2.4)** | Pi |
 | `ground/esp32/` | Ground station firmware; sends the remote commands of the on-site tests — **not started (PLANO etapa 3)** | ESP32 / ESP-IDF |
 | `ground/host/` | Downlink → estimator adapter (`tracks_to_ndjson.py`); origin/destination estimator and dashboard (`ground-aeronaves/`, a teammate's project, merged 2026-09-28); airport DB importer. Operator CLI not started | PC, Python |
 | `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check, downlink emulation over full captures (`downlink_emulation.py`) | PC |
 | `tools/gs_cli/` | Bench ground station: the real `gs_link` on a second RA-02 or the UDP radio | Pi / PC |
 | `tools/bench/` | Bench procedure: one `gs_cli` command script per step, and `run_step.sh`, which starts `ttcd` afresh for each; `adsb_chain.sh` | Pi / PC |
-| `tools/obc_standin/` | Stands in for the OBC until `flight/obcd/` exists: follows every `SET_MODE` event, so the mode-driven chain runs end to end (ADR-0014) | Pi / PC |
 | `tools/sbs_replay/` | Plays dump1090: serves SBS lines from a capture or a simulation, so `adsbd` runs without an SDR | Pi / PC |
 | `Makefile` | Entry point for build, tests, bench, Pi install and PC→Pi runs (`make help`) | Pi / PC |
 | `docs/adr/` | Architecture Decision Records | — |
@@ -97,8 +96,8 @@ change link behaviour, rerun it and update the ADR's verification table.
 
 Keep the `ttcd`, `adsbd` and `obcd` cores free of system calls (ADR-0005):
 no clock reads, no sleeps, no file descriptors in `link.c`, `tc_dispatch.c`,
-`tm_sched.c`, nor in `sbs.c`, `tracks.c`, `ndjson.c`, `core.c`, nor in the
-`obcd` core. Everything a core needs from the world goes through its ops
+`tm_sched.c`, nor in `sbs.c`, `tracks.c`, `ndjson.c`, `core.c`, nor in
+`obcd/core.c`. Everything a core needs from the world goes through its ops
 table (`ttcd_ops_t`, `adsbd_ops_t`, and the same for `obcd`).
 
 The build must stay at **zero warnings** under `-Wall -Wextra -Wpedantic
@@ -195,10 +194,10 @@ risks. As of 2026-10-24:
   protocol, the SX1278 driver, the channel simulation, the bench tooling,
   `adsbd`, the ADS-B chain without hardware, the downlink adapter and the
   ground estimator; since 2026-10-24 also PLANO etapa 1: protocol version 2
-  (ADR-0013), `ttcd` and `adsbd` driven by the OBC mode with
-  `tools/obc_standin` as the OBC (ADR-0014), 433.92 MHz and 14 dBm
-  (ADR-0015). 23 CTest suites, zero warnings, clean under ASan and UBSan.
-  Etapa 1 has not been run on the bench yet.
+  (ADR-0013), `ttcd` and `adsbd` driven by the OBC mode (ADR-0014),
+  433.92 MHz and 14 dBm (ADR-0015); and of etapa 2, `obcd` without the AOCS
+  link (ADR-0016). 27 CTest suites, zero warnings, clean under ASan and
+  UBSan. None of this has been run on the bench yet.
 - **Validated on the bench** (2026-10-07/09, `docs/vv/bancada/`, in
   Portuguese — **update it as each stage closes**): `make check` on the Pi
   (`pi@gamapi.local`, 64-bit Debian 13, reached through `local.mk`); the
@@ -207,7 +206,9 @@ risks. As of 2026-10-24:
   ground, without track records (no aircraft position in view).
 - **Priority now: finish the firmware before the hardware.** In order:
   (1) ~~protocol version 2, mode-driven `ttcd`/`adsbd`, 433.92 MHz and
-  14 dBm~~ — done in software 2026-10-24; (2) `flight/obcd/`; (3) the ESP32
+  14 dBm~~ — done in software 2026-10-24; (2) `flight/obcd/` — core, shell
+  and drivers done 2026-10-24, the AOCS I²C contract (2.4) waits for the
+  AOCS firmware, which is being written; (3) the ESP32
   ground station, which sends the remote commands of the tests, and a
   minimal operator CLI; (4) CI and the flight image (`make provision`); then
   the new OBC board's bring-up and the validation of CDR Table 67.
