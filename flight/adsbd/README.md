@@ -137,7 +137,6 @@ mesma base do log do `ttcd`, para os dois se alinharem.
 
 - **Medições na Pi (PLANO 3.4):** CPU do `dump1090` a 2,4 MS/s, varredura de
   ganho, taxa de decodificação contra um cenário conhecido.
-- **`GAMA_HK_F_DUMP1090_UP`:** o bit do HK depende de um campo novo no
-  `IPC_STAT`, o que muda um formato fixado pelos vetores — decisão à parte.
-- **Tabela ICAO → callsign para o `REQ_ROSTER`:** precisa de uma mensagem IPC
-  nova; o `adsbd` já guarda o callsign de cada aeronave.
+- **Comportamento por modo (PLANO 1.2):** o `adsbd` já recebe o modo do OBC
+  (`IPC_MODE`, repassado pelo `ttcd`, evento `obc_mode` no log), mas ainda
+  não age sobre ele: o `dump1090` roda sempre.

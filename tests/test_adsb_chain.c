@@ -52,6 +52,7 @@ static pid_t ttcd_pid, adsbd_pid;
 
 static const uint32_t ICAO[AIRCRAFT] = { 0xE48DF5, 0xE49608, 0xE4A669 };
 static const double LAT0[AIRCRAFT] = { -15.70, -15.90, -16.10 };
+static const char *const CALLSIGN[AIRCRAFT] = { "TAM3054", "GLO1234", "AZU4321" };
 static int feeds;
 static uint64_t next_feed;
 
@@ -62,6 +63,8 @@ static struct {
     gama_track_t track[AIRCRAFT];
     struct { uint32_t id; uint8_t status; bool done; } acks[16];
     int n_acks;
+    int roster_frames;
+    bool named[AIRCRAFT];                /* callsign heard in TM_ROSTER */
 } S;
 
 static uint64_t now_ms(void)
@@ -173,6 +176,17 @@ static void g_event(void *c, uint64_t now, const gs_event_t *e)
     } else if (e->kind == GS_EV_FRAME && e->type == GAMA_FRAME_TM_HK) {
         S.hk++;
         gama_hk_decode(e->payload, e->len, &S.last_hk);
+    } else if (e->kind == GS_EV_FRAME && e->type == GAMA_FRAME_TM_ROSTER) {
+        S.roster_frames++;
+        for (size_t r = 0; r + GAMA_ROSTER_WIRE_LEN <= e->len; r += GAMA_ROSTER_WIRE_LEN) {
+            gama_roster_t ro;
+            gama_roster_decode(e->payload + r, GAMA_ROSTER_WIRE_LEN, &ro);
+            for (int a = 0; a < AIRCRAFT; a++) {
+                if (ro.icao == ICAO[a] && strcmp(ro.callsign, CALLSIGN[a]) == 0) {
+                    S.named[a] = true;
+                }
+            }
+        }
     } else if (e->kind == GS_EV_FRAME && e->type == GAMA_FRAME_TM_TRACKS) {
         for (size_t r = 0; r + GAMA_TRACK_WIRE_LEN <= e->len; r += GAMA_TRACK_WIRE_LEN) {
             gama_track_t t;
@@ -205,8 +219,10 @@ static void feed(void)
     size_t pos = 0;
     for (int a = 0; a < AIRCRAFT; a++) {
         pos += (size_t)snprintf(text + pos, sizeof(text) - pos,
+                                "MSG,1,1,1,%06X,1,,,,,%s,,,,,,,,,,,\r\n"
                                 "MSG,3,1,1,%06X,1,,,,,,%d,,,%.6f,-47.900000,,,0,,0,0\r\n"
                                 "MSG,4,1,1,%06X,1,,,,,,,420.0,180.0,,,-640,,,,,\r\n",
+                                (unsigned)ICAO[a], CALLSIGN[a],
                                 (unsigned)ICAO[a], 20000 + 1000 * a, LAT0[a] - 0.0005 * feeds,
                                 (unsigned)ICAO[a]);
     }
@@ -353,6 +369,37 @@ int main(int argc, char **argv)
             /* HLR-ADS-08: from arrival on board to the start of transmission. */
             CHECK(t->age_ds < 50);
         }
+    }
+
+    TEST_GROUP("chain: the callsigns adsbd heard reach the ground on REQ_ROSTER");
+    {
+        int k = submit(GAMA_TC_REQ_ROSTER, NULL, 0);
+        run(3000, &S.acks[k].done);
+        CHECK(S.acks[k].done);
+        CHECK_EQ_INT(S.acks[k].status, GAMA_ACK_OK);
+        for (int i = 0; i < 30 && S.roster_frames == 0; i++) {
+            run(100, NULL);
+        }
+        CHECK_EQ_INT(S.roster_frames, 1);
+        for (int ac = 0; ac < AIRCRAFT; ac++) {
+            CHECK(S.named[ac]);
+        }
+    }
+
+    TEST_GROUP("chain: housekeeping says dump1090 is delivering");
+    {
+        uint32_t before = S.hk;
+        int k = submit(GAMA_TC_REQ_HK, NULL, 0);
+        run(3000, &S.acks[k].done);
+        CHECK(S.acks[k].done);
+        for (int i = 0; i < 30 && S.hk == before; i++) {
+            run(100, NULL);
+        }
+        CHECK(S.hk > before);
+        CHECK(S.last_hk.flags & GAMA_HK_F_ADSB_LINKED);
+        CHECK(S.last_hk.flags & GAMA_HK_F_DUMP1090_UP);
+        CHECK(S.last_hk.adsb_msgs > 0 && S.last_hk.adsb_msgs != GAMA_NO_DATA_U32);
+        CHECK_EQ_INT(S.last_hk.battery_mv, GAMA_NO_DATA_U16);          /* no OBC here */
     }
 
     TEST_GROUP("chain: the ground's SET_TIME reaches adsbd's record through ttcd");

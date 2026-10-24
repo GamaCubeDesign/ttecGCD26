@@ -12,6 +12,7 @@
 
 #include "core.h"
 #include "gama_frame.h"
+#include "gama_tc.h"
 #include "ndjson.h"
 
 #include <inttypes.h>
@@ -60,6 +61,7 @@ void adsbd_init(adsbd_core_t *c, const adsbd_params_t *p, const adsbd_ops_t *ops
     }
     c->ops = *ops;
     c->wall_offset_ns = wall_offset_ns;
+    c->obc_mode = GAMA_OBC_ST_UNKNOWN;
     tracks_init(&c->table, c->p.table_capacity);
     c->next_snapshot = now + (uint64_t)c->p.snapshot_period * NS_PER_MS;
     c->next_stat = now + (uint64_t)c->p.stat_period * NS_PER_MS;
@@ -72,6 +74,39 @@ uint64_t adsbd_wall_ns(const adsbd_core_t *c, uint64_t mono_ns)
      * reaches 2^63 after 292 years of uptime. */
     int64_t wall = (int64_t)mono_ns + c->wall_offset_ns;
     return wall > 0 ? (uint64_t)wall : 0u;
+}
+
+/* Remembers an aircraft's callsign, and marks it for ttcd when it is new
+ * or has changed. An empty identification carries nothing to send. */
+static void roster_note(adsbd_core_t *c, uint64_t now, uint32_t icao,
+                        const char cs[GAMA_CALLSIGN_LEN + 1])
+{
+    if (cs[0] == '\0') {
+        return;
+    }
+    for (uint32_t i = 0; i < c->roster_count; i++) {
+        adsbd_roster_entry_t *e = &c->roster[i];
+        if (e->icao == icao) {
+            if (strcmp(e->callsign, cs) != 0) {
+                memcpy(e->callsign, cs, sizeof(e->callsign));
+                e->callsign[GAMA_CALLSIGN_LEN] = '\0';
+                e->pending = true;
+            }
+            return;
+        }
+    }
+    if (c->roster_count == ADSBD_ROSTER_MAX) {
+        /* Counted, never silently dropped (AGENTS.md, hard rule 6). */
+        if (c->n.roster_full++ == 0) {
+            core_log(c, now, "roster_full", "\"max\":%u", ADSBD_ROSTER_MAX);
+        }
+        return;
+    }
+    adsbd_roster_entry_t *e = &c->roster[c->roster_count++];
+    e->icao = icao;
+    memcpy(e->callsign, cs, sizeof(e->callsign));
+    e->callsign[GAMA_CALLSIGN_LEN] = '\0';
+    e->pending = true;
 }
 
 void adsbd_on_line(adsbd_core_t *c, uint64_t now, const char *line, size_t len)
@@ -106,6 +141,9 @@ void adsbd_on_line(adsbd_core_t *c, uint64_t now, const char *line, size_t len)
         c->n.evictions++;
     }
     c->n.decoded++;
+    if (m.have & SBS_HAVE_CALLSIGN) {
+        roster_note(c, now, m.icao, m.callsign);
+    }
 
     /* HLR-ADS-07: every message recorded with its time of arrival. */
     char out[ADSBD_NDJSON_MAX];
@@ -122,6 +160,12 @@ void adsbd_on_overlong_line(adsbd_core_t *c, uint64_t now)
     if (c->n.rejected <= ADSBD_REJECT_LOG_MAX) {
         core_log(c, now, "sbs_reject", "\"why\":\"overlong\"");
     }
+}
+
+void adsbd_on_dump1090_link(adsbd_core_t *c, uint64_t now, bool up)
+{
+    (void)now;
+    c->dump1090_up = up;
 }
 
 void adsbd_on_dump1090_restart(adsbd_core_t *c, uint64_t now)
@@ -156,10 +200,42 @@ static void send_stat(adsbd_core_t *c, uint64_t now)
         .msgs_decoded      = c->n.decoded,
         .aircraft_tracked  = (uint16_t)c->table.count,
         .dump1090_restarts = c->n.dump1090_restarts,
+        .flags             = c->dump1090_up ? GAMA_IPC_STAT_F_DUMP1090_UP : 0u,
     };
     uint8_t payload[GAMA_IPC_STAT_LEN];
     gama_ipc_stat_encode(payload, sizeof(payload), &s);
     send_frame(c, now, GAMA_FRAME_IPC_STAT, payload, GAMA_IPC_STAT_LEN);
+}
+
+/* The pending roster entries, up to GAMA_IPC_ROSTER_MAX per frame. An entry
+ * stays pending if its frame did not reach ttcd, and goes in the next. */
+static void send_roster(adsbd_core_t *c, uint64_t now)
+{
+    uint32_t i = 0;
+    while (i < c->roster_count) {
+        uint8_t payload[GAMA_IPC_ROSTER_MAX * GAMA_ROSTER_WIRE_LEN];
+        uint32_t in_frame[GAMA_IPC_ROSTER_MAX];
+        size_t n = 0;
+        for (; i < c->roster_count && n < GAMA_IPC_ROSTER_MAX; i++) {
+            if (!c->roster[i].pending) {
+                continue;
+            }
+            gama_roster_t r = { .icao = c->roster[i].icao };
+            memcpy(r.callsign, c->roster[i].callsign, sizeof(r.callsign));
+            gama_roster_encode(payload + n * GAMA_ROSTER_WIRE_LEN, GAMA_ROSTER_WIRE_LEN, &r);
+            in_frame[n++] = i;
+        }
+        if (n == 0) {
+            return;
+        }
+        if (!send_frame(c, now, GAMA_FRAME_IPC_ROSTER, payload,
+                        (uint8_t)(n * GAMA_ROSTER_WIRE_LEN))) {
+            return;
+        }
+        for (size_t k = 0; k < n; k++) {
+            c->roster[in_frame[k]].pending = false;
+        }
+    }
 }
 
 /* One snapshot: as many IPC_TRACKS frames as it takes, all with the same
@@ -198,9 +274,13 @@ void adsbd_on_ipc_link(adsbd_core_t *c, uint64_t now, bool up)
 {
     c->ipc_up = up;
     if (up) {
-        /* A (re)connected ttcd learns the counters and the aircraft at once. */
+        /* A (re)connected ttcd learns the counters, the aircraft and the
+         * whole roster at once: it may be a ttcd that restarted empty. */
         c->next_stat = now;
         c->next_snapshot = now;
+        for (uint32_t i = 0; i < c->roster_count; i++) {
+            c->roster[i].pending = true;
+        }
     }
 }
 
@@ -210,6 +290,16 @@ void adsbd_on_ipc_frame(adsbd_core_t *c, uint64_t now, const uint8_t *buf, size_
     if (gama_frame_decode(buf, len, &f) < 0) {
         c->n.ipc_rx_bad++;
         core_log(c, now, "ipc_unexpected", "\"what\":\"undecodable\",\"len\":%zu", len);
+        return;
+    }
+    if (f.type == GAMA_FRAME_IPC_MODE && f.len == GAMA_IPC_MODE_LEN) {
+        /* The OBC's mode, forwarded by ttcd. What adsbd does in each mode
+         * is PLANO 1.2; for now it is recorded. */
+        if (f.payload[0] != c->obc_mode) {
+            core_log(c, now, "obc_mode", "\"from\":\"%s\",\"to\":\"%s\"",
+                     gama_obc_state_name(c->obc_mode), gama_obc_state_name(f.payload[0]));
+        }
+        c->obc_mode = f.payload[0];
         return;
     }
     if (f.type != GAMA_FRAME_IPC_TIME_SET) {
@@ -256,6 +346,7 @@ void adsbd_on_tick(adsbd_core_t *c, uint64_t now)
     if (now >= c->next_stat) {
         if (c->ipc_up) {
             send_stat(c, now);
+            send_roster(c, now);
         }
         c->next_stat = advance(c->next_stat, now, c->p.stat_period);
     }
@@ -266,10 +357,12 @@ void adsbd_on_tick(adsbd_core_t *c, uint64_t now)
                  ",\"non_icao\":%" PRIu32 ",\"rejected\":%" PRIu32 ",\"aircraft\":%" PRIu32
                  ",\"evictions\":%" PRIu32 ",\"expired\":%" PRIu32 ",\"snapshots\":%" PRIu32
                  ",\"left_out\":%" PRIu32 ",\"ipc_tx_drops\":%" PRIu32 ",\"ipc_rx_bad\":%" PRIu32
-                 ",\"anchors\":%" PRIu32 ",\"dump1090_restarts\":%u,\"time_synced\":%s",
+                 ",\"anchors\":%" PRIu32 ",\"roster\":%" PRIu32 ",\"roster_full\":%" PRIu32
+                 ",\"dump1090_restarts\":%u,\"time_synced\":%s",
                  n->lines, n->decoded, n->ignored, n->non_icao, n->rejected, c->table.count,
                  n->evictions, n->expired, n->snapshots, n->left_out, n->ipc_tx_drops,
-                 n->ipc_rx_bad, n->anchors, (unsigned)n->dump1090_restarts,
+                 n->ipc_rx_bad, n->anchors, c->roster_count, n->roster_full,
+                 (unsigned)n->dump1090_restarts,
                  c->time_synced ? "true" : "false");
         c->next_report = advance(c->next_report, now, c->p.report_period);
     }

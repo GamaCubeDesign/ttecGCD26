@@ -285,6 +285,7 @@ static void sbs_close(uint64_t now, const char *why)
         close(A.sbs_fd);
         if (!A.sbs_connecting) {
             write_log(now, "sbs_down", "\"why\":\"%s\"", why);
+            adsbd_on_dump1090_link(&A.core, now, false);
         } else if (!A.sbs_complained) {
             write_log(now, "sbs_connect_failed", "\"why\":\"%s\"", why);
             A.sbs_complained = true;
@@ -302,6 +303,7 @@ static void sbs_up(uint64_t now)
     A.sbs_connecting = false;
     A.sbs_complained = false;
     write_log(now, "sbs_up", "\"host\":\"%s\",\"port\":%u", A.cfg.sbs_host, A.cfg.sbs_port);
+    adsbd_on_dump1090_link(&A.core, now, true);
 }
 
 static void sbs_try_connect(uint64_t now)
