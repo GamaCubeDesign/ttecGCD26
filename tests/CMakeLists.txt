@@ -81,15 +81,37 @@ target_include_directories(test_adsbd_integration PRIVATE ${CMAKE_CURRENT_SOURCE
 add_test(NAME test_adsbd_integration COMMAND test_adsbd_integration $<TARGET_FILE:adsbd>)
 set_tests_properties(test_adsbd_integration PROPERTIES TIMEOUT 60)
 
+add_executable(test_obcd_integration test_obcd_integration.c)
+target_link_libraries(test_obcd_integration PRIVATE ttec_ipc gama_common)
+target_include_directories(test_obcd_integration PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_obcd_integration COMMAND test_obcd_integration $<TARGET_FILE:obcd>)
+set_tests_properties(test_obcd_integration PROPERTIES TIMEOUT 60)
+
 # The chain end to end: SBS -> adsbd -> ttcd -> UDP radio -> ground. Also
 # shows the radio surviving the payload, and ttcd re-anchoring a restarted
 # adsbd.
+add_executable(test_obcd_core test_obcd_core.c)
+target_link_libraries(test_obcd_core PRIVATE obcd_core)
+target_include_directories(test_obcd_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_obcd_core COMMAND test_obcd_core)
+
+add_executable(test_obcd_drivers test_obcd_drivers.c)
+target_link_libraries(test_obcd_drivers PRIVATE obcd_drivers)
+target_include_directories(test_obcd_drivers PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(test_obcd_drivers PRIVATE _POSIX_C_SOURCE=200809L)
+add_test(NAME test_obcd_drivers COMMAND test_obcd_drivers)
+
+add_executable(test_obcd_config test_obcd_config.c)
+target_link_libraries(test_obcd_config PRIVATE obcd_config)
+target_include_directories(test_obcd_config PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_obcd_config COMMAND test_obcd_config)
+
 add_executable(test_adsb_chain test_adsb_chain.c)
 target_link_libraries(test_adsb_chain PRIVATE ttec_radio gama_common)
 target_include_directories(test_adsb_chain PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_adsb_chain
          COMMAND test_adsb_chain $<TARGET_FILE:ttcd> $<TARGET_FILE:adsbd>
-                 $<TARGET_FILE:obc_standin>)
+                 $<TARGET_FILE:obcd>)
 set_tests_properties(test_adsb_chain PROPERTIES TIMEOUT 90)
 
 # test_tm exercises NaN handling and quantisation bounds.

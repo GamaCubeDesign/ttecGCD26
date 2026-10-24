@@ -43,7 +43,7 @@
 #define AIRCRAFT       3
 
 static char dir[64], sock_path[128], ttcd_conf[128], ttcd_log[128];
-static char adsbd_conf[128], adsbd_log[128], rec_path[128], obc_log[128];
+static char adsbd_conf[128], adsbd_log[128], rec_path[128], obc_log[128], obc_conf[128];
 static const char *ttcd_bin, *adsbd_bin, *obc_bin;
 static radio_t R;
 static gs_link_t G;
@@ -100,19 +100,6 @@ static pid_t spawn(const char *bin, const char *conf)
         int devnull = open("/dev/null", O_WRONLY);
         dup2(devnull, STDOUT_FILENO);
         execl(bin, bin, "-c", conf, (char *)NULL);
-        _exit(127);
-    }
-    return pid;
-}
-
-/* The OBC, played by tools/obc_standin until flight/obcd exists. */
-static pid_t spawn_obc(void)
-{
-    pid_t pid = fork();
-    if (pid == 0) {
-        int out = open(obc_log, O_WRONLY | O_CREAT | O_APPEND, 0644);
-        dup2(out, STDOUT_FILENO);
-        execl(obc_bin, obc_bin, "--ipc", sock_path, (char *)NULL);
         _exit(127);
     }
     return pid;
@@ -318,7 +305,7 @@ static bool fresh_hk(void)
 int main(int argc, char **argv)
 {
     if (argc < 4) {
-        fprintf(stderr, "usage: %s /path/to/ttcd /path/to/adsbd /path/to/obc_standin\n", argv[0]);
+        fprintf(stderr, "usage: %s /path/to/ttcd /path/to/adsbd /path/to/obcd\n", argv[0]);
         return 2;
     }
     ttcd_bin = argv[1];
@@ -333,7 +320,8 @@ int main(int argc, char **argv)
     snprintf(adsbd_conf, sizeof(adsbd_conf), "%s/adsbd.conf", dir);
     snprintf(adsbd_log, sizeof(adsbd_log), "%s/adsbd.jsonl", dir);
     snprintf(rec_path, sizeof(rec_path), "%s/adsb.ndjson", dir);
-    snprintf(obc_log, sizeof(obc_log), "%s/obc.jsonl", dir);
+    snprintf(obc_log, sizeof(obc_log), "%s/obcd.jsonl", dir);
+    snprintf(obc_conf, sizeof(obc_conf), "%s/obcd.conf", dir);
 
     uint16_t sat_port = free_port(SOCK_DGRAM), gnd_port = free_port(SOCK_DGRAM);
     sbs_lfd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
@@ -364,7 +352,11 @@ int main(int argc, char **argv)
         nanosleep(&t, NULL);
     }
     adsbd_pid = spawn(adsbd_bin, adsbd_conf);
-    obc_pid = spawn_obc();
+    /* The real obcd, with no OBC board: no sensors, no outputs. */
+    cf = fopen(obc_conf, "w");
+    fprintf(cf, "ipc_path = %s\nlog_path = %s\nretry_ms = 200\n", sock_path, obc_log);
+    fclose(cf);
+    obc_pid = spawn(obc_bin, obc_conf);
 
     const char *why = "";
     CHECK_EQ_INT(radio_open_udp(&R, "127.0.0.1", gnd_port, "127.0.0.1", sat_port,
@@ -510,7 +502,7 @@ int main(int argc, char **argv)
             back = fresh_hk() && S.last_hk.obc_mode == GAMA_OBC_ST_PRE_TEST;
         }
         CHECK(back);
-        CHECK_EQ_INT(count_in(obc_log, "\"to\":\"PRE_TEST\",\"by\":\"event\""), 1);
+        CHECK_EQ_INT(count_in(obc_log, "\"to\":\"PRE_TEST\",\"event\":\"TASK_DONE\",\"by\":\"ttcd\""), 1);
         CHECK(count_in(adsbd_log, "\"event\":\"decoder\",\"on\":false") >= 1);
         CHECK(!(S.last_hk.flags & GAMA_HK_F_DUMP1090_UP));
         CHECK_EQ_INT(S.last_hk.link_state, GAMA_LINK_IDLE);
@@ -532,6 +524,7 @@ int main(int argc, char **argv)
     unlink(adsbd_log);
     unlink(rec_path);
     unlink(obc_log);
+    unlink(obc_conf);
     rmdir(dir);
     TEST_SUMMARY("test_adsb_chain");
 }

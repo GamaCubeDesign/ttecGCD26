@@ -4,7 +4,7 @@
 #
 #   sbs_replay (dump1090) -> adsbd -> ttcd -> UDP radio -> gs_cli (ground)
 #       -> ground/host/tracks_to_ndjson.py -> the estimator's NDJSON
-#   obc_standin (the OBC, until flight/obcd exists) <-> ttcd
+#   obcd (the OBC, with no board: no sensors, no outputs) <-> ttcd
 #
 #   adsb_chain.sh INPUT OUT_DIR [DURATION_S]
 #
@@ -20,8 +20,7 @@
 # (ADR-0014): the ground sends SET_MODE MISSION_ADSB, which starts the
 # decoder — the replay begins when adsbd connects to it — and the snapshots
 # every 5 s, with no STREAM_START; at the end, SET_MODE MISSION_DOWNLINK
-# sends the roster and the final statistics, and the stand-in OBC returns to
-# PRE_TEST. The ground sends its clock on contact (gs_cli --auto-time on).
+# sends the roster and the final statistics, and obcd returns to PRE_TEST. The ground sends its clock on contact (gs_cli --auto-time on).
 #
 # The Makefile runs it: make adsb-chain INPUT=<file>. Ports can be moved
 # with SBS_PORT, SAT_PORT and GND_PORT, if the defaults are taken.
@@ -80,9 +79,11 @@ pids+=($!)
     -o log_path="$out/adsbd.jsonl" &
 pids+=($!)
 
-# The script ends MISSION_ADSB itself, so the stand-in's own 600 s timeout
-# is off: an input longer than a mission still plays to its end.
-"$build"/tools/obc_standin/obc_standin --ipc "$sock" --adsb-timeout 0 > "$out/obc.jsonl" &
+# The script ends MISSION_ADSB itself; obcd's own 600 s timeout is moved
+# past the input's end, so an input longer than a mission still plays out.
+"$build"/flight/obcd -c flight/obcd/obcd.conf.example -o ipc_path="$sock" \
+    -o log_path="$out/obcd.jsonl" -o adsb_timeout_ms=$(( (duration + 60) * 1000 )) \
+    -o i2c_dev= -o w1_path= -o burnwire_line=none -o heater_line=none &
 pids+=($!)
 
 printf 'wait 3\nmode mission_adsb\nwait %s\nmode downlink\nwait 5\nhk\n' "$duration" \
@@ -98,7 +99,7 @@ grep -c '"ev":"tracks"' "$out/ground.jsonl" | sed 's/^/TM_TRACKS received:    /;
 grep -o '"ev":"summary".*' "$out/ground.jsonl" | sed 's/^/ground summary:        /' || true
 grep -c . "$out/ground.ndjson" | sed 's/^/for the estimator:     /; s/$/ records/' || true
 grep -o '"event":"time_anchor".*' "$out/adsbd.jsonl" | head -1 | sed 's/^/adsbd anchored:        /' || true
-grep -o '"event":"mode".*' "$out/obc.jsonl" | sed 's/^/OBC (stand-in):        /' || true
+grep -o '"event":"mode".*' "$out/obcd.jsonl" | sed 's/^/obcd:                  /' || true
 grep -o '"event":"downlink_done".*' "$out/ttcd.jsonl" | sed 's/^/ttcd:                  /' || true
 echo
 echo "next, the ground's estimator:"

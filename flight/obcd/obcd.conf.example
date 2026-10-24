@@ -1,0 +1,48 @@
+# obcd configuration. One `key = value` per line; '#' starts a comment.
+# Unknown keys are an error, so a typo cannot silently keep a default.
+# Any key can be overridden on the command line: obcd -c FILE -o key=value
+# Check a file without starting: obcd -c FILE --check-config
+
+# --- where things live -----------------------------------------------------
+ipc_path      = /run/gama/ttec.sock         # ttcd's socket; obcd reconnects on its own
+log_path      = /var/lib/gama/obcd.jsonl    # events, one JSON object per line; "-" = stdout
+log_max_bytes = 67108864
+retry_ms      = 1000
+
+# --- the mission modes (CDR Figure 44; PLANO D3, D6) -------------------------
+adsb_timeout_ms     = 600000   # MISSION_ADSB ends by itself (OBC-6)
+burnwire_ms         = 5000     # the burn-wire pulse in BASIC_INTERMEDIATE (D3)
+aocs_timeout_ms     = 300000   # the most ADVANCED_AOCS lasts; placeholder until PLANO 2.4
+telemetry_period_ms = 1000     # IPC_TELEMETRY to ttcd (D6)
+
+# --- battery heaters (D4) ----------------------------------------------------
+heater_on_below_ccel  = 1000   # on below 10.00 degC
+heater_off_above_ccel = 1200   # off above 12.00 degC
+temp_stale_ms         = 10000  # no good reading this long: sensor failed, heaters off
+
+# --- sensors -----------------------------------------------------------------
+# INA219, battery voltage and the satellite's load current (OBC-7). On the
+# boards as fabricated it is on the bus shared with the AOCS ESP32 (pins
+# 3/5, /dev/i2c-1); the proposal of 2026-10-24 moves it to I2C0 (GPIO0/1,
+# /dev/i2c-0). Empty: no INA219, voltage and current read "no data".
+i2c_dev           =
+ina219_addr       = 0x40
+ina219_shunt_mohm = 100        # the previous OBC's calibration; measure the board's
+power_period_ms   = 1000
+power_stale_ms    = 5000
+
+# DS18B20 on the upper battery, through the kernel's w1-gpio and w1_therm
+# (dtoverlay=w1-gpio,gpiopin=17 on the boards as fabricated; it needs the
+# pull-up of hardware finding A7). The file is
+# /sys/bus/w1/devices/28-<serial>/w1_slave. Empty: no sensor, the heaters
+# stay off.
+w1_path        =
+temp_period_ms = 2000          # a conversion takes ~750 ms
+
+# --- outputs (GPIO character device, ADR-0012) -------------------------------
+# On the boards as fabricated: burn-wire GPIO22, heaters GPIO23 — both behind
+# TIP120s whose base drive is too weak (findings A5, A6). The new OBC board
+# sets these; until then, "none" keeps them off, and the log says so.
+gpio_chip     = /dev/gpiochip0
+burnwire_line = none
+heater_line   = none

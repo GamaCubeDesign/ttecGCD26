@@ -1,0 +1,47 @@
+# obcd — Gama OBC daemon: the mission modes, the burn-wire, the battery
+# heaters, and power and temperature telemetry for ttcd (ADR-0016).
+#
+# Install, on the Pi (flight/obcd/README.md):
+#   make install          ttcd, adsbd, obcd, their units and, if absent, /etc/gama/*.conf
+#   make obcd-enable      start it now and at every boot
+#
+# obcd connects to ttcd and retries; start order only affects how soon it
+# succeeds (ADR-0005).
+
+[Unit]
+Description=Gama OBC daemon (obcd)
+Documentation=file:///usr/local/share/doc/gama/adr
+
+[Service]
+# Type=notify: obcd says READY=1 when its loop runs, and WATCHDOG=1 every
+# second while it turns (D8). A loop stuck for 10 s is killed and restarted.
+Type=notify
+NotifyAccess=main
+WatchdogSec=10
+ExecStart=/usr/local/bin/obcd -c /etc/gama/obcd.conf
+User=gama
+Group=gama
+SupplementaryGroups=i2c gpio
+
+# The OBC runs the modes and the heaters' thermostat: always restart it, at
+# once. It comes back in PRE_TEST (D5) with both outputs off (D3).
+Restart=always
+RestartSec=1
+
+# /var/lib/gama holds the log (log_path); /run/gama is ttcd's.
+StateDirectory=gama
+
+# Only its devices. No root, no new privileges, read-only system. The
+# 1-Wire files under /sys are readable by everyone.
+DevicePolicy=closed
+DeviceAllow=/dev/i2c-0 rw
+DeviceAllow=/dev/i2c-1 rw
+DeviceAllow=/dev/gpiochip0 rw
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/gama /run/gama
+
+[Install]
+WantedBy=multi-user.target

@@ -75,3 +75,26 @@ target_compile_definitions(adsbd_config PRIVATE _POSIX_C_SOURCE=200809L)
 add_executable(adsbd adsbd/main.c)
 target_link_libraries(adsbd PRIVATE adsbd_config adsbd_core ttec_ipc)
 target_compile_definitions(adsbd PRIVATE TTEC_VERSION="${TTEC_VERSION}")
+
+# The obcd core: the mission modes, the burn-wire, the thermostat and the
+# OBC's side of the IPC contract. No system calls (ADR-0005, ADR-0016).
+add_library(obcd_core STATIC obcd/core.c)
+target_include_directories(obcd_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/obcd)
+target_link_libraries(obcd_core PUBLIC gama_common)
+
+# obcd's drivers: the INA219 over an abstract bus (tested against an emulated
+# chip) and the DS18B20 through the kernel's w1_slave file (tested against a
+# fake one).
+add_library(obcd_drivers STATIC obcd/ina219.c obcd/ds18b20.c)
+target_include_directories(obcd_drivers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/obcd)
+target_compile_definitions(obcd_drivers PRIVATE _POSIX_C_SOURCE=200809L)
+
+# obcd configuration parsing, kept out of main.c so it can be unit-tested.
+add_library(obcd_config STATIC obcd/config.c)
+target_link_libraries(obcd_config PUBLIC obcd_core)
+
+# The OBC daemon (ADR-0016): i2c-dev and the GPIO character device (ADR-0012).
+find_package(Threads REQUIRED)
+add_executable(obcd obcd/main.c obcd/hw_linux.c)
+target_link_libraries(obcd PRIVATE obcd_config obcd_core obcd_drivers ttec_ipc Threads::Threads)
+target_compile_definitions(obcd PRIVATE TTEC_VERSION="${TTEC_VERSION}")
