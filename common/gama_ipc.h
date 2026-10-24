@@ -20,6 +20,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "gama_tm.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -27,7 +29,7 @@ extern "C" {
 /* Bumped on any incompatible change to a payload below. A peer that
  * announces another version is refused at HELLO, not discovered later as
  * garbage. */
-#define GAMA_IPC_VERSION 1u
+#define GAMA_IPC_VERSION 2u   /* ADR-0013 */
 
 /* Who is on the other end of a connection. A client's first frame must be
  * IPC_HELLO; frames arriving before it are rejected and counted. */
@@ -70,13 +72,13 @@ typedef struct {
 
 /* ------------------------------------------------------------------ *
  *  IPC_TELEMETRY — OBC -> ttcd.  14 B
- *  Platform quantities ttcd cannot measure itself (HLR-COMM-02). Sent by the
- *  OBC whenever it has fresh values; ttcd keeps the latest.
+ *  Platform quantities ttcd cannot measure itself (HLR-COMM-02, HLR-EPS-04).
+ *  Sent by the OBC every 1 s (PLANO D6); ttcd keeps the latest.
  *
- *  temp_bat_ccel is here although TM_HK does not carry it yet: HLR-EPS-04 is
- *  verified by telemetry analysis, and ttcd logs every IPC_TELEMETRY
- *  onboard, so battery temperature is recorded from the first integration
- *  even before the downlink record grows a field for it.
+ *  A field the OBC could not read carries GAMA_NO_DATA_U16 (battery_mv) or
+ *  GAMA_NO_DATA_I16 (the rest), so one failed sensor does not hide the
+ *  others. The 14 bytes are, in the same order, bytes 0..13 of TM_HK
+ *  (common/gama_tm.h): ttcd copies them through unchanged.
  * ------------------------------------------------------------------ */
 #define GAMA_IPC_TELEMETRY_LEN 14u
 
@@ -91,10 +93,12 @@ typedef struct {
 } gama_ipc_telemetry_t;
 
 /* ------------------------------------------------------------------ *
- *  IPC_MODE — OBC -> ttcd.  1 B
+ *  IPC_MODE — OBC -> ttcd -> adsbd.  1 B
  *  The OBC's current gama_obc_state_t, sent on every transition and at
  *  connection. The OBC is the single source of truth for the mission mode;
- *  ttcd only reports it (ADR-0005).
+ *  ttcd reports it and forwards it, unchanged, to adsbd, which adapts to it
+ *  (CDR Table 55). ttcd also sends adsbd the current mode when adsbd
+ *  connects, and GAMA_OBC_ST_UNKNOWN when the OBC disconnects.
  * ------------------------------------------------------------------ */
 #define GAMA_IPC_MODE_LEN 1u
 
@@ -121,17 +125,37 @@ typedef struct {
 #define GAMA_IPC_TRACKS_MAX_FRAMES  8u  /* frames per snapshot */
 
 /* ------------------------------------------------------------------ *
- *  IPC_STAT — adsbd -> ttcd.  12 B
+ *  IPC_STAT — adsbd -> ttcd.  13 B
  *  Payload counters for TM_STAT and TM_HK (HLR-ADS-08).
+ *
+ *    u32 msgs_received  u32 msgs_decoded  u16 aircraft_tracked
+ *    u16 dump1090_restarts  u8 flags (GAMA_IPC_STAT_F_*; others always 0)
  * ------------------------------------------------------------------ */
-#define GAMA_IPC_STAT_LEN 12u
+#define GAMA_IPC_STAT_LEN 13u
+
+/* dump1090 is running and adsbd's SBS connection to it is open. ttcd
+ * reports it as GAMA_HK_F_DUMP1090_UP. */
+#define GAMA_IPC_STAT_F_DUMP1090_UP (1u << 0)
 
 typedef struct {
     uint32_t msgs_received;     /* SBS lines read from dump1090        */
     uint32_t msgs_decoded;      /* of those, applied to a track        */
     uint16_t aircraft_tracked;
     uint16_t dump1090_restarts;
+    uint8_t  flags;             /* GAMA_IPC_STAT_F_*                   */
 } gama_ipc_stat_t;
+
+/* ------------------------------------------------------------------ *
+ *  IPC_ROSTER — adsbd -> ttcd.  11 N B, 1 <= N <= 22
+ *
+ *  N roster records (gama_tm.h), exactly as TM_ROSTER carries them. No
+ *  header: each record stands alone, and receiving one twice is harmless.
+ *  adsbd sends a record when it learns an aircraft's callsign or the
+ *  callsign changes, and every record it holds when the connection to ttcd
+ *  comes up, so a restarted ttcd recovers the whole mission's roster. ttcd
+ *  keeps a table updated by ICAO address and answers REQ_ROSTER from it.
+ * ------------------------------------------------------------------ */
+#define GAMA_IPC_ROSTER_MAX GAMA_ROSTERS_PER_FRAME  /* records per frame */
 
 /* Encoders return the number of bytes written; decoders the number of bytes
  * consumed. Both return a negative gama_frame_result_t on a NULL pointer or
@@ -148,6 +172,10 @@ int gama_ipc_telemetry_decode(const uint8_t *in, size_t len, gama_ipc_telemetry_
 
 int gama_ipc_stat_encode(uint8_t *out, size_t cap, const gama_ipc_stat_t *s);
 int gama_ipc_stat_decode(const uint8_t *in, size_t len, gama_ipc_stat_t *s);
+
+/* The number of roster records in an IPC_ROSTER payload, or
+ * GAMA_FRAME_ERR_LEN if it is empty, too long or not whole records. */
+int gama_ipc_roster_count(size_t len);
 
 /* IPC_TRACKS is variable length: header, then whole records. The decoder
  * reports how many records follow, and rejects a payload that is not a whole

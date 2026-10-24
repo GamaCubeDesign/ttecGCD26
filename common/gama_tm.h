@@ -26,6 +26,20 @@
 extern "C" {
 #endif
 
+/*
+ * "No data" (PLANO D6, TTC-06). A field whose source has not reported, or
+ * whose sensor failed, carries the reserved value of its type, never zero:
+ * zero is a plausible reading, and a missing sensor must not pass for one.
+ * Each is a value no real reading of that field reaches.
+ *
+ * TM_HK and IPC_TELEMETRY use them field by field; the OBC writes them in
+ * IPC_TELEMETRY for the sensors it could not read, and ttcd copies them
+ * through.
+ */
+#define GAMA_NO_DATA_I16 INT16_MIN      /* 0x8000: -327.68 degC or degrees    */
+#define GAMA_NO_DATA_U16 0xFFFFu        /* 65.535 V on a 2S battery           */
+#define GAMA_NO_DATA_U32 0xFFFFFFFFu
+
 /* ------------------------------------------------------------------ *
  *  Track record: one aircraft, one point in time.  20 bytes.
  * ------------------------------------------------------------------ */
@@ -117,38 +131,59 @@ typedef struct {
     char     callsign[GAMA_CALLSIGN_LEN + 1]; /* NUL-terminated in memory  */
 } gama_roster_t;
 
-/* On the wire the callsign is 8 bytes, space-padded and not terminated. */
+/* On the wire the callsign is 8 bytes, space-padded and not terminated. The
+ * same record travels on IPC_ROSTER, adsbd -> ttcd (common/gama_ipc.h). */
 int gama_roster_encode(uint8_t *out, size_t out_cap, const gama_roster_t *r);
 int gama_roster_decode(const uint8_t *in, size_t in_len, gama_roster_t *r);
 
+/* How many whole roster records fit in one frame payload: 248 / 11 = 22. */
+#define GAMA_ROSTERS_PER_FRAME (248u / GAMA_ROSTER_WIRE_LEN)
+
 /* ------------------------------------------------------------------ *
- *  Housekeeping: the HLR-COMM-02 payload.  25 bytes.
+ *  Housekeeping: the HLR-COMM-02 payload.  27 bytes (protocol v2).
+ *
+ *  Bytes 0..13 are the OBC's block, byte for byte the IPC_TELEMETRY payload
+ *  (common/gama_ipc.h): ttcd copies what the OBC reported, "no data" values
+ *  included. Bytes 14..26 are what ttcd knows itself or hears from adsbd.
+ *
+ *    off len
+ *     0   2  battery_mv      u16  mV                         no data 0xFFFF
+ *     2   2  current_ma      i16  mA, negative = charging    no data 0x8000
+ *     4   2  temp_bat_ccel   i16  0.01 degC                  no data 0x8000
+ *     6   2  temp_ext_ccel   i16  0.01 degC                  no data 0x8000
+ *     8   2  roll_cdeg       i16  0.01 deg                   no data 0x8000
+ *    10   2  pitch_cdeg      i16  0.01 deg                   no data 0x8000
+ *    12   2  yaw_cdeg        i16  0.01 deg                   no data 0x8000
+ *    14   2  temp_soc_ccel   i16  0.01 degC                  no data 0x8000
+ *    16   4  adsb_msgs       u32  decoded, cumulative        no data 0xFFFFFFFF
+ *    20   1  obc_mode        u8   gama_obc_state_t           no data 0xFF
+ *    21   1  link_state      u8   gama_link_state_t
+ *    22   4  uptime_s        u32  s
+ *    26   1  flags           u8   GAMA_HK_F_*
  * ------------------------------------------------------------------ */
 
-#define GAMA_HK_WIRE_LEN 25u
+#define GAMA_HK_WIRE_LEN 27u
 
 typedef struct {
     uint16_t battery_mv;      /* millivolts                                */
     int16_t  current_ma;      /* milliamps, signed: negative is charging   */
+    int16_t  temp_bat_ccel;   /* battery temperature (HLR-EPS-04)          */
     int16_t  temp_ext_ccel;   /* external temperature, hundredths of degC  */
-    int16_t  temp_soc_ccel;   /* SoC temperature, hundredths of degC       */
     int16_t  roll_cdeg;       /* hundredths of a degree                    */
     int16_t  pitch_cdeg;
     int16_t  yaw_cdeg;
+    int16_t  temp_soc_ccel;   /* SoC temperature, hundredths of degC       */
     uint32_t adsb_msgs;       /* cumulative decoded ADS-B messages         */
-    uint8_t  obc_mode;        /* obc fsm.h State, as reported over IPC     */
+    uint8_t  obc_mode;        /* gama_obc_state_t, as reported over IPC    */
     uint8_t  link_state;      /* ttcd link state machine                   */
     uint32_t uptime_s;
-    uint8_t  flags;           /* bit 0: OBC IPC connected                  *
-                               * bit 1: adsbd IPC connected                *
-                               * bit 2: wall clock synchronised            *
-                               * bit 3: dump1090 running                   */
+    uint8_t  flags;           /* GAMA_HK_F_*                               */
 } gama_hk_t;
 
 #define GAMA_HK_F_OBC_LINKED   (1u << 0)
 #define GAMA_HK_F_ADSB_LINKED  (1u << 1)
 #define GAMA_HK_F_TIME_SYNCED  (1u << 2)
-#define GAMA_HK_F_DUMP1090_UP  (1u << 3)
+#define GAMA_HK_F_DUMP1090_UP  (1u << 3) /* from IPC_STAT's flags          */
 
 int gama_hk_encode(uint8_t *out, size_t out_cap, const gama_hk_t *hk);
 int gama_hk_decode(const uint8_t *in, size_t in_len, gama_hk_t *hk);

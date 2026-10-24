@@ -137,12 +137,12 @@ static void print_frame(const gs_event_t *e)
         gama_hk_t h;
         if (gama_hk_decode(e->payload, e->len, &h) > 0) {
             out("\"ev\":\"hk\",\"seq\":%u,\"rssi\":%d,\"snr\":%d,\"battery_mv\":%u,"
-                "\"current_ma\":%d,\"temp_ext_ccel\":%d,\"temp_soc_ccel\":%d,"
+                "\"current_ma\":%d,\"temp_bat_ccel\":%d,\"temp_ext_ccel\":%d,\"temp_soc_ccel\":%d,"
                 "\"roll_cdeg\":%d,\"pitch_cdeg\":%d,\"yaw_cdeg\":%d,\"adsb_msgs\":%" PRIu32 ","
                 "\"obc_mode\":\"%s\",\"link\":\"%s\",\"uptime_s\":%" PRIu32 ",\"flags\":%u,"
                 "\"payload\":\"%s\"",
-                e->seq, e->rssi, e->snr, h.battery_mv, h.current_ma, h.temp_ext_ccel,
-                h.temp_soc_ccel, h.roll_cdeg, h.pitch_cdeg, h.yaw_cdeg, h.adsb_msgs,
+                e->seq, e->rssi, e->snr, h.battery_mv, h.current_ma, h.temp_bat_ccel,
+                h.temp_ext_ccel, h.temp_soc_ccel, h.roll_cdeg, h.pitch_cdeg, h.yaw_cdeg, h.adsb_msgs,
                 gama_obc_state_name(h.obc_mode), gama_link_state_name(h.link_state),
                 h.uptime_s, h.flags, hex);
             return;
@@ -161,6 +161,20 @@ static void print_frame(const gs_event_t *e)
                 s.dump1090_restarts, hex);
             return;
         }
+    } else if (e->type == GAMA_FRAME_TM_ROSTER && e->len % GAMA_ROSTER_WIRE_LEN == 0) {
+        char recs[GAMA_ROSTERS_PER_FRAME * 40 + 1];
+        size_t pos = 0;
+        recs[0] = '\0';
+        for (size_t r = 0; r < e->len / GAMA_ROSTER_WIRE_LEN; r++) {
+            gama_roster_t ro;
+            gama_roster_decode(e->payload + r * GAMA_ROSTER_WIRE_LEN, GAMA_ROSTER_WIRE_LEN, &ro);
+            pos += (size_t)snprintf(recs + pos, sizeof(recs) - pos,
+                                    "%s{\"icao\":\"%06" PRIX32 "\",\"callsign\":\"%s\"}",
+                                    r == 0 ? "" : ",", ro.icao, ro.callsign);
+        }
+        out("\"ev\":\"roster\",\"seq\":%u,\"rssi\":%d,\"snr\":%d,\"aircraft\":[%s],"
+            "\"payload\":\"%s\"", e->seq, e->rssi, e->snr, recs, hex);
+        return;
     } else if (e->type == GAMA_FRAME_TM_TRACKS && e->len % GAMA_TRACK_WIRE_LEN == 0) {
         /* The update time of each record in this machine's clock: arrival,
          * minus the frame's time on air, minus the record's age (ADR-0007). */

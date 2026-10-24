@@ -1,5 +1,5 @@
 /*
- * gama_frame.h — GAMA framing layer, version 1.
+ * gama_frame.h — GAMA framing layer, version 2.
  *
  * One frame carries one message. The same frame format is used on both
  * transports in the system:
@@ -44,7 +44,10 @@
 extern "C" {
 #endif
 
-#define GAMA_FRAME_VERSION      1u
+/* Version 2 (ADR-0013): TM_HK grew to 27 B, IPC_STAT to 13 B, IPC_ROSTER is
+ * new and IPC_MODE also flows ttcd -> adsbd. The header itself is unchanged.
+ * A version-1 peer is rejected frame by frame, and counted. */
+#define GAMA_FRAME_VERSION      2u
 #define GAMA_FRAME_HEADER_LEN   5u
 #define GAMA_FRAME_CRC_LEN      2u
 #define GAMA_FRAME_OVERHEAD     (GAMA_FRAME_HEADER_LEN + GAMA_FRAME_CRC_LEN)
@@ -76,10 +79,11 @@ typedef enum {
     GAMA_FRAME_IPC_TC_EVENT  = 0x30, /* ttcd -> obc; one obc fsm.h Event     */
     GAMA_FRAME_IPC_TIME_SET  = 0x31, /* ttcd -> obc/adsbd; wall-clock anchor */
     GAMA_FRAME_IPC_TELEMETRY = 0x32, /* obc -> ttcd; obclog.h Telemetry      */
-    GAMA_FRAME_IPC_MODE      = 0x33, /* obc -> ttcd; current fsm.h State     */
+    GAMA_FRAME_IPC_MODE      = 0x33, /* obc -> ttcd -> adsbd; mission mode   */
     GAMA_FRAME_IPC_TRACKS    = 0x34, /* adsbd -> ttcd; track snapshot        */
     GAMA_FRAME_IPC_STAT      = 0x35, /* adsbd -> ttcd; payload counters      */
     GAMA_FRAME_IPC_HELLO     = 0x36, /* client -> ttcd; identifies the peer  */
+    GAMA_FRAME_IPC_ROSTER    = 0x37, /* adsbd -> ttcd; ICAO -> callsign      */
 
     GAMA_FRAME_BEACON        = 0x7F  /* sat -> ground; minimal "I am alive"  */
 } gama_frame_type_t;
