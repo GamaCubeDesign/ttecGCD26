@@ -1,0 +1,244 @@
+(footprint "PadsFio_1x04"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "J2 hibrido: furos no padrao JST XH B4B-XH-A (passo 2.5mm, broca 1.0mm) com ilhas alongadas para solda de fio. Monte o JST OU solde fio - o corpo do conector cobre as ilhas.")
+	(tags "JST XH conector solda fio hibrido")
+	(property "Reference" "REF**"
+		(at 0 -8.9 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.13)
+			)
+		)
+	)
+	(property "Value" "Conn_01x04"
+		(at 0 8.9 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.13)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" "Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property ki_fp_filters "Connector*:*_1x??_*")
+	(path "/e966b5f9-b17d-4bd1-961e-1bff52b69800")
+	(sheetname "/")
+	(sheetfile "pcb_ttec.kicad_sch")
+	(units
+		(unit
+			(name "A")
+			(pins "1" "2" "3" "4")
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_circle
+		(center -5.35 4.1)
+		(end -5.1 4.1)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.SilkS")
+	)
+	(fp_rect
+		(start -8 -2.85)
+		(end 8 3.9)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+	)
+	(fp_rect
+		(start -6.2 -2.35)
+		(end 6.2 3.4)
+		(stroke
+			(width 0.1)
+			(type dash)
+		)
+		(fill no)
+		(layer "F.Fab")
+	)
+	(pad "" np_thru_hole circle
+		(at -7.5 1.2)
+		(size 1.6 1.6)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask")
+	)
+	(pad "" np_thru_hole circle
+		(at 7.5 1.2)
+		(size 1.6 1.6)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask")
+	)
+	(pad "1" thru_hole rect
+		(at -3.75 1.2)
+		(size 2.2 4.2)
+		(drill 1
+			(offset 0 -1.2)
+		)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(pinfunction "Pin_1_1")
+		(pintype "passive")
+	)
+	(pad "2" thru_hole oval
+		(at -1.25 1.2)
+		(size 2.2 4.2)
+		(drill 1
+			(offset 0 -1.2)
+		)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(pinfunction "Pin_2_2")
+		(pintype "passive")
+	)
+	(pad "3" thru_hole oval
+		(at 1.25 1.2)
+		(size 2.2 4.2)
+		(drill 1
+			(offset 0 -1.2)
+		)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(pinfunction "Pin_3_3")
+		(pintype "passive")
+	)
+	(pad "4" thru_hole oval
+		(at 3.75 1.2)
+		(size 2.2 4.2)
+		(drill 1
+			(offset 0 -1.2)
+		)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(pinfunction "Pin_4_4")
+		(pintype "passive")
+	)
+	(embedded_fonts no)
+(fp_text user "GND"
+	(at -3.75 -2.6 0)
+	(layer "F.SilkS")
+	(uuid "10965779-53d2-4421-8cac-1b52e7512af8")
+	(effects
+		(font
+			(size 0.8 0.8)
+			(thickness 0.15)
+		)
+		(justify left)
+	)
+)
+(fp_text user "D-"
+	(at -1.25 -2.6 0)
+	(layer "F.SilkS")
+	(uuid "a76ed6c2-474d-413e-9cd1-2acbd621c273")
+	(effects
+		(font
+			(size 0.8 0.8)
+			(thickness 0.15)
+		)
+		(justify left)
+	)
+)
+(fp_text user "D+"
+	(at 1.25 -2.6 0)
+	(layer "F.SilkS")
+	(uuid "d3fc3ad7-2f1a-45a8-9f7e-d5494f2cd91d")
+	(effects
+		(font
+			(size 0.8 0.8)
+			(thickness 0.15)
+		)
+		(justify left)
+	)
+)
+(fp_text user "GND"
+	(at 3.75 -2.6 0)
+	(layer "F.SilkS")
+	(uuid "bd45b7cf-ef04-462e-96d4-bfd027d86a2e")
+	(effects
+		(font
+			(size 0.8 0.8)
+			(thickness 0.15)
+		)
+		(justify left)
+	)
+)
+(fp_text user "GND"
+	(at -3.75 -2.6 0)
+	(layer "B.SilkS")
+	(uuid "cdfb4220-5f02-4751-a1c1-a9d32803066e")
+	(effects
+		(font
+			(size 0.8 0.8)
+			(thickness 0.15)
+		)
+		(justify left mirror)
+	)
+)
+(fp_text user "D-"
+	(at -1.25 -2.6 0)
+	(layer "B.SilkS")
+	(uuid "582ef090-4729-4fcf-a2cc-8c8e4f53f620")
+	(effects
+		(font
+			(size 0.8 0.8)
+			(thickness 0.15)
+		)
+		(justify left mirror)
+	)
+)
+(fp_text user "D+"
+	(at 1.25 -2.6 0)
+	(layer "B.SilkS")
+	(uuid "013217b3-8b9a-42f4-bc19-6d5d792b0dba")
+	(effects
+		(font
+			(size 0.8 0.8)
+			(thickness 0.15)
+		)
+		(justify left mirror)
+	)
+)
+(fp_text user "GND"
+	(at 3.75 -2.6 0)
+	(layer "B.SilkS")
+	(uuid "cebba31c-2db6-422d-ad89-6a5f70949442")
+	(effects
+		(font
+			(size 0.8 0.8)
+			(thickness 0.15)
+		)
+		(justify left mirror)
+	)
+)
+)

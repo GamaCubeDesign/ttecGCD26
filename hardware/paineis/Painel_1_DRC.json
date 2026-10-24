@@ -1,0 +1,4451 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-10-08T19:10:54",
+    "ignored_checks": [
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning"
+    ],
+    "kicad_version": "10.0.6",
+    "schematic_parity": [],
+    "source": "Painel_1.kicad_pcb",
+    "unconnected_items": [],
+    "violations": [
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint TTEC_1_1_J1",
+                    "pos": {
+                        "x": 184.5,
+                        "y": 440.87
+                    },
+                    "uuid": "38e1b6a0-c2ef-4dcf-93d8-5872c4ccc22f"
+                },
+                {
+                    "description": "Footprint TTEC_1_5_REF**",
+                    "pos": {
+                        "x": 188.0,
+                        "y": 453.86
+                    },
+                    "uuid": "def3dbfd-f8e5-499f-b62f-3cc3780d0bf2"
+                }
+            ],
+            "severity": "error",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint TTEC_2_1_J1",
+                    "pos": {
+                        "x": 270.5,
+                        "y": 440.87
+                    },
+                    "uuid": "3a2916b6-a225-45b3-9fc5-4cb5fd2a5e78"
+                },
+                {
+                    "description": "Footprint TTEC_2_5_REF**",
+                    "pos": {
+                        "x": 274.0,
+                        "y": 453.86
+                    },
+                    "uuid": "743149a3-b48d-4309-96e8-0df69e860000"
+                }
+            ],
+            "severity": "error",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Trilha [EPS_2//Negativo Bateria Sup] no B.Cu, comprimento 11,8400 mm",
+                    "pos": {
+                        "x": 333.722499,
+                        "y": 195.4225
+                    },
+                    "uuid": "d90d806d-8845-4e26-af22-f4e2df6a4625"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Trilha [EPS_1//Negativo Bateria Sup] no B.Cu, comprimento 11,8400 mm",
+                    "pos": {
+                        "x": 247.7225,
+                        "y": 195.4225
+                    },
+                    "uuid": "ef5432d9-a904-4f06-b9db-f04031a67653"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Silkscreen clipped by board edge",
+            "items": [
+                {
+                    "description": "Círculo no Edge.Cuts",
+                    "pos": {
+                        "x": 68.423728,
+                        "y": 211.023728
+                    },
+                    "uuid": "871a30fc-6550-4a34-9a43-9cf98c688971"
+                },
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 78.5,
+                        "y": 221.1
+                    },
+                    "uuid": "d3b33c3f-2e23-432c-bcaf-2a15904b4b41"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "Silkscreen clipped by board edge",
+            "items": [
+                {
+                    "description": "Círculo no Edge.Cuts",
+                    "pos": {
+                        "x": 154.423727,
+                        "y": 231.176272
+                    },
+                    "uuid": "0c834c85-f031-4c05-b271-d41881edcd77"
+                },
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 164.499999,
+                        "y": 221.1
+                    },
+                    "uuid": "06695a54-e458-45b5-bde8-784c0dc2be57"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_9_REF**",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 258.1
+                    },
+                    "uuid": "0122086e-83e7-4752-aadf-7d06bab169d4"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_4_MP1584_Module1",
+                    "pos": {
+                        "x": 236.6325,
+                        "y": 187.9325
+                    },
+                    "uuid": "01477941-6432-423e-80d8-04c57a93f9eb"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_13_",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 258.1
+                    },
+                    "uuid": "0231ad2a-449c-46bc-8f1d-5050eba26971"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SOLAR_1_1_1_SC40",
+                    "pos": {
+                        "x": 39.035,
+                        "y": 49.475
+                    },
+                    "uuid": "05d8ed61-35e1-4519-af35-2734466c8452"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SOLAR_2_2_2_SC41",
+                    "pos": {
+                        "x": 301.305,
+                        "y": 135.274999
+                    },
+                    "uuid": "072045a8-055f-4180-bbf9-71d1b431ea59"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_1_11_",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 356.1
+                    },
+                    "uuid": "07d10cba-a2a4-4963-b43e-6ef08af59f97"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_10_U1",
+                    "pos": {
+                        "x": 259.9275,
+                        "y": 227.7925
+                    },
+                    "uuid": "0ad19468-9257-47c5-a2ed-dd4e55e293ce"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'topo'",
+            "items": [
+                {
+                    "description": "Footprint topo_2_5_REF**",
+                    "pos": {
+                        "x": 366.699546,
+                        "y": 382.77181
+                    },
+                    "uuid": "10e10536-9388-4ad7-ae85-e2d21e34d393"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_2_14_LOGO2",
+                    "pos": {
+                        "x": 287.4,
+                        "y": 489.5
+                    },
+                    "uuid": "130b072f-5ac5-47e9-b4b0-7eb74a71ae21"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_2_MP1584_Module2",
+                    "pos": {
+                        "x": 322.582499,
+                        "y": 205.4425
+                    },
+                    "uuid": "13a7e52f-4a8f-492c-ab2e-8ad5ef5db0ed"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_2_12_logo",
+                    "pos": {
+                        "x": 226.9,
+                        "y": 454.1
+                    },
+                    "uuid": "1513ba9a-4d2d-4263-8402-7a7c3f8221c5"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_4_MP1584_Module1",
+                    "pos": {
+                        "x": 322.632499,
+                        "y": 187.9325
+                    },
+                    "uuid": "1827af93-ed91-40fa-a87f-6bdd8bda6a9c"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint OBC_2_4_",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 270.1
+                    },
+                    "uuid": "1a6cf12f-0b57-4a0b-be99-0568fe8318b8"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_1_6_",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 356.1
+                    },
+                    "uuid": "1d0de540-6b39-4986-9ad7-2a9b8a6f3e6e"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_15_U2",
+                    "pos": {
+                        "x": 235.6925,
+                        "y": 228.8675
+                    },
+                    "uuid": "1f285763-c955-49ef-867a-d1fc5cd214d8"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_5_X+1",
+                    "pos": {
+                        "x": 115.69,
+                        "y": 190.42795
+                    },
+                    "uuid": "22ea162a-21c1-49fa-baf2-0e79239e2f54"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_2_11_",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 356.1
+                    },
+                    "uuid": "23815119-3f61-490f-845a-5c8ca665b10d"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_2_4_",
+                    "pos": {
+                        "x": 373.5,
+                        "y": 270.1
+                    },
+                    "uuid": "2429e1c6-de68-49d0-81eb-13dfcf09149b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_2_6_H6",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 516.1
+                    },
+                    "uuid": "2ed003d8-30ab-4e5e-992d-a8184b295f39"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_1_3_",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 430.1
+                    },
+                    "uuid": "317d0d01-a301-48bd-aa22-3c29c826c2d8"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_13_X-1",
+                    "pos": {
+                        "x": 41.59132,
+                        "y": 190.17795
+                    },
+                    "uuid": "33479ede-a2c6-409e-a98d-10dcaf8fe85b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint OBC_2_9_U2",
+                    "pos": {
+                        "x": 136.95132,
+                        "y": 303.63132
+                    },
+                    "uuid": "33dd0ba8-d635-418b-83ce-488a2c1d48e3"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_14_Y+1",
+                    "pos": {
+                        "x": 201.879999,
+                        "y": 251.79205
+                    },
+                    "uuid": "341b6612-0960-4514-ac2e-8b632e0c0b4a"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_2_13_H4",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 442.1
+                    },
+                    "uuid": "36055fbe-b8f2-4157-9eeb-2654f92d9bf8"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint OBC_1_2_",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 344.1
+                    },
+                    "uuid": "375a1732-1221-4dee-b678-528ed5ac3651"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_12_Y-1",
+                    "pos": {
+                        "x": 127.671319,
+                        "y": 252.56205
+                    },
+                    "uuid": "3bc8fc2a-7f07-4863-b2fe-f6bcf6f769be"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint OBC_2_2_",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 344.1
+                    },
+                    "uuid": "41dd59b7-8e63-47a0-8a1f-ec1b6ccd3731"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_6_Barramento1",
+                    "pos": {
+                        "x": 164.339999,
+                        "y": 183.93
+                    },
+                    "uuid": "42d8d255-7835-495a-b7af-1a0f58067d53"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_2_REF**",
+                    "pos": {
+                        "x": 201.499999,
+                        "y": 184.1
+                    },
+                    "uuid": "4617349a-6972-41d4-ad79-4d88c2bf7177"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_1_11_U1",
+                    "pos": {
+                        "x": 152.4,
+                        "y": 493.3
+                    },
+                    "uuid": "4845df3c-5b02-4ed4-9a58-237573427e22"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'easyeda'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_1_4_J1",
+                    "pos": {
+                        "x": 102.63,
+                        "y": 354.83
+                    },
+                    "uuid": "49a97c12-9eee-45e7-8b89-5d0734097352"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'BK-18650-PC4'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_2_7_BT1",
+                    "pos": {
+                        "x": 165.0,
+                        "y": 393.1
+                    },
+                    "uuid": "49cbd670-9de5-414d-9fcc-6e9908916bc4"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_6_Barramento1",
+                    "pos": {
+                        "x": 78.34,
+                        "y": 183.93
+                    },
+                    "uuid": "49cfa0c5-5999-480b-b78d-58580b76a47d"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_1_5_",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 344.1
+                    },
+                    "uuid": "4c89c3b7-af44-467a-96ae-4ffa56be3180"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_3_4_",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 442.1
+                    },
+                    "uuid": "4cfb0c60-6a58-4ed2-be12-6adb1c912e8b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint OBC_1_5_J1",
+                    "pos": {
+                        "x": 102.63,
+                        "y": 268.83
+                    },
+                    "uuid": "4d1490f2-c1d3-4187-a88f-cebf8165cba7"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint OBC_1_6_",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 344.1
+                    },
+                    "uuid": "51b08f9b-9536-4774-bb5c-4d1cc17e73a7"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_11_GM2804",
+                    "pos": {
+                        "x": 187.851319,
+                        "y": 247.83882
+                    },
+                    "uuid": "51d0b133-d82c-4f8d-bd5f-b7fe5a9ef1cc"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_3_11_",
+                    "pos": {
+                        "x": 299.5,
+                        "y": 442.1
+                    },
+                    "uuid": "5351488a-8e16-4fc6-825b-168cebcfff7e"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_6_",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 184.1
+                    },
+                    "uuid": "548232c3-4fc3-41bf-9aa9-4127c3fcb782"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_13_",
+                    "pos": {
+                        "x": 373.499999,
+                        "y": 258.1
+                    },
+                    "uuid": "56e77f13-519b-4c1a-baff-6f2949ec4169"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_2_9_H5",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 442.1
+                    },
+                    "uuid": "587d204b-2a3d-40a5-9924-eb1bff6b6418"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'topo'",
+            "items": [
+                {
+                    "description": "Footprint topo_1_4_REF**",
+                    "pos": {
+                        "x": 280.258656,
+                        "y": 403.247966
+                    },
+                    "uuid": "59c7d42b-9087-466c-8730-607c962dd9c8"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_8_BMS-HX-2S-JH20",
+                    "pos": {
+                        "x": 321.029999,
+                        "y": 187.445
+                    },
+                    "uuid": "5b1d899a-1435-4b6b-ac55-0e6d54037d01"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_3_3_",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 442.1
+                    },
+                    "uuid": "5c89a5e5-5c31-4564-9ac3-912f88ef81f1"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_11_GM2804",
+                    "pos": {
+                        "x": 101.85132,
+                        "y": 247.83882
+                    },
+                    "uuid": "5cd86974-a725-437f-ac3a-9dc2991d3985"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_11_",
+                    "pos": {
+                        "x": 299.499999,
+                        "y": 258.1
+                    },
+                    "uuid": "622b30ec-a014-4d26-b946-97500f000888"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SOLAR_1_1_3_SC42",
+                    "pos": {
+                        "x": 161.575,
+                        "y": 49.475
+                    },
+                    "uuid": "638b1ee8-a33c-4a04-8ee5-6180b49dd80b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_14_Y+1",
+                    "pos": {
+                        "x": 115.88,
+                        "y": 251.79205
+                    },
+                    "uuid": "649dcd98-8da0-4216-8c72-9c96ccd80a50"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_7_REF**",
+                    "pos": {
+                        "x": 127.499999,
+                        "y": 184.1
+                    },
+                    "uuid": "64a9ce90-6238-4fe6-869e-8de43ab77b3e"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_9_REF**",
+                    "pos": {
+                        "x": 201.499999,
+                        "y": 258.1
+                    },
+                    "uuid": "658fadbc-7fc6-4b85-856f-0c501f1cb2e7"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint OBC_1_4_",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 270.1
+                    },
+                    "uuid": "67394d60-12a2-4aed-9c11-e37dce4a7300"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint OBC_1_3_",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 270.1
+                    },
+                    "uuid": "687700fc-9606-487d-98e5-0b95a8e670d3"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SOLAR_1_2_2_SC41",
+                    "pos": {
+                        "x": 100.305,
+                        "y": 135.274999
+                    },
+                    "uuid": "695d7bec-b552-45a7-a5bf-b0ef289d07ea"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_4_REF**",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 258.1
+                    },
+                    "uuid": "6a582f22-f277-49bd-844d-24072dbb22c7"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_14_SW1",
+                    "pos": {
+                        "x": 302.502499,
+                        "y": 242.5125
+                    },
+                    "uuid": "6f6518fa-164c-4b96-81e8-e58336474d15"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_2_5_REF**",
+                    "pos": {
+                        "x": 274.0,
+                        "y": 453.86
+                    },
+                    "uuid": "743149a3-b48d-4309-96e8-0df69e860000"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_2_3_",
+                    "pos": {
+                        "x": 299.5,
+                        "y": 270.1
+                    },
+                    "uuid": "754bbde1-f6f5-4088-b86c-e4fda7ee6b8b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_10_G***",
+                    "pos": {
+                        "x": 186.91566,
+                        "y": 199.325607
+                    },
+                    "uuid": "766df576-c1d8-40b0-8573-7e701aaec4f7"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_2_MP1584_Module2",
+                    "pos": {
+                        "x": 236.5825,
+                        "y": 205.4425
+                    },
+                    "uuid": "76fda5ee-ffff-4ef9-b13f-5a119fdc4fe7"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_10_G***",
+                    "pos": {
+                        "x": 100.915661,
+                        "y": 199.325607
+                    },
+                    "uuid": "794904c5-9768-4e00-9c5c-b9eb6fcd8add"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'easyeda'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_2_4_J1",
+                    "pos": {
+                        "x": 188.63,
+                        "y": 354.83
+                    },
+                    "uuid": "79fcddd3-f8c3-4c50-b35c-01929e8f7f5d"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_14_SW1",
+                    "pos": {
+                        "x": 216.5025,
+                        "y": 242.5125
+                    },
+                    "uuid": "7b900192-0f96-45b4-a308-82361634531a"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_2_11_U1",
+                    "pos": {
+                        "x": 238.4,
+                        "y": 493.3
+                    },
+                    "uuid": "81d74b84-98e3-43d3-aafe-a4ee28a13316"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SOLAR_2_1_3_SC42",
+                    "pos": {
+                        "x": 362.575,
+                        "y": 49.475
+                    },
+                    "uuid": "83bffd1b-8fa7-425d-9547-0a0e5b0bffe0"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_9_",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 184.1
+                    },
+                    "uuid": "84af6339-8d05-4278-bb3c-d6e718999873"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_3_DRV8313",
+                    "pos": {
+                        "x": 195.121319,
+                        "y": 222.258
+                    },
+                    "uuid": "84dab443-b6cb-4c9d-b175-224f932203d6"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SOLAR_2_1_2_SC41",
+                    "pos": {
+                        "x": 301.305,
+                        "y": 49.475
+                    },
+                    "uuid": "87610b49-ab55-4732-8ce8-88722f5714e8"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SOLAR_2_1_1_SC40",
+                    "pos": {
+                        "x": 240.035,
+                        "y": 49.475
+                    },
+                    "uuid": "8898d026-e40c-4112-8d4e-6727ac4b1a77"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'BK-18650-PC4'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_1_7_BT1",
+                    "pos": {
+                        "x": 79.0,
+                        "y": 393.1
+                    },
+                    "uuid": "8b262e99-18a4-4b34-9b57-34e3a0a47250"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SOLAR_2_2_1_SC40",
+                    "pos": {
+                        "x": 240.035,
+                        "y": 135.274999
+                    },
+                    "uuid": "8b3e7b63-995c-4366-adfc-3b83fd08631c"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SOLAR_2_2_3_SC42",
+                    "pos": {
+                        "x": 362.575,
+                        "y": 135.274999
+                    },
+                    "uuid": "8bc1dd9a-f819-4cea-ad30-446c7bb9010b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint OBC_1_9_U2",
+                    "pos": {
+                        "x": 50.95132,
+                        "y": 303.63132
+                    },
+                    "uuid": "8bdc1945-dff9-4486-88e5-0efb18b1ec7d"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_3_5_",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 516.1
+                    },
+                    "uuid": "91092298-b9df-477b-905f-2f930f4c7386"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_8_logo",
+                    "pos": {
+                        "x": 78.508863,
+                        "y": 221.089914
+                    },
+                    "uuid": "96b818c1-eb41-4e35-958f-33e77467c1c4"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_5_X+1",
+                    "pos": {
+                        "x": 201.689999,
+                        "y": 190.42795
+                    },
+                    "uuid": "978162cf-5dbd-4eec-b88b-bc0e7295ce88"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_7_J1",
+                    "pos": {
+                        "x": 360.629999,
+                        "y": 182.83
+                    },
+                    "uuid": "996998eb-f851-434b-a816-c1dc3774a147"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_1_10_J2",
+                    "pos": {
+                        "x": 168.0,
+                        "y": 447.1
+                    },
+                    "uuid": "9fe74fa0-4b48-4d7a-b9c6-efb51d17a31d"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint OBC_2_3_",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 270.1
+                    },
+                    "uuid": "a071ebb5-6a15-4057-ad46-cfc663d8da90"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SOLAR_1_1_2_SC41",
+                    "pos": {
+                        "x": 100.305,
+                        "y": 49.475
+                    },
+                    "uuid": "a1a6f983-8c2b-483d-8706-5e01a44f2f49"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_7_J1",
+                    "pos": {
+                        "x": 274.63,
+                        "y": 182.83
+                    },
+                    "uuid": "a2574385-60f6-4786-93fb-a71c5681db40"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_1_AS5048A2",
+                    "pos": {
+                        "x": 164.839999,
+                        "y": 251.03132
+                    },
+                    "uuid": "a275cc3c-9814-4e09-82a9-c2442979ea83"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SOLAR_1_2_1_SC40",
+                    "pos": {
+                        "x": 39.035,
+                        "y": 135.274999
+                    },
+                    "uuid": "a5ca957d-976e-4f1e-9a7c-cf0505215164"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'BK-18650-PC4'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_3_7_BT1",
+                    "pos": {
+                        "x": 337.0,
+                        "y": 479.1
+                    },
+                    "uuid": "a804e019-95b5-495e-ac7a-c44762ef716f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_3_6_",
+                    "pos": {
+                        "x": 373.5,
+                        "y": 442.1
+                    },
+                    "uuid": "a8241bc7-a230-4bb5-89e3-62fe14a8eacd"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_6_",
+                    "pos": {
+                        "x": 373.499999,
+                        "y": 184.1
+                    },
+                    "uuid": "a8dff7cc-89fd-491c-9a41-7c64f2851212"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_1_8_",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 430.1
+                    },
+                    "uuid": "a90011f3-31b6-4ba6-824d-d85ec00173a1"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_3_3_",
+                    "pos": {
+                        "x": 299.5,
+                        "y": 516.1
+                    },
+                    "uuid": "a926d50c-ed4f-4775-9197-cd6106fcf1bb"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'easyeda'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_1_2_J1",
+                    "pos": {
+                        "x": 274.63,
+                        "y": 268.83
+                    },
+                    "uuid": "a982972d-da9a-461f-bd7c-7f99ddba8b65"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_3_8_",
+                    "pos": {
+                        "x": 373.5,
+                        "y": 516.1
+                    },
+                    "uuid": "aa0f6b6c-b578-4496-80f8-72cffa6c41f7"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_15_BMI008",
+                    "pos": {
+                        "x": 163.739999,
+                        "y": 195.876595
+                    },
+                    "uuid": "aaf9c21a-9c0e-4e24-b93c-41cedbaa0258"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_11_",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 258.1
+                    },
+                    "uuid": "ab99133d-5f26-4fc4-b6e7-d33a22ffabc0"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'easyeda'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_2_2_J1",
+                    "pos": {
+                        "x": 360.63,
+                        "y": 268.83
+                    },
+                    "uuid": "b2371e71-c2f3-4cb5-8314-2fc9abb9057f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'easyeda'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_3_4_J1",
+                    "pos": {
+                        "x": 360.63,
+                        "y": 440.83
+                    },
+                    "uuid": "b5c42299-8619-4128-8119-329eb1a8cf59"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint SOLAR_1_2_3_SC42",
+                    "pos": {
+                        "x": 161.575,
+                        "y": 135.274999
+                    },
+                    "uuid": "b90b93ce-8569-4dbc-86da-4398aec06f18"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_13_X-1",
+                    "pos": {
+                        "x": 127.591319,
+                        "y": 190.17795
+                    },
+                    "uuid": "ba769d6c-93df-443d-8c9d-64a660b4de9f"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_1_6_H6",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 516.1
+                    },
+                    "uuid": "bad89ed4-5fae-4c25-ae49-8c82ad876f7b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_3_1_",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 516.1
+                    },
+                    "uuid": "bb2e864d-efa5-4b9d-9f91-3a5b616b5699"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_7_REF**",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 184.1
+                    },
+                    "uuid": "bb360fd7-87b5-4cbc-b8c6-a0036495a755"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_1_14_LOGO2",
+                    "pos": {
+                        "x": 201.4,
+                        "y": 489.5
+                    },
+                    "uuid": "bbd0efcb-7172-4c43-973b-448442c8b53a"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_9_",
+                    "pos": {
+                        "x": 299.499999,
+                        "y": 184.1
+                    },
+                    "uuid": "bc9b9be7-4e2e-41ab-bf2f-b1fa6a62e26e"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_1_2_H7",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 516.1
+                    },
+                    "uuid": "bd590889-79d2-4cf4-afb1-0711e52b9e3a"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_10_U1",
+                    "pos": {
+                        "x": 345.927499,
+                        "y": 227.7925
+                    },
+                    "uuid": "bfa7e63f-1878-41df-989f-cb8650b018c4"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_2_5_",
+                    "pos": {
+                        "x": 373.5,
+                        "y": 344.1
+                    },
+                    "uuid": "c0c64dfb-520b-4a18-8aa3-aee483cc23e5"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_2_3_",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 430.1
+                    },
+                    "uuid": "c1ad944d-d714-4cc9-8efc-76d74697e614"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'RASPBERRY_PI_ZERO_2_W'",
+            "items": [
+                {
+                    "description": "Footprint OBC_1_10_U1",
+                    "pos": {
+                        "x": 102.21132,
+                        "y": 307.24882
+                    },
+                    "uuid": "c52908e3-a007-45d2-9b30-26b32c47d9e4"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'topo'",
+            "items": [
+                {
+                    "description": "Footprint topo_2_4_REF**",
+                    "pos": {
+                        "x": 366.258656,
+                        "y": 403.247966
+                    },
+                    "uuid": "c53df512-ff85-4388-ad97-3ecd0ad84683"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_2_REF**",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 184.1
+                    },
+                    "uuid": "c61af474-3848-4626-9db2-4e5ceb4bdf4a"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_8_BMS-HX-2S-JH20",
+                    "pos": {
+                        "x": 235.03,
+                        "y": 187.445
+                    },
+                    "uuid": "c847e9ba-35e5-4ab2-9730-858534429e0b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_1_1_",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 344.1
+                    },
+                    "uuid": "c856e40c-c9b8-40f7-9048-367af2c18140"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_2_1_",
+                    "pos": {
+                        "x": 299.5,
+                        "y": 344.1
+                    },
+                    "uuid": "cbbd562e-0774-4658-9715-3a10607431ce"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_1_AS5048A2",
+                    "pos": {
+                        "x": 78.84,
+                        "y": 251.03132
+                    },
+                    "uuid": "cd42f06f-d909-4a92-bccb-b8744d2ed80a"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'easyeda'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_3_2_J1",
+                    "pos": {
+                        "x": 102.63,
+                        "y": 440.83
+                    },
+                    "uuid": "d13bafcd-08a6-47d2-8622-ea151f103e8b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_2_6_",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 356.1
+                    },
+                    "uuid": "d3298c26-966d-40f7-9056-765c4149104a"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_12_Y-1",
+                    "pos": {
+                        "x": 41.67132,
+                        "y": 252.56205
+                    },
+                    "uuid": "d495f0d3-0899-40c8-8908-274cdd055de6"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint OBC_2_6_",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 344.1
+                    },
+                    "uuid": "d8aee8c3-191b-4ca7-bce0-320252f196d9"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_1_5_REF**",
+                    "pos": {
+                        "x": 188.0,
+                        "y": 453.86
+                    },
+                    "uuid": "def3dbfd-f8e5-499f-b62f-3cc3780d0bf2"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_4_REF**",
+                    "pos": {
+                        "x": 127.499999,
+                        "y": 258.1
+                    },
+                    "uuid": "e5465f4e-a368-4a3f-8771-e4d8dbe575f0"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_15_U2",
+                    "pos": {
+                        "x": 321.692499,
+                        "y": 228.8675
+                    },
+                    "uuid": "e6cf4415-b235-4486-992b-3569f10053f3"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'topo'",
+            "items": [
+                {
+                    "description": "Footprint topo_1_5_REF**",
+                    "pos": {
+                        "x": 280.699546,
+                        "y": 382.77181
+                    },
+                    "uuid": "e77d75f4-f9b5-4114-b72d-a7ec990367c8"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_2_BAIXO_2_8_",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 430.1
+                    },
+                    "uuid": "eaf26bfb-88dd-4b43-ba57-b4e9cb9d74e9"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_2_2_H7",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 516.1
+                    },
+                    "uuid": "ee46728b-c58c-415a-9737-9919aec21826"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'RASPBERRY_PI_ZERO_2_W'",
+            "items": [
+                {
+                    "description": "Footprint OBC_2_10_U1",
+                    "pos": {
+                        "x": 188.21132,
+                        "y": 307.24882
+                    },
+                    "uuid": "eedd4f6b-4f8c-4847-8630-6027d2206410"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'INA219'",
+            "items": [
+                {
+                    "description": "Footprint OBC_2_5_J1",
+                    "pos": {
+                        "x": 188.63,
+                        "y": 268.83
+                    },
+                    "uuid": "ef424821-9fc4-48c8-a252-e8a3c831dfee"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_1_9_H5",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 442.1
+                    },
+                    "uuid": "f1110cd8-f735-4ae6-a31a-7d2ed95adc04"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_1_3_",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 270.1
+                    },
+                    "uuid": "f18c60bb-a144-463e-98e9-82d8338230a2"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_15_BMI008",
+                    "pos": {
+                        "x": 77.74,
+                        "y": 195.876595
+                    },
+                    "uuid": "f399bf82-90d8-48bc-928e-2756f3b7d4d7"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_1_4_",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 270.1
+                    },
+                    "uuid": "f3d9dba4-9587-4651-a7f0-39bb171e8ea9"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_8_logo",
+                    "pos": {
+                        "x": 164.508862,
+                        "y": 221.089914
+                    },
+                    "uuid": "f83da0dd-7f27-4368-99aa-8ee9110398e3"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'AutoGenerated'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_1_13_H4",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 442.1
+                    },
+                    "uuid": "f88f8c58-1458-45c1-8fbf-d692994015c9"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_3_DRV8313",
+                    "pos": {
+                        "x": 109.12132,
+                        "y": 222.258
+                    },
+                    "uuid": "fc29f8b1-e61b-4fec-86ab-c68fc43296e0"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_1_12_logo",
+                    "pos": {
+                        "x": 140.9,
+                        "y": 454.1
+                    },
+                    "uuid": "fcf029e6-e3bd-4567-acc6-cda1f587bc00"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'Library'",
+            "items": [
+                {
+                    "description": "Footprint TTEC_2_10_J2",
+                    "pos": {
+                        "x": 254.0,
+                        "y": 447.1
+                    },
+                    "uuid": "fe89911d-2844-43c1-876d-8265bdd315d4"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'BK-18650-PC4'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_2_13_BT1",
+                    "pos": {
+                        "x": 336.18482,
+                        "y": 305.60132
+                    },
+                    "uuid": "158011a8-826a-49d9-98e4-f43150b003c5"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_17_G***",
+                    "pos": {
+                        "x": 186.915659,
+                        "y": 199.325607
+                    },
+                    "uuid": "1a8bb2f1-72d6-4a9b-a4cb-9d43ceb2b64b"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_18_logo",
+                    "pos": {
+                        "x": 78.491138,
+                        "y": 221.089914
+                    },
+                    "uuid": "1b01d02f-6d6f-4a47-a3e4-552f731445c5"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'BK-18650-PC4'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_3_13_BT1",
+                    "pos": {
+                        "x": 78.18482,
+                        "y": 477.60132
+                    },
+                    "uuid": "4aa16809-9f15-488e-a542-bae990c0a341"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_18_logo",
+                    "pos": {
+                        "x": 164.491137,
+                        "y": 221.089914
+                    },
+                    "uuid": "4dd284d6-0fb8-4a14-a3c2-8f322d3a5d7a"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_2_16_ESP32",
+                    "pos": {
+                        "x": 138.161319,
+                        "y": 222.2275
+                    },
+                    "uuid": "7cc0585e-34ea-4474-896f-d365621b107a"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'BK-18650-PC4'",
+            "items": [
+                {
+                    "description": "Footprint EPS_1_CIMA_1_13_BT1",
+                    "pos": {
+                        "x": 250.18482,
+                        "y": 305.60132
+                    },
+                    "uuid": "7ccd84a3-9d26-44dc-a32e-84bfaa7bd939"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_16_ESP32",
+                    "pos": {
+                        "x": 52.16132,
+                        "y": 222.2275
+                    },
+                    "uuid": "94854f55-eda7-49f4-8f5a-80c3da3dfea7"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "A configuração atual não inclui a biblioteca de footprints 'CUBETSCHEK_AOCS_FOOTPRINT'",
+            "items": [
+                {
+                    "description": "Footprint AOCS_1_17_G***",
+                    "pos": {
+                        "x": 100.91566,
+                        "y": 199.325607
+                    },
+                    "uuid": "a6752175-2b1a-4928-931d-637c0ada1fa8"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_issues"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 355.599999,
+                        "y": 186.4
+                    },
+                    "uuid": "0094b332-3bce-48df-a015-de9080b9ca73"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_2//Negativo Bateria Inf] de EPS_2_7_J1",
+                    "pos": {
+                        "x": 355.549999,
+                        "y": 185.37
+                    },
+                    "uuid": "815c39df-3131-4b76-8451-543c75387b74"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 184.1
+                    },
+                    "uuid": "1efc5199-f8eb-4f74-99c2-9b5672463300"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_6_",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 184.1
+                    },
+                    "uuid": "c5a912e7-d98d-4078-9a77-d80b479f8efc"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 299.499999,
+                        "y": 184.1
+                    },
+                    "uuid": "580495db-1e5f-402a-a604-8a908ddef8e3"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_9_",
+                    "pos": {
+                        "x": 299.499999,
+                        "y": 184.1
+                    },
+                    "uuid": "0e008ae8-c78f-4cd8-9403-50074e2670f2"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 269.6,
+                        "y": 186.4
+                    },
+                    "uuid": "4777c533-6f8e-4394-bf25-8fed9d698603"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_1//Negativo Bateria Sup] de EPS_1_7_J1",
+                    "pos": {
+                        "x": 272.09,
+                        "y": 185.37
+                    },
+                    "uuid": "4d55608f-35b9-4531-8f2a-f1b2ef2296e3"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 269.6,
+                        "y": 186.4
+                    },
+                    "uuid": "4777c533-6f8e-4394-bf25-8fed9d698603"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_1//Negativo Bateria Inf] de EPS_1_7_J1",
+                    "pos": {
+                        "x": 269.55,
+                        "y": 185.37
+                    },
+                    "uuid": "aec42daa-9b27-4883-9f4c-f7c81ee56a62"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 373.499999,
+                        "y": 184.1
+                    },
+                    "uuid": "5d0faa9e-dd6d-4e19-9a0f-612f0feca09d"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_6_",
+                    "pos": {
+                        "x": 373.499999,
+                        "y": 184.1
+                    },
+                    "uuid": "b29d36ed-eaa7-496b-af7d-45da2599b9d5"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 355.599999,
+                        "y": 186.4
+                    },
+                    "uuid": "0094b332-3bce-48df-a015-de9080b9ca73"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_2//Negativo Bateria Sup] de EPS_2_7_J1",
+                    "pos": {
+                        "x": 358.089999,
+                        "y": 185.37
+                    },
+                    "uuid": "b4a09ab0-c890-402b-bbb2-0b86f8226b39"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 258.1
+                    },
+                    "uuid": "513cdc9f-5d9f-4c5d-9784-275344bcc63c"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_13_",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 258.1
+                    },
+                    "uuid": "3b8b6700-3280-4b7b-8c03-b799a160c244"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 270.1
+                    },
+                    "uuid": "e5205516-1c04-44a9-95d3-5fb119b86ebd"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_CIMA_1_4_",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 270.1
+                    },
+                    "uuid": "23e8b644-549a-4711-9cd4-c0c33698c0ff"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 299.5,
+                        "y": 270.1
+                    },
+                    "uuid": "1fa5593b-ed3c-4989-bef5-c3e875fee415"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_CIMA_2_3_",
+                    "pos": {
+                        "x": 299.5,
+                        "y": 270.1
+                    },
+                    "uuid": "7bb5e25f-6293-4928-bb0e-46256378c7b1"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 344.1
+                    },
+                    "uuid": "06c7b6d5-82f0-4387-bb98-f65b4f2fcad0"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_CIMA_1_5_",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 344.1
+                    },
+                    "uuid": "ff6387d6-3dfb-4c69-8cef-85cce81de3fe"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 269.6,
+                        "y": 272.4
+                    },
+                    "uuid": "f4b0eeb1-9921-40b4-98ab-ba7cce52146c"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_1_CIMA_1/unconnected-(J1-Pin_5-Pad5)] de EPS_1_CIMA_1_2_J1",
+                    "pos": {
+                        "x": 269.55,
+                        "y": 271.37
+                    },
+                    "uuid": "65e9d02f-1635-42e4-9a27-5f9f809c326e"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 373.499999,
+                        "y": 258.1
+                    },
+                    "uuid": "7443ba00-8699-4b14-83b5-b1122f76073c"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_13_",
+                    "pos": {
+                        "x": 373.499999,
+                        "y": 258.1
+                    },
+                    "uuid": "7e29f2d4-c41a-4180-9b49-2548a0dbda7e"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 373.5,
+                        "y": 270.1
+                    },
+                    "uuid": "1233ece7-d9b3-43f3-a19e-a494b54cdc56"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_CIMA_2_4_",
+                    "pos": {
+                        "x": 373.5,
+                        "y": 270.1
+                    },
+                    "uuid": "03ed0b45-1c81-4a15-9eea-eccfdad87edf"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 270.1
+                    },
+                    "uuid": "24d7dc77-269f-43a4-bd18-f75fc82f0870"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_CIMA_1_3_",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 270.1
+                    },
+                    "uuid": "89fced7c-b571-42c8-a848-692e45ae99d4"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 299.5,
+                        "y": 344.1
+                    },
+                    "uuid": "62ff5033-54a6-435f-a237-efd828547836"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_CIMA_2_1_",
+                    "pos": {
+                        "x": 299.5,
+                        "y": 344.1
+                    },
+                    "uuid": "1dda0f4f-1cf5-4e4b-9cdb-a0aa55bb7910"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 355.6,
+                        "y": 272.4
+                    },
+                    "uuid": "fe930066-1cb0-4ae6-9b6d-c32b4a98501e"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_1_CIMA_2/unconnected-(J1-Pin_5-Pad5)] de EPS_1_CIMA_2_2_J1",
+                    "pos": {
+                        "x": 355.55,
+                        "y": 271.37
+                    },
+                    "uuid": "6e04f530-8aa4-4e5e-892b-da8f5f318f78"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 355.6,
+                        "y": 272.4
+                    },
+                    "uuid": "fe930066-1cb0-4ae6-9b6d-c32b4a98501e"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_1_CIMA_2//Negativo Bateria Sup] de EPS_1_CIMA_2_2_J1",
+                    "pos": {
+                        "x": 358.09,
+                        "y": 271.37
+                    },
+                    "uuid": "5d29cbcc-4655-4e66-9b16-dacab9e0eafb"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 299.499999,
+                        "y": 258.1
+                    },
+                    "uuid": "2095b75a-db7e-472c-a250-15f398b69788"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_11_",
+                    "pos": {
+                        "x": 299.499999,
+                        "y": 258.1
+                    },
+                    "uuid": "3be14136-b4f6-4a81-8965-bf82d39d9a18"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 269.6,
+                        "y": 272.4
+                    },
+                    "uuid": "f4b0eeb1-9921-40b4-98ab-ba7cce52146c"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_1_CIMA_1//Negativo Bateria Sup] de EPS_1_CIMA_1_2_J1",
+                    "pos": {
+                        "x": 272.09,
+                        "y": 271.37
+                    },
+                    "uuid": "2a476b87-b62b-4628-9c60-6c4a900bf957"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 258.1
+                    },
+                    "uuid": "e3047612-81a6-467a-a647-c4b44052f851"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_11_",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 258.1
+                    },
+                    "uuid": "b21eb0cd-2e03-4644-b0d5-b14fe7442ee3"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 184.1
+                    },
+                    "uuid": "28be4d7c-a5a0-46bb-8822-5dca76563be9"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_9_",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 184.1
+                    },
+                    "uuid": "bc9049b1-2e14-4f7e-9569-fcadaed82f66"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 270.1
+                    },
+                    "uuid": "7d303a42-a192-4305-aee0-d2827d42459d"
+                },
+                {
+                    "description": "ilha NPTH de OBC_1_4_",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 270.1
+                    },
+                    "uuid": "318bb0da-577d-4b92-b2e3-cc1ebe10f1c6"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 78.5,
+                        "y": 221.1
+                    },
+                    "uuid": "d3b33c3f-2e23-432c-bcaf-2a15904b4b41"
+                },
+                {
+                    "description": "Ilha PTH 6 [AOCS_1/Net-(DRV8313-IN3)] de AOCS_1_16_ESP32",
+                    "pos": {
+                        "x": 64.16132,
+                        "y": 223.8775
+                    },
+                    "uuid": "d22181f0-cac3-40c5-a94d-4bd5363b2aaa"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 78.5,
+                        "y": 221.1
+                    },
+                    "uuid": "d3b33c3f-2e23-432c-bcaf-2a15904b4b41"
+                },
+                {
+                    "description": "Ilha PTH 7 [AOCS_1/Net-(DRV8313-IN2)] de AOCS_1_16_ESP32",
+                    "pos": {
+                        "x": 64.16132,
+                        "y": 221.3375
+                    },
+                    "uuid": "add2b903-1c18-4a9d-b983-b9248dbf2c3c"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 78.5,
+                        "y": 221.1
+                    },
+                    "uuid": "d3b33c3f-2e23-432c-bcaf-2a15904b4b41"
+                },
+                {
+                    "description": "Ilha PTH 8 [AOCS_1/Net-(DRV8313-IN1)] de AOCS_1_16_ESP32",
+                    "pos": {
+                        "x": 64.16132,
+                        "y": 218.7975
+                    },
+                    "uuid": "f228f3e4-8bf2-4324-8d09-ff16889651ba"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 344.1
+                    },
+                    "uuid": "6a98fcbb-1846-4503-9b86-92e0d516f813"
+                },
+                {
+                    "description": "ilha NPTH de OBC_1_2_",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 344.1
+                    },
+                    "uuid": "2253f4f4-bfde-425c-9253-4bc6a0c6d4a7"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 356.1
+                    },
+                    "uuid": "912da631-3f1a-4827-abbc-6e96b1d126f5"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_BAIXO_1_6_",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 356.1
+                    },
+                    "uuid": "f7729fbe-9f73-4ef7-b78a-0ec7e09c6030"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 344.1
+                    },
+                    "uuid": "f6fdea92-5615-463c-8e53-9168210878ae"
+                },
+                {
+                    "description": "ilha NPTH de OBC_2_6_",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 344.1
+                    },
+                    "uuid": "c7b4e8b0-c2f5-44fe-8e1a-ac349e1d4223"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 356.1
+                    },
+                    "uuid": "d488483d-1070-4ce2-8395-d3b64eb77164"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_BAIXO_2_11_",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 356.1
+                    },
+                    "uuid": "83509a87-fc1b-4754-9c26-23b0245a6080"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 97.6,
+                        "y": 358.4
+                    },
+                    "uuid": "05b86a1c-4b0c-4a13-9f6a-233afa6db547"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_2_BAIXO_1//Negativo Bateria Inf] de EPS_2_BAIXO_1_4_J1",
+                    "pos": {
+                        "x": 97.55,
+                        "y": 357.37
+                    },
+                    "uuid": "18c53ce0-e960-439b-9893-171bd324084e"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 97.6,
+                        "y": 358.4
+                    },
+                    "uuid": "05b86a1c-4b0c-4a13-9f6a-233afa6db547"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_2_BAIXO_1/unconnected-(J1-Pin_3-Pad3)] de EPS_2_BAIXO_1_4_J1",
+                    "pos": {
+                        "x": 100.09,
+                        "y": 357.37
+                    },
+                    "uuid": "68a1ee8d-b51e-412c-b5db-620e904c7685"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 516.1
+                    },
+                    "uuid": "75a6cf61-4619-43b3-bf14-ec940355b5f9"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_CIMA_3_1_",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 516.1
+                    },
+                    "uuid": "009983a0-6f90-44e6-808e-7de51a71dc10"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 130.0,
+                        "y": 459.6
+                    },
+                    "uuid": "7eb78b23-c972-4f6e-a2a1-8d4f89d034fc"
+                },
+                {
+                    "description": "Ilha PTH 5 [TTEC_1/unconnected-(J3-Pin_5-Pad5)] de TTEC_1_4_J3",
+                    "pos": {
+                        "x": 128.77,
+                        "y": 460.05
+                    },
+                    "uuid": "804fadf5-3f4c-4860-a03b-017240805a6c"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 516.1
+                    },
+                    "uuid": "efc48fa4-f59f-4a7f-8a9f-eeeec6e66919"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_CIMA_3_5_",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 516.1
+                    },
+                    "uuid": "66028196-96c8-47ae-a63e-aab70bc8b4ee"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 97.6,
+                        "y": 444.4
+                    },
+                    "uuid": "e113c1a5-08fd-40a9-a2d4-a46a99ee97e2"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_1_CIMA_3/unconnected-(J1-Pin_5-Pad5)] de EPS_1_CIMA_3_2_J1",
+                    "pos": {
+                        "x": 97.55,
+                        "y": 443.37
+                    },
+                    "uuid": "132bc3e2-f365-4ae6-9b7a-b2e623527f99"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 344.1
+                    },
+                    "uuid": "9b1d50f8-e932-4a4b-a386-1ea130d1998d"
+                },
+                {
+                    "description": "ilha NPTH de OBC_1_6_",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 344.1
+                    },
+                    "uuid": "70ca1579-d8b0-4f04-8dd3-174bcc627ca5"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 356.1
+                    },
+                    "uuid": "6de95dab-d878-4d8e-a7b7-2e84abad1cf0"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_BAIXO_1_11_",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 356.1
+                    },
+                    "uuid": "6b300324-3649-4331-a724-c34defb2b740"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 430.1
+                    },
+                    "uuid": "4cc76a03-57b5-427f-af25-9c29c5da65da"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_BAIXO_2_3_",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 430.1
+                    },
+                    "uuid": "9305ab53-0fb7-40a8-aea4-af00621afffd"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 442.1
+                    },
+                    "uuid": "f7fc5146-d54d-433b-9a7d-ccd05cf229c7"
+                },
+                {
+                    "description": "ilha NPTH de TTEC_1_13_H4",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 442.1
+                    },
+                    "uuid": "6f967e47-ebb7-463d-b803-ec02d7b87d56"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 442.1
+                    },
+                    "uuid": "1af874be-4f3a-40e0-bde3-76782e3933a2"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_CIMA_3_4_",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 442.1
+                    },
+                    "uuid": "2014dfaf-5bbd-4ada-81af-4743e33a8d52"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 97.6,
+                        "y": 444.4
+                    },
+                    "uuid": "e113c1a5-08fd-40a9-a2d4-a46a99ee97e2"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_1_CIMA_3//Negativo Bateria Sup] de EPS_1_CIMA_3_2_J1",
+                    "pos": {
+                        "x": 100.09,
+                        "y": 443.37
+                    },
+                    "uuid": "31224ad9-87fc-49da-abe8-9c183481639c"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 430.1
+                    },
+                    "uuid": "10f4f7e3-6bc3-410f-aab2-adfeee367fa8"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_BAIXO_1_8_",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 430.1
+                    },
+                    "uuid": "b8f34688-4545-43d3-9ed2-a92e466d8a93"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 130.0,
+                        "y": 459.6
+                    },
+                    "uuid": "7eb78b23-c972-4f6e-a2a1-8d4f89d034fc"
+                },
+                {
+                    "description": "Ilha PTH 3 [TTEC_1/unconnected-(J3-Pin_3-Pad3)] de TTEC_1_4_J3",
+                    "pos": {
+                        "x": 128.77,
+                        "y": 457.51
+                    },
+                    "uuid": "b599fc88-dc45-44f3-9540-d1ddb6ab4e8c"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 430.1
+                    },
+                    "uuid": "dcac1d44-41aa-4322-a78a-d0e5739f01d2"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_BAIXO_1_3_",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 430.1
+                    },
+                    "uuid": "0822db7d-0aca-4c0f-9339-2a8a6c2c9062"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 442.1
+                    },
+                    "uuid": "df5f436b-00b5-4018-82c4-ba0983d19928"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_CIMA_3_3_",
+                    "pos": {
+                        "x": 41.5,
+                        "y": 442.1
+                    },
+                    "uuid": "fde1795f-7dcf-48bd-b6c7-da593bf24050"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 430.1
+                    },
+                    "uuid": "f171ae68-a307-49ff-ac94-894ffce5f840"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_BAIXO_2_8_",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 430.1
+                    },
+                    "uuid": "8719237c-6d67-4f6f-9060-74670e8dcfe2"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 442.1
+                    },
+                    "uuid": "ccf5bcde-209b-4025-92eb-1ffecb63ef32"
+                },
+                {
+                    "description": "ilha NPTH de TTEC_1_9_H5",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 442.1
+                    },
+                    "uuid": "1ef13e7b-fc20-44f7-807f-219d4c4312b9"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 516.1
+                    },
+                    "uuid": "21b011ca-23a7-4b3b-878a-22274a0222e6"
+                },
+                {
+                    "description": "ilha NPTH de TTEC_1_6_H6",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 516.1
+                    },
+                    "uuid": "6b78ef84-1344-426b-a0e9-a16931c30bd4"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 183.6,
+                        "y": 358.4
+                    },
+                    "uuid": "5f5dd48f-3df0-4db7-bd07-a190fc19f379"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_2_BAIXO_2//Negativo Bateria Inf] de EPS_2_BAIXO_2_4_J1",
+                    "pos": {
+                        "x": 183.55,
+                        "y": 357.37
+                    },
+                    "uuid": "6dc50342-70ec-4227-b78a-4f48b89d8964"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 183.6,
+                        "y": 358.4
+                    },
+                    "uuid": "5f5dd48f-3df0-4db7-bd07-a190fc19f379"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_2_BAIXO_2/unconnected-(J1-Pin_3-Pad3)] de EPS_2_BAIXO_2_4_J1",
+                    "pos": {
+                        "x": 186.09,
+                        "y": 357.37
+                    },
+                    "uuid": "e95c1c94-17b6-4e4a-9031-d51981cf8ccc"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 270.1
+                    },
+                    "uuid": "0076a509-ff46-4b96-9cfa-740aa0c34de0"
+                },
+                {
+                    "description": "ilha NPTH de OBC_1_3_",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 270.1
+                    },
+                    "uuid": "bb0f85ee-6840-4646-a4c1-84c87bee3afb"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 270.1
+                    },
+                    "uuid": "94b7aede-d781-48fc-8093-87d419516223"
+                },
+                {
+                    "description": "ilha NPTH de OBC_2_4_",
+                    "pos": {
+                        "x": 127.5,
+                        "y": 270.1
+                    },
+                    "uuid": "fd110fed-aa31-4c2e-bef3-8484fc634ee1"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 373.5,
+                        "y": 516.1
+                    },
+                    "uuid": "ac376092-2d22-434f-800f-ec9ee7ec7813"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_BAIXO_3_8_",
+                    "pos": {
+                        "x": 373.5,
+                        "y": 516.1
+                    },
+                    "uuid": "88b852d5-1f1e-484b-b9e9-ac6ac399c4ac"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 355.6,
+                        "y": 444.4
+                    },
+                    "uuid": "3ab82f35-888b-4708-a96b-ef8fc7d6018c"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_2_BAIXO_3//Negativo Bateria Inf] de EPS_2_BAIXO_3_4_J1",
+                    "pos": {
+                        "x": 355.55,
+                        "y": 443.37
+                    },
+                    "uuid": "f5bef30f-a1c9-42ce-9e64-539f089b31f4"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 355.6,
+                        "y": 444.4
+                    },
+                    "uuid": "3ab82f35-888b-4708-a96b-ef8fc7d6018c"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_2_BAIXO_3/unconnected-(J1-Pin_3-Pad3)] de EPS_2_BAIXO_3_4_J1",
+                    "pos": {
+                        "x": 358.09,
+                        "y": 443.37
+                    },
+                    "uuid": "7aa87a5e-4351-4b94-bab6-257f7e8d1416"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 373.5,
+                        "y": 442.1
+                    },
+                    "uuid": "6435e733-bcc8-4742-b5e6-51fe15407772"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_BAIXO_3_6_",
+                    "pos": {
+                        "x": 373.5,
+                        "y": 442.1
+                    },
+                    "uuid": "daaa976d-286a-48bb-ad0b-e960b0ce2837"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 373.5,
+                        "y": 344.1
+                    },
+                    "uuid": "74eb4a3c-d4e5-47f5-8d4f-e229dfe49918"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_CIMA_2_5_",
+                    "pos": {
+                        "x": 373.5,
+                        "y": 344.1
+                    },
+                    "uuid": "7b065df1-5291-4f6c-a709-7f211f5dc3f2"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 442.1
+                    },
+                    "uuid": "d92a6cae-fb4e-46f6-8958-cccca9992363"
+                },
+                {
+                    "description": "ilha NPTH de TTEC_2_13_H4",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 442.1
+                    },
+                    "uuid": "f91941a3-ae49-412c-b091-402d489da554"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 344.1
+                    },
+                    "uuid": "90e65db2-572f-4424-b27d-f4181ff20ab0"
+                },
+                {
+                    "description": "ilha NPTH de OBC_2_2_",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 344.1
+                    },
+                    "uuid": "ccc5a4aa-8a60-4ae7-83a2-f3ba3a0dc887"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 356.1
+                    },
+                    "uuid": "aa5198f3-e19e-400d-b705-b86749161947"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_BAIXO_2_6_",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 356.1
+                    },
+                    "uuid": "0cf406d5-c297-4b05-a855-aa042715cfab"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 344.1
+                    },
+                    "uuid": "bc79a293-7db8-480d-87f5-0f94265ab2af"
+                },
+                {
+                    "description": "ilha NPTH de EPS_1_CIMA_1_1_",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 344.1
+                    },
+                    "uuid": "2af82966-bcec-45e3-9531-44f8673e17d4"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 216.0,
+                        "y": 459.6
+                    },
+                    "uuid": "888895f6-9281-4a3a-8a3b-088a2de10b8e"
+                },
+                {
+                    "description": "Ilha PTH 3 [TTEC_2/unconnected-(J3-Pin_3-Pad3)] de TTEC_2_4_J3",
+                    "pos": {
+                        "x": 214.77,
+                        "y": 457.51
+                    },
+                    "uuid": "6eae194a-f949-437b-8d84-359f8f42ce66"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 516.1
+                    },
+                    "uuid": "3830162b-dc37-4484-af24-cdd9cf71014c"
+                },
+                {
+                    "description": "ilha NPTH de TTEC_2_2_H7",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 516.1
+                    },
+                    "uuid": "6dae69fa-592e-4239-bc2a-e0b5886845b6"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 299.5,
+                        "y": 516.1
+                    },
+                    "uuid": "70cefd38-db94-4c81-aa76-1ded18f68016"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_BAIXO_3_3_",
+                    "pos": {
+                        "x": 299.5,
+                        "y": 516.1
+                    },
+                    "uuid": "56256720-34ab-47ac-a5ec-67cc8c4538fc"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 442.1
+                    },
+                    "uuid": "8bbac9ef-729f-4725-8349-07768fd4f850"
+                },
+                {
+                    "description": "ilha NPTH de TTEC_2_9_H5",
+                    "pos": {
+                        "x": 287.5,
+                        "y": 442.1
+                    },
+                    "uuid": "2e6d430f-a441-44c4-b476-87582653c452"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 299.5,
+                        "y": 442.1
+                    },
+                    "uuid": "43e6dec0-fae5-42a0-9e2d-e1c982530e7e"
+                },
+                {
+                    "description": "ilha NPTH de EPS_2_BAIXO_3_11_",
+                    "pos": {
+                        "x": 299.5,
+                        "y": 442.1
+                    },
+                    "uuid": "3487f97a-3549-465a-b055-192954c985f9"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em F.Silkscreen",
+                    "pos": {
+                        "x": 216.0,
+                        "y": 459.6
+                    },
+                    "uuid": "888895f6-9281-4a3a-8a3b-088a2de10b8e"
+                },
+                {
+                    "description": "Ilha PTH 5 [TTEC_2/unconnected-(J3-Pin_5-Pad5)] de TTEC_2_4_J3",
+                    "pos": {
+                        "x": 214.77,
+                        "y": 460.05
+                    },
+                    "uuid": "6c6a2028-02e0-4b6c-85c4-b7513388e385"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 516.1
+                    },
+                    "uuid": "ea85ffc0-0457-4be1-ad0d-9f1c2239a3d8"
+                },
+                {
+                    "description": "ilha NPTH de TTEC_1_2_H7",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 516.1
+                    },
+                    "uuid": "ee8e4e33-2176-4cda-9bc9-d06fa0bc31d6"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 516.1
+                    },
+                    "uuid": "4f96e035-3d07-42de-ba11-0f34b91be89e"
+                },
+                {
+                    "description": "ilha NPTH de TTEC_2_6_H6",
+                    "pos": {
+                        "x": 213.5,
+                        "y": 516.1
+                    },
+                    "uuid": "7e44247f-27a2-4cf9-84ca-dd5cee0914dd"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 270.1
+                    },
+                    "uuid": "4f971ee8-f317-4a45-9f54-67077dfee1a1"
+                },
+                {
+                    "description": "ilha NPTH de OBC_2_3_",
+                    "pos": {
+                        "x": 201.5,
+                        "y": 270.1
+                    },
+                    "uuid": "ea7b5f84-21b0-490b-8c5a-353f220da590"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 164.499999,
+                        "y": 221.1
+                    },
+                    "uuid": "06695a54-e458-45b5-bde8-784c0dc2be57"
+                },
+                {
+                    "description": "Ilha PTH 6 [AOCS_2/Net-(DRV8313-IN3)] de AOCS_2_16_ESP32",
+                    "pos": {
+                        "x": 150.161319,
+                        "y": 223.8775
+                    },
+                    "uuid": "36e71370-06a7-4738-b3e4-7d9736338b83"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 164.499999,
+                        "y": 221.1
+                    },
+                    "uuid": "06695a54-e458-45b5-bde8-784c0dc2be57"
+                },
+                {
+                    "description": "Ilha PTH 7 [AOCS_2/Net-(DRV8313-IN2)] de AOCS_2_16_ESP32",
+                    "pos": {
+                        "x": 150.161319,
+                        "y": 221.3375
+                    },
+                    "uuid": "2d67116c-2ce0-4ccf-bee4-21285c23323d"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Círculo no F.Silkscreen",
+                    "pos": {
+                        "x": 164.499999,
+                        "y": 221.1
+                    },
+                    "uuid": "06695a54-e458-45b5-bde8-784c0dc2be57"
+                },
+                {
+                    "description": "Ilha PTH 8 [AOCS_2/Net-(DRV8313-IN1)] de AOCS_2_16_ESP32",
+                    "pos": {
+                        "x": 150.161319,
+                        "y": 218.7975
+                    },
+                    "uuid": "d85e2f8c-e292-4b1b-ace2-1fc6ccdc1fbd"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 186.8,
+                        "y": 272.4
+                    },
+                    "uuid": "822eee88-21be-4c20-9347-88bbea895888"
+                },
+                {
+                    "description": "Ilha PTH 3 [OBC_2/unconnected-(J1-Pin_3-Pad3)] de OBC_2_5_J1",
+                    "pos": {
+                        "x": 186.09,
+                        "y": 271.37
+                    },
+                    "uuid": "e6372f65-29a7-47fe-a3c5-ec9bf3ccaf81"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 186.8,
+                        "y": 272.4
+                    },
+                    "uuid": "822eee88-21be-4c20-9347-88bbea895888"
+                },
+                {
+                    "description": "Ilha PTH 5 [OBC_2/unconnected-(J1-Pin_5-Pad5)] de OBC_2_5_J1",
+                    "pos": {
+                        "x": 183.55,
+                        "y": 271.37
+                    },
+                    "uuid": "6e4a97e1-9cbd-45e3-891f-ab9ee3535767"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 358.8,
+                        "y": 272.4
+                    },
+                    "uuid": "0d7a3635-4d74-428a-9d3d-d40682dbe1cf"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_1_CIMA_2//Negativo Bateria Sup] de EPS_1_CIMA_2_2_J1",
+                    "pos": {
+                        "x": 358.09,
+                        "y": 271.37
+                    },
+                    "uuid": "5d29cbcc-4655-4e66-9b16-dacab9e0eafb"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 358.8,
+                        "y": 272.4
+                    },
+                    "uuid": "0d7a3635-4d74-428a-9d3d-d40682dbe1cf"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_1_CIMA_2/unconnected-(J1-Pin_5-Pad5)] de EPS_1_CIMA_2_2_J1",
+                    "pos": {
+                        "x": 355.55,
+                        "y": 271.37
+                    },
+                    "uuid": "6e04f530-8aa4-4e5e-892b-da8f5f318f78"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 358.8,
+                        "y": 444.4
+                    },
+                    "uuid": "b1856a75-ccb3-4885-8bf6-dca4f3f40a2c"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_2_BAIXO_3/unconnected-(J1-Pin_3-Pad3)] de EPS_2_BAIXO_3_4_J1",
+                    "pos": {
+                        "x": 358.09,
+                        "y": 443.37
+                    },
+                    "uuid": "7aa87a5e-4351-4b94-bab6-257f7e8d1416"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 358.8,
+                        "y": 444.4
+                    },
+                    "uuid": "b1856a75-ccb3-4885-8bf6-dca4f3f40a2c"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_2_BAIXO_3//Negativo Bateria Inf] de EPS_2_BAIXO_3_4_J1",
+                    "pos": {
+                        "x": 355.55,
+                        "y": 443.37
+                    },
+                    "uuid": "f5bef30f-a1c9-42ce-9e64-539f089b31f4"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 100.8,
+                        "y": 358.4
+                    },
+                    "uuid": "ed5a315b-acda-4c57-b150-2511f078eeb4"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_2_BAIXO_1/unconnected-(J1-Pin_3-Pad3)] de EPS_2_BAIXO_1_4_J1",
+                    "pos": {
+                        "x": 100.09,
+                        "y": 357.37
+                    },
+                    "uuid": "68a1ee8d-b51e-412c-b5db-620e904c7685"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 100.8,
+                        "y": 444.4
+                    },
+                    "uuid": "b5f9c4f5-de8b-446e-ac98-752b25cf12cd"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_1_CIMA_3//Negativo Bateria Sup] de EPS_1_CIMA_3_2_J1",
+                    "pos": {
+                        "x": 100.09,
+                        "y": 443.37
+                    },
+                    "uuid": "31224ad9-87fc-49da-abe8-9c183481639c"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 100.8,
+                        "y": 444.4
+                    },
+                    "uuid": "b5f9c4f5-de8b-446e-ac98-752b25cf12cd"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_1_CIMA_3/unconnected-(J1-Pin_5-Pad5)] de EPS_1_CIMA_3_2_J1",
+                    "pos": {
+                        "x": 97.55,
+                        "y": 443.37
+                    },
+                    "uuid": "132bc3e2-f365-4ae6-9b7a-b2e623527f99"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 100.8,
+                        "y": 358.4
+                    },
+                    "uuid": "ed5a315b-acda-4c57-b150-2511f078eeb4"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_2_BAIXO_1//Negativo Bateria Inf] de EPS_2_BAIXO_1_4_J1",
+                    "pos": {
+                        "x": 97.55,
+                        "y": 357.37
+                    },
+                    "uuid": "18c53ce0-e960-439b-9893-171bd324084e"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 186.8,
+                        "y": 358.4
+                    },
+                    "uuid": "499638be-5d55-4a4a-882c-082934d1a082"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_2_BAIXO_2/unconnected-(J1-Pin_3-Pad3)] de EPS_2_BAIXO_2_4_J1",
+                    "pos": {
+                        "x": 186.09,
+                        "y": 357.37
+                    },
+                    "uuid": "e95c1c94-17b6-4e4a-9031-d51981cf8ccc"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 186.8,
+                        "y": 358.4
+                    },
+                    "uuid": "499638be-5d55-4a4a-882c-082934d1a082"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_2_BAIXO_2//Negativo Bateria Inf] de EPS_2_BAIXO_2_4_J1",
+                    "pos": {
+                        "x": 183.55,
+                        "y": 357.37
+                    },
+                    "uuid": "6dc50342-70ec-4227-b78a-4f48b89d8964"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 100.8,
+                        "y": 272.4
+                    },
+                    "uuid": "ec1807e3-a345-4779-86be-37edd5d1b8de"
+                },
+                {
+                    "description": "Ilha PTH 3 [OBC_1/unconnected-(J1-Pin_3-Pad3)] de OBC_1_5_J1",
+                    "pos": {
+                        "x": 100.09,
+                        "y": 271.37
+                    },
+                    "uuid": "e7b545cc-f9e0-48bd-8a54-a2d166c01b8e"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 100.8,
+                        "y": 272.4
+                    },
+                    "uuid": "ec1807e3-a345-4779-86be-37edd5d1b8de"
+                },
+                {
+                    "description": "Ilha PTH 5 [OBC_1/unconnected-(J1-Pin_5-Pad5)] de OBC_1_5_J1",
+                    "pos": {
+                        "x": 97.55,
+                        "y": 271.37
+                    },
+                    "uuid": "183e161d-96d3-42b7-ad9b-c10f0b9e7e86"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 272.8,
+                        "y": 272.4
+                    },
+                    "uuid": "c5c20d18-0afd-46f6-b2e0-fee3364c1244"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_1_CIMA_1//Negativo Bateria Sup] de EPS_1_CIMA_1_2_J1",
+                    "pos": {
+                        "x": 272.09,
+                        "y": 271.37
+                    },
+                    "uuid": "2a476b87-b62b-4628-9c60-6c4a900bf957"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 272.8,
+                        "y": 272.4
+                    },
+                    "uuid": "c5c20d18-0afd-46f6-b2e0-fee3364c1244"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_1_CIMA_1/unconnected-(J1-Pin_5-Pad5)] de EPS_1_CIMA_1_2_J1",
+                    "pos": {
+                        "x": 269.55,
+                        "y": 271.37
+                    },
+                    "uuid": "65e9d02f-1635-42e4-9a27-5f9f809c326e"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 358.799999,
+                        "y": 186.4
+                    },
+                    "uuid": "c14e4516-1954-46d6-9403-1fdaf5c1f4e9"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_2//Negativo Bateria Sup] de EPS_2_7_J1",
+                    "pos": {
+                        "x": 358.089999,
+                        "y": 185.37
+                    },
+                    "uuid": "b4a09ab0-c890-402b-bbb2-0b86f8226b39"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 358.799999,
+                        "y": 186.4
+                    },
+                    "uuid": "c14e4516-1954-46d6-9403-1fdaf5c1f4e9"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_2//Negativo Bateria Inf] de EPS_2_7_J1",
+                    "pos": {
+                        "x": 355.549999,
+                        "y": 185.37
+                    },
+                    "uuid": "815c39df-3131-4b76-8451-543c75387b74"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 272.8,
+                        "y": 186.4
+                    },
+                    "uuid": "24fefe54-f801-4a8d-b160-8f3e70df692c"
+                },
+                {
+                    "description": "Ilha PTH 5 [EPS_1//Negativo Bateria Inf] de EPS_1_7_J1",
+                    "pos": {
+                        "x": 269.55,
+                        "y": 185.37
+                    },
+                    "uuid": "aec42daa-9b27-4883-9f4c-f7c81ee56a62"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Texto da PCI 'GND' em B.Silkscreen",
+                    "pos": {
+                        "x": 272.8,
+                        "y": 186.4
+                    },
+                    "uuid": "24fefe54-f801-4a8d-b160-8f3e70df692c"
+                },
+                {
+                    "description": "Ilha PTH 3 [EPS_1//Negativo Bateria Sup] de EPS_1_7_J1",
+                    "pos": {
+                        "x": 272.09,
+                        "y": 185.37
+                    },
+                    "uuid": "4d55608f-35b9-4531-8f2a-f1b2ef2296e3"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        }
+    ]
+}

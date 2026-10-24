@@ -1,0 +1,135 @@
+(version 1)
+
+#############################################################################
+# Regras de fabricacao CIRCUIBRAS  --  MA-1.2.00.03 rev. 21
+#
+#   Configuracao deste arquivo:
+#     camadas ................ 2
+#     cobre base externo ..... 1oz
+#     cobre base interno ..... n/a
+#     cor da mascara ......... verde
+#     acabamento mecanico .... fresado
+#
+#   MUDOU ALGUM DESSES? Nao edite este arquivo na mao -- regenere:
+#     python3 kicad/regras_circuibras.py gerar --camadas N --cobre-ext 1oz \
+#             --mascara verde --acabamento fresado -o kicad/
+#
+#   SEVERIDADES
+#     warning = abaixo do valor "Padrao" do manual. A placa e' fabricavel, mas
+#               entra na faixa "Sob consulta": trava o pedido ate a Circuibras
+#               responder e encarece a producao.
+#     error   = abaixo do limite do processo. Nao ha o que consultar.
+#
+#   Excecao deliberada: serigrafia sobre pad e' warning, nao error -- o manual
+#   (§2.8) diz que a Circuibras corta a serigrafia automaticamente (clear
+#   silkscreen). Nao reprova a placa, mas voce perde a marcacao.
+#
+#   ATENCAO -- o que este arquivo NAO verifica (fica no checklist):
+#     exportacao de Gerber/furacao, netlist, desenho mecanico, aproveitamento
+#     de painel, pads nao funcionais, aspect ratio, acabamento superficial,
+#     cor de mascara e espessura final da placa.
+#############################################################################
+
+
+
+# §2.1 Tab.3 -- trilha minima externa para cobre 1oz
+(rule "circuibras_trilha_externa_padrao"
+  (constraint track_width (min 0.127mm))
+  (severity warning)
+)
+
+# §2.1 Tab.3 -- limite do processo (abaixo disto nao se fabrica)
+(rule "circuibras_trilha_externa_limite"
+  (constraint track_width (min 0.101mm))
+  (severity error)
+)
+
+# §2.2.1 Tab.5 -- isolacao minima externa (trilha/trilha, pad/pad, pad/trilha)
+(rule "circuibras_isolacao_externa_padrao"
+  (constraint clearance (min 0.127mm))
+  (severity warning)
+)
+
+# §2.2.1 Tab.5 -- limite do processo
+(rule "circuibras_isolacao_externa_limite"
+  (constraint clearance (min 0.101mm))
+  (severity error)
+)
+
+# §2.3 -- anel minimo recomendado 0,12mm (5 mil)
+(rule "circuibras_anel_minimo_padrao"
+  (constraint annular_width (min 0.12mm))
+  (severity warning)
+)
+
+# Tab.17 -- 101um (4 mil), e SO com teardrop aplicado (§2.3.1)
+(rule "circuibras_anel_minimo_limite"
+  (constraint annular_width (min 0.101mm))
+  (severity error)
+)
+
+# Tab.17 -- menor diametro final de furo: 152um (6 mil)
+(rule "circuibras_furo_minimo"
+  (constraint hole_size (min 0.152mm))
+  (severity error)
+)
+
+# §2.4 -- distancia cobre->furo 0,20mm (medida contra o diametro da BROCA)
+(rule "circuibras_cobre_furo"
+  (constraint hole_clearance (min 0.2mm))
+  (severity error)
+)
+
+# §2.5 Tab.8 -- cobre->borda, acabamento fresado
+(rule "circuibras_cobre_borda"
+  (constraint edge_clearance (min 0.3mm))
+  (severity error)
+)
+
+# §2.6 Tab.9 -- furo->borda, acabamento fresado
+(rule "circuibras_furo_borda"
+  (constraint physical_hole_clearance (min 0.4mm))
+  (condition "B.Layer == 'Edge.Cuts'")
+  (severity error)
+)
+
+# §2.2.2 -- isolacao pad a pad para preservar o DAM da mascara.
+# physical_clearance ignora net, que e' o certo aqui: o DAM e' fisico.
+# Componentes fine pitch vao acusar -- e' esperado, veja o §2.2.2.
+(rule "circuibras_pad_a_pad_dam"
+  (constraint physical_clearance (min 0.225mm))
+  (condition "A.Type == 'Pad' && B.Type == 'Pad'")
+  (severity warning)
+)
+
+# §2.2.2 -- abaixo disto a Circuibras ELIMINA o DAM (mascara toda
+# aberta sobre os pads, com risco de curto na montagem).
+# O DAM minimo desta cor de mascara (verde) e' 0.076mm.
+(rule "circuibras_pad_a_pad_limite"
+  (constraint physical_clearance (min 0.187mm))
+  (condition "A.Type == 'Pad' && B.Type == 'Pad'")
+  (severity error)
+)
+
+# §2.8 -- serigrafia a menos de 5 mil do pad e' cortada pelo clear silkscreen
+(rule "circuibras_serigrafia_pad"
+  (constraint silk_clearance (min 0.127mm))
+  (severity warning)
+)
+
+# Tab.15 -- altura minima de caractere 0,70mm (28 mil)
+(rule "circuibras_texto_altura"
+  (constraint text_height (min 0.7mm))
+  (severity error)
+)
+
+# Tab.15 -- largura minima do traco 0,101mm (4 mil)
+(rule "circuibras_texto_traco"
+  (constraint text_thickness (min 0.101mm))
+  (severity error)
+)
+
+# Placa dupla face nao comporta via cega nem enterrada.
+(rule "circuibras_sem_via_cega"
+  (constraint disallow micro_via buried_via)
+)

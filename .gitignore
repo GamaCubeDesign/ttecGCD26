@@ -34,3 +34,10 @@ compile_commands.json
 
 # per-machine notes with credentials (the Pi's login)
 /rasp_config.md
+
+# KiCad: per-user and generated files, if a board is opened from hardware/
+*.kicad_prl
+*-backups/
+fp-info-cache
+*.lck
+*.kicad_pro.bak

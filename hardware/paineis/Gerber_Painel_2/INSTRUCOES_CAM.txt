@@ -1,0 +1,14 @@
+PAINEL 2 - INSTRUCOES MECANICAS PARA REVISAO CAM
+
+Dimensao nominal externa: 415,0 x 528,6 mm. Duas camadas de cobre, 1,6 mm.
+
+Painel_2-Edge_Cuts.gm1: perfil externo fechado do painel e furos/recortes internos.
+Painel_2-ROTEAMENTO_TABS.gbr: linhas nominais de fresagem entre as placas.
+As lacunas de 5 mm nas linhas de fresagem sao abas que devem permanecer.
+Cada aba tem 5 furos NPTH de 0,50 mm com passo 0,80 mm.
+Painel_2-NPTH.drl: furos sem metalizacao, inclusive 400 picotes e 3 furos CNC de 1,90 mm.
+Painel_2-PTH.drl: furos metalizados.
+
+O percurso de fresagem requer compensacao de diametro da ferramenta pelo CAM.
+Confirmar rigidez do painel, abas e conectividade eletrica antes da liberacao.
+Consultar ../Relatorio_Painelizacao.md e ../Painel_2_DRC.json.
