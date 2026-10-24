@@ -30,6 +30,7 @@ proposing anything that moves bytes over the radio, check it against
 | `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check, downlink emulation over full captures (`downlink_emulation.py`) | PC |
 | `tools/gs_cli/` | Bench ground station: the real `gs_link` on a second RA-02 or the UDP radio | Pi / PC |
 | `tools/bench/` | Bench procedure: one `gs_cli` command script per step, and `run_step.sh`, which starts `ttcd` afresh for each; `adsb_chain.sh` | Pi / PC |
+| `tools/obc_standin/` | Stands in for the OBC until `flight/obcd/` exists: follows every `SET_MODE` event, so the mode-driven chain runs end to end (ADR-0014) | Pi / PC |
 | `tools/sbs_replay/` | Plays dump1090: serves SBS lines from a capture or a simulation, so `adsbd` runs without an SDR | Pi / PC |
 | `Makefile` | Entry point for build, tests, bench, Pi install and PC→Pi runs (`make help`) | Pi / PC |
 | `docs/adr/` | Architecture Decision Records | — |
