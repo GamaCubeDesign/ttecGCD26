@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — Placa do OBC: INA219 num I²C próprio (24/10/2026)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+<style>
+/* Acréscimos desta proposta; o bloco acima é o mesmo dos relatórios. */
+.callout.ok{border-color:var(--ok);background:var(--ok-soft)}
+.cmd{position:relative}
+.cmd pre{padding-right:78px}
+.copy{position:absolute;top:8px;right:8px;font:inherit;font-size:12px;padding:3px 9px;border-radius:5px;border:1px solid var(--line-strong);background:var(--surface);color:var(--muted);cursor:pointer}
+.copy:hover{color:var(--accent);border-color:var(--accent)}
+ul.check{list-style:none;padding-left:4px}
+ul.check li{display:flex;gap:10px;align-items:flex-start;margin:6px 0}
+ul.check input{margin-top:5px;width:16px;height:16px;flex:none;accent-color:var(--ok)}
+ul.check label{cursor:pointer}
+.progress{font-size:14px;color:var(--muted);margin:6px 0 0}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px 10px;margin:0 0 16px;scroll-margin-top:12px}
+.item h3{margin:0 0 4px;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.item h3 .id{font-family:var(--mono);font-size:15px;color:var(--muted);font-weight:600}
+.item .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.item textarea{width:100%;min-height:54px;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--fg);resize:vertical;margin:4px 0 6px}
+.item .notes-l{font-size:12.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin:6px 0 0}
+td.mis{color:var(--bad);font-weight:600}
+td.okc{color:var(--ok)}
+.order{counter-reset:o;list-style:none;padding-left:0}
+.order li{counter-increment:o;display:flex;gap:12px;margin:8px 0}
+.order li::before{content:counter(o);flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+@media print{.item textarea{border:1px dashed var(--line-strong);background:#fff}.copy{display:none}}
+svg.diagram .lab-a{font-size:12px;fill:var(--accent);font-weight:600}
+svg.diagram .lab-x{font-size:12px;fill:var(--bad);font-weight:600}
+textarea{width:100%;min-height:70px;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--fg);resize:vertical;margin:4px 0 6px}
+.notes-l{font-size:12.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin:6px 0 0}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#pedido">O pedido</a></li>
+    <li><a href="#problema">O problema</a></li>
+    <li><a href="#proposta">A proposta</a></li>
+    <li><a href="#pinos">Pinos e componentes</a></li>
+    <li><a href="#alternativas">Alternativas avaliadas</a></li>
+    <li><a href="#conferir">Como conferir</a></li>
+    <li><a href="#outras">As outras correções da placa</a></li>
+    <li><a href="#resposta">Resposta da equipe</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · placa do OBC · proposta de revisão</p>
+  <h1>INA219 num I²C próprio da Raspberry Pi</h1>
+  <p class="lede">Uma mudança de duas trilhas na placa do OBC que está sendo refeita, para que a tensão e a corrente da bateria continuem chegando à ground enquanto o AOCS controla a atitude.</p>
+  <div class="meta">
+    <span><b>Data:</b> 24/10/2026</span>
+    <span><b>Para:</b> equipe da PCB do OBC</span>
+    <span><b>De:</b> eletrônica / firmware</span>
+    <span><b>Fontes:</b> <code>hardware/obc/</code>, <code>hardware/aocs/</code></span>
+  </div>
+</header>
+
+<h2 id="pedido"><span class="n">1</span>O pedido</h2>
+
+<div class="callout">
+<p><b>Ligar o SDA e o SCL do módulo INA219 a dois pinos livres da Pi — de preferência GPIO0 e GPIO1 — em vez de ao I²C1 (GPIO2/3) e aos pinos 10/12 do barramento.</b> O GPIO2/3 continua indo aos pinos 10/12, só para o ESP32 do AOCS. Com resistores de pull-up de 4,7 kΩ para 3,3 V no barramento novo, se o módulo não os tiver.</p>
+</div>
+
+<p>A alimentação do INA219 e o caminho de 8 V que passa pelo shunt dele não mudam (além da correção A1, abaixo).</p>
+
+<h2 id="problema"><span class="n">2</span>O problema</h2>
+
+<p>No I²C, um dispositivo é o <b>mestre</b>: é quem começa cada conversa, chamando os outros pelo endereço. Com um mestre só, nunca há confusão. No stack atual, os mesmos dois fios (pinos 10 e 12 do barramento) ligam a Pi, o INA219, o ESP32 e o BMI088 — e dois deles precisam ser mestres:</p>
+
+<ul>
+  <li>a <b>Pi</b>, para ler o INA219 a cada segundo (tensão e corrente na telemetria, HLR-EPS-04);</li>
+  <li>o <b>ESP32</b>, para ler o giroscópio BMI088 centenas de vezes por segundo durante o controle de atitude. Na placa do AOCS, o BMI088 está ligado aos mesmos fios que vão ao barramento.</li>
+</ul>
+
+<figure>
+<div class="frame">
+<svg class="diagram" viewBox="0 0 760 210" role="img" aria-label="Hoje: Pi, INA219, ESP32 e BMI088 no mesmo barramento I2C">
+  <text class="zone-label" x="20" y="22">HOJE</text>
+  <rect class="box" x="30" y="40" width="150" height="58" rx="6"/>
+  <text class="t-b" x="105" y="64" text-anchor="middle">Raspberry Pi</text>
+  <text class="t-s" x="105" y="84" text-anchor="middle">mestre · GPIO2/3</text>
+  <rect class="box hw" x="225" y="40" width="150" height="58" rx="6"/>
+  <text class="t-b" x="300" y="64" text-anchor="middle">INA219</text>
+  <text class="t-s" x="300" y="84" text-anchor="middle">escravo · 0x40</text>
+  <rect class="box" x="420" y="40" width="150" height="58" rx="6"/>
+  <text class="t-b" x="495" y="64" text-anchor="middle">ESP32 (AOCS)</text>
+  <text class="t-s" x="495" y="84" text-anchor="middle">mestre · GPIO21/22</text>
+  <rect class="box hw" x="600" y="40" width="130" height="58" rx="6"/>
+  <text class="t-b" x="665" y="64" text-anchor="middle">BMI088</text>
+  <text class="t-s" x="665" y="84" text-anchor="middle">escravo</text>
+  <line class="edge" x1="30" y1="150" x2="730" y2="150"/>
+  <line class="edge" x1="105" y1="98" x2="105" y2="150"/>
+  <line class="edge" x1="300" y1="98" x2="300" y2="150"/>
+  <line class="edge" x1="495" y1="98" x2="495" y2="150"/>
+  <line class="edge" x1="665" y1="98" x2="665" y2="150"/>
+  <text class="t-s" x="30" y="174">pinos 10/12 do barramento (SDA/SCL) — um só par de fios</text>
+  <text class="lab-x" x="730" y="174" text-anchor="end">dois mestres no mesmo par</text>
+</svg>
+</div>
+<figcaption>As ligações de hoje, lidas dos arquivos KiCad das placas fabricadas.</figcaption>
+</figure>
+
+<p>Se os dois mestres falam ao mesmo tempo, os bits se misturam. O ESP32 percebe a colisão e tenta de novo; o controlador I²C da Pi <b>não percebe</b> — a Pi pode ler um valor errado sem saber. Para evitar isso, o firmware teria de revezar o barramento: durante o modo <code>ADVANCED_AOCS</code>, a Pi ficaria calada e <b>não leria o INA219</b>, e a tensão e a corrente sairiam como "sem dado" na telemetria durante todo o teste de atitude. O CDR (critério OBC-7) promete essas leituras em todos os modos.</p>
+
+<h2 id="proposta"><span class="n">3</span>A proposta</h2>
+
+<p>O INA219 fica na própria placa do OBC. Ligado a um I²C só da Pi, ele deixa de disputar o barramento com o ESP32:</p>
+
+<figure>
+<div class="frame">
+<svg class="diagram" viewBox="0 0 760 250" role="img" aria-label="Proposta: INA219 num I2C próprio da Pi; barramento compartilhado só com o ESP32 e o BMI088">
+  <text class="zone-label" x="20" y="22">PROPOSTA</text>
+  <rect class="zone" x="20" y="34" width="370" height="128" rx="8" stroke-dasharray="6 5"/>
+  <text class="zone-label" x="380" y="154" text-anchor="end">PLACA DO OBC</text>
+  <rect class="box done" x="40" y="50" width="150" height="58" rx="6"/>
+  <text class="t-b" x="115" y="74" text-anchor="middle">Raspberry Pi</text>
+  <text class="t-s" x="115" y="94" text-anchor="middle">GPIO0/1 e GPIO2/3</text>
+  <rect class="box hw done" x="240" y="50" width="130" height="58" rx="6"/>
+  <text class="t-b" x="305" y="74" text-anchor="middle">INA219</text>
+  <text class="t-s" x="305" y="94" text-anchor="middle">0x40</text>
+  <line class="edge rf" x1="190" y1="79" x2="240" y2="79"/>
+  <text class="lab-a" x="215" y="126" text-anchor="middle">I²C0</text>
+  <text class="t-s" x="215" y="142" text-anchor="middle">GPIO0/1</text>
+  <rect class="box" x="430" y="50" width="150" height="58" rx="6"/>
+  <text class="t-b" x="505" y="74" text-anchor="middle">ESP32 (AOCS)</text>
+  <text class="t-s" x="505" y="94" text-anchor="middle">GPIO21/22</text>
+  <rect class="box hw" x="610" y="50" width="130" height="58" rx="6"/>
+  <text class="t-b" x="675" y="74" text-anchor="middle">BMI088</text>
+  <text class="t-s" x="675" y="94" text-anchor="middle">escravo</text>
+  <line class="edge" x1="115" y1="108" x2="115" y2="200"/>
+  <line class="edge" x1="115" y1="200" x2="740" y2="200"/>
+  <line class="edge" x1="505" y1="108" x2="505" y2="200"/>
+  <line class="edge" x1="675" y1="108" x2="675" y2="200"/>
+  <text class="t-s" x="410" y="224">pinos 10/12 do barramento — Pi (GPIO2/3), ESP32 e BMI088</text>
+</svg>
+</div>
+<figcaption>Em azul, o barramento novo, só da Pi e do INA219. O barramento compartilhado passa a servir só à conversa Pi ↔ ESP32.</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+<tr><th></th><th>Hoje</th><th>Com a proposta</th></tr>
+<tr><td>Tensão e corrente durante o <code>ADVANCED_AOCS</code></td><td><span class="badge b-bad">sem dado</span></td><td><span class="badge b-ok">a cada 1 s</span></td></tr>
+<tr><td>Risco de a Pi ler o INA219 corrompido</td><td>sim, se ler na hora errada</td><td>nenhum: ninguém mais usa aquele par</td></tr>
+<tr><td>Firmware</td><td>revezamento também para a telemetria</td><td>revezamento só para os comandos do AOCS</td></tr>
+<tr><td>Placas alteradas</td><td>—</td><td>só a do OBC, que já está sendo refeita</td></tr>
+</table></div>
+
+<p>A conversa com o ESP32 continua precisando de revezamento — fora do <code>ADVANCED_AOCS</code> o ESP32 é só escravo; durante, ele é o mestre e a Pi não usa o barramento —, mas isso é um protocolo de comando e status, que o firmware dos dois lados resolve, e não afeta mais a telemetria.</p>
+
+<h2 id="pinos"><span class="n">4</span>Pinos e componentes</h2>
+
+<div class="table-wrap"><table>
+<tr><th>Sinal</th><th>Pino físico da Pi</th><th>GPIO</th><th>Vai a</th><th>Hoje</th></tr>
+<tr><td>SDA do INA219</td><td class="r">27</td><td>GPIO0 (ID_SD)</td><td>INA219 SDA</td><td>GPIO2, pino 3, e barramento 10/12</td></tr>
+<tr><td>SCL do INA219</td><td class="r">28</td><td>GPIO1 (ID_SC)</td><td>INA219 SCL</td><td>GPIO3, pino 5, e barramento 10/12</td></tr>
+<tr><td>SDA para o AOCS</td><td class="r">3</td><td>GPIO2</td><td>barramento (pino conforme a correção A3)</td><td>inalterado</td></tr>
+<tr><td>SCL para o AOCS</td><td class="r">5</td><td>GPIO3</td><td>barramento (pino conforme a correção A3)</td><td>inalterado</td></tr>
+</table></div>
+
+<ul>
+  <li><b>Por que GPIO0/1:</b> é um controlador I²C de hardware da Pi (I²C0), habilitado com <code>dtoverlay=i2c0,pins_0_1</code>. Esses pinos são reservados à EEPROM de identificação de HATs, que não usamos.</li>
+  <li><b>Pull-ups:</b> o GPIO2/3 da Pi tem resistores de 1,8 kΩ na própria placa; o GPIO0/1 <b>não tem</b>. Prever dois resistores de 4,7 kΩ para 3,3 V (SDA e SCL). Se o módulo INA219 usado já tiver pull-ups (muitos trazem 10 kΩ), eles bastam; conferir no módulo.</li>
+  <li><b>Plano B, se GPIO0/1 atrapalharem o roteamento:</b> qualquer par livre, com I²C por software (<code>dtoverlay=i2c-gpio</code>), suficiente para uma leitura por segundo. Pela netlist atual, estão livres na placa do OBC os GPIO 5, 6, 12, 13, 16, 19, 20, 21, 24, 26 e 27 (conferir depois do remapeamento do LoRa).</li>
+  <li><b>Alimentação do INA219:</b> continua no 3,3 V do barramento (pino 39).</li>
+</ul>
+
+<h2 id="alternativas"><span class="n">5</span>Alternativas avaliadas</h2>
+
+<div class="table-wrap"><table>
+<tr><th>Caminho</th><th>Mudança</th><th>Tensão e corrente no AOCS</th><th>Por que não</th></tr>
+<tr><td>O ESP32 lê o INA219 durante a tarefa e entrega no fim</td><td>só firmware</td><td>só no log</td><td>a ground não vê nada durante o teste</td></tr>
+<tr><td>O ESP32 solta o barramento em janelas periódicas</td><td>só firmware</td><td>ao vivo, com atraso</td><td>sem um fio de sincronismo, a Pi não sabe quando a janela abre</td></tr>
+<tr><td>UART entre Pi e ESP32, ESP32 dono fixo do I²C</td><td>placa do OBC + 2 fios na placa do AOCS</td><td>ao vivo</td><td>mexe na placa do AOCS, que fica como está</td></tr>
+<tr><td>A Pi como escrava I²C (GPIO18/19)</td><td>placa do OBC</td><td>ao vivo</td><td>o suporte da Pi como escrava é pouco usado e exige uma biblioteca que o projeto evita</td></tr>
+</table></div>
+
+<h2 id="conferir"><span class="n">6</span>Como conferir na placa montada</h2>
+
+<div class="cmd"><pre><code>echo 'dtoverlay=i2c0,pins_0_1' | sudo tee -a /boot/firmware/config.txt
+sudo reboot
+i2cdetect -y 0    # barramento novo: só 0x40 (INA219)
+i2cdetect -y 1    # barramento compartilhado: BMI088 (0x18/0x19, 0x68/0x69), com o AOCS no stack</code></pre></div>
+
+<p class="small">O número do barramento do INA219 fica no arquivo de configuração do firmware do OBC; nenhum código muda se o plano B for usado.</p>
+
+<h2 id="outras"><span class="n">7</span>As outras correções da placa do OBC</h2>
+
+<p>Para conferir que a revisão cobre tudo o que os arquivos das placas fabricadas mostraram. Detalhes em <a href="2026-10-22-validacao-obc.html">O que validar antes do software do OBC (22/10)</a>.</p>
+
+<div class="table-wrap"><table>
+<tr><th>Item</th><th>Hoje</th><th>Correção</th></tr>
+<tr><td>A1 — 8 V</td><td>entrada do INA219 no pino 35; a EPS entrega o 8V Bruto no pino <b>38</b></td><td>entrada do INA219 no pino 38</td></tr>
+<tr><td>A2 — LoRa</td><td>os seis sinais (21, 23, 25, 27, 29, 31) discordam do TT&amp;C</td><td>seguir o J3 do TT&amp;C: 21 SCK, 23 MISO, 25 MOSI, 27 NSS, 29 RST, 31 DIO0</td></tr>
+<tr><td>A3 — I²C</td><td>o layout tem 10 = SCL, 12 = SDA; o esquemático e o AOCS têm 10 = SDA, 12 = SCL</td><td>10 = SDA, 12 = SCL no layout</td></tr>
+<tr><td>A5 — burn-wire</td><td>R2 de 4,7 kΩ na base do TIP120 (≈ 0,4 A; o ensaio precisou de 1 A)</td><td>≈ 220 Ω, como no ensaio do mecanismo</td></tr>
+<tr><td>A6 — aquecedores</td><td>um R3 de 4,7 kΩ para as bases dos dois TIP120</td><td>valor menor, conforme a corrente dos aquecedores</td></tr>
+<tr><td>A7 — DS18B20</td><td>4,7 kΩ em série com a linha, sem pull-up</td><td>4,7 kΩ de pull-up do pino 9 para 3,3 V; ligação direta ao GPIO17</td></tr>
+<tr><td><b>Novo</b> — INA219</td><td>no I²C1 e no barramento</td><td>no I²C0 (GPIO0/1), com pull-ups — esta proposta</td></tr>
+</table></div>
+
+<h2 id="resposta"><span class="n">8</span>Resposta da equipe</h2>
+
+<ul class="check">
+  <li><input type="checkbox" id="r-ok"><label for="r-ok">Proposta aceita (ou plano B, com os pinos escolhidos)</label></li>
+  <li><input type="checkbox" id="r-pull"><label for="r-pull">Pull-ups: no módulo ou na placa</label></li>
+  <li><input type="checkbox" id="r-outras"><label for="r-outras">A revisão cobre A1, A2, A3, A5, A6 e A7</label></li>
+  <li><input type="checkbox" id="r-data"><label for="r-data">Data prevista da placa nova</label></li>
+</ul>
+<p class="notes-l">Anotações</p><textarea id="n-resp" aria-label="Anotações da resposta"></textarea>
+
+<footer>
+  Pinos lidos dos arquivos KiCad das placas fabricadas (<code>hardware/obc/</code>, <code>hardware/aocs/</code>) com <code>kicad-cli</code>. As marcações e anotações ficam salvas só neste navegador. Plano: <code>PLANO.md</code>, etapa 2.4 e questão Q1.
+</footer>
+</main>
+</div>
+
+<script>
+(function () {
+  var KEY = 'proposta-i2c-ina219-2026-10-24:';
+  function load(id) { try { return localStorage.getItem(KEY + id); } catch (e) { return null; } }
+  function save(id, v) { try { localStorage.setItem(KEY + id, v); } catch (e) {} }
+  var boxes = document.querySelectorAll('ul.check input[type=checkbox]');
+  for (var i = 0; i < boxes.length; i++) {
+    boxes[i].checked = load(boxes[i].id) === '1';
+    boxes[i].addEventListener('change', function (e) { save(e.target.id, e.target.checked ? '1' : '0'); });
+  }
+  var notes = document.querySelectorAll('textarea');
+  for (var k = 0; k < notes.length; k++) {
+    var v = load(notes[k].id); if (v) { notes[k].value = v; }
+    notes[k].addEventListener('input', function (e) { save(e.target.id, e.target.value); });
+  }
+  var blocks = document.querySelectorAll('.cmd');
+  for (var j = 0; j < blocks.length; j++) {
+    (function (block) {
+      var btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'copy'; btn.textContent = 'copiar';
+      btn.addEventListener('click', function () {
+        var text = block.querySelector('code').innerText;
+        function done(ok) { btn.textContent = ok ? 'copiado' : 'selecionado'; setTimeout(function () { btn.textContent = 'copiar'; }, 1500); }
+        function select() {
+          var r = document.createRange(); r.selectNodeContents(block.querySelector('code'));
+          var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done(false);
+        }
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () { done(true); }, select);
+          } else { select(); }
+        } catch (e) { select(); }
+      });
+      block.appendChild(btn);
+    })(blocks[j]);
+  }
+})();
+</script>
+</body>
+</html>
