@@ -203,21 +203,22 @@ que derruba o OBC quando falha e o formato de log em português (D7).
 
 ### 2.4 Contrato I²C com o AOCS
 
-- [ ] Documento do contrato (endereço do ESP32, mapa de registradores,
+- [x] Documento do contrato (endereço do ESP32, mapa de registradores,
       comandos, atitude, fim de tarefa, timeout), para o firmware do ESP32
-      seguir
+      seguir — 31/10: rascunho v1 em `docs/icd/obc-aocs-i2c.md` (frames fixos,
+      endereço 0x2A, empréstimo contado do START), codec em
+      `common/gama_aocs.{h,c}`, ADR-0017; **levar à equipe do AOCS**
 - [ ] Lado do OBC, com um ESP32 simulado; só em `ADVANCED_AOCS`
 - [ ] Esquema de posse do barramento compartilhado (pinos 10/12): fora do
       `ADVANCED_AOCS`, o ESP32 é só escravo e a Pi é a única mestre; ao entrar
       no modo, a Pi manda o comando e larga o barramento, o ESP32 vira mestre
       do BMI088 até terminar e volta a escravo; a Pi lê o resultado depois de
       um prazo máximo, com checksum, e gera `EV_TASK_DONE` mesmo sem resposta
-- [ ] INA219 num I²C próprio da Pi (I²C0, GPIO0/1), fora do barramento
-      compartilhado, para a tensão e a corrente continuarem durante o AOCS —
-      **proposta enviada à equipe da PCB, aguardando resposta (Q2)**:
-      `docs/relatorios/2026-10-24-proposta-i2c-ina219-obc.html`. Se for
-      recusada, o INA219 fica "sem dado" durante o `ADVANCED_AOCS`; nos dois
-      casos o firmware só muda o número do barramento na configuração
+- [x] ~~INA219 num I²C próprio da Pi~~ — 31/10: **fica no I²C dividido**
+      (placa nova em `hardware/obc-v2`); tensão e corrente "sem dado" durante
+      o empréstimo do `ADVANCED_AOCS`, desvio do OBC-7 registrado no ADR-0017.
+      Proposta original, não adotada:
+      `docs/relatorios/2026-10-24-proposta-i2c-ina219-obc.html`
 
 ### 2.5 Documentos
 
@@ -342,7 +343,7 @@ Na ordem da Tabela 67 do CDR: primeiro o que pode mudar uma decisão.
 | # | Questão | Bloqueia |
 |---|---|---|
 | Q1 | ~~Quem escreve o firmware do ESP32 do AOCS~~ — em 24/10: está sendo escrito e entra no repositório quando terminar; o contrato I²C (2.4) é combinado com quem o escreve | 2.4, 6 |
-| Q2 | Resposta da equipe da PCB: INA219 no I²C0 (proposta de 24/10); a revisão cobre A1, A2, A3, A5, A6 e A7; data da placa nova | 2.4, 5 |
+| Q2 | ~~INA219 no I²C0~~ — 31/10: fica no I²C dividido (ADR-0017). A placa nova (`hardware/obc-v2`, 23/10) corrige A1, A2, A3 e A7, **não** A5/A6 (R2/R3 ainda 4,7 kΩ); falta a data da fabricação | 5 |
 | Q3 | Placa do mecanismo (burn-wire): esquemático e corrente real; o 5 s de D3 pode mudar | 5 |
 | Q4 | Organização: ordem das provas; como avaliam a tensão e a corrente de recarga (REG-09) — o INA219 não vê a corrente de carga | 6 |
 
@@ -354,7 +355,7 @@ Na ordem da Tabela 67 do CDR: primeiro o que pode mudar uma decisão.
 |---|---|---|---|
 | **Uma pessoa para OBC, TT&C e ground** | Algo fica sem validar em hardware | Firmware pronto antes do hardware (etapas 1–3); lista do que corta; `gs_cli` na Pi como ground de reserva | Sempre |
 | **Placa nova do OBC atrasa** | Sem bring-up nem validação do OBC | Drivers testados com simulação; Pi da bancada com sensores soltos | Etapa 5 |
-| **Dois mestres no I²C (Pi e ESP32)** | Leituras corrompidas, AOCS ou INA219 mudos | INA219 num I²C próprio (proposta à PCB); posse do barramento por modo para os comandos do AOCS (2.4) | Etapa 2, 6 |
+| **Dois mestres no I²C (Pi e ESP32)** | Leituras corrompidas, AOCS ou INA219 mudos | Empréstimo do barramento contado do START, frames fixos, uma thread dona do `/dev/i2c-1` (ADR-0017); o ESP32 precisa de watchdog e limpar o barramento | Etapa 2, 6 |
 | **Convivência LoRa × ADS-B** | Meta de ≥ 95% não cumprida | Medir na bancada; bloqueio por IPC ou filtro | Etapa 6 |
 | **Enlace na distância real não medido** | Margem menor que a modelada | Bancada com as antenas da equipe; `SAFE` como recurso | Etapa 6 |
 | **CPU com ~20 aeronaves não medida** | Disputa com `ttcd` e `obcd` | 21,9% com pouco tráfego; repetir com fonte conhecida | Etapa 6 |

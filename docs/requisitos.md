@@ -426,6 +426,11 @@ nada é transmitido ainda
   a cada 10 s; um sensor que o OBC não leu chega como desconhecido
   (`0x8000`), nunca como zero. O `obcd` lê o INA219 e o DS18B20 (ADR-0016);
   falta conferi-los na bancada contra multímetro e termômetro (OBC-7).
+- **Desvio (31/10, ADR-0017):** o INA219 fica no I²C dividido com o ESP32 do
+  AOCS. Durante o `ADVANCED_AOCS` o barramento é do ESP32, e tensão e corrente
+  vão como "sem dado" pelo tempo do empréstimo (hoje até 300 s + 2,25 s). O
+  CDR (OBC-7) promete as duas em todos os modos: declarar o desvio na
+  documentação final. A temperatura da bateria não é afetada (1-Wire).
 - O teste térmico exige a bateria acima de 0 °C o tempo todo
   ([REG-26](#reg-26)). Sem esse campo, não há como demonstrar isso por
   telemetria **transmitida**.
