@@ -92,6 +92,11 @@ target_link_libraries(test_obcd_core PRIVATE obcd_core)
 target_include_directories(test_obcd_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_obcd_core COMMAND test_obcd_core)
 
+add_executable(test_obcd_i2c_sched test_obcd_i2c_sched.c)
+target_link_libraries(test_obcd_i2c_sched PRIVATE obcd_core)
+target_include_directories(test_obcd_i2c_sched PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_obcd_i2c_sched COMMAND test_obcd_i2c_sched)
+
 add_executable(test_obcd_drivers test_obcd_drivers.c)
 target_link_libraries(test_obcd_drivers PRIVATE obcd_drivers)
 target_include_directories(test_obcd_drivers PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

@@ -78,7 +78,7 @@ target_compile_definitions(adsbd PRIVATE TTEC_VERSION="${TTEC_VERSION}")
 
 # The obcd core: the mission modes, the burn-wire, the thermostat and the
 # OBC's side of the IPC contract. No system calls (ADR-0005, ADR-0016).
-add_library(obcd_core STATIC obcd/core.c)
+add_library(obcd_core STATIC obcd/core.c obcd/i2c_sched.c)
 target_include_directories(obcd_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/obcd)
 target_link_libraries(obcd_core PUBLIC gama_common)
 
