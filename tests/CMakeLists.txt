@@ -135,4 +135,10 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME tracks_to_ndjson
              COMMAND ${Python3_EXECUTABLE} -m unittest test_tracks_to_ndjson
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
+    # A real bench step (run_step.sh, ping.txt) with the real ttcd and the
+    # real ground on the UDP radio: the ground's JSON as the scripts read it.
+    add_test(NAME bench_step_udp
+             COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_bench_step.py
+                     ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR})
+    set_tests_properties(bench_step_udp PROPERTIES TIMEOUT 150)
 endif()
