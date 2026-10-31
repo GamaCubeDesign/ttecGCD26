@@ -52,8 +52,14 @@ Three facts constrain what can be done:
 - **One thread owns `/dev/i2c-1`** in `obcd`, for the INA219 polls and the
   AOCS frames alike, so the Pi's own accesses are serialised by
   construction; and every transfer is a single `I2C_RDWR` transaction, with
-  a repeated start where a register is read. The lease's end is kept on
-  disk (`/run/gama`), so a restarted `obcd` stays silent until it is over.
+  a repeated start where a register is read.
+- **The lease's end is kept on the SD card** (`i2c_lease_path`, in
+  `/var/lib/gama`): written as soon as the START is out, synced once the
+  STATUS window is over, removed with the result. An `obcd` restarted, or a
+  Pi rebooted — which does not reset the ESP32 — stays silent until the
+  lease is over. The monotonic clock does not survive a reboot, so a file
+  from another boot (`boot_id`) counts as what was left of the lease when it
+  was written, from now.
 
 ## Rationale
 
@@ -127,7 +133,10 @@ the AOCS team insists, with a STOP and ≥ 5 ms between pointer and read.
 | What | Where | Result |
 |---|---|---|
 | Frame bytes against an independent CRC (Python `binascii.crc_hqx`) | `tests/test_aocs_codec.c` | pass |
-| The Pi makes no transaction during the lease, in every outcome | `obcd` I²C scheduler test, virtual time | to do |
+| The Pi makes no transaction during the lease, in every outcome | `test_obcd_i2c_sched`, virtual time | pass |
+| No ESP32, or a refused START: `ADVANCED_AOCS` ends at once; a lease: V and I "no data", re-entry refused as busy, the result's attitude in telemetry | `test_obcd_core` | pass |
+| The real binary: a lease left on disk is kept, then its result read and the file removed; no ESP32 on the bus ends the mode at once | `test_obcd_integration` | pass |
+| No data race between the I²C thread and the loop | `test_obcd_integration` under ThreadSanitizer | pass |
 | A real ESP32 slave against the Pi | bench | to do |
 
 ## References

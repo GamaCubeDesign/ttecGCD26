@@ -5,40 +5,67 @@
 #include <fcntl.h>
 #include <linux/gpio.h>
 #include <linux/i2c-dev.h>
+#include <linux/i2c.h>
+#include <stdint.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+
+static int rdwr(int fd, struct i2c_msg *msgs, uint32_t n)
+{
+    struct i2c_rdwr_ioctl_data d = { .msgs = msgs, .nmsgs = n };
+    return ioctl(fd, I2C_RDWR, &d) < 0 ? -errno : 0;
+}
+
+int hw_i2c_write(int fd, uint8_t addr, const uint8_t *buf, size_t len)
+{
+    struct i2c_msg m = { .addr = addr, .flags = 0, .len = (uint16_t)len,
+                         .buf = (uint8_t *)(uintptr_t)buf };
+    return rdwr(fd, &m, 1);
+}
+
+int hw_i2c_read(int fd, uint8_t addr, uint8_t *buf, size_t len)
+{
+    struct i2c_msg m = { .addr = addr, .flags = I2C_M_RD, .len = (uint16_t)len, .buf = buf };
+    return rdwr(fd, &m, 1);
+}
 
 static int i2c_write_reg16(void *ctx, uint8_t reg, uint16_t value)
 {
     hw_i2c_t *h = ctx;
     uint8_t b[3] = { reg, (uint8_t)(value >> 8), (uint8_t)value };
-    return write(h->fd, b, sizeof(b)) == (ssize_t)sizeof(b) ? 0 : -1;
+    int r = hw_i2c_write(h->fd, h->ina219_addr, b, sizeof(b));
+    if (r < 0) {
+        errno = -r;
+        return -1;
+    }
+    return 0;
 }
 
-/* A register pointer write, then a two-byte read, as the INA219 expects. */
+/* The register pointer and the two bytes in one transaction, joined by a
+ * repeated start, as the INA219 expects. */
 static int i2c_read_reg16(void *ctx, uint8_t reg, uint16_t *value)
 {
     hw_i2c_t *h = ctx;
     uint8_t b[2];
-    if (write(h->fd, &reg, 1) != 1 || read(h->fd, b, 2) != 2) {
+    struct i2c_msg m[2] = {
+        { .addr = h->ina219_addr, .flags = 0, .len = 1, .buf = &reg },
+        { .addr = h->ina219_addr, .flags = I2C_M_RD, .len = 2, .buf = b },
+    };
+    int r = rdwr(h->fd, m, 2);
+    if (r < 0) {
+        errno = -r;
         return -1;
     }
     *value = (uint16_t)((uint16_t)b[0] << 8 | b[1]);
     return 0;
 }
 
-int hw_i2c_open(hw_i2c_t *h, const char *path, uint8_t addr, ina219_bus_t *bus)
+int hw_i2c_open(hw_i2c_t *h, const char *path, uint8_t ina219_addr, ina219_bus_t *bus)
 {
+    h->ina219_addr = ina219_addr;
     h->fd = open(path, O_RDWR | O_CLOEXEC);
     if (h->fd < 0) {
-        return -1;
-    }
-    if (ioctl(h->fd, I2C_SLAVE, (unsigned long)addr) < 0) {
-        int e = errno;
-        close(h->fd);
-        h->fd = -1;
-        errno = e;
         return -1;
     }
     bus->ctx = h;

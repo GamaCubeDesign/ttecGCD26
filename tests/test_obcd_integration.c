@@ -4,10 +4,11 @@
  * This test plays ttcd (the IPC server obcd connects to) and the battery's
  * DS18B20 (a w1_slave file it rewrites). The INA219's bus and the GPIO chip
  * do not exist, as on a development PC, so those paths are exercised as
- * failures: no data, outputs not driven, both in the log. What the unit
- * tests cannot reach is here: the epoll loop, the sensor thread and its
- * pipe, the reconnection, the configuration file and the shutdown. Real
- * time; ~6 s.
+ * failures: no data, outputs not driven, both in the log; with no I2C
+ * bus, no AOCS ESP32 answers either. What the unit tests cannot reach is
+ * here: the epoll loop, the threads and their pipes, the lease file a
+ * previous obcd leaves (ADR-0017), the reconnection, the configuration file
+ * and the shutdown. Real time; ~7 s.
  *
  *   test_obcd_integration /path/to/obcd
  */
@@ -22,6 +23,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <poll.h>
 #include <signal.h>
 #include <stdint.h>
@@ -30,6 +32,7 @@
 #include <unistd.h>
 
 static char dir[64], sock_path[128], log_path[128], conf_path[128], w1_path[128];
+static char lease_path[128];
 static const char *obcd_bin;
 
 static uint64_t now_ms(void)
@@ -51,6 +54,23 @@ static void write_w1(long milli, const char *crc)
     FILE *f = fopen(w1_path, "w");
     fprintf(f, "72 01 4b 46 7f ff 0e 10 57 : crc=57 %s\n72 01 4b 46 7f ff 0e 10 57 t=%ld\n",
             crc, milli);
+    fclose(f);
+}
+
+/* A lease file as obcd writes it, ending ms from now in this boot. */
+static void write_lease(int ms)
+{
+    char id[64] = "-";
+    FILE *b = fopen("/proc/sys/kernel/random/boot_id", "r");
+    if (b != NULL) {
+        if (fscanf(b, "%63s", id) != 1) {
+            snprintf(id, sizeof(id), "-");
+        }
+        fclose(b);
+    }
+    FILE *f = fopen(lease_path, "w");
+    fprintf(f, "boot_id %s\nlease_until_mono_ms %" PRIu64 "\nlease_left_ms %d\n",
+            id, now_ms() + (uint64_t)ms, ms);
     fclose(f);
 }
 
@@ -155,18 +175,20 @@ int main(int argc, char **argv)
     snprintf(log_path, sizeof(log_path), "%s/obcd.jsonl", dir);
     snprintf(conf_path, sizeof(conf_path), "%s/obcd.conf", dir);
     snprintf(w1_path, sizeof(w1_path), "%s/w1_slave", dir);
+    snprintf(lease_path, sizeof(lease_path), "%s/obcd-i2c.lease", dir);
 
     FILE *cf = fopen(conf_path, "w");
     fprintf(cf,
             "# integration test: no OBC board; ttcd and the DS18B20 played by the test\n"
             "ipc_path = %s\nlog_path = %s\nretry_ms = 200\n"
             "w1_path = %s\ntemp_period_ms = 800\ntemp_stale_ms = 2500\n"
-            "i2c_dev = %s/no-i2c\npower_period_ms = 500\n"
+            "i2c_dev = %s/no-i2c\npower_period_ms = 500\ni2c_lease_path = %s\n"
             "gpio_chip = %s/no-gpiochip\nburnwire_line = 22\n"
             "burnwire_ms = 300\n",
-            sock_path, log_path, w1_path, dir, dir);
+            sock_path, log_path, w1_path, dir, lease_path, dir);
     fclose(cf);
     write_w1(8500, "YES");                               /* 8.5 degC: cold */
+    write_lease(800);              /* as if an obcd had died during a lease */
 
     int lfd = ipc_server_open(sock_path, 4);
     CHECK(lfd >= 0);
@@ -192,6 +214,17 @@ int main(int argc, char **argv)
         CHECK_EQ_INT(S.tel.temp_bat_ccel, 850);               /* from the w1_slave file */
         CHECK_EQ_INT(S.tel.battery_mv, GAMA_NO_DATA_U16);     /* no I2C bus here */
         CHECK_EQ_INT(S.tel.roll_cdeg, GAMA_NO_DATA_I16);
+    }
+
+    TEST_GROUP("obcd integration: a lease left on disk is kept, then its result read, the file gone");
+    {
+        CHECK_EQ_INT(count_in_log("\"event\":\"lease_resumed\""), 1);
+        CHECK_EQ_INT(count_in_log("\"event\":\"aocs\",\"lent\":true"), 1);
+        /* No ESP32 to read it from: the result is invalid, and the bus is
+         * the Pi's again. */
+        CHECK_EQ_INT(count_in_log("\"event\":\"aocs_result\",\"state\":null"), 1);
+        CHECK(access(lease_path, F_OK) != 0);
+        CHECK_EQ_INT(S.mode, GAMA_OBC_ST_PRE_TEST);          /* no mode changed for it */
     }
 
     TEST_GROUP("obcd integration: absent hardware is in the log, and nothing pretends");
@@ -243,6 +276,20 @@ int main(int argc, char **argv)
         CHECK_EQ_INT(count_in_log("\"event\":\"burnwire\",\"on\":true,\"why\":\"deploy\",\"driven\":false"), 1);
     }
 
+    TEST_GROUP("obcd integration: ADVANCED_AOCS with no ESP32 on the bus ends at once (ADR-0017)");
+    {
+        send_event(fd, GAMA_OBC_EV_TC_AOCS);
+        for (int i = 0; i < 50 && count_in_log("\"by\":\"aocs_absent\"") == 0; i++) {
+            listen_obcd(fd, 20, NULL);
+        }
+        CHECK_EQ_INT(count_in_log("\"by\":\"aocs_absent\""), 1);
+        CHECK_EQ_INT(count_in_log("\"event\":\"aocs\",\"start\":true"), 1);
+        CHECK_EQ_INT(count_in_log("\"lent\":false,\"why\":\"aocs_absent\""), 1);
+        listen_obcd(fd, 300, NULL);
+        CHECK_EQ_INT(S.mode, GAMA_OBC_ST_PRE_TEST);
+        CHECK(access(lease_path, F_OK) != 0);                /* nothing lent, nothing kept */
+    }
+
     TEST_GROUP("obcd integration: ttcd restarting is survived: obcd reconnects, says hello and the mode");
     {
         send_event(fd, GAMA_OBC_EV_TC_SURVIVAL);
@@ -283,6 +330,7 @@ int main(int argc, char **argv)
     unlink(log_path);
     unlink(conf_path);
     unlink(w1_path);
+    unlink(lease_path);
     rmdir(dir);
     TEST_SUMMARY("test_obcd_integration");
 }

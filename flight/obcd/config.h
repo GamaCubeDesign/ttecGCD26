@@ -30,10 +30,14 @@ typedef struct {
     uint64_t log_max_bytes;
     uint32_t retry_ms;              /* reconnection to ttcd                    */
 
-    char     i2c_dev[64];           /* INA219's bus, e.g. /dev/i2c-1; "" none  */
+    char     i2c_dev[64];           /* the INA219's and the AOCS ESP32's bus,
+                                       e.g. /dev/i2c-1; "" none                */
     uint8_t  ina219_addr;
     uint32_t ina219_shunt_mohm;
     uint32_t power_period_ms;       /* INA219 reading period, in its thread    */
+    uint8_t  aocs_addr;             /* the AOCS ESP32 (ADR-0017)               */
+    char     i2c_lease_path[256];   /* a lease's end, kept while the ESP32
+                                       holds the bus; "" not kept              */
 
     char     w1_path[256];          /* DS18B20's w1_slave file; "" none        */
     uint32_t temp_period_ms;        /* DS18B20 reading period, in its thread   */

@@ -1,4 +1,5 @@
 #include "config.h"
+#include "gama_aocs.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -17,6 +18,8 @@ void obcd_config_default(obcd_config_t *c)
     c->ina219_addr = 0x40;               /* the chip's default; A0 = A1 = GND */
     c->ina219_shunt_mohm = 100;          /* the previous OBC's calibration     */
     c->power_period_ms = 1000;
+    c->aocs_addr = GAMA_AOCS_ADDR_DEFAULT;
+    snprintf(c->i2c_lease_path, sizeof(c->i2c_lease_path), "/var/lib/gama/obcd-i2c.lease");
     c->temp_period_ms = 2000;            /* a conversion takes ~750 ms         */
     snprintf(c->gpio_chip, sizeof(c->gpio_chip), "/dev/gpiochip0");
     c->burnwire_line = OBCD_LINE_NONE;
@@ -91,11 +94,19 @@ int obcd_config_set(obcd_config_t *c, const char *key, const char *value,
                     char *err, size_t errlen)
 {
     const int64_t DAY_MS = 86400000;
+    /* ADVANCED_AOCS holds the lease's margins and 1 s to the protocol's most
+     * of task (ADR-0017). */
+    const int64_t AOCS_MARGINS = GAMA_AOCS_T_TAKEOVER_MS + GAMA_AOCS_T_RESUME_MARGIN_MS;
+    const int64_t AOCS_MIN = AOCS_MARGINS + 1000;
+    const int64_t AOCS_MAX = AOCS_MARGINS + (int64_t)GAMA_AOCS_MAX_TASK_S * 1000;
 
     if (strcmp(key, "ipc_path") == 0)  { return set_str(c->ipc_path, sizeof(c->ipc_path), key, value, err, errlen); }
     if (strcmp(key, "log_path") == 0)  { return set_str(c->log_path, sizeof(c->log_path), key, value, err, errlen); }
     if (strcmp(key, "i2c_dev") == 0)   { return set_str(c->i2c_dev, sizeof(c->i2c_dev), key, value, err, errlen); }
     if (strcmp(key, "w1_path") == 0)   { return set_str(c->w1_path, sizeof(c->w1_path), key, value, err, errlen); }
+    if (strcmp(key, "i2c_lease_path") == 0) {
+        return set_str(c->i2c_lease_path, sizeof(c->i2c_lease_path), key, value, err, errlen);
+    }
     if (strcmp(key, "gpio_chip") == 0) { return set_str(c->gpio_chip, sizeof(c->gpio_chip), key, value, err, errlen); }
     if (strcmp(key, "burnwire_line") == 0) { return set_line(&c->burnwire_line, key, value, err, errlen); }
     if (strcmp(key, "heater_line") == 0)   { return set_line(&c->heater_line, key, value, err, errlen); }
@@ -104,12 +115,15 @@ int obcd_config_set(obcd_config_t *c, const char *key, const char *value,
     if (strcmp(key, "retry_ms") == 0)              { INT(retry_ms, uint32_t, 100, 60000); }
     if (strcmp(key, "ina219_addr") == 0)           { INT(ina219_addr, uint8_t, 0x03, 0x77); }
     if (strcmp(key, "ina219_shunt_mohm") == 0)     { INT(ina219_shunt_mohm, uint32_t, 1, 100000); }
+    if (strcmp(key, "aocs_addr") == 0)             { INT(aocs_addr, uint8_t, 0x03, 0x77); }
     if (strcmp(key, "power_period_ms") == 0)       { INT(power_period_ms, uint32_t, 100, 60000); }
     if (strcmp(key, "temp_period_ms") == 0)        { INT(temp_period_ms, uint32_t, 800, 60000); }
     if (strcmp(key, "telemetry_period_ms") == 0)   { INT(p.telemetry_period, uint32_t, 100, 60000); }
     if (strcmp(key, "adsb_timeout_ms") == 0)       { INT(p.adsb_timeout, uint32_t, 1000, DAY_MS); }
     if (strcmp(key, "burnwire_ms") == 0)           { INT(p.burnwire_on, uint32_t, 100, 60000); }
-    if (strcmp(key, "aocs_timeout_ms") == 0)       { INT(p.aocs_timeout, uint32_t, 1000, DAY_MS); }
+    if (strcmp(key, "aocs_timeout_ms") == 0)       { INT(p.aocs_timeout, uint32_t, AOCS_MIN, AOCS_MAX); }
+    if (strcmp(key, "aocs_hold_ms") == 0)          { INT(p.aocs_hold, uint32_t, 0, DAY_MS); }
+    if (strcmp(key, "aocs_azimuth_cdeg") == 0)     { INT(p.aocs_azimuth_cdeg, uint16_t, 0, 35999); }
     if (strcmp(key, "heater_on_below_ccel") == 0)  { INT(p.heater_on_below, int16_t, -5500, 12500); }
     if (strcmp(key, "heater_off_above_ccel") == 0) { INT(p.heater_off_above, int16_t, -5500, 12500); }
     if (strcmp(key, "temp_stale_ms") == 0)         { INT(p.temp_stale, uint32_t, 1000, DAY_MS); }
@@ -212,6 +226,14 @@ int obcd_config_validate(const obcd_config_t *c, char *err, size_t errlen)
     }
     if (c->p.power_stale <= c->power_period_ms) {
         snprintf(err, errlen, "power_stale_ms must exceed power_period_ms");
+        return -1;
+    }
+    if (c->i2c_dev[0] != '\0' && c->aocs_addr == c->ina219_addr) {
+        snprintf(err, errlen, "aocs_addr and ina219_addr are on one bus: they must differ");
+        return -1;
+    }
+    if (c->i2c_lease_path[0] != '\0' && c->i2c_lease_path[0] != '/') {
+        snprintf(err, errlen, "i2c_lease_path must be absolute (or empty: not kept)");
         return -1;
     }
     if (c->burnwire_line != OBCD_LINE_NONE && c->burnwire_line == c->heater_line) {

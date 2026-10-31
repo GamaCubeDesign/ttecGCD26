@@ -28,7 +28,8 @@ SupplementaryGroups=i2c gpio
 Restart=always
 RestartSec=1
 
-# /var/lib/gama holds the log (log_path); /run/gama is ttcd's.
+# /var/lib/gama holds the log (log_path) and, while the AOCS ESP32 holds
+# the I2C bus, the lease's end (i2c_lease_path, ADR-0017); /run/gama is ttcd's.
 StateDirectory=gama
 
 # Only its devices. No root, no new privileges, read-only system. The

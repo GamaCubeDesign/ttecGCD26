@@ -13,6 +13,7 @@
 #define OBCD_HW_LINUX_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #include "ina219.h"
@@ -21,15 +22,24 @@
 extern "C" {
 #endif
 
-/* An i2c-dev bus bound to one 7-bit address. */
+/* An i2c-dev bus, and the INA219's address on it. Every transfer is one
+ * I2C_RDWR transaction naming its address (ADR-0017): a register read is a
+ * write and a read joined by a repeated start, so another master cannot
+ * take the bus between them, and one descriptor reaches every device. */
 typedef struct {
-    int fd;
+    int     fd;
+    uint8_t ina219_addr;
 } hw_i2c_t;
 
-/* Opens path (e.g. /dev/i2c-1) for the device at addr and fills *bus with
- * the INA219 operations on it. 0, or -1 with errno set. */
-int  hw_i2c_open(hw_i2c_t *h, const char *path, uint8_t addr, ina219_bus_t *bus);
+/* Opens path (e.g. /dev/i2c-1) and fills *bus with the INA219 operations at
+ * ina219_addr. 0, or -1 with errno set. */
+int  hw_i2c_open(hw_i2c_t *h, const char *path, uint8_t ina219_addr, ina219_bus_t *bus);
 void hw_i2c_close(hw_i2c_t *h);
+
+/* One write, or one read, to a 7-bit address. 0, or -errno: -EREMOTEIO or
+ * -ENXIO when the address did not acknowledge (nobody there). */
+int  hw_i2c_write(int fd, uint8_t addr, const uint8_t *buf, size_t len);
+int  hw_i2c_read(int fd, uint8_t addr, uint8_t *buf, size_t len);
 
 /* One output line of a GPIO chip, requested low. The kernel keeps the
  * request for as long as the file descriptor is open. -1 if it failed. */

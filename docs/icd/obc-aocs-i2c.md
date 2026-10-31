@@ -141,8 +141,11 @@ not affected: the DS18B20 is on 1-Wire.
   Pi's driver does no bus recovery. The ESP32 must run a watchdog that
   resets it, and must clear the bus when it becomes master and before it
   becomes a slave again.
-- **The Pi restarts during the lease.** `obcd` keeps the lease's end on disk
-  (`/run/gama`), so a restarted `obcd` stays silent until the lease is over.
+- **The Pi, or `obcd`, restarts during the lease.** `obcd` keeps the
+  lease's end on the SD card from the moment the START is out, so after a
+  restart, or a reboot of the Pi, it stays silent until the lease is over
+  (after a reboot, for as long as was left when the file was written). The
+  ESP32 needs to do nothing for this.
 - **A frame fails its CRC.** The Pi retries the read (as in §4). The ESP32
   reports `error = 1` for a damaged COMMAND and does not start.
 

@@ -46,6 +46,9 @@ and the DS18B20 alone takes ~750 ms per reading.
 - **The AOCS gets a deadline now and its I2C contract later** (PLANO 2.4):
   `ADVANCED_AOCS` ends on an `EV_TASK_DONE` posted through
   `obcd_post_event`, or at `aocs_timeout_ms`, whichever comes first.
+  (ADR-0017 replaces this for `ADVANCED_AOCS`: the mode ends with the
+  ESP32's lease of the bus, or at once without an ESP32; the deadline stays
+  as a backstop. The INA219's thread became the I²C bus's only owner.)
 
 `tools/obc_standin`, which played the OBC for ADR-0014, is removed: the
 tests and `make adsb-chain` run the real `obcd`.
