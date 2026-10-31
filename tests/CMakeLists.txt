@@ -1,19 +1,9 @@
-# Host-side unit tests for the shared codec. No external framework, so these
-# can be cross-compiled and run on the ESP32 to prove both ends of the link
-# really do produce identical bytes.
-set(TTEC_TESTS
-    test_crc16
-    test_frame
-    test_tm
-    test_tc
-    test_vectors
-    test_lora
-    test_ipc_codec
-    test_gs_link
-    test_aocs_codec
-)
+# Host-side unit tests for the shared codec. No external framework, so the
+# same files also run on the ESP32 (ground/esp32-tests), proving both ends of
+# the link produce identical bytes. The list is in portable.cmake.
+include(${CMAKE_CURRENT_SOURCE_DIR}/portable.cmake)
 
-foreach(t IN LISTS TTEC_TESTS)
+foreach(t IN LISTS TTEC_CODEC_TESTS)
     add_executable(${t} ${t}.c)
     target_link_libraries(${t} PRIVATE gama_common)
     target_include_directories(${t} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -140,6 +130,10 @@ if(Python3_Interpreter_FOUND)
     # The ground's adapter from the downlink to the estimator's NDJSON.
     add_test(NAME tracks_to_ndjson
              COMMAND ${Python3_EXECUTABLE} -m unittest test_tracks_to_ndjson
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
+    # The ESP32 ground station's serial bridge, against a fake board on a pty.
+    add_test(NAME gs_serial
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_gs_serial
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
     # A real bench step (run_step.sh, ping.txt) with the real ttcd and the
     # real ground on the UDP radio: the ground's JSON as the scripts read it.

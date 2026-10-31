@@ -17,7 +17,7 @@
 
 #include <stdio.h>
 
-#define MAX_LINES 64
+#define MAX_LINES 16       /* the most any group prints; small enough for an ESP32 */
 #define WALL_MS   1793000000000ull
 
 static struct {

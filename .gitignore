@@ -6,6 +6,9 @@
 /ground/esp32/build/
 /ground/esp32/sdkconfig
 /ground/esp32/sdkconfig.old
+/ground/esp32-tests/build/
+/ground/esp32-tests/sdkconfig
+/ground/esp32-tests/sdkconfig.old
 
 # mission data: regenerated per run, never committed
 *.ndjson
