@@ -287,5 +287,20 @@ int main(void)
         sx1278_rx_busy(&D, &busy); CHECK(busy);                  /* PREAMBLE mode */
     }
 
+    TEST_GROUP("sx1278: try_transmit defers while receiving, and leaves the modem alone");
+    {
+        const uint8_t pkt[] = { 0x02, 0x01, 0x05, 0x00, 0x00, 0x11, 0x22 };
+        CHECK_EQ_INT(init_nominal(), 0);
+        CHIP.regs[SX_REG_MODEM_STAT] = SX_STAT_HEADER_VALID;      /* a frame arriving */
+        uint8_t mode = CHIP.regs[SX_REG_OP_MODE];
+        CHECK_EQ_INT(sx1278_try_transmit(&D, pkt, sizeof(pkt)), SX_TX_BUSY);
+        CHECK(!D.transmitting);
+        CHECK_EQ_INT(CHIP.regs[SX_REG_OP_MODE], mode);           /* still receiving */
+        CHIP.regs[SX_REG_MODEM_STAT] = SX_STAT_RX_ONGOING;        /* the channel is free */
+        CHECK_EQ_INT(sx1278_try_transmit(&D, pkt, sizeof(pkt)), SX_TX_STARTED);
+        CHECK(D.transmitting);
+        CHECK_EQ_INT(sx1278_try_transmit(&D, pkt, sizeof(pkt)), SX_TX_ERROR);  /* half-duplex */
+    }
+
     TEST_SUMMARY("test_sx1278");
 }

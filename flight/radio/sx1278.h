@@ -147,6 +147,15 @@ int sx1278_rx_busy(sx1278_t *d, bool *busy);
  * DIO0 interrupt reported by sx1278_service(). */
 int sx1278_transmit(sx1278_t *d, const uint8_t *buf, uint8_t len);
 
+/* Results of sx1278_try_transmit: the values of the radio backends' and of
+ * gs_link's transmit callbacks, so either can pass them straight on. */
+enum { SX_TX_STARTED = 0, SX_TX_BUSY = 1, SX_TX_ERROR = -1 };
+
+/* Listen before talk, then transmit (ADR-0007): SX_TX_BUSY, touching
+ * nothing, while a reception is in progress at d->lbt's sensitivity. The one
+ * transmit path of the satellite's radio and of the ESP32 ground station. */
+int sx1278_try_transmit(sx1278_t *d, const uint8_t *buf, uint8_t len);
+
 /*
  * Services a DIO0 interrupt: reads and clears the IRQ flags and reports what
  * happened. On RX, copies the packet into buf (at least 255 bytes) and sets
