@@ -78,6 +78,21 @@ const char *gama_obc_state_name(uint8_t state)
     }
 }
 
+const char *gama_obc_event_name(uint8_t event)
+{
+    switch (event) {
+    case GAMA_OBC_EV_NONE:            return "NONE";
+    case GAMA_OBC_EV_TC_BASIC_INTER:  return "TC_BASIC_INTER";
+    case GAMA_OBC_EV_TC_AOCS:         return "TC_AOCS";
+    case GAMA_OBC_EV_TC_MISSION_ADSB: return "TC_MISSION_ADSB";
+    case GAMA_OBC_EV_TC_DOWNLINK:     return "TC_DOWNLINK";
+    case GAMA_OBC_EV_TC_SURVIVAL:     return "TC_SURVIVAL";
+    case GAMA_OBC_EV_TASK_DONE:       return "TASK_DONE";
+    case GAMA_OBC_EV_ADSB_TIMEOUT:    return "ADSB_TIMEOUT";
+    default:                          return "UNKNOWN";
+    }
+}
+
 const char *gama_link_state_name(uint8_t state)
 {
     switch (state) {

@@ -1,12 +1,14 @@
 /*
  * The adsbd core on a virtual clock: SBS lines in; the onboard record,
- * IPC_TRACKS and IPC_STAT out (HLR-ADS-07, HLR-ADS-08, HLR-SW-02).
+ * IPC_TRACKS, IPC_STAT and IPC_ROSTER out; IPC_TIME_SET and IPC_MODE in
+ * (HLR-ADS-07, HLR-ADS-08, HLR-SW-02).
  */
 
 #include "test_util.h"
 #include "core.h"
 #include "gama_frame.h"
 #include "gama_ipc.h"
+#include "gama_tc.h"
 #include "gama_tm.h"
 #include "ndjson.h"
 
@@ -86,6 +88,32 @@ static void position(uint64_t now, uint32_t icao, double lat)
     snprintf(l, sizeof(l), "MSG,3,1,1,%06X,1,,,,,,30000,,,%.6f,-47.000000,,,0,,0,0",
              (unsigned)icao, lat);
     line(now, l);
+}
+
+static void ident(uint64_t now, uint32_t icao, const char *callsign)
+{
+    char l[160];
+    snprintf(l, sizeof(l), "MSG,1,1,1,%06X,1,,,,,%s,,,,,,,,,,,", (unsigned)icao, callsign);
+    line(now, l);
+}
+
+/* The roster records of every IPC_ROSTER frame from `from` on. */
+static int roster_records(int from, gama_roster_t *out, int cap)
+{
+    int n = 0;
+    for (int i = from; i < H.n_ipc && i < MAX_IPC; i++) {
+        gama_frame_t f;
+        if (H.ipc[i][1] != GAMA_FRAME_IPC_ROSTER ||
+            gama_frame_decode(H.ipc[i], H.ipc_len[i], &f) < 0) {
+            continue;
+        }
+        int k = gama_ipc_roster_count(f.len);
+        for (int r = 0; r < k && n < cap; r++) {
+            gama_roster_decode(f.payload + (size_t)r * GAMA_ROSTER_WIRE_LEN,
+                               GAMA_ROSTER_WIRE_LEN, &out[n++]);
+        }
+    }
+    return n;
 }
 
 static int count_log(const char *ev)
@@ -295,6 +323,102 @@ int main(void)
         CHECK_EQ_INT(C.n.ipc_rx_bad, 3);
         CHECK(!C.time_synced);
         CHECK_EQ_INT(count_log("ipc_unexpected"), 3);
+    }
+
+    TEST_GROUP("core: IPC_MODE from ttcd is recorded; it is not an error");
+    {
+        reset(WALL0);
+        CHECK_EQ_INT(C.obc_mode, GAMA_OBC_ST_UNKNOWN);
+        uint8_t f[GAMA_FRAME_MAX_TOTAL];
+        uint8_t mode = GAMA_OBC_ST_MISSION_ADSB;
+        int n = gama_frame_encode(f, sizeof(f), GAMA_FRAME_IPC_MODE, 0, &mode, 1);
+        adsbd_on_ipc_frame(&C, T0, f, (size_t)n);
+        adsbd_on_ipc_frame(&C, T0, f, (size_t)n);         /* same mode: logged once */
+        CHECK_EQ_INT(C.obc_mode, GAMA_OBC_ST_MISSION_ADSB);
+        CHECK_EQ_INT(count_log("obc_mode"), 1);
+        CHECK_EQ_INT(C.n.ipc_rx_bad, 0);
+        n = gama_frame_encode(f, sizeof(f), GAMA_FRAME_IPC_MODE, 0, NULL, 0);
+        adsbd_on_ipc_frame(&C, T0, f, (size_t)n);         /* no mode byte */
+        CHECK_EQ_INT(C.n.ipc_rx_bad, 1);
+    }
+
+    TEST_GROUP("core: IPC_STAT says whether dump1090 is delivering");
+    {
+        reset(WALL0);
+        adsbd_on_ipc_link(&C, T0, true);
+        adsbd_on_tick(&C, T0);
+        CHECK_EQ_INT(stat_at(find_ipc(0, GAMA_FRAME_IPC_STAT)).flags, 0);
+        adsbd_on_dump1090_link(&C, T0, true);
+        int from = H.n_ipc;
+        adsbd_on_tick(&C, T0 + 1000 * MS);
+        CHECK_EQ_INT(stat_at(find_ipc(from, GAMA_FRAME_IPC_STAT)).flags,
+                     GAMA_IPC_STAT_F_DUMP1090_UP);
+        adsbd_on_dump1090_link(&C, T0, false);
+        from = H.n_ipc;
+        adsbd_on_tick(&C, T0 + 2000 * MS);
+        CHECK_EQ_INT(stat_at(find_ipc(from, GAMA_FRAME_IPC_STAT)).flags, 0);
+    }
+
+    TEST_GROUP("core: each callsign goes to ttcd once, again only if it changes");
+    {
+        reset(WALL0);
+        adsbd_on_ipc_link(&C, T0, true);
+        ident(T0, 0xE48DF5, "TAM3054");
+        ident(T0, 0xE48DF5, "TAM3054");
+        ident(T0, 0x123456, "GLO1234");
+        adsbd_on_tick(&C, T0);
+        gama_roster_t r[64];
+        CHECK_EQ_INT(roster_records(0, r, 64), 2);
+        CHECK_EQ_INT(r[0].icao, 0xE48DF5u);
+        CHECK_STR_EQ(r[0].callsign, "TAM3054");
+        CHECK_STR_EQ(r[1].callsign, "GLO1234");
+
+        int from = H.n_ipc;
+        ident(T0 + 500 * MS, 0xE48DF5, "TAM3054");        /* nothing new */
+        adsbd_on_tick(&C, T0 + 1000 * MS);
+        CHECK_EQ_INT(roster_records(from, r, 64), 0);
+        ident(T0 + 1500 * MS, 0x123456, "GLO9999");       /* renamed */
+        adsbd_on_tick(&C, T0 + 2000 * MS);
+        CHECK_EQ_INT(roster_records(from, r, 64), 1);
+        CHECK_STR_EQ(r[0].callsign, "GLO9999");
+    }
+
+    TEST_GROUP("core: a reconnected ttcd hears the whole roster; 30 aircraft in two frames");
+    {
+        reset(WALL0);
+        for (unsigned i = 0; i < 30; i++) {
+            char cs[9];
+            snprintf(cs, sizeof(cs), "AZU%04u", i);
+            ident(T0, 0x300000u + i, cs);
+        }
+        adsbd_on_tick(&C, T0);                            /* unlinked: nothing */
+        CHECK_EQ_INT(H.n_ipc, 0);
+        adsbd_on_ipc_link(&C, T0, true);
+        adsbd_on_tick(&C, T0);
+        gama_roster_t r[64];
+        CHECK_EQ_INT(count_ipc(0, GAMA_FRAME_IPC_ROSTER), 2);
+        CHECK_EQ_INT(roster_records(0, r, 64), 30);
+
+        /* ttcd restarts: it comes back empty, and is told everything again. */
+        adsbd_on_ipc_link(&C, T0, false);
+        adsbd_on_ipc_link(&C, T0 + 1000 * MS, true);
+        int from = H.n_ipc;
+        adsbd_on_tick(&C, T0 + 1000 * MS);
+        CHECK_EQ_INT(roster_records(from, r, 64), 30);
+    }
+
+    TEST_GROUP("core: a roster frame ttcd refused is sent again");
+    {
+        reset(WALL0);
+        adsbd_on_ipc_link(&C, T0, true);
+        ident(T0, 0xE48DF5, "TAM3054");
+        H.ipc_fail = true;
+        adsbd_on_tick(&C, T0);
+        H.ipc_fail = false;
+        int from = H.n_ipc;
+        adsbd_on_tick(&C, T0 + 1000 * MS);
+        gama_roster_t r[4];
+        CHECK_EQ_INT(roster_records(from, r, 4), 1);
     }
 
     TEST_GROUP("core: dump1090 restarts reach IPC_STAT (TM_STAT on the ground)");

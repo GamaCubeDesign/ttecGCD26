@@ -96,6 +96,7 @@ const char *gama_frame_type_name(uint8_t type)
     case GAMA_FRAME_IPC_MODE:      return "IPC_MODE";
     case GAMA_FRAME_IPC_TRACKS:    return "IPC_TRACKS";
     case GAMA_FRAME_IPC_STAT:      return "IPC_STAT";
+    case GAMA_FRAME_IPC_ROSTER:    return "IPC_ROSTER";
     case GAMA_FRAME_IPC_HELLO:     return "IPC_HELLO";
     case GAMA_FRAME_BEACON:        return "BEACON";
     default:                       return "UNKNOWN";

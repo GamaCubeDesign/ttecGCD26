@@ -179,11 +179,7 @@ static tc_result_t do_stream_start(ttcd_core_t *c, uint64_t now, const uint8_t *
     if (period_ds < 30u || period_ds > 600u) {
         return fail(GAMA_ACK_BAD_ARGS, "period out of range");
     }
-    c->stream_on = true;
-    c->stream_period = (uint32_t)period_ds * 100u;
-    c->next_tracks = now;
-    c->next_stat = now + c->p.stat_period;
-    core_log(c, now, "stream", "\"on\":true,\"period_ms\":%" PRIu32, c->stream_period);
+    tm_stream_start(c, now, (uint32_t)period_ds * 100u, "telecommand");
     return ok();
 }
 
@@ -204,9 +200,7 @@ static tc_result_t dispatch(ttcd_core_t *c, uint64_t now, const gama_frame_t *f,
     case GAMA_TC_STREAM_START:
         return do_stream_start(c, now, args);
     case GAMA_TC_STREAM_STOP:
-        c->stream_on = false;
-        c->sending.valid = false;
-        core_log(c, now, "stream", "%s", "\"on\":false");
+        tm_stream_stop(c, now, "telecommand");
         return ok();
     case GAMA_TC_REQ_HK:
         c->hk_requested = true;
@@ -215,8 +209,11 @@ static tc_result_t dispatch(ttcd_core_t *c, uint64_t now, const gama_frame_t *f,
         c->stat_requested = true;
         return ok();
     case GAMA_TC_REQ_ROSTER:
-        /* Needs the callsign table from adsbd (PLANO phase 3). */
-        return fail(GAMA_ACK_FAILED, "roster not implemented");
+        /* Every callsign heard this mission, from IPC_ROSTER. A request
+         * while one is going out starts it again from the first record. */
+        c->roster_requested = true;
+        c->roster_next = 0;
+        return ok();
     case GAMA_TC_BULK_START:
     case GAMA_TC_BULK_ABORT:
         /* Deferred: the full raw log would take hours even at FAST, and it is

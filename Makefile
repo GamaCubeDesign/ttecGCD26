@@ -192,35 +192,36 @@ adsb-chain: build ## A mission through adsbd, ttcd and the ground, no hardware: 
 	BUILD_DIR=$(BUILD_DIR) PYTHON=$(PYTHON) tools/bench/adsb_chain.sh '$(INPUT)' \
 	    $(CHAIN_DIR)/$(BENCH_DATE)-$(BENCH_TIME)
 
-##@ On the Pi — ttcd and adsbd as systemd services
+##@ On the Pi — ttcd, adsbd and obcd as systemd services
 
 .PHONY: provision install service-enable service-stop service-status service-logs \
-        adsbd-enable adsbd-stop adsbd-status
+        adsbd-enable adsbd-stop adsbd-status obcd-enable obcd-stop obcd-status
 
 # Once, on a fresh Pi: the build tools, tmux (a long bench run inside it
-# survives a dropped ssh), SPI0 (spidev0.0 and spidev0.1) and the unprivileged
-# user the service runs as. Plain sudo, not $(SUDO): the same line runs over
+# survives a dropped ssh), SPI0 (spidev0.0 and spidev0.1), I2C1 for obcd's
+# INA219, and the unprivileged user the services run as. Plain sudo, not $(SUDO): the same line runs over
 # ssh in pi-provision.
 PROVISION   = sudo apt-get update && sudo apt-get install -y build-essential cmake git python3 rsync tmux \
-              && sudo raspi-config nonint do_spi 0 \
-              && { id -u gama >/dev/null 2>&1 || sudo useradd --system --no-create-home --groups spi,gpio gama; }
+              && sudo raspi-config nonint do_spi 0 && sudo raspi-config nonint do_i2c 0 \
+              && { id -u gama >/dev/null 2>&1 || sudo useradd --system --no-create-home --groups spi,gpio,i2c gama; } \
+              && sudo usermod -aG i2c gama
 # log_path in /etc/gama/ttcd.conf.
 SERVICE_LOG ?= /var/lib/gama/ttcd.jsonl
 
-provision: ## Once: build tools, SPI0 enabled, the gama user for the service
+provision: ## Once: build tools, SPI0 and I2C1 enabled, the gama user for the services
 	$(need-pi)
 	$(PROVISION)
 
-# ttcd.service runs /usr/local/bin/ttcd -c /etc/gama/ttcd.conf, and
-# adsbd.service /usr/local/bin/adsbd -c /etc/gama/adsbd.conf. An existing
-# file in /etc/gama is kept: it may hold this board's own settings.
-install: build ## Install ttcd and adsbd, their systemd units and, if absent, their /etc/gama files
+# Each of ttcd, adsbd and obcd: /usr/local/bin/<d> -c /etc/gama/<d>.conf,
+# run by <d>.service. An existing file in /etc/gama is kept: it may hold this
+# board's own settings.
+install: build ## Install ttcd, adsbd and obcd, their systemd units and, if absent, their /etc/gama files
 	$(need-pi)
-	$(SUDO) install -m 0755 $(BUILD_DIR)/flight/ttcd /usr/local/bin/ttcd
-	$(SUDO) install -m 0755 $(BUILD_DIR)/flight/adsbd /usr/local/bin/adsbd
-	$(SUDO) install -m 0644 flight/ttcd/ttcd.service /etc/systemd/system/ttcd.service
-	$(SUDO) install -m 0644 flight/adsbd/adsbd.service /etc/systemd/system/adsbd.service
-	for d in ttcd adsbd; do \
+	for d in ttcd adsbd obcd; do \
+	    $(SUDO) install -m 0755 $(BUILD_DIR)/flight/$$d /usr/local/bin/$$d && \
+	    $(SUDO) install -m 0644 flight/$$d/$$d.service /etc/systemd/system/$$d.service; \
+	done
+	for d in ttcd adsbd obcd; do \
 	    if [ -e /etc/gama/$$d.conf ]; then \
 	        echo "kept /etc/gama/$$d.conf; compare it with flight/$$d/$$d.conf.example"; \
 	    else \
@@ -228,7 +229,7 @@ install: build ## Install ttcd and adsbd, their systemd units and, if absent, th
 	    fi; \
 	done
 	$(SUDO) systemctl daemon-reload
-	for d in ttcd adsbd; do \
+	for d in ttcd adsbd obcd; do \
 	    if systemctl is-active --quiet $$d; then $(SUDO) systemctl restart $$d; echo "$$d restarted"; fi; \
 	done
 
@@ -265,6 +266,22 @@ adsbd-status: ## systemd's view of adsbd, and the end of its log
 	$(need-pi)
 	systemctl status adsbd --no-pager || true
 	tail -n 20 $(ADSBD_LOG)
+
+# log_path in /etc/gama/obcd.conf.
+OBCD_LOG    ?= /var/lib/gama/obcd.jsonl
+
+obcd-enable: ## Start obcd now and at every boot (pins and sensors in /etc/gama/obcd.conf)
+	$(need-pi)
+	$(SUDO) systemctl enable --now obcd
+
+obcd-stop: ## Stop obcd until the next boot: the modes stop, the outputs go off
+	$(need-pi)
+	$(SUDO) systemctl stop obcd
+
+obcd-status: ## systemd's view of obcd, and the end of its log
+	$(need-pi)
+	systemctl status obcd --no-pager || true
+	tail -n 20 $(OBCD_LOG)
 
 ##@ From the PC — the same targets, run on the Pi over ssh
 

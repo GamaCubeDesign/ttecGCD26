@@ -75,6 +75,8 @@ int main(void)
         CHECK_STR_EQ(gama_rate_profile_name(9), "UNKNOWN");
         CHECK_STR_EQ(gama_obc_state_name(GAMA_OBC_ST_MISSION_ADSB), "MISSION_ADSB");
         CHECK_STR_EQ(gama_obc_state_name(99), "UNKNOWN");
+        CHECK_STR_EQ(gama_obc_event_name(GAMA_OBC_EV_TASK_DONE), "TASK_DONE");
+        CHECK_STR_EQ(gama_obc_event_name(99), "UNKNOWN");
         CHECK_STR_EQ(gama_link_state_name(GAMA_LINK_BULK), "BULK");
         CHECK_STR_EQ(gama_link_state_name(99), "UNKNOWN");
     }

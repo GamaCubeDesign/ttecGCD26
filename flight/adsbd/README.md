@@ -69,6 +69,7 @@ Tudo fica em `build/adsb-chain/<data>-<hora>/`:
 |---|---|
 | `adsb.ndjson` | o registro de bordo que o `adsbd` gravou |
 | `adsbd.jsonl`, `ttcd.jsonl` | os logs de eventos dos dois daemons |
+| `obcd.jsonl` | o `obcd`, sem placa: cada troca de modo |
 | `ground.jsonl` | tudo o que a ground recebeu, frame a frame |
 | `ground.ndjson` | o que a ground reconstruiu do rádio, no formato do estimador |
 
@@ -82,6 +83,11 @@ python -m ground --input ../../../build/adsb-chain/<data>-<hora>/ground.ndjson
 O instante de cada registro em `ground.ndjson` é `chegada − tempo no ar −
 idade`, no relógio da ground (ADR-0007 §6); o adaptador está em
 `ground/host/tracks_to_ndjson.py`.
+
+A missão segue os modos (ADR-0014): a ground manda `mode mission_adsb`, que
+liga o decoder — o replay começa quando o `adsbd` se conecta a ele — e os
+retratos a cada 5 s, sem `STREAM_START`; no fim, `mode downlink` traz o roster
+e as estatísticas finais, e o `obcd` volta a `PRE_TEST`.
 
 Para estudar capturas reais sem esperar o tempo real,
 `tools/analysis/downlink_emulation.py` emula o que desceria pelo rádio, com as
@@ -99,7 +105,20 @@ build/flight/adsbd -c flight/adsbd/adsbd.conf.example \
 
 `dump1090_cmd` vazio: o `adsbd` não sobe nada, só se conecta. Sem um `ttcd`
 escutando em `ipc_path`, ele grava assim mesmo e tenta a conexão a cada
-`retry_ms`.
+`retry_ms` — mas só se o decoder estiver ligado: com o padrão `decoder = mode`,
+o `adsbd` só lê o SBS em `MISSION_ADSB` (ADR-0014). Para rodar à mão sem OBC,
+acrescente `-o decoder=always`.
+
+### Por modo
+
+| Modo do OBC (repassado pelo `ttcd`) | `adsbd` |
+|---|---|
+| `MISSION_ADSB` | sobe o `dump1090` e lê o SBS; se o `dump1090` morre, tenta de novo a cada 1 s (`restart_max_ms`) |
+| qualquer outro modo conhecido | `SIGTERM` no `dump1090` (`SIGKILL` depois de 3 s) e fecha o SBS; nada é decodificado nem gravado |
+| `UNKNOWN` (OBC fora) | nada muda: uma queda do OBC no meio da missão não para a carga útil |
+
+Ligar e desligar pelo modo não conta como reinício; só as quedas entram em
+`dump1090_restarts`.
 
 ## Na Pi
 
@@ -112,6 +131,11 @@ make adsbd-enable     # sobe agora e a cada boot
 make adsbd-status     # o que o systemd diz, e o fim do log
 make adsbd-stop       # libera o SDR, por exemplo para a varredura de ganho
 ```
+
+Na bancada sem OBC, o `dump1090` só sobe com `decoder = always` em
+`/etc/gama/adsbd.conf`, ou com o `obcd` conectado ao `ttcd`
+(`make obcd-enable`, `flight/obcd/README.md`) e um
+`mode mission_adsb` na `gs_cli`.
 
 O serviço roda como o usuário `gama`, sem root, no grupo `plugdev` (o
 dispositivo USB do SDR). O acesso restrito a dispositivos USB (`DeviceAllow`)
@@ -132,12 +156,12 @@ mesma base do log do `ttcd`, para os dois se alinharem.
 | `sbs_reject` | uma linha malformada (só as 20 primeiras) |
 | `stats` | todos os contadores, a cada minuto |
 | `record_full`, `log_full` | o teto de um dos arquivos foi atingido |
+| `obc_mode`, `decoder` | o modo que o `ttcd` repassou, e o decoder ligando ou desligando por ele |
+| `dump1090_stop` | `SIGTERM` no `dump1090` porque o modo mudou |
 
 ## O que falta
 
 - **Medições na Pi (PLANO 3.4):** CPU do `dump1090` a 2,4 MS/s, varredura de
   ganho, taxa de decodificação contra um cenário conhecido.
-- **`GAMA_HK_F_DUMP1090_UP`:** o bit do HK depende de um campo novo no
-  `IPC_STAT`, o que muda um formato fixado pelos vetores — decisão à parte.
-- **Tabela ICAO → callsign para o `REQ_ROSTER`:** precisa de uma mensagem IPC
-  nova; o `adsbd` já guarda o callsign de cada aeronave.
+- **Na Pi, com o SDR:** o `dump1090` subindo e descendo com o modo, e o tempo
+  de `SET_MODE MISSION_ADSB` até a primeira mensagem decodificada.

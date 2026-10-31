@@ -328,11 +328,12 @@ nada é transmitido ainda
   | Attitude information | `roll_cdeg`, `pitch_cdeg`, `yaw_cdeg` |
   | Mission data | `adsb_msgs`, mais os frames `TM_TRACKS` e `TM_STAT` |
 
-- Falta a temperatura da bateria — ver [HLR-EPS-04](#hlr-eps-04).
-- Potência e atitude virão do OBC por `IPC_TELEMETRY`. Enquanto o cliente
-  IPC não estiver no OBC (ICD pendente, PLANO fase 4.3), esses campos não têm
-  fonte, e o `TM_HK` os reporta como desconhecidos (`INT16_MIN`), não como
-  zero.
+- A temperatura da bateria entrou na versão 2 (ADR-0013) — ver
+  [HLR-EPS-04](#hlr-eps-04).
+- Potência e atitude vêm do OBC por `IPC_TELEMETRY`. O `obcd` (ADR-0016)
+  manda tensão, corrente e temperatura da bateria a cada 1 s; a atitude espera
+  o AOCS (PLANO 2.4). O que não tem fonte vai como desconhecido (`0xFFFF` na
+  tensão, `0x8000` nos demais), não como zero.
 - O `ttcd` real já transmite `TM_HK`, `TM_STAT` e `TM_TRACKS`; verificado
   pelo teste de integração sobre o rádio UDP. Falta a bancada com RF.
 - "Data inspection" exige que a ground grave os frames brutos, não só os
@@ -404,9 +405,9 @@ nada é transmitido ainda
 - `docs/budgets/power-budget.md` não existe (PLANO fase 6).
 - Contribuição do TT&C, a medir em bancada: Pi Zero 2 W com o `dump1090`
   rodando, NESDR Nano 3, SX1278 em recepção contínua e em transmissão a
-  20 dBm.
-- Pico: transmissão a 20 dBm ao mesmo tempo que o `dump1090` em carga
-  máxima. A fração de tempo transmitindo por modo sai do `data-budget.md`:
+  14 dBm, a potência de voo (ADR-0015).
+- Pico: transmissão a 14 dBm ao mesmo tempo que o `dump1090` em carga
+  máxima; 20 dBm só se a ground comandar (`SET_TX_POWER`). A fração de tempo transmitindo por modo sai do `data-budget.md`:
   até 50% em `STREAM`, maior em `BULK`, mínima em `SAFE`.
 
 ### HLR-EPS-04
@@ -416,12 +417,15 @@ nada é transmitido ainda
 >
 > **Verification:** Test + Telemetry analysis
 
-**Dono:** EPS · **Estado:** `OUTRA EQUIPE` — **com lacuna no TT&C**
+**Dono:** EPS · **Estado:** `OUTRA EQUIPE` — lacuna do TT&C fechada em
+2026-10-24 (protocolo v2, ADR-0013)
 
 - A verificação é por análise de telemetria, então a TM precisa carregar
-  tensão, corrente **e temperatura da bateria**. O `TM_HK` tem `battery_mv` e
-  `current_ma`, mas nenhuma temperatura de bateria: só `temp_ext_ccel`
-  (externa) e `temp_soc_ccel` (SoC da Pi).
+  tensão, corrente **e temperatura da bateria**. Desde a versão 2 do
+  protocolo o `TM_HK` carrega `battery_mv`, `current_ma` e `temp_bat_ccel`
+  a cada 10 s; um sensor que o OBC não leu chega como desconhecido
+  (`0x8000`), nunca como zero. O `obcd` lê o INA219 e o DS18B20 (ADR-0016);
+  falta conferi-los na bancada contra multímetro e termômetro (OBC-7).
 - O teste térmico exige a bateria acima de 0 °C o tempo todo
   ([REG-26](#reg-26)). Sem esse campo, não há como demonstrar isso por
   telemetria **transmitida**.
@@ -429,9 +433,8 @@ nada é transmitido ainda
   `temp_bat_ccel`, e o `ttcd` registra cada um no log de bordo (evento
   `obc_telemetry`). A análise de telemetria pode usar o log de bordo mesmo
   antes de o `TM_HK` ganhar o campo.
-- Acrescentar o campo muda o formato de wire: vetores dourados,
-  `data-budget.md` e um ADR. Decidir também quantos sensores — a missão
-  anterior tinha dois (`batteryTemperature1` e `2`).
+- Um sensor só, como no CDR (OBC-7); a missão anterior tinha dois
+  (`batteryTemperature1` e `2`).
 
 ### HLR-EPS-05
 
@@ -708,6 +711,13 @@ nada é transmitido ainda
   que transmitir em cada fase.
 - O estado de enlace do `ttcd` (`IDLE`, `TX`, `STREAM`, `BULK`, `SAFE`) não é
   modo operacional. Não confundir os dois no DP.
+- Desde 2026-10-24 (ADR-0014) o TT&C segue o modo do OBC (Tabela 55 do CDR):
+  retratos e estatísticas só em `MISSION_ADSB`, roster e estatísticas finais
+  em `MISSION_DOWNLINK`, decoder só em `MISSION_ADSB`.
+- Desde 2026-10-24 os modos são do `obcd` (ADR-0016): a máquina da Figura 44
+  com cada aresta testada, eventos inválidos recusados e registrados, e toda
+  transição no log (OBC-5). Testado sem placa, inclusive na cadeia com o
+  `ttcd` e o `adsbd` reais; falta a bancada.
 
 ### HLR-SW-02
 
@@ -1442,7 +1452,7 @@ este documento ([§9](#9-como-manter-este-documento)).
 |---|---|---|---|---|
 | 1 | ~~Definir o limite de tempo de resposta a TC e a regra de quando a ground pode transmitir~~ — feito em 2026-09-19 (ADR-0007, *Proposed*) | HLR-COMM-01 | L | ADR-0007 |
 | 2 | ~~Definir a semântica de `age_ds`~~ — feito em 2026-09-19 (ADR-0007) | HLR-ADS-07, HLR-ADS-08, REG-16 | A + L | ADR-0007, ICD do enlace |
-| 3 | Acrescentar a temperatura da bateria ao `TM_HK` (já vem no `IPC_TELEMETRY` e vai para o log de bordo) | HLR-EPS-04, REG-26 | L, com a EPS | novo ADR, vetores, `data-budget.md` |
+| 3 | ~~Acrescentar a temperatura da bateria ao `TM_HK`~~ — feito em 2026-10-24 (protocolo v2, ADR-0013) | HLR-EPS-04, REG-26 | L, com a EPS | ADR-0013, vetores, `data-budget.md` |
 | 4 | ~~Corrigir a linha NDJSON (110 → ~160 B) e conciliar 89:1 × 106:1~~ — feito em 2026-09-19 | HLR-SYS-01, HLR-ADS-04 | A + L | `data-budget.md`, errata do ADR-0003, `--check` |
 | 5 | ~~Escrever os ADRs citados que não existem~~ — feito em 2026-09-19 | HLR-SYS-01, HLR-COMM-03 | L e A | `docs/adr/` |
 | 6 | Escrever o ICD do enlace e o ICD OBC↔TT&C | HLR-SW-02, HLR-COMM-03 | L | `docs/icd/` |

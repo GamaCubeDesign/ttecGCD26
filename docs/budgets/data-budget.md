@@ -53,12 +53,16 @@ and this budget must be revised.
 | Item | Size | Cadence | Air time | Mission total |
 |---|---|---|---|---|
 | Track snapshot (20 aircraft) | 2 frames, 414 B | 5 s | 2.09 s | 120 x = 251 s, 48.5 KB |
-| Housekeeping (`TM_HK`) | 32 B | 10 s | 0.247 s | 60 x = 15 s, 1.9 KB |
+| Housekeeping (`TM_HK`) | 34 B | 10 s | 0.247 s | 60 x = 15 s, 2.0 KB |
 | Statistics (`TM_STAT`) | 33 B | 30 s | 0.247 s | 20 x = 5 s, 0.6 KB |
 | Telecommand ACKs | 11 B | on demand | 0.144 s | budgeted 20 x = 3 s |
 | **Total** | | | | **274 s of 300 s** |
 
 26 s of margin, about 9% of the transmit allocation.
+
+Protocol version 2 (ADR-0013) grew the housekeeping frame from 32 to 34 B
+for the battery temperature. At SF9 both are 48 symbols, so its air time and
+this allocation are unchanged; the volume grows by 120 B over the mission.
 
 ### Why the snapshot period is 5 s and not 4.2 s
 
@@ -95,12 +99,19 @@ would take down `ttcd` and the radio with it.
 | Downlink loss | <= 5% | sequence-number gaps in the ground log |
 | Latency, reception to start of transmission (p95) | <= 5 s | bounded at 4.75 s by the 5 s period |
 | Latency, reception to receipt on the ground (p95) | <= 7 s | adds the 2.09 s snapshot air time |
+| Latency, reception to start of transmission (max) | <= 10 s | TTC-09; bounded at about 8.5 s at NOMINAL: the 5 s period, the 1 s internal snapshot, the second frame of a snapshot (1.34 s), an ACK, HK and TM_STAT due at once (0.97 s) and one ground telecommand on air (0.17 s) — CDR, TT&C latency bound |
+| Latency, reception to receipt on the ground (max) | <= 12 s | TTC-09; the maximum above plus the snapshot air time |
 | Simultaneous aircraft | 20 | peak size of the track table |
 
 ## 9. Open items
 
-- **`dump1090` CPU on the Pi Zero 2 W at 2.4 MS/s is not yet measured.** This
-  is the largest unquantified risk in the architecture. Fallback: 2.0 MS/s.
+- **`dump1090` CPU on the Pi Zero 2 W, measured on 2026-10-09:** 21.9% of one
+  core at 2.4 MS/s, the whole computer 5% busy, 283 MB free, SoC at 46 °C
+  (`docs/vv/bancada/2026-10-09/cpu.txt`). TTC-15 asks for less than half a
+  core, so the 2.0 MS/s fallback is no longer needed. That run saw 0 to 3
+  aircraft; the figure with about 20 is still to be measured, though
+  dump1090's cost is dominated by demodulating the sample stream, which does
+  not depend on the traffic.
 - Message rate per aircraft is an assumption from the ADS-B specification, not
   a measurement of the organisers' scenario. To be confirmed on site; the
   budget holds up to 6 msg/s/aircraft.

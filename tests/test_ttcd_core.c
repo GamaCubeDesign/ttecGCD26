@@ -41,6 +41,23 @@ static void ipc_from(uint8_t role, uint8_t type, const uint8_t *payload, uint8_t
     ttcd_on_ipc_frame(&C, H.now, role, frame, (size_t)n);
 }
 
+/* IPC frames the core sent, of one type: a connecting adsbd is also told
+ * the mode, so counting every frame would count that too. */
+static int count_ipc(uint8_t type)
+{
+    int n = 0;
+    for (int i = 0; i < H.n_ipc; i++) { n += H.ipc[i][1] == type; }
+    return n;
+}
+
+static int find_ipc(int from, uint8_t type)
+{
+    for (int i = from; i < H.n_ipc; i++) {
+        if (H.ipc[i][1] == type) { return i; }
+    }
+    return -1;
+}
+
 /* Sends a snapshot of `n` aircraft to the core as adsbd would: split into
  * frames of twelve, all with the same epoch, each record `age_ds` old at the
  * epoch. ICAOs are 0x100000 + i so they can be recognised on the air. */
@@ -81,7 +98,7 @@ int main(void)
     {
         boot();
         CHECK_EQ_INT(H.profile, GAMA_RATE_NOMINAL);
-        CHECK_EQ_INT(H.power, 20);
+        CHECK_EQ_INT(H.power, 14);                      /* TTC-03 */
         CHECK(step_to(&C, H.now + 1));
         CHECK_EQ_INT(H.n_tx, 1);
         CHECK_EQ_INT(tx_type(0), GAMA_FRAME_TM_HK);
@@ -106,9 +123,13 @@ int main(void)
         gama_frame_t f; gama_hk_t hk;
         gama_frame_decode(H.tx[0], H.tx_len[0], &f);
         gama_hk_decode(f.payload, f.len, &hk);
-        CHECK_EQ_INT(hk.battery_mv, 0);
-        CHECK_EQ_INT(hk.current_ma, TTCD_HK_UNKNOWN);
-        CHECK_EQ_INT(hk.roll_cdeg, TTCD_HK_UNKNOWN);
+        CHECK_EQ_INT(hk.battery_mv, GAMA_NO_DATA_U16);
+        CHECK_EQ_INT(hk.current_ma, GAMA_NO_DATA_I16);
+        CHECK_EQ_INT(hk.temp_bat_ccel, GAMA_NO_DATA_I16);
+        CHECK_EQ_INT(hk.temp_ext_ccel, GAMA_NO_DATA_I16);
+        CHECK_EQ_INT(hk.roll_cdeg, GAMA_NO_DATA_I16);
+        CHECK_EQ_INT(hk.yaw_cdeg, GAMA_NO_DATA_I16);
+        CHECK_EQ_INT(hk.adsb_msgs, GAMA_NO_DATA_U32);
         CHECK_EQ_INT(hk.obc_mode, GAMA_OBC_ST_UNKNOWN);
         CHECK_EQ_INT(hk.link_state, GAMA_LINK_IDLE);
         CHECK_EQ_INT(hk.temp_soc_ccel, 4200);
@@ -139,11 +160,15 @@ int main(void)
         gama_hk_decode(f.payload, f.len, &hk);
         CHECK_EQ_INT(hk.battery_mv, 8100);
         CHECK_EQ_INT(hk.current_ma, -300);
+        CHECK_EQ_INT(hk.temp_bat_ccel, 1200);              /* HLR-EPS-04 */
+        CHECK_EQ_INT(hk.temp_ext_ccel, 2500);
         CHECK_EQ_INT(hk.yaw_cdeg, 9000);
         CHECK_EQ_INT(hk.obc_mode, GAMA_OBC_ST_MISSION_ADSB);
         CHECK(hk.flags & GAMA_HK_F_OBC_LINKED);
-        /* Battery temperature is logged onboard even though HK lacks it. */
+        /* And it is in the onboard log, between housekeeping frames. */
         CHECK_EQ_INT(count_log("obc_telemetry"), 1);
+        /* HK's first 14 bytes are the OBC's IPC_TELEMETRY, as sent. */
+        CHECK_MEM_EQ(f.payload, p, GAMA_IPC_TELEMETRY_LEN);
 
         /* When the OBC goes away, its values stop being reported as current. */
         ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, false);
@@ -153,8 +178,278 @@ int main(void)
         while (find_tx(hk_i + 1, GAMA_FRAME_TM_HK) >= 0) { hk_i = find_tx(hk_i + 1, GAMA_FRAME_TM_HK); }
         gama_frame_decode(H.tx[hk_i], H.tx_len[hk_i], &f);
         gama_hk_decode(f.payload, f.len, &hk);
-        CHECK_EQ_INT(hk.battery_mv, 0);
+        CHECK_EQ_INT(hk.battery_mv, GAMA_NO_DATA_U16);
+        CHECK_EQ_INT(hk.temp_bat_ccel, GAMA_NO_DATA_I16);
         CHECK_EQ_INT(hk.obc_mode, GAMA_OBC_ST_UNKNOWN);
+    }
+
+    TEST_GROUP("core: a sensor the OBC could not read stays unknown in HK");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        gama_ipc_telemetry_t t = { .battery_mv = 8100, .current_ma = -300,
+                                   .temp_bat_ccel = GAMA_NO_DATA_I16, .temp_ext_ccel = 2500,
+                                   .roll_cdeg = 10, .pitch_cdeg = -20, .yaw_cdeg = 9000 };
+        uint8_t p[GAMA_IPC_TELEMETRY_LEN];
+        gama_ipc_telemetry_encode(p, sizeof(p), &t);
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_TELEMETRY, p, sizeof(p));
+        int from_hk = H.n_tx;
+        h_send_tc(&C, 1, GAMA_TC_REQ_HK, NULL, 0);
+        CHECK(step_to(&C, H.now + 3000));
+        int hk_at = find_tx(from_hk, GAMA_FRAME_TM_HK);
+        CHECK(hk_at >= 0);
+        gama_frame_t f; gama_hk_t hk;
+        gama_frame_decode(H.tx[hk_at], H.tx_len[hk_at], &f);
+        gama_hk_decode(f.payload, f.len, &hk);
+        CHECK_EQ_INT(hk.temp_bat_ccel, GAMA_NO_DATA_I16);
+        CHECK_EQ_INT(hk.battery_mv, 8100);
+    }
+
+    TEST_GROUP("core: the dump1090 bit of HK follows adsbd's IPC_STAT");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
+        gama_ipc_stat_t st = { .msgs_received = 10, .msgs_decoded = 9,
+                               .flags = GAMA_IPC_STAT_F_DUMP1090_UP };
+        uint8_t p[GAMA_IPC_STAT_LEN];
+        gama_ipc_stat_encode(p, sizeof(p), &st);
+        ipc_from(GAMA_IPC_ROLE_ADSBD, GAMA_FRAME_IPC_STAT, p, sizeof(p));
+        int from_hk = H.n_tx;
+        h_send_tc(&C, 1, GAMA_TC_REQ_HK, NULL, 0);
+        CHECK(step_to(&C, H.now + 3000));
+        int hk_at = find_tx(from_hk, GAMA_FRAME_TM_HK);
+        CHECK(hk_at >= 0);
+        gama_frame_t f; gama_hk_t hk;
+        gama_frame_decode(H.tx[hk_at], H.tx_len[hk_at], &f);
+        gama_hk_decode(f.payload, f.len, &hk);
+        CHECK(hk.flags & GAMA_HK_F_DUMP1090_UP);
+        CHECK(hk.flags & GAMA_HK_F_ADSB_LINKED);
+        CHECK_EQ_INT(hk.adsb_msgs, 9);
+
+        /* adsbd gone: its last report no longer says dump1090 is running. */
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, false);
+        from_hk = H.n_tx;
+        h_send_tc(&C, 2, GAMA_TC_REQ_HK, NULL, 0);
+        CHECK(step_to(&C, H.now + 3000));
+        hk_at = find_tx(from_hk, GAMA_FRAME_TM_HK);
+        CHECK(hk_at >= 0);
+        gama_frame_decode(H.tx[hk_at], H.tx_len[hk_at], &f);
+        gama_hk_decode(f.payload, f.len, &hk);
+        CHECK(!(hk.flags & GAMA_HK_F_DUMP1090_UP));
+    }
+
+    TEST_GROUP("core: REQ_ROSTER sends every callsign adsbd reported, in frames of 22");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
+        /* 30 aircraft in two IPC_ROSTER frames, then one renamed. */
+        for (int frame = 0; frame < 2; frame++) {
+            uint8_t p[GAMA_IPC_ROSTER_MAX * GAMA_ROSTER_WIRE_LEN];
+            int n = frame == 0 ? 20 : 10;
+            for (int i = 0; i < n; i++) {
+                gama_roster_t r = { .icao = 0x200000u + (uint32_t)(frame * 20 + i) };
+                snprintf(r.callsign, sizeof(r.callsign), "GLO%04d", frame * 20 + i);
+                gama_roster_encode(p + (size_t)i * GAMA_ROSTER_WIRE_LEN, GAMA_ROSTER_WIRE_LEN, &r);
+            }
+            ipc_from(GAMA_IPC_ROLE_ADSBD, GAMA_FRAME_IPC_ROSTER, p,
+                     (uint8_t)(n * (int)GAMA_ROSTER_WIRE_LEN));
+        }
+        gama_roster_t renamed = { .icao = 0x200003u, .callsign = "AZU4321" };
+        uint8_t one[GAMA_ROSTER_WIRE_LEN];
+        gama_roster_encode(one, sizeof(one), &renamed);
+        ipc_from(GAMA_IPC_ROLE_ADSBD, GAMA_FRAME_IPC_ROSTER, one, sizeof(one));
+        CHECK_EQ_INT(C.roster_count, 30);
+        CHECK_EQ_INT(C.n.ipc_rx_bad, 0);
+
+        int from = H.n_tx;
+        h_send_tc(&C, 1, GAMA_TC_REQ_ROSTER, NULL, 0);
+        CHECK(step_to(&C, H.now + 5000));
+        uint8_t cmd, status; uint16_t echo;
+        int ack = find_tx(from, GAMA_FRAME_TC_ACK);
+        CHECK(ack >= 0);
+        ack_of(ack, &cmd, &status, &echo);
+        CHECK_EQ_INT(status, GAMA_ACK_OK);
+
+        int r1 = find_tx(from, GAMA_FRAME_TM_ROSTER);
+        int r2 = r1 >= 0 ? find_tx(r1 + 1, GAMA_FRAME_TM_ROSTER) : -1;
+        CHECK(r1 >= 0 && r2 >= 0);
+        CHECK_EQ_INT(find_tx(r2 + 1, GAMA_FRAME_TM_ROSTER), -1);   /* two, no more */
+        gama_frame_t f;
+        gama_frame_decode(H.tx[r1], H.tx_len[r1], &f);
+        CHECK_EQ_INT(f.len, 22 * GAMA_ROSTER_WIRE_LEN);
+        gama_roster_t r;
+        gama_roster_decode(f.payload + 3 * GAMA_ROSTER_WIRE_LEN, GAMA_ROSTER_WIRE_LEN, &r);
+        CHECK_EQ_INT(r.icao, 0x200003u);
+        CHECK_STR_EQ(r.callsign, "AZU4321");
+        gama_frame_decode(H.tx[r2], H.tx_len[r2], &f);
+        CHECK_EQ_INT(f.len, 8 * GAMA_ROSTER_WIRE_LEN);
+    }
+
+    TEST_GROUP("core: REQ_ROSTER with no callsign yet sends one empty frame");
+    {
+        boot();
+        int from = H.n_tx;
+        h_send_tc(&C, 1, GAMA_TC_REQ_ROSTER, NULL, 0);
+        CHECK(step_to(&C, H.now + 3000));
+        int r1 = find_tx(from, GAMA_FRAME_TM_ROSTER);
+        CHECK(r1 >= 0);
+        CHECK_EQ_INT(H.tx_len[r1], GAMA_FRAME_OVERHEAD);
+        CHECK_EQ_INT(find_tx(r1 + 1, GAMA_FRAME_TM_ROSTER), -1);
+    }
+
+    TEST_GROUP("core: a malformed IPC_ROSTER is counted and ignored");
+    {
+        boot();
+        uint8_t p[12] = { 0 };                       /* not whole records */
+        ipc_from(GAMA_IPC_ROLE_ADSBD, GAMA_FRAME_IPC_ROSTER, p, sizeof(p));
+        CHECK_EQ_INT(C.n.ipc_rx_bad, 1);
+        CHECK_EQ_INT(C.roster_count, 0);
+    }
+
+    TEST_GROUP("core: the OBC's mode is forwarded to adsbd, and UNKNOWN when it leaves");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        int from = H.n_ipc;
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
+        /* On connecting, adsbd hears the current mode: none yet. */
+        CHECK_EQ_INT(H.n_ipc, from + 1);
+        CHECK_EQ_INT(H.ipc_role[from], GAMA_IPC_ROLE_ADSBD);
+        CHECK_EQ_INT(H.ipc[from][1], GAMA_FRAME_IPC_MODE);
+        CHECK_EQ_INT(H.ipc[from][5], GAMA_OBC_ST_UNKNOWN);
+
+        uint8_t mode = GAMA_OBC_ST_MISSION_ADSB;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        CHECK_EQ_INT(H.n_ipc, from + 2);
+        CHECK_EQ_INT(H.ipc_role[from + 1], GAMA_IPC_ROLE_ADSBD);
+        gama_frame_t f;
+        CHECK(gama_frame_decode(H.ipc[from + 1], H.ipc_len[from + 1], &f) > 0);
+        CHECK_EQ_INT(f.type, GAMA_FRAME_IPC_MODE);
+        CHECK_EQ_INT(f.len, GAMA_IPC_MODE_LEN);
+        CHECK_EQ_INT(f.payload[0], GAMA_OBC_ST_MISSION_ADSB);
+
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, false);
+        CHECK_EQ_INT(H.n_ipc, from + 3);
+        CHECK_EQ_INT(H.ipc[from + 2][5], GAMA_OBC_ST_UNKNOWN);
+    }
+
+    TEST_GROUP("core: MISSION_ADSB starts the snapshots and statistics, with no ground command");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
+        uint8_t mode = GAMA_OBC_ST_PRE_TEST;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        send_snapshot((uint32_t)H.now, 3, 5);
+        CHECK(step_to(&C, H.now + 12000));
+        CHECK_EQ_INT(find_tx(0, GAMA_FRAME_TM_TRACKS), -1);      /* PRE_TEST: none */
+
+        mode = GAMA_OBC_ST_MISSION_ADSB;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        CHECK(C.stream_on);
+        CHECK_EQ_INT(C.stream_period, 5000);                      /* TTC-07 */
+        int from = H.n_tx;
+        for (int k = 0; k < 7; k++) {                             /* 35 s */
+            send_snapshot((uint32_t)H.now, 3, 5);
+            CHECK(step_to(&C, H.now + 5000));
+        }
+        int tracks = 0, stats = 0;
+        for (int i = from; i < H.n_tx; i++) {
+            tracks += tx_type(i) == GAMA_FRAME_TM_TRACKS;
+            stats += tx_type(i) == GAMA_FRAME_TM_STAT;
+        }
+        CHECK(tracks >= 6);
+        CHECK_EQ_INT(stats, 1);                                   /* at 30 s */
+
+        /* The OBC process dies: UNKNOWN changes nothing, the payload goes on. */
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, false);
+        CHECK(C.stream_on);
+
+        /* It comes back in PRE_TEST (PLANO D5): the stream stops. */
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        mode = GAMA_OBC_ST_PRE_TEST;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        CHECK(!C.stream_on);
+        CHECK_EQ_INT(ttcd_link_mode(&C), GAMA_LINK_IDLE);
+    }
+
+    TEST_GROUP("core: STREAM_START still works as an override outside MISSION_ADSB");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        uint8_t mode = GAMA_OBC_ST_PRE_TEST;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        start_stream(1, 50);
+        CHECK(step_to(&C, H.now + 1000));
+        CHECK(C.stream_on);
+        CHECK_EQ_INT(C.stream_period, 5000);
+        /* The same mode again is no transition: the override stands. */
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        CHECK(C.stream_on);
+    }
+
+    TEST_GROUP("core: MISSION_DOWNLINK sends final statistics and roster, then EV_TASK_DONE");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
+        uint8_t mode = GAMA_OBC_ST_MISSION_ADSB;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        uint8_t p[20 * GAMA_ROSTER_WIRE_LEN];
+        for (int i = 0; i < 20; i++) {
+            gama_roster_t r = { .icao = 0x400000u + (uint32_t)i };
+            snprintf(r.callsign, sizeof(r.callsign), "TAM%04d", i);
+            gama_roster_encode(p + (size_t)i * GAMA_ROSTER_WIRE_LEN, GAMA_ROSTER_WIRE_LEN, &r);
+        }
+        ipc_from(GAMA_IPC_ROLE_ADSBD, GAMA_FRAME_IPC_ROSTER, p, sizeof(p));
+        CHECK(step_to(&C, H.now + 6000));
+
+        int from_tx = H.n_tx, from_ipc = H.n_ipc;
+        mode = GAMA_OBC_ST_MISSION_DOWNLINK;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        CHECK(!C.stream_on);
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TC_EVENT), 0);     /* not before the frames */
+        CHECK(step_to(&C, H.now + 5000));
+
+        int st = find_tx(from_tx, GAMA_FRAME_TM_STAT);
+        int ro = find_tx(from_tx, GAMA_FRAME_TM_ROSTER);
+        CHECK(st >= 0 && ro > st);                               /* statistics, then roster */
+        CHECK_EQ_INT(H.tx_len[ro], GAMA_FRAME_OVERHEAD + 20 * GAMA_ROSTER_WIRE_LEN);
+        CHECK_EQ_INT(find_tx(from_tx, GAMA_FRAME_TM_TRACKS), -1);
+        /* 260 B in two frames, as the CDR's Table 55 says. */
+        CHECK_EQ_INT(H.tx_len[st] + H.tx_len[ro], 260);
+
+        int ev = find_ipc(from_ipc, GAMA_FRAME_IPC_TC_EVENT);
+        CHECK(ev >= 0);
+        CHECK_EQ_INT(H.ipc_role[ev], GAMA_IPC_ROLE_OBC);
+        CHECK_EQ_INT(H.ipc[ev][5], GAMA_OBC_EV_TASK_DONE);
+        CHECK(H.tx_done_at <= H.now);                            /* the roster had left */
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TC_EVENT), 1);     /* once */
+        CHECK_EQ_INT(count_log("downlink_done"), 1);
+    }
+
+    TEST_GROUP("core: leaving MISSION_DOWNLINK early owes the OBC no EV_TASK_DONE");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        uint8_t mode = GAMA_OBC_ST_MISSION_DOWNLINK;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        mode = GAMA_OBC_ST_PRE_TEST;                     /* at once, before any frame */
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        CHECK(step_to(&C, H.now + 5000));
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TC_EVENT), 0);
+        CHECK_EQ_INT(count_log("downlink_abandoned"), 1);
+    }
+
+    TEST_GROUP("core: with adsbd away, the mode is not sent anywhere");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        int from = H.n_ipc;
+        uint8_t mode = GAMA_OBC_ST_PRE_TEST;
+        ipc_from(GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_MODE, &mode, 1);
+        CHECK_EQ_INT(H.n_ipc, from);
+        CHECK_EQ_INT(C.n.ipc_tx_drops, 0);
     }
 
     TEST_GROUP("core: a telecommand is acknowledged ahead of anything due");
@@ -204,7 +499,7 @@ int main(void)
         CHECK(step_to(&C, H.now + 1000));
         ack_of(find_tx(from, GAMA_FRAME_TC_ACK), &cmd, &st, &echo);
         CHECK_EQ_INT(st, GAMA_ACK_BAD_ARGS);
-        CHECK_EQ_INT(H.power, 20);
+        CHECK_EQ_INT(H.power, 14);                      /* TTC-03 */
 
         uint8_t magic[2] = { 0x12, 0x34 };
         from = H.n_tx;
@@ -569,9 +864,11 @@ int main(void)
         /* 7 + 9 = 16-byte frame at NOMINAL: 165 ms on air. */
         CHECK_EQ_INT(C.time_anchor_mono, H.now - 165);
         CHECK(C.time_synced);
-        CHECK_EQ_INT(H.n_ipc, 2);                        /* OBC and adsbd */
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TIME_SET), 2);   /* OBC and adsbd */
+        int at = find_ipc(0, GAMA_FRAME_IPC_TIME_SET);
+        CHECK(at >= 0);
         gama_frame_t f; gama_ipc_time_t fwd;
-        gama_frame_decode(H.ipc[0], H.ipc_len[0], &f);
+        gama_frame_decode(H.ipc[at], H.ipc_len[at], &f);
         gama_ipc_time_decode(f.payload, f.len, &fwd);
         /* Forwarded as the time now: 165 ms after the ground's stamp. */
         CHECK_EQ_INT(fwd.unix_s, 1789900000u);
@@ -599,27 +896,31 @@ int main(void)
         /* adsbd restarted, say: without this it would stamp its record with
          * the unsynchronised system clock until the next SET_TIME. */
         ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
-        CHECK_EQ_INT(H.n_ipc, 1);
-        CHECK_EQ_INT(H.ipc_role[0], GAMA_IPC_ROLE_ADSBD);
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TIME_SET), 1);
+        int at = find_ipc(0, GAMA_FRAME_IPC_TIME_SET);
+        CHECK(at >= 0);
+        CHECK_EQ_INT(H.ipc_role[at], GAMA_IPC_ROLE_ADSBD);
         gama_frame_t f; gama_ipc_time_t now_t;
-        gama_frame_decode(H.ipc[0], H.ipc_len[0], &f);
+        gama_frame_decode(H.ipc[at], H.ipc_len[at], &f);
         CHECK_EQ_INT(f.type, GAMA_FRAME_IPC_TIME_SET);
         gama_ipc_time_decode(f.payload, f.len, &now_t);
         /* 165 ms on air, then 5 s: the time now, not the time of the anchor. */
         CHECK_EQ_INT(now_t.unix_s, 1789900005u);
         CHECK_EQ_INT(now_t.nsec, 415000000u);
         ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
-        CHECK_EQ_INT(H.n_ipc, 2);
-        CHECK_EQ_INT(H.ipc_role[1], GAMA_IPC_ROLE_OBC);
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TIME_SET), 2);
+        at = find_ipc(at + 1, GAMA_FRAME_IPC_TIME_SET);
+        CHECK(at >= 0);
+        CHECK_EQ_INT(H.ipc_role[at], GAMA_IPC_ROLE_OBC);
         ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_TOOL, true);    /* tools are not */
-        CHECK_EQ_INT(H.n_ipc, 2);
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TIME_SET), 2);
     }
 
     TEST_GROUP("core: before any SET_TIME a connecting peer is told nothing");
     {
         boot();
         ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
-        CHECK_EQ_INT(H.n_ipc, 0);
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TIME_SET), 0);
     }
 
     TEST_GROUP("core: SHUTDOWN exits only after its acknowledgement has left");

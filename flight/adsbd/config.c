@@ -31,7 +31,7 @@ void adsbd_config_default(adsbd_config_t *c)
     c->log_max_bytes = 64u * 1024u * 1024u;
     c->retry_ms = 1000;
     c->restart_min_ms = 1000;
-    c->restart_max_ms = 30000;
+    c->restart_max_ms = 1000;      /* PLANO 1.2: try the SDR every second */
     adsbd_params_default(&c->p);
 }
 
@@ -102,6 +102,11 @@ int adsbd_config_set(adsbd_config_t *c, const char *key, const char *value,
     if (strcmp(key, "ndjson_path") == 0)  { return set_str(c->ndjson_path, sizeof(c->ndjson_path), key, value, err, errlen); }
     if (strcmp(key, "log_path") == 0)     { return set_str(c->log_path, sizeof(c->log_path), key, value, err, errlen); }
 
+    if (strcmp(key, "decoder") == 0) {
+        if (strcmp(value, "mode") == 0)   { c->p.decoder_always = false; return 0; }
+        if (strcmp(value, "always") == 0) { c->p.decoder_always = true;  return 0; }
+        return fail(err, errlen, "decoder must be mode or always, got %s%s", value, "");
+    }
     if (strcmp(key, "sbs_port") == 0) {
         uint64_t t;
         if (set_u(&t, 1, 65535, key, value, err, errlen) != 0) {

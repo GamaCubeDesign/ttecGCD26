@@ -39,7 +39,7 @@ Three reasons, in order of importance to the project:
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions | Accepted | HLR-SYS-01, HLR-COST-02 |
 | [0002](0002-flight-software-language.md) | C11 for flight and ground software | Accepted | HLR-SW-01, HLR-SYS-01 |
 | [0003](0003-processing-split-onboard-vs-ground.md) | Hybrid processing split at the track-state boundary | Accepted | HLR-ADS-04, HLR-ADS-05, HLR-ADS-08 |
-| [0004](0004-lora-phy-configuration.md) | LoRa PHY configuration and rate profiles | Accepted | HLR-COMM-03, HLR-ADS-08 |
+| [0004](0004-lora-phy-configuration.md) | LoRa PHY configuration and rate profiles | Accepted; frequency and power superseded by 0015 | HLR-COMM-03, HLR-ADS-08 |
 | [0005](0005-process-architecture-and-fault-isolation.md) | Separate processes for telecom and payload, with ttcd as the hub | Accepted | HLR-GEN-03, HLR-COMM-01, HLR-ADS-05 |
 | [0006](0006-obc-ttec-ipc-transport.md) | AF_UNIX SOCK_SEQPACKET for inter-process communication | Accepted | HLR-COMM-01, HLR-COMM-02, HLR-GEN-03 |
 | [0007](0007-ota-frame-format-and-arq.md) | Link protocol — framing, medium access, acknowledgement and rate change | **Proposed** | HLR-COMM-01, HLR-COMM-03, HLR-ADS-07, HLR-ADS-08 |
@@ -47,3 +47,7 @@ Three reasons, in order of importance to the project:
 | [0009](0009-time-reference-and-synchronisation.md) | Monotonic clocks everywhere, one wall-clock anchor from the ground | Accepted | HLR-ADS-07, HLR-ADS-08, HLR-SW-02 |
 | [0011](0011-documentation-language.md) | English for Design Package documents, Portuguese for working notes | Accepted | REG-04, HLR-SYS-01 |
 | [0012](0012-hardware-access-through-kernel-interfaces.md) | Radio hardware through the kernel's spidev and GPIO character device | **Proposed** | HLR-COMM-01, HLR-COMM-03 |
+| [0013](0013-protocol-version-2.md) | Protocol version 2 — battery temperature, "no data" values, roster and mode over IPC | **Proposed** | HLR-COMM-02, HLR-EPS-04, HLR-ADS-05, HLR-ADS-08, HLR-GEN-03 |
+| [0014](0014-ttc-driven-by-obc-mode.md) | The OBC's mission mode drives ttcd's telemetry and adsbd's decoder | **Proposed** | HLR-GEN-03, HLR-ADS-05, HLR-ADS-08, HLR-SW-01 |
+| [0015](0015-carrier-frequency-and-flight-power.md) | 433.92 MHz carrier and 14 dBm flight power | **Proposed** | HLR-COMM-03, HLR-ADS-01 |
+| [0016](0016-obc-software-as-obcd.md) | The OBC software is obcd, a third process built like ttcd and adsbd | **Proposed** | HLR-SW-01, HLR-GEN-02, HLR-GEN-03, HLR-COMM-02, HLR-EPS-04 |

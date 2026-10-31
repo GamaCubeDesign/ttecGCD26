@@ -323,7 +323,10 @@ principais:
 | `rate`, `rate_commit` | troca de perfil (comandada, revertida, por perda de contato) |
 | `contact_lost` | queda para SAFE |
 | `lbt_defer` | transmissão adiada porque havia recepção em curso |
-| `obc_telemetry`, `obc_mode` | o que o OBC reportou (inclui temperatura da bateria) |
+| `obc_telemetry`, `obc_mode` | o que o OBC reportou (inclui temperatura da bateria, que também vai no `TM_HK` desde a versão 2) |
+| `roster_full` | a tabela de callsigns (128) encheu; os seguintes são contados em `roster_full` |
+| `stream` | streaming ligado ou desligado; `by` diz se foi o modo do OBC ou um telecomando (ADR-0014) |
+| `downlink_start`, `downlink_done`, `downlink_abandoned` | `MISSION_DOWNLINK`: estatísticas e roster na fila; os dois saíram e o `EV_TASK_DONE` foi (ou não) ao OBC; o modo mudou antes |
 | `ipc_peer`, `ipc_drop_peer` | clientes IPC conectando e saindo |
 | `time_anchor` | `SET_TIME`: par relógio monotônico ↔ UTC |
 | `shutdown`, `stop`, `log_full` | fim |

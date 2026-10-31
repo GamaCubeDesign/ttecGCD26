@@ -15,7 +15,7 @@ int main(void)
         CHECK_STR_EQ(c.radio, "sx1278");
         CHECK_STR_EQ(c.ipc_path, "/run/gama/ttec.sock");
         CHECK_EQ_INT(c.p.initial_profile, GAMA_RATE_NOMINAL);
-        CHECK_EQ_INT(c.p.tx_power_dbm, 20);
+        CHECK_EQ_INT(c.p.tx_power_dbm, 14);               /* TTC-03 */
         CHECK_EQ_INT(c.p.hk_period, 10000);
         CHECK_EQ_INT(c.p.contact_timeout, 120000);
         CHECK_EQ_INT(c.p.rate_revert, 20000);
@@ -72,7 +72,7 @@ int main(void)
         longp[sizeof(longp) - 1] = '\0';
         CHECK_EQ_INT(ttcd_config_set(&c, "ipc_path", longp, err, sizeof(err)), -1);
         CHECK_EQ_INT(ttcd_config_parse(&c, "no equals sign here\n", err, sizeof(err)), -1);
-        CHECK_EQ_INT(c.p.tx_power_dbm, 20);               /* nothing applied */
+        CHECK_EQ_INT(c.p.tx_power_dbm, 14);               /* nothing applied */
     }
 
     TEST_GROUP("config: a command-line override wins over the file");

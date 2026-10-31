@@ -111,38 +111,42 @@ vezes. Decisões 2, 3 e 4 de 05/10.
 
 ### 1.1 Troca de versão do protocolo (`GAMA_FRAME_VERSION` 1 → 2)
 
-- [ ] Temperatura da bateria no `TM_HK` (25 → 27 B) (HLR-EPS-04, TTC-06,
+- [x] Temperatura da bateria no `TM_HK` (25 → 27 B) (HLR-EPS-04, TTC-06,
       OBC-7) — revisar `data-budget.md` (+120 B em 10 min)
-- [ ] Valor reservado de "sem dado" nos campos do `IPC_TELEMETRY` e do `TM_HK`
+- [x] Valor reservado de "sem dado" nos campos do `IPC_TELEMETRY` e do `TM_HK`
       (D6)
-- [ ] Indicador de `dump1090` vivo no `IPC_STAT`, que liga o bit
-      `GAMA_HK_F_DUMP1090_UP` (hoje nunca ligado)
-- [ ] Mensagem IPC `adsbd` → `ttcd` com a tabela ICAO → callsign, que destrava
-      o `REQ_ROSTER` (hoje `FAILED`)
-- [ ] Mensagem IPC `ttcd` → `adsbd` com o modo do OBC
-- [ ] `make vectors`, diff revisado byte a byte; ADR novo da troca de versão
+- [x] Indicador de `dump1090` vivo no `IPC_STAT`, que liga o bit
+      `GAMA_HK_F_DUMP1090_UP` (era nunca ligado)
+- [x] Mensagem IPC `adsbd` → `ttcd` com a tabela ICAO → callsign, que destrava
+      o `REQ_ROSTER` (era `FAILED`)
+- [x] Mensagem IPC `ttcd` → `adsbd` com o modo do OBC
+- [x] `make vectors`, diff revisado byte a byte; ADR novo da troca de versão
+      — ADR-0013, em 24/10; falta a bancada com os dois RA-02
 
 ### 1.2 O modo do OBC dirige o `ttcd` e o `adsbd` (Tabela 55)
 
-- [ ] `ttcd` repassa ao `adsbd` cada `IPC_MODE` do OBC; o `adsbd` só roda o
+- [x] `ttcd` repassa ao `adsbd` cada `IPC_MODE` do OBC; o `adsbd` só roda o
       `dump1090` em `MISSION_ADSB` (tentando a cada 1 s até abrir o SDR)
-- [ ] Retratos a cada 5 s e estatísticas a cada 30 s começam e param com o
+- [x] Retratos a cada 5 s e estatísticas a cada 30 s começam e param com o
       modo; `STREAM_START`/`STREAM_STOP` ficam como comando manual (TTC-07,
       GEN-03.3)
-- [ ] `MISSION_DOWNLINK`: o `dump1090` para, o `ttcd` manda o roster e as
+- [x] `MISSION_DOWNLINK`: o `dump1090` para, o `ttcd` manda o roster e as
       estatísticas finais (260 B, 1,4 s no ar) e então `EV_TASK_DONE` ao OBC
       (D2)
-- [ ] Sem OBC conectado, o HK reporta o modo como desconhecido e o enlace segue
-- [ ] ADR novo (TT&C dirigido pelo modo); testes de integração atualizados
+- [x] Sem OBC conectado, o HK reporta o modo como desconhecido e o enlace segue
+- [x] ADR novo (TT&C dirigido pelo modo); testes de integração atualizados
+      — ADR-0014, em 24/10; `UNKNOWN` mantém o modo anterior; até o `obcd`,
+      `tools/obc_standin` faz o papel do OBC
 
 ### 1.3 Frequência e potência do CDR (TTC-01, TTC-03)
 
-- [ ] 433,92 MHz em `common/gama_lora.h` (hoje 433,000 MHz), no `test_sx1278`
+- [x] 433,92 MHz em `common/gama_lora.h` (era 433,000 MHz), no `test_sx1278`
       e no `lora_budget.py`
-- [ ] 14 dBm de voo, 2,15 dBi e 2,3 dB de perdas no `lora_budget.py`, no
-      `link-budget.md` e no `ttcd.conf.example` (hoje 20 dBm)
-- [ ] ADR que substitui a frequência e a potência do ADR-0004
-- [ ] `data-budget.md` §8 com a latência máxima de 10 s (TTC-09); §9 com a CPU
+- [x] 14 dBm de voo, 2,15 dBi e 2,3 dB de perdas no `lora_budget.py`, no
+      `link-budget.md` e no `ttcd.conf.example` (era 20 dBm)
+- [x] ADR que substitui a frequência e a potência do ADR-0004 — ADR-0015,
+      em 24/10; em 433,000 MHz o canal saía 12,5 kHz abaixo de 433,05
+- [x] `data-budget.md` §8 com a latência máxima de 10 s (TTC-09); §9 com a CPU
       medida (21,9%) e sem o recuo de 2,0 MS/s
 
 ---
@@ -158,41 +162,43 @@ que derruba o OBC quando falha e o formato de log em português (D7).
 
 ### 2.1 Núcleo puro (ADR-0005: sem chamadas de sistema)
 
-- [ ] Máquina de estados da Figura 44 com `PRE_TEST` como centro (D1);
+- [x] Máquina de estados da Figura 44 com `PRE_TEST` como centro (D1);
       `EV_TC_*` vindos do `SET_MODE`; o que não vale no modo atual é recusado
       e registrado
-- [ ] Fim de tarefa por modo (D2); janela da missão: `EV_ADSB_TIMEOUT` 600 s
+- [x] Fim de tarefa por modo (D2); janela da missão: `EV_ADSB_TIMEOUT` 600 s
       depois de entrar em `MISSION_ADSB`, ou antes por `EV_TC_DOWNLINK`
       (OBC-6)
-- [ ] Burn-wire na entrada de `BASIC_INTERMEDIATE` (D3), seguido de
+- [x] Burn-wire na entrada de `BASIC_INTERMEDIATE` (D3), seguido de
       `EV_TASK_DONE`
-- [ ] Termostato com histerese 10 → 12 °C em todos os modos, sensor em falha
+- [x] Termostato com histerese 10 → 12 °C em todos os modos, sensor em falha
       → desligado (D4)
-- [ ] Boot e reinício em `PRE_TEST` (D5)
-- [ ] Toda transição no log, com tempo monotônico e âncora (OBC-5, OBC-9)
-- [ ] Testes do núcleo em tempo virtual, cobrindo cada aresta da Figura 44
+- [x] Boot e reinício em `PRE_TEST` (D5)
+- [x] Toda transição no log, com tempo monotônico e âncora (OBC-5, OBC-9)
+- [x] Testes do núcleo em tempo virtual, cobrindo cada aresta da Figura 44
 
 ### 2.2 Casca: epoll, como o `ttcd`
 
-- [ ] `timerfd` de 1 s; cliente IPC do `ttcd` (`HELLO`, `IPC_MODE`,
+- [x] `timerfd` de 1 s; cliente IPC do `ttcd` (`HELLO`, `IPC_MODE`,
       `IPC_TELEMETRY` a cada 1 s; recebe `IPC_TC_EVENT` e `IPC_TIME_SET`),
       reconectando se o `ttcd` cair
-- [ ] Log em JSON por linha (D7); configuração por arquivo + `-o`; unidade
+- [x] Log em JSON por linha (D7); configuração por arquivo + `-o`; unidade
       systemd sem root, `Restart=always`, watchdog (D8, OBC-1)
-- [ ] Teste de integração com o `ttcd` e o `adsbd` reais e o rádio UDP: o
+- [~] Teste de integração com o `ttcd` e o `adsbd` reais e o rádio UDP: o
       `SET_MODE` da ground vira transição no log do OBC dentro do limite + 1 s
       (OBC-3, COMM-01.4), em todos os modos — substitui o cliente substituto
-      dos testes atuais
+      dos testes atuais — 24/10: feito para `MISSION_ADSB` → downlink →
+      `PRE_TEST` (`test_adsb_chain`); falta medir o limite em todos os modos
 
 ### 2.3 Drivers (interfaces do kernel), testados com simulação
 
-- [ ] INA219 por `i2c-dev`: tensão e corrente (OBC-7). Mede o consumo do
+- [x] INA219 por `i2c-dev`: tensão e corrente (OBC-7). Mede o consumo do
       satélite, não a carga da bateria (A9)
-- [ ] DS18B20 pelo 1-Wire do kernel (`w1_therm`) numa thread própria (D9); em
+- [x] DS18B20 pelo 1-Wire do kernel (`w1_therm`) numa thread própria (D9); em
       teste, um arquivo falso no lugar do `w1_slave`
-- [ ] Burn-wire (GPIO22) e aquecedores (GPIO23) por GPIO chardev; em teste, o
-      `gpio-sim` do kernel do PC
-- [ ] Pinos só no arquivo de configuração: os da placa nova do OBC entram
+- [x] Burn-wire (GPIO22) e aquecedores (GPIO23) por GPIO chardev; em teste, o
+      `gpio-sim` do kernel do PC — 24/10: testado com saídas falsas no núcleo;
+      o `gpio-sim` precisa de root e fica para a Pi
+- [x] Pinos só no arquivo de configuração: os da placa nova do OBC entram
       quando ela existir
 
 ### 2.4 Contrato I²C com o AOCS
@@ -215,9 +221,10 @@ que derruba o OBC quando falha e o formato de log em português (D7).
 
 ### 2.5 Documentos
 
-- [ ] ADR do OBC: processo próprio no repositório, núcleo puro + casca epoll,
+- [x] ADR do OBC: processo próprio no repositório, núcleo puro + casca epoll,
       a thread do 1-Wire, o I²C com o AOCS, o que foi descartado do `../obc`
-- [ ] `AGENTS.md`: o OBC deixa de ser "outro repositório, não editar"
+      — ADR-0016, em 24/10; o I²C com o AOCS entra com o 2.4
+- [x] `AGENTS.md`: o OBC deixa de ser "outro repositório, não editar"
 - [ ] `docs/icd/obc-ttec-icd.md` — o CDR cita o ICD; agora documenta a
       interface entre dois processos nossos (corta se apertar)
 
@@ -334,7 +341,7 @@ Na ordem da Tabela 67 do CDR: primeiro o que pode mudar uma decisão.
 
 | # | Questão | Bloqueia |
 |---|---|---|
-| Q1 | Quem escreve o firmware do ESP32 do AOCS — o contrato I²C (2.4) tem de ser combinado com essa pessoa | 2.4, 6 |
+| Q1 | ~~Quem escreve o firmware do ESP32 do AOCS~~ — em 24/10: está sendo escrito e entra no repositório quando terminar; o contrato I²C (2.4) é combinado com quem o escreve | 2.4, 6 |
 | Q2 | Resposta da equipe da PCB: INA219 no I²C0 (proposta de 24/10); a revisão cobre A1, A2, A3, A5, A6 e A7; data da placa nova | 2.4, 5 |
 | Q3 | Placa do mecanismo (burn-wire): esquemático e corrente real; o 5 s de D3 pode mudar | 5 |
 | Q4 | Organização: ordem das provas; como avaliam a tensão e a corrente de recarga (REG-09) — o INA219 não vê a corrente de carga | 6 |

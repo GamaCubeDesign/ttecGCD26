@@ -56,4 +56,11 @@ uint64_t tm_next_due(const ttcd_core_t *c);
 void tm_on_profile_change(ttcd_core_t *c, uint64_t now, uint8_t from);
 void tm_on_tracks(ttcd_core_t *c, uint64_t now, const gama_frame_t *f);
 
+/* Starts the snapshot stream at period_ms; `by` names who asked, for the log. */
+void tm_stream_start(ttcd_core_t *c, uint64_t now, uint32_t period_ms, const char *by);
+void tm_stream_stop(ttcd_core_t *c, uint64_t now, const char *by);
+
+/* The OBC reported a mode (IPC_MODE). Telemetry follows it (CDR Table 55). */
+void tm_on_mode(ttcd_core_t *c, uint64_t now, uint8_t mode);
+
 #endif /* TTCD_CORE_INTERNAL_H */
