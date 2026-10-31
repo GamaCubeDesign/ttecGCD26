@@ -238,21 +238,27 @@ crítico. A Pi com um RA-02 e a `gs_cli` continua como reserva.
 
 ### 3.1 `ground/esp32/` — ESP-IDF (§11.3.8 do CDR)
 
-- [ ] Projeto IDF puxando `common/` como componente: traz o lado da ground do
-      protocolo (`gama_gs_link`), já testado na simulação
-- [ ] Barramento do `sx1278_bus_t` com o SPI e o GPIO do ESP-IDF; o driver
+- [x] Projeto IDF puxando `common/` como componente: traz o lado da ground do
+      protocolo (`gama_gs_link`), já testado na simulação — 31/10, compilado
+      no Docker (`make esp32-build`), ADR-0018
+- [x] Barramento do `sx1278_bus_t` com o SPI e o GPIO do ESP-IDF; o driver
       `flight/radio/sx1278.c` é o mesmo
-- [ ] Telecomandos recebidos pela serial; um JSON por evento de volta, no
+- [x] Telecomandos recebidos pela serial; um JSON por evento de volta, no
       formato da `gs_cli` (frame bruto, RSSI, SNR, hora de chegada; ACK, troca
-      de perfil, perda)
-- [ ] `tests/test_vectors.c` compilado para o ESP32: mesmos bytes nas duas
-      pontas (TTC-16)
+      de perfil, perda) — o console da `gs_cli` foi para `ground/console/` e
+      roda igual nas duas
+- [~] `tests/test_vectors.c` compilado para o ESP32: mesmos bytes nas duas
+      pontas (TTC-16) — 31/10: as 11 suítes portáveis passam no QEMU
+      (`make esp32-tests-qemu`); falta na placa (`make esp32-tests-flash`)
 - [ ] Os seis passos da bancada com a ESP32 no lugar da `gs_cli`
+      (`make bench GS=esp32 ESP32_PORT=...`)
 
 ### 3.2 `ground/host/` — CLI do operador
 
-- [ ] Programa em Python: envia telecomandos (`SET_MODE` de cada prova),
-      grava o log de eventos, alimenta o adaptador `tracks_to_ndjson.py`
+- [x] Programa em Python: envia telecomandos (`SET_MODE` de cada prova),
+      grava o log de eventos, alimenta o adaptador `tracks_to_ndjson.py` —
+      `ground/host/gs_serial.py`, a ponte serial da ESP32, com os comandos da
+      `gs_cli`
 - [ ] Painel do estimador ao vivo (corta se apertar)
 
 ### 3.3 `docs/icd/ota-protocol-icd.md`

@@ -286,7 +286,7 @@ rádios.
 ### Explorar à mão
 
 Para o que está fora dos roteiros — `hk`, `stat`, `stream 5`, `mode aocs`,
-`power 10`; a lista completa está no cabeçalho de `tools/gs_cli/gs_cli.c`:
+`power 10`; a lista completa está em `ground/console/gs_console.h`:
 
 ```bash
 make bench-ttcd       # terminal 1: o satélite; log na tela e em manual-ttcd.jsonl; Ctrl-C para
@@ -298,6 +298,12 @@ Os parâmetros valem para todos os alvos da bancada: `POWER=10`,
 `LBT=preamble`, `TTCD_OPTS='-o hk_period_ms=1000'` (sobrescritas extras do
 `ttcd`), `GS_OPTS=...` (opções extras do `gs_cli`). `make help` mostra os
 valores em uso.
+
+**Com a ESP32 como ground** (ADR-0018, `ground/esp32/README.md`): a ESP32 no
+USB da Pi, no lugar do rádio B, e `GS=esp32 ESP32_PORT=/dev/ttyUSB0` em
+qualquer alvo — `make bench GS=esp32 ESP32_PORT=/dev/ttyUSB0` roda os seis
+passos com os mesmos roteiros, e `make bench-gs GS=esp32 ...` é a ground à
+mão.
 
 ### Registrar
 

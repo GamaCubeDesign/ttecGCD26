@@ -25,16 +25,17 @@ proposing anything that moves bytes over the radio, check it against
 | `flight/adsbd/` | Payload daemon: supervises dump1090-fa, parses SBS, track table, NDJSON onboard record, snapshots to `ttcd`; pure core (`sbs.c`, `tracks.c`, `ndjson.c`, `core.c`) + epoll shell (`main.c`) | Pi |
 | `flight/libipc/` | AF_UNIX SOCK_SEQPACKET transport | Pi |
 | `flight/obcd/` | OBC daemon: mission modes (Figure 44), INA219 and DS18B20 in their own threads, burn-wire, heaters; pure core (`core.c`) + epoll shell (`main.c`) (ADR-0016). I²C link to the AOCS ESP32 **not yet (PLANO 2.4)** | Pi |
-| `ground/esp32/` | Ground station firmware; sends the remote commands of the on-site tests — **not started (PLANO etapa 3)** | ESP32 / ESP-IDF |
-| `ground/host/` | Downlink → estimator adapter (`tracks_to_ndjson.py`); origin/destination estimator and dashboard (`ground-aeronaves/`, a teammate's project, merged 2026-09-28); airport DB importer. Operator CLI not started | PC, Python |
+| `ground/console/` | The ground station's console: the link's ground side, the text commands and the JSON lines; portable, shared by `gs_cli` and the ESP32 (ADR-0018) | Pi / PC / ESP32 |
+| `ground/esp32/` | Ground station firmware (ESP-IDF, built in Docker by `tools/esp32/idf.sh`); sends the remote commands of the on-site tests (ADR-0018). `ground/esp32-tests/` runs the portable suites on the ESP32 or in QEMU | ESP32 |
+| `ground/host/` | Serial bridge to the ESP32 ground, also the operator CLI (`gs_serial.py`); downlink → estimator adapter (`tracks_to_ndjson.py`); origin/destination estimator and dashboard (`ground-aeronaves/`, a teammate's project, merged 2026-09-28); airport DB importer | PC, Python |
 | `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check, downlink emulation over full captures (`downlink_emulation.py`) | PC |
-| `tools/gs_cli/` | Bench ground station: the real `gs_link` on a second RA-02 or the UDP radio | Pi / PC |
+| `tools/gs_cli/` | Bench ground station: the ground console on a second RA-02 or the UDP radio | Pi / PC |
 | `tools/bench/` | Bench procedure: one `gs_cli` command script per step, and `run_step.sh`, which starts `ttcd` afresh for each; `adsb_chain.sh` | Pi / PC |
 | `tools/sbs_replay/` | Plays dump1090: serves SBS lines from a capture or a simulation, so `adsbd` runs without an SDR | Pi / PC |
 | `Makefile` | Entry point for build, tests, bench, Pi install and PC→Pi runs (`make help`) | Pi / PC |
 | `docs/adr/` | Architecture Decision Records | — |
 | `docs/budgets/` | Data and link budgets (figures from `lora_budget.py`) | — |
-| `docs/icd/` | Interface contracts (OBC↔TT&C, over-the-air, OBC↔AOCS I²C) — **empty, not written yet** | — |
+| `docs/icd/` | Interface contracts: OBC↔AOCS I²C (`obc-aocs-i2c.md`, draft for the AOCS team); OBC↔TT&C and over-the-air not written yet | — |
 | `docs/cdr/` | The delivered CDR (Design Package, v4, 2026-10-11): what the project promised. Its LaTeX source is a local, gitignored copy | — |
 | `docs/relatorios/` | Dated status reports for the team, in Portuguese (HTML, self-contained) | — |
 | `docs/vv/bancada/` | Hardware bench evidence: progress per roadmap stage and the Pi's setup (`README.md`), one folder per day with `notas.md` and the logs `make pi-fetch` brings back | — |
