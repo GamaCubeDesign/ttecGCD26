@@ -199,7 +199,9 @@ que derruba o OBC quando falha e o formato de log em português (D7).
       `gpio-sim` do kernel do PC — 24/10: testado com saídas falsas no núcleo;
       o `gpio-sim` precisa de root e fica para a Pi
 - [x] Pinos só no arquivo de configuração: os da placa nova do OBC entram
-      quando ela existir
+      quando ela existir — 31/10: `flight/conf/obc-v2/` (`ttcd.conf`,
+      `obcd.conf`, as linhas do `config.txt`), conferidos contra o netlist
+      e os pads; o DS18B20 achado sozinho (`w1_path = auto`)
 
 ### 2.4 Contrato I²C com o AOCS
 
@@ -208,12 +210,18 @@ que derruba o OBC quando falha e o formato de log em português (D7).
       seguir — 31/10: rascunho v1 em `docs/icd/obc-aocs-i2c.md` (frames fixos,
       endereço 0x2A, empréstimo contado do START), codec em
       `common/gama_aocs.{h,c}`, ADR-0017; **levar à equipe do AOCS**
-- [ ] Lado do OBC, com um ESP32 simulado; só em `ADVANCED_AOCS`
-- [ ] Esquema de posse do barramento compartilhado (pinos 10/12): fora do
+- [x] Lado do OBC, com um ESP32 simulado; só em `ADVANCED_AOCS` — 31/10:
+      `flight/obcd/i2c_sched.c`, puro, testado contra um ESP32 e um INA219
+      simulados; uma thread dona do `/dev/i2c-1`; o fim do empréstimo guardado
+      no cartão, para um `obcd` reiniciado ou uma Pi reiniciada não invadirem
+      o barramento
+- [x] Esquema de posse do barramento compartilhado (pinos 10/12): fora do
       `ADVANCED_AOCS`, o ESP32 é só escravo e a Pi é a única mestre; ao entrar
       no modo, a Pi manda o comando e larga o barramento, o ESP32 vira mestre
       do BMI088 até terminar e volta a escravo; a Pi lê o resultado depois de
       um prazo máximo, com checksum, e gera `EV_TASK_DONE` mesmo sem resposta
+      — 31/10: empréstimo por tempo, contado do fim do START (ADR-0017); o
+      modo dura o empréstimo inteiro, sem fim antecipado
 - [x] ~~INA219 num I²C próprio da Pi~~ — 31/10: **fica no I²C dividido**
       (placa nova em `hardware/obc-v2`); tensão e corrente "sem dado" durante
       o empréstimo do `ADVANCED_AOCS`, desvio do OBC-7 registrado no ADR-0017.

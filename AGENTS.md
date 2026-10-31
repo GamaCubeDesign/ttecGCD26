@@ -24,7 +24,8 @@ proposing anything that moves bytes over the radio, check it against
 | `flight/radio/` | SX1278 driver over an abstract bus; Linux bus (spidev + GPIO chardev); radio backends (sx1278, udp) | Pi |
 | `flight/adsbd/` | Payload daemon: supervises dump1090-fa, parses SBS, track table, NDJSON onboard record, snapshots to `ttcd`; pure core (`sbs.c`, `tracks.c`, `ndjson.c`, `core.c`) + epoll shell (`main.c`) | Pi |
 | `flight/libipc/` | AF_UNIX SOCK_SEQPACKET transport | Pi |
-| `flight/obcd/` | OBC daemon: mission modes (Figure 44), INA219 and DS18B20 in their own threads, burn-wire, heaters; pure core (`core.c`) + epoll shell (`main.c`) (ADR-0016). I²C link to the AOCS ESP32 **not yet (PLANO 2.4)** | Pi |
+| `flight/obcd/` | OBC daemon: mission modes (Figure 44), burn-wire, heaters, the DS18B20 in its own thread, and one thread owning the I²C bus shared with the AOCS ESP32 — the INA219, and the bus lent to the ESP32 during `ADVANCED_AOCS` (ADR-0017); pure core (`core.c`, `i2c_sched.c`) + epoll shell (`main.c`) (ADR-0016) | Pi |
+| `flight/conf/` | Flight configuration per board: `obc-v2/` holds the new OBC board's `ttcd.conf`, `obcd.conf` and `config.txt` lines; `make install CONF_DIR=flight/conf/obc-v2` | Pi |
 | `ground/console/` | The ground station's console: the link's ground side, the text commands and the JSON lines; portable, shared by `gs_cli` and the ESP32 (ADR-0018) | Pi / PC / ESP32 |
 | `ground/esp32/` | Ground station firmware (ESP-IDF, built in Docker by `tools/esp32/idf.sh`); sends the remote commands of the on-site tests (ADR-0018). `ground/esp32-tests/` runs the portable suites on the ESP32 or in QEMU | ESP32 |
 | `ground/host/` | Serial bridge to the ESP32 ground, also the operator CLI (`gs_serial.py`); downlink → estimator adapter (`tracks_to_ndjson.py`); origin/destination estimator and dashboard (`ground-aeronaves/`, a teammate's project, merged 2026-09-28); airport DB importer | PC, Python |
@@ -38,8 +39,8 @@ proposing anything that moves bytes over the radio, check it against
 | `docs/icd/` | Interface contracts: OBC↔AOCS I²C (`obc-aocs-i2c.md`, draft for the AOCS team); OBC↔TT&C and over-the-air not written yet | — |
 | `docs/cdr/` | The delivered CDR (Design Package, v4, 2026-10-11): what the project promised. Its LaTeX source is a local, gitignored copy | — |
 | `docs/relatorios/` | Dated status reports for the team, in Portuguese (HTML, self-contained) | — |
-| `docs/vv/bancada/` | Hardware bench evidence: progress per roadmap stage and the Pi's setup (`README.md`), one folder per day with `notas.md` and the logs `make pi-fetch` brings back | — |
-| `hardware/` | KiCad sources of the boards as fabricated (panels of 2026-10-08), one folder per board; `hardware/README.md` | — |
+| `docs/vv/bancada/` | Hardware bench evidence: progress per roadmap stage and the Pi's setup (`README.md`), the November bench script (`roteiro-2026-11.md`), one folder per day with `notas.md` and the logs `make pi-fetch` brings back | — |
+| `hardware/` | KiCad sources of the boards as fabricated (panels of 2026-10-08), one folder per board, and `obc-v2/`, the new OBC board (KiCad of 2026-10-23, not fabricated yet); `hardware/README.md` | — |
 | `ultima_missao/` | Previous competition's code, **frozen**, reference only | — |
 
 **The OBC software is ours since 2026-10-20** and is written here, in
@@ -53,11 +54,13 @@ documents the interface between two of our own processes.
 **The flight stack has known wiring defects.** The boards as fabricated
 (`hardware/`) cannot run together: the 8 V path through the OBC's INA219, the
 LoRa bus between the OBC and TT&C boards, the OBC's I²C and its TIP120 and
-DS18B20 resistors are being fixed on a new OBC board (no date yet). Until it
-arrives, pins come only from configuration files, and the `ttcd.conf` pins
+DS18B20 resistors. The new OBC board (`hardware/obc-v2`, KiCad of
+2026-10-23; not fabricated, no date) fixes all of them but the TIP120 base
+resistors (findings A5, A6), and keeps the INA219 on the I²C bus shared with
+the AOCS (ADR-0017). Pins come only from configuration files: the new
+board's are in `flight/conf/obc-v2/`; the example `ttcd.conf` pins
 (GPIO 20/21) are the bench wiring, not the flight stack. Details:
-`docs/relatorios/2026-10-22-validacao-obc.html` and
-`docs/relatorios/2026-10-24-proposta-i2c-ina219-obc.html`.
+`docs/relatorios/2026-10-22-validacao-obc.html` and `hardware/README.md`.
 
 ## Build and test
 
@@ -189,36 +192,44 @@ built from those.
 
 See `PLANO.md`: the decisions of 22–24/10 (D1–D12), the priority order with
 dates, what is cut first if time runs short, the open questions and the
-risks. As of 2026-10-24:
+risks. As of 2026-10-31:
 
 - **Done in software**: shared codec, IPC, `ttcd`, the ground side of the
   protocol, the SX1278 driver, the channel simulation, the bench tooling,
   `adsbd`, the ADS-B chain without hardware, the downlink adapter and the
   ground estimator; since 2026-10-24 also PLANO etapa 1: protocol version 2
   (ADR-0013), `ttcd` and `adsbd` driven by the OBC mode (ADR-0014),
-  433.92 MHz and 14 dBm (ADR-0015); and of etapa 2, `obcd` without the AOCS
-  link (ADR-0016). 27 CTest suites, zero warnings, clean under ASan and
-  UBSan. None of this has been run on the bench yet.
+  433.92 MHz and 14 dBm (ADR-0015); etapa 2, `obcd` (ADR-0016) with the Pi's
+  side of the draft AOCS I²C contract (`docs/icd/obc-aocs-i2c.md`, ADR-0017:
+  the bus lent to the ESP32 for its task, voltage and current "no data"
+  meanwhile); since 2026-10-31 etapa 3, the ESP32 ground station (ADR-0018),
+  its portable suites passing in QEMU; and the new OBC board's sources and
+  flight configuration. 37 CTest suites, zero warnings, clean under ASan and
+  UBSan, and under ThreadSanitizer for `obcd`'s integration test. **None of
+  this has been run on the bench yet**: the script for the week of
+  2026-11-02 is `docs/vv/bancada/roteiro-2026-11.md`.
 - **Validated on the bench** (2026-10-07/09, `docs/vv/bancada/`, in
   Portuguese — **update it as each stage closes**): `make check` on the Pi
   (`pi@gamapi.local`, 64-bit Debian 13, reached through `local.mk`); the
   radio bench, all six steps at 0.8 m; dump1090-fa at 21.9% of one core;
   `adsbd` with the real SDR; the chain SDR → `adsbd` → `ttcd` → LoRa →
   ground, without track records (no aircraft position in view).
-- **Priority now: finish the firmware before the hardware.** In order:
-  (1) ~~protocol version 2, mode-driven `ttcd`/`adsbd`, 433.92 MHz and
-  14 dBm~~ — done in software 2026-10-24; (2) `flight/obcd/` — core, shell
-  and drivers done 2026-10-24, the AOCS I²C contract (2.4) waits for the
-  AOCS firmware, which is being written; (3) the ESP32
-  ground station, which sends the remote commands of the tests, and a
-  minimal operator CLI; (4) CI and the flight image (`make provision`); then
-  the new OBC board's bring-up and the validation of CDR Table 67.
-- **Pending answers**: who writes the AOCS ESP32 firmware (the OBC↔AOCS
-  contract is I²C); the PCB team's answer on the INA219 on its own I²C bus
-  and the date of the new OBC board; the organisers' test order.
+- **Priority now: the bench, then the hardware.** (1) ~~protocol version 2,
+  mode-driven `ttcd`/`adsbd`, 433.92 MHz and 14 dBm~~ — done in software
+  2026-10-24; (2) ~~`flight/obcd/`~~ — done in software, the Pi's side of the
+  AOCS contract included; the contract waits for the AOCS team's answer
+  (ICD §6); (3) ~~the ESP32 ground station, which sends the remote commands
+  of the tests, and a minimal operator CLI~~ — done in software 2026-10-31;
+  **now the bench** (`docs/vv/bancada/roteiro-2026-11.md`); (4) CI and the
+  flight image (`make provision`); then the new OBC board's bring-up and the
+  validation of CDR Table 67.
+- **Pending answers**: the AOCS team's answer to the draft I²C contract
+  (another team writes that firmware; we have no access to it yet); the date
+  of the new OBC board. Answered 2026-10-31: the INA219 stays on the shared
+  bus (ADR-0017); the organisers' test order cannot be known in advance.
 - **ADRs**: 0007 and 0012 *Proposed*, with the bench results in their
-  verification sections; 0013, 0014 and 0015 *Proposed*, tested without
-  hardware, bench pending; 0010 (onboard storage) still to write.
+  verification sections; 0013 to 0018 *Proposed*, tested without hardware,
+  bench pending; 0010 (onboard storage) still to write.
 - **The CDR** (`docs/cdr/`) is the reference for what was promised: OBC
   criteria (Table 32), TT&C per mode (Table 55), derived requirements
   TTC-01..16 (Table 65), traceability (Table 66), remaining validation
