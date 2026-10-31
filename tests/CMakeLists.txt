@@ -10,6 +10,7 @@ set(TTEC_TESTS
     test_lora
     test_ipc_codec
     test_gs_link
+    test_aocs_codec
 )
 
 foreach(t IN LISTS TTEC_TESTS)
