@@ -21,10 +21,15 @@
  *   PRE_TEST --EV_TC_DOWNLINK--->    MISSION_DOWNLINK   --EV_TASK_DONE--> PRE_TEST
  *
  * Any other event in any mode is refused, counted and logged. Who posts
- * EV_TASK_DONE (D2): obcd itself when the burn-wire pulse ends; the AOCS
- * ESP32 when its task ends, or obcd at the AOCS deadline; ttcd when the
- * roster and final statistics have left; the ground, by telecommand, to
- * leave ENV_SURVIVAL.
+ * EV_TASK_DONE (D2): obcd itself when the burn-wire pulse ends; obcd when
+ * the AOCS ESP32's lease of the I2C bus ends and its result is read, or at
+ * once if no ESP32 takes the task; ttcd when the roster and final statistics
+ * have left; the ground, by telecommand, to leave ENV_SURVIVAL.
+ *
+ * ADVANCED_AOCS (ADR-0017, docs/icd/obc-aocs-i2c.md): on entry the core asks
+ * the shell's I2C thread to write a START; while the bus is lent the INA219
+ * is not read and voltage and current go as "no data"; the lease's end
+ * brings the result, whose attitude the telemetry then carries for a while.
  */
 
 #ifndef OBCD_CORE_H
@@ -46,7 +51,10 @@ typedef struct {
     uint32_t telemetry_period;   /* IPC_TELEMETRY to ttcd (D6): 1 s           */
     uint32_t adsb_timeout;       /* MISSION_ADSB ends by itself (OBC-6): 600 s */
     uint32_t burnwire_on;        /* the burn-wire pulse (D3): 5 s             */
-    uint32_t aocs_timeout;       /* the most ADVANCED_AOCS may last           */
+    uint32_t aocs_timeout;       /* the most ADVANCED_AOCS may last: the
+                                    ESP32's max_task plus the lease's margins */
+    uint32_t aocs_hold;          /* the task's attitude stays in telemetry    */
+    uint16_t aocs_azimuth_cdeg;  /* the azimuth the START asks for            */
     int16_t  heater_on_below;    /* thermostat (D4): on below 10.00 degC      */
     int16_t  heater_off_above;   /* ... off above 12.00 degC                  */
     uint32_t temp_stale;         /* no battery reading this long: sensor failed */
@@ -66,7 +74,20 @@ typedef struct {
      * the write failed. Either may be NULL: the output does not exist. */
     int  (*burnwire_set)(void *ctx, bool on);
     int  (*heater_set)(void *ctx, bool on);
+    /* Queue a START (an encoded COMMAND, common/gama_aocs.h) for the I2C
+     * thread. 0 if queued; -1, or NULL, when there is no I2C bus: the task
+     * then ends at once. The outcome comes back through
+     * obcd_on_aocs_started() and obcd_on_aocs_result(). */
+    int  (*aocs_start)(void *ctx, const uint8_t *frame, size_t len, uint8_t seq,
+                       uint16_t max_task_s);
 } obcd_ops_t;
+
+/* What became of a START (the I2C thread's report). */
+typedef enum {
+    OBCD_AOCS_ABSENT = 0,      /* nobody answered: nothing lent           */
+    OBCD_AOCS_REFUSED,         /* the ESP32 said no: nothing lent         */
+    OBCD_AOCS_LENT             /* the bus is the ESP32's until lease_until */
+} obcd_aocs_outcome_t;
 
 typedef struct {
     uint32_t events;            /* mode events received or posted            */
@@ -77,6 +98,8 @@ typedef struct {
     uint32_t power_failures;    /* INA219 readings that failed               */
     uint32_t temp_failures;     /* DS18B20 readings that failed              */
     uint32_t output_failures;   /* burn-wire or heater writes that failed    */
+    uint32_t aocs_tasks;        /* STARTs the ESP32 took                     */
+    uint32_t aocs_no_result;    /* leases whose result could not be read     */
 } obcd_counters_t;
 
 typedef struct {
@@ -89,6 +112,14 @@ typedef struct {
     uint64_t mode_since;
     uint64_t adsb_deadline;      /* MISSION_ADSB: EV_ADSB_TIMEOUT at this time */
     uint64_t aocs_deadline;      /* ADVANCED_AOCS: EV_TASK_DONE at this time  */
+    const char *aocs_end;        /* ... posted with this as its source        */
+    bool     aocs_in_progress;   /* a START is out, its result not yet in     */
+    bool     bus_lent;           /* the INA219 is not read: V and I no data   */
+    uint64_t lease_until;
+    uint8_t  aocs_seq;
+    bool     have_attitude;      /* the last task's result                    */
+    uint64_t attitude_at;
+    int16_t  roll_cdeg, pitch_cdeg, yaw_cdeg;
     bool     burnwire_on;
     uint64_t burnwire_until;
 
@@ -127,6 +158,16 @@ void obcd_post_event(obcd_core_t *c, uint64_t now_ms, uint8_t event, const char 
 void obcd_on_power(obcd_core_t *c, uint64_t now_ms, bool ok, uint16_t battery_mv,
                    int16_t current_ma);
 void obcd_on_battery_temp(obcd_core_t *c, uint64_t now_ms, bool ok, int16_t ccel);
+
+/* The I2C thread's reports on the AOCS task: what became of the START, and,
+ * at the lease's end, the STATUS read (valid = it decoded and answers our
+ * START; status then holds GAMA_AOCS_STATUS_LEN bytes). */
+void obcd_on_aocs_started(obcd_core_t *c, uint64_t now_ms, obcd_aocs_outcome_t outcome,
+                          uint64_t lease_until);
+void obcd_on_aocs_result(obcd_core_t *c, uint64_t now_ms, bool valid, const uint8_t *status);
+
+/* The longest task the START may ask for, from aocs_timeout. */
+uint16_t obcd_aocs_max_task_s(const obcd_params_t *p);
 
 void obcd_on_tick(obcd_core_t *c, uint64_t now_ms);
 

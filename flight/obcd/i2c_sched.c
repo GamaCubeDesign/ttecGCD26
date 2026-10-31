@@ -148,6 +148,7 @@ i2c_event_t i2c_sched_done(i2c_sched_t *s, uint64_t now, i2c_op_t op, i2c_result
         /* Written, or failed in a way that may have reached the ESP32: from
          * here on the timeline runs, counted from the end of the write. */
         s->t0 = now;
+        s->lease_until = lease_end(s);
         s->phase = I2C_PH_STARTING;
         s->tries = 0;
         s->next_try = s->t0 + GAMA_AOCS_T_READ_MIN_MS;

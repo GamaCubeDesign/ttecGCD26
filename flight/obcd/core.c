@@ -7,8 +7,10 @@
  *
  *   BASIC_INTERMEDIATE  the burn-wire, once per entry, for burnwire_on ms;
  *                       then EV_TASK_DONE (D3). Never at boot.
- *   ADVANCED_AOCS       the ESP32's task (PLANO 2.4, not yet here); at
- *                       aocs_timeout, EV_TASK_DONE even without its answer.
+ *   ADVANCED_AOCS       the ESP32's task over the shared I2C bus (ADR-0017):
+ *                       a START, the bus lent for the task, then its
+ *                       result; EV_TASK_DONE when the result is in, or at
+ *                       once without an ESP32.
  *   MISSION_ADSB        EV_ADSB_TIMEOUT adsb_timeout after entry (OBC-6).
  *   every mode          the heaters' thermostat (D4) and IPC_TELEMETRY
  *                       every second (D6).
@@ -18,6 +20,7 @@
  */
 
 #include "core.h"
+#include "gama_aocs.h"
 #include "gama_frame.h"
 #include "gama_tc.h"
 #include "gama_tm.h"
@@ -32,7 +35,9 @@ void obcd_params_default(obcd_params_t *p)
     p->telemetry_period = 1000;
     p->adsb_timeout     = 600000;
     p->burnwire_on      = 5000;
-    p->aocs_timeout     = 300000;   /* placeholder until the AOCS contract (2.4) */
+    p->aocs_timeout     = 300000;   /* placeholder until the AOCS team answers (ICD §6) */
+    p->aocs_hold        = 60000;
+    p->aocs_azimuth_cdeg = 0;
     p->heater_on_below  = 1000;
     p->heater_off_above = 1200;
     p->temp_stale       = 10000;
@@ -144,6 +149,106 @@ uint8_t obcd_transition(uint8_t mode, uint8_t event)
     }
 }
 
+uint16_t obcd_aocs_max_task_s(const obcd_params_t *p)
+{
+    uint32_t margins = GAMA_AOCS_T_TAKEOVER_MS + GAMA_AOCS_T_RESUME_MARGIN_MS;
+    uint32_t task = p->aocs_timeout > margins + 1000u ? (p->aocs_timeout - margins) / 1000u : 1u;
+    return (uint16_t)(task > GAMA_AOCS_MAX_TASK_S ? GAMA_AOCS_MAX_TASK_S : task);
+}
+
+/* Ends ADVANCED_AOCS: on_tick posts EV_TASK_DONE with `why` as its source.
+ * Never posted from inside enter(): the transition would recurse. */
+static void end_aocs(obcd_core_t *c, uint64_t now, const char *why)
+{
+    c->aocs_deadline = now;
+    c->aocs_end = why;
+}
+
+static void start_aocs(obcd_core_t *c, uint64_t now)
+{
+    if (c->aocs_in_progress) {
+        /* The bus is still lent from an earlier entry the ground cut short. */
+        end_aocs(c, now, "aocs_busy");
+        return;
+    }
+    uint16_t max_task = obcd_aocs_max_task_s(&c->p);
+    gama_aocs_command_t cmd = { .seq = ++c->aocs_seq, .cmd = GAMA_AOCS_CMD_START,
+                                .tasks = GAMA_AOCS_TASK_DETUMBLE | GAMA_AOCS_TASK_AZIMUTH,
+                                .max_task_s = max_task,
+                                .azimuth_cdeg = c->p.aocs_azimuth_cdeg };
+    uint8_t frame[GAMA_AOCS_COMMAND_LEN];
+    if (gama_aocs_command_encode(frame, sizeof(frame), &cmd) < 0 ||
+        c->ops.aocs_start == NULL ||
+        c->ops.aocs_start(c->ops.ctx, frame, sizeof(frame), cmd.seq, max_task) != 0) {
+        core_log(c, now, "aocs", "\"start\":false,\"why\":\"no I2C bus\"");
+        end_aocs(c, now, "aocs_unavailable");
+        return;
+    }
+    /* From the START on the bus may be the ESP32's: the INA219 is not read,
+     * and voltage and current go as "no data" (ADR-0017). */
+    c->aocs_in_progress = true;
+    c->bus_lent = true;
+    end_aocs(c, now + c->p.aocs_timeout + 10000u, "aocs_deadline");  /* a backstop */
+    core_log(c, now, "aocs", "\"start\":true,\"seq\":%u,\"max_task_s\":%u", cmd.seq, max_task);
+}
+
+void obcd_on_aocs_started(obcd_core_t *c, uint64_t now, obcd_aocs_outcome_t outcome,
+                          uint64_t lease_until)
+{
+    if (outcome == OBCD_AOCS_LENT) {
+        /* Also a lease a previous obcd left on disk, reported at start: the
+         * bus is the ESP32's whatever the mode. */
+        c->aocs_in_progress = true;
+        c->bus_lent = true;
+        c->lease_until = lease_until;
+        c->n.aocs_tasks++;
+        if (c->mode == GAMA_OBC_ST_ADVANCED_AOCS) {
+            end_aocs(c, lease_until + 10000u, "aocs_deadline");     /* backstop */
+        }
+        core_log(c, now, "aocs", "\"lent\":true,\"lease_ms\":%" PRIu64,
+                 lease_until > now ? lease_until - now : 0u);
+        return;
+    }
+    c->aocs_in_progress = false;
+    c->bus_lent = false;
+    const char *why = outcome == OBCD_AOCS_REFUSED ? "aocs_refused" : "aocs_absent";
+    core_log(c, now, "aocs", "\"lent\":false,\"why\":\"%s\"", why);
+    if (c->mode == GAMA_OBC_ST_ADVANCED_AOCS) {
+        end_aocs(c, now, why);
+    }
+}
+
+void obcd_on_aocs_result(obcd_core_t *c, uint64_t now, bool valid, const uint8_t *status)
+{
+    c->aocs_in_progress = false;
+    c->bus_lent = false;
+    gama_aocs_status_t st;
+    if (valid && status != NULL &&
+        gama_aocs_status_decode(status, GAMA_AOCS_STATUS_LEN, &st) == (int)GAMA_AOCS_STATUS_LEN) {
+        if (st.state == GAMA_AOCS_ST_DONE) {
+            c->have_attitude = true;
+            c->attitude_at = now;
+            c->roll_cdeg = st.roll_cdeg;
+            c->pitch_cdeg = st.pitch_cdeg;
+            c->yaw_cdeg = st.yaw_cdeg;
+        }
+        core_log(c, now, "aocs_result",
+                 "\"state\":\"%s\",\"error\":%u,\"roll_cdeg\":%d,\"pitch_cdeg\":%d,"
+                 "\"yaw_cdeg\":%d,\"rate_cdps\":%u,\"task_s\":%u",
+                 gama_aocs_state_name(st.state), st.error, st.roll_cdeg, st.pitch_cdeg,
+                 st.yaw_cdeg, st.rate_cdps, st.task_s);
+        if (c->mode == GAMA_OBC_ST_ADVANCED_AOCS) {
+            end_aocs(c, now, st.state == GAMA_AOCS_ST_DONE ? "aocs" : "aocs_failed");
+        }
+        return;
+    }
+    c->n.aocs_no_result++;
+    core_log(c, now, "aocs_result", "%s", "\"state\":null,\"why\":\"no valid STATUS\"");
+    if (c->mode == GAMA_OBC_ST_ADVANCED_AOCS) {
+        end_aocs(c, now, "aocs_no_result");
+    }
+}
+
 static void leave(obcd_core_t *c, uint64_t now)
 {
     if (c->mode == GAMA_OBC_ST_BASIC_INTERMEDIATE && c->burnwire_on) {
@@ -160,9 +265,7 @@ static void enter(obcd_core_t *c, uint64_t now)
         set_burnwire(c, now, true, "deploy");
         break;
     case GAMA_OBC_ST_ADVANCED_AOCS:
-        /* PLANO 2.4: the command to the ESP32 goes here. Until then the
-         * deadline alone ends the mode, as it will when the ESP32 is silent. */
-        c->aocs_deadline = now + c->p.aocs_timeout;
+        start_aocs(c, now);
         break;
     case GAMA_OBC_ST_MISSION_ADSB:
         c->adsb_deadline = now + c->p.adsb_timeout;      /* OBC-6 */
@@ -237,6 +340,9 @@ void obcd_init(obcd_core_t *c, const obcd_params_t *p, const obcd_ops_t *ops, ui
     c->p = *p;
     c->ops = *ops;
     c->boot_ms = now;
+    /* Not 0 at every start: the STATUS a previous obcd's task left must not
+     * pass for the answer to this one's first START (ADR-0017). */
+    c->aocs_seq = (uint8_t)now;
     c->mode = GAMA_OBC_ST_PRE_TEST;      /* D5: boot and restart in PRE_TEST */
     c->mode_since = now;
     c->next_telemetry = now;
@@ -297,6 +403,9 @@ void obcd_on_ipc_frame(obcd_core_t *c, uint64_t now, const uint8_t *buf, size_t 
 void obcd_on_power(obcd_core_t *c, uint64_t now, bool ok, uint16_t battery_mv,
                    int16_t current_ma)
 {
+    if (c->bus_lent) {
+        return;                  /* the thread does not poll then; ignore if it did */
+    }
     if (!ok) {
         if (c->n.power_failures++ == 0) {
             core_log(c, now, "power_fault", "%s", "\"first\":true");
@@ -323,17 +432,18 @@ void obcd_on_battery_temp(obcd_core_t *c, uint64_t now, bool ok, int16_t ccel)
 
 void obcd_telemetry(const obcd_core_t *c, uint64_t now, gama_ipc_telemetry_t *t)
 {
-    bool power = c->have_power && now - c->power_at <= c->p.power_stale;
+    bool power = !c->bus_lent && c->have_power && now - c->power_at <= c->p.power_stale;
+    bool attitude = c->have_attitude && now - c->attitude_at <= c->p.aocs_hold;
     bool temp = c->have_temp && now - c->temp_at <= c->p.temp_stale;
     t->battery_mv    = power ? c->battery_mv : GAMA_NO_DATA_U16;
     t->current_ma    = power ? c->current_ma : GAMA_NO_DATA_I16;
     t->temp_bat_ccel = temp ? c->temp_bat_ccel : GAMA_NO_DATA_I16;   /* HLR-EPS-04 */
-    /* No external temperature sensor on the boards as fabricated (A7), and
-     * the attitude comes from the AOCS (PLANO 2.4). */
+    /* No external temperature sensor on the boards as fabricated (A7). The
+     * attitude is the AOCS task's result, for aocs_hold after it. */
     t->temp_ext_ccel = GAMA_NO_DATA_I16;
-    t->roll_cdeg     = GAMA_NO_DATA_I16;
-    t->pitch_cdeg    = GAMA_NO_DATA_I16;
-    t->yaw_cdeg      = GAMA_NO_DATA_I16;
+    t->roll_cdeg     = attitude ? c->roll_cdeg : GAMA_NO_DATA_I16;
+    t->pitch_cdeg    = attitude ? c->pitch_cdeg : GAMA_NO_DATA_I16;
+    t->yaw_cdeg      = attitude ? c->yaw_cdeg : GAMA_NO_DATA_I16;
 }
 
 void obcd_on_tick(obcd_core_t *c, uint64_t now)
@@ -346,7 +456,8 @@ void obcd_on_tick(obcd_core_t *c, uint64_t now)
         obcd_post_event(c, now, GAMA_OBC_EV_ADSB_TIMEOUT, "timer");
     }
     if (c->mode == GAMA_OBC_ST_ADVANCED_AOCS && now >= c->aocs_deadline) {
-        obcd_post_event(c, now, GAMA_OBC_EV_TASK_DONE, "aocs_deadline");
+        obcd_post_event(c, now, GAMA_OBC_EV_TASK_DONE,
+                        c->aocs_end != NULL ? c->aocs_end : "aocs_deadline");
     }
     if (now >= c->next_telemetry) {
         send_telemetry(c, now);

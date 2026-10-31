@@ -179,6 +179,20 @@ int main(void)
         CHECK(i + 1 < B.n_tx && B.tx_op[i + 1] == I2C_OP_INA219_INIT);
     }
 
+    TEST_GROUP("i2c: the lease's end is known from the START write, before any answer");
+    {
+        fresh(ESP_ACCEPTS);
+        request_start(120);
+        i2c_op_t op;
+        uint64_t wake;
+        bool valid;
+        CHECK_EQ_INT(i2c_sched_next(&S, 10, &op, &wake), I2C_EV_NONE);
+        CHECK_EQ_INT(op, I2C_OP_AOCS_START);
+        CHECK_EQ_INT(i2c_sched_done(&S, 12, op, I2C_OK, NULL, &valid), I2C_EV_NONE);
+        CHECK_EQ_INT(S.phase, I2C_PH_STARTING);
+        CHECK(S.lease_until == 12u + 250u + 120000u + 2000u);
+    }
+
     TEST_GROUP("i2c: a refused START lends nothing; the INA219 goes on");
     {
         fresh(ESP_REFUSES);

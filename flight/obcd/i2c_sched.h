@@ -80,7 +80,10 @@ typedef struct {
     uint16_t max_task_s;
 
     uint64_t t0;                /* end of the START write                   */
-    uint64_t lease_until;       /* LENT: first instant the Pi may talk      */
+    uint64_t lease_until;       /* from the START write: the first instant
+                                   the Pi may talk, if the ESP32 takes the
+                                   bus — known before its answer, so it can
+                                   be kept on disk at once                  */
     uint64_t next_try;
     int      tries;
 } i2c_sched_t;

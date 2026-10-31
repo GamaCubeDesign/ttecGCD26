@@ -6,6 +6,7 @@
 
 #include "test_util.h"
 #include "core.h"
+#include "gama_aocs.h"
 #include "gama_frame.h"
 #include "gama_ipc.h"
 #include "gama_tc.h"
@@ -30,6 +31,11 @@ static struct {
     bool     burnwire, heater;
     int      burnwire_writes, heater_writes;
     bool     outputs_absent;
+    bool     no_i2c;            /* aocs_start refuses: no bus configured     */
+    int      aocs_starts;
+    uint8_t  aocs_frame[GAMA_AOCS_COMMAND_LEN];
+    uint8_t  aocs_seq;
+    uint16_t aocs_max_task_s;
 } H;
 
 static int h_ipc(void *ctx, const uint8_t *f, size_t n)
@@ -74,8 +80,21 @@ static int h_heater(void *ctx, bool on)
     return 0;
 }
 
+static int h_aocs_start(void *ctx, const uint8_t *frame, size_t len, uint8_t seq,
+                        uint16_t max_task_s)
+{
+    (void)ctx;
+    if (H.no_i2c || len != GAMA_AOCS_COMMAND_LEN) { return -1; }
+    memcpy(H.aocs_frame, frame, len);
+    H.aocs_seq = seq;
+    H.aocs_max_task_s = max_task_s;
+    H.aocs_starts++;
+    return 0;
+}
+
 static const obcd_ops_t OPS = { .ctx = NULL, .ipc_send = h_ipc, .log = h_log,
-                                .burnwire_set = h_burnwire, .heater_set = h_heater };
+                                .burnwire_set = h_burnwire, .heater_set = h_heater,
+                                .aocs_start = h_aocs_start };
 static obcd_core_t C;
 static obcd_params_t P;
 
@@ -305,20 +324,136 @@ int main(void)
         CHECK(C.n.output_failures >= 2);
     }
 
-    TEST_GROUP("obcd: ADVANCED_AOCS ends at its deadline even if the ESP32 never answers");
+    TEST_GROUP("obcd: ADVANCED_AOCS with no I2C bus ends at once (ADR-0017)");
+    {
+        boot();
+        H.no_i2c = true;
+        event_from_ttcd(GAMA_OBC_EV_TC_AOCS);
+        CHECK_EQ_INT(C.mode, GAMA_OBC_ST_ADVANCED_AOCS);
+        run_to(H.now + 1);
+        CHECK_EQ_INT(C.mode, GAMA_OBC_ST_PRE_TEST);
+        CHECK(strstr(last_fields("mode"), "\"by\":\"aocs_unavailable\"") != NULL);
+        CHECK(!C.bus_lent);
+    }
+
+    TEST_GROUP("obcd: an AOCS task: START, bus lent (V and I no data), result, attitude");
+    {
+        boot();
+        obcd_on_power(&C, H.now, true, 7900, 850);
+        event_from_ttcd(GAMA_OBC_EV_TC_AOCS);
+        CHECK_EQ_INT(H.aocs_starts, 1);
+        gama_aocs_command_t cmd;
+        CHECK_EQ_INT(gama_aocs_command_decode(H.aocs_frame, GAMA_AOCS_COMMAND_LEN, &cmd),
+                     GAMA_AOCS_COMMAND_LEN);
+        CHECK_EQ_INT(cmd.cmd, GAMA_AOCS_CMD_START);
+        CHECK_EQ_INT(cmd.seq, H.aocs_seq);
+        /* 300 s of mode = 250 ms + 297 s of task + 2 s, rounded down. */
+        CHECK_EQ_INT(cmd.max_task_s, 297);
+        CHECK_EQ_INT(H.aocs_max_task_s, 297);
+        /* From the START on, voltage and current are no data: no reading is
+         * taken, and a stale one is not reported. */
+        run_to(H.now + 1000);
+        CHECK_EQ_INT(last_telemetry().battery_mv, GAMA_NO_DATA_U16);
+        CHECK_EQ_INT(last_telemetry().current_ma, GAMA_NO_DATA_I16);
+        obcd_on_aocs_started(&C, H.now, OBCD_AOCS_LENT, H.now + 299000);
+        run_to(H.now + 200000);
+        CHECK_EQ_INT(C.mode, GAMA_OBC_ST_ADVANCED_AOCS);   /* the whole lease */
+        gama_aocs_status_t st = { .seq = H.aocs_seq, .state = GAMA_AOCS_ST_DONE,
+                                  .roll_cdeg = 150, .pitch_cdeg = -275, .yaw_cdeg = 9012,
+                                  .rate_cdps = 35, .task_s = 97 };
+        uint8_t bytes[GAMA_AOCS_STATUS_LEN];
+        gama_aocs_status_encode(bytes, sizeof(bytes), &st);
+        H.now += 99000;
+        obcd_on_aocs_result(&C, H.now, true, bytes);
+        run_to(H.now + 1);
+        CHECK_EQ_INT(C.mode, GAMA_OBC_ST_PRE_TEST);
+        CHECK(strstr(last_fields("mode"), "\"by\":\"aocs\"") != NULL);
+        CHECK(strstr(last_fields("aocs_result"), "\"state\":\"DONE\"") != NULL);
+        /* The result's attitude in telemetry, for aocs_hold; the INA219 back. */
+        obcd_on_power(&C, H.now, true, 7800, 900);
+        run_to(H.now + 1000);
+        gama_ipc_telemetry_t t = last_telemetry();
+        CHECK_EQ_INT(t.roll_cdeg, 150);
+        CHECK_EQ_INT(t.pitch_cdeg, -275);
+        CHECK_EQ_INT(t.yaw_cdeg, 9012);
+        CHECK_EQ_INT(t.battery_mv, 7800);
+        run_to(H.now + P.aocs_hold);
+        CHECK_EQ_INT(last_telemetry().yaw_cdeg, GAMA_NO_DATA_I16);
+    }
+
+    TEST_GROUP("obcd: a refused or unanswered START ends the mode and lends nothing");
     {
         boot();
         event_from_ttcd(GAMA_OBC_EV_TC_AOCS);
-        CHECK_EQ_INT(C.mode, GAMA_OBC_ST_ADVANCED_AOCS);
-        run_to(H.now + P.aocs_timeout - 1);
+        obcd_on_aocs_started(&C, H.now + 50, OBCD_AOCS_REFUSED, 0);
+        run_to(H.now + 100);
+        CHECK_EQ_INT(C.mode, GAMA_OBC_ST_PRE_TEST);
+        CHECK(strstr(last_fields("mode"), "\"by\":\"aocs_refused\"") != NULL);
+        CHECK(!C.bus_lent);
+        event_from_ttcd(GAMA_OBC_EV_TC_AOCS);
+        obcd_on_aocs_started(&C, H.now + 5, OBCD_AOCS_ABSENT, 0);
+        run_to(H.now + 10);
+        CHECK(strstr(last_fields("mode"), "\"by\":\"aocs_absent\"") != NULL);
+    }
+
+    TEST_GROUP("obcd: the ground leaving early keeps the lease; re-entering is refused as busy");
+    {
+        boot();
+        event_from_ttcd(GAMA_OBC_EV_TC_AOCS);
+        obcd_on_aocs_started(&C, H.now, OBCD_AOCS_LENT, H.now + 299000);
+        event_from_ttcd(GAMA_OBC_EV_TASK_DONE);            /* the ground ends it */
+        CHECK_EQ_INT(C.mode, GAMA_OBC_ST_PRE_TEST);
+        CHECK(C.bus_lent);                                 /* the ESP32 still has it */
+        run_to(H.now + 1000);
+        CHECK_EQ_INT(last_telemetry().battery_mv, GAMA_NO_DATA_U16);
+        event_from_ttcd(GAMA_OBC_EV_TC_AOCS);
+        CHECK_EQ_INT(H.aocs_starts, 1);                    /* no second START */
+        run_to(H.now + 1);
+        CHECK(strstr(last_fields("mode"), "\"by\":\"aocs_busy\"") != NULL);
+        /* The result arrives later: logged, the bus back, no transition. */
+        int transitions = (int)C.n.transitions;
+        obcd_on_aocs_result(&C, H.now + 298000, false, NULL);
+        CHECK(!C.bus_lent);
+        CHECK_EQ_INT((int)C.n.transitions, transitions);
+        CHECK_EQ_INT(C.n.aocs_no_result, 1);
+    }
+
+    TEST_GROUP("obcd: a lease a previous obcd left: no V and I, TC_AOCS busy, the result frees it");
+    {
+        boot();
+        obcd_on_aocs_started(&C, H.now, OBCD_AOCS_LENT, H.now + 30000);   /* from disk */
+        CHECK(C.bus_lent);
+        CHECK_EQ_INT(C.mode, GAMA_OBC_ST_PRE_TEST);
+        obcd_on_power(&C, H.now, true, 7900, 850);                        /* ignored */
+        run_to(H.now + 1000);
+        CHECK_EQ_INT(last_telemetry().battery_mv, GAMA_NO_DATA_U16);
+        event_from_ttcd(GAMA_OBC_EV_TC_AOCS);
+        CHECK_EQ_INT(H.aocs_starts, 0);
+        run_to(H.now + 1);
+        CHECK(strstr(last_fields("mode"), "\"by\":\"aocs_busy\"") != NULL);
+        obcd_on_aocs_result(&C, H.now + 29000, false, NULL);
+        CHECK(!C.bus_lent);
+        /* The next START's seq follows the clock at start, not 0. */
+        event_from_ttcd(GAMA_OBC_EV_TC_AOCS);
+        CHECK_EQ_INT(H.aocs_starts, 1);
+        CHECK_EQ_INT(H.aocs_seq, (uint8_t)(T0 + 1u));
+    }
+
+    TEST_GROUP("obcd: an unreadable result, and a thread that never reports, both end the mode");
+    {
+        boot();
+        event_from_ttcd(GAMA_OBC_EV_TC_AOCS);
+        obcd_on_aocs_started(&C, H.now, OBCD_AOCS_LENT, H.now + 5000);
+        obcd_on_aocs_result(&C, H.now + 5000, false, NULL);
+        run_to(H.now + 5001);
+        CHECK(strstr(last_fields("mode"), "\"by\":\"aocs_no_result\"") != NULL);
+
+        event_from_ttcd(GAMA_OBC_EV_TC_AOCS);              /* and nothing comes back */
+        run_to(H.now + P.aocs_timeout + 9999);
         CHECK_EQ_INT(C.mode, GAMA_OBC_ST_ADVANCED_AOCS);
         run_to(H.now + 1);
         CHECK_EQ_INT(C.mode, GAMA_OBC_ST_PRE_TEST);
         CHECK(strstr(last_fields("mode"), "\"by\":\"aocs_deadline\"") != NULL);
-        /* An EV_TASK_DONE from the ESP32 (PLANO 2.4) ends it sooner. */
-        event_from_ttcd(GAMA_OBC_EV_TC_AOCS);
-        obcd_post_event(&C, H.now + 10, GAMA_OBC_EV_TASK_DONE, "aocs");
-        CHECK_EQ_INT(C.mode, GAMA_OBC_ST_PRE_TEST);
     }
 
     TEST_GROUP("obcd: ENV_SURVIVAL is entered and left by telecommand only");
