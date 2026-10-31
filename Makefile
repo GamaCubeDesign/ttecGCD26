@@ -118,9 +118,21 @@ SOCK       ?= /tmp/ttec-bench.sock
 
 TTCD_CMD    = $(BUILD_DIR)/flight/ttcd -c $(TTCD_CONF) -o radio=$(RADIO) -o ipc_path=$(SOCK) \
               -o tx_power_dbm=$(POWER) -o lbt=$(LBT) $(TTCD_OPTS)
+# The ground: gs_cli on radio B (GS=gs_cli), or the ESP32 ground station on
+# ESP32_PORT through its serial bridge (GS=esp32), which takes the same
+# commands and prints the same lines. The ESP32 hangs off this machine's USB.
+GS         ?= gs_cli
+ifeq ($(GS),esp32)
+ifeq ($(RADIO),udp)
+$(error GS=esp32 is a real radio: run it where ttcd drives an RA-02 (RADIO=sx1278))
+endif
+GS_CMD      = $(PYTHON) ground/host/gs_serial.py --port $(ESP32_PORT) --power $(POWER) \
+              --lbt $(LBT) $(GS_OPTS)
+else
 GS_CMD      = $(BUILD_DIR)/tools/gs_cli/gs_cli --radio $(RADIO) \
               $(if $(filter sx1278,$(RADIO)),--spi $(GS_SPI) --reset $(GS_RESET) \
               --dio0 $(GS_DIO0) --power $(POWER) --lbt $(LBT)) $(GS_OPTS)
+endif
 
 # $(call bench-step,COMMANDS[,NAME[,ttcd options[,gs_cli options]]]): one
 # step, from tools/bench/COMMANDS.txt, logged as $(BENCH_DIR)/TIME-NAME-*.jsonl.
@@ -199,13 +211,22 @@ adsb-chain: build ## A mission through adsbd, ttcd and the ground, no hardware: 
 ESP32_PORT ?= /dev/ttyUSB0
 IDF_SH      = tools/esp32/idf.sh
 
-.PHONY: esp32-build esp32-flash
+.PHONY: esp32-build esp32-flash esp32-tests-qemu esp32-tests-flash
 
 esp32-build: ## Build the ground station firmware (ground/esp32)
 	$(IDF_SH) ground/esp32 build
 
 esp32-flash: esp32-build ## Flash it: ESP32_PORT=/dev/ttyUSB0
 	$(IDF_SH) ground/esp32 --port $(ESP32_PORT) -p $(ESP32_PORT) flash
+
+esp32-tests-qemu: ## The portable test suites on an emulated ESP32 (TTC-16)
+	tools/esp32/run_tests_qemu.sh
+
+# On the board: flash the suites, then read them with the serial bridge.
+# Flash the ground station back afterwards (make esp32-flash).
+esp32-tests-flash: ## The same suites on the DevKit: ESP32_PORT=/dev/ttyUSB0
+	$(IDF_SH) ground/esp32-tests --port $(ESP32_PORT) -p $(ESP32_PORT) flash
+	$(PYTHON) ground/host/gs_serial.py --port $(ESP32_PORT) --suites
 
 ##@ On the Pi — ttcd, adsbd and obcd as systemd services
 
