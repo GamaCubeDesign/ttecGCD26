@@ -43,7 +43,7 @@ need-pi = $(if $(ON_PI),,$(error $@ is for the Raspberry Pi — from the PC, mak
 
 ##@ Build and test — on the PC and on the Pi
 
-.PHONY: build test asan check clean vectors
+.PHONY: build test asan check check-debian clean vectors
 
 # Configures on every run, like the one-liner it replaces: that is what
 # refreshes TTEC_VERSION (git describe), which ttcd writes into every log.
@@ -63,6 +63,11 @@ asan: ## Build with ASan+UBSan (UBSan alone on the Pi) and warnings as errors, t
 	cd $(ASAN_DIR) && ctest --output-on-failure $(if $(T),-R '$(T)')
 
 check: test asan requirements ## Before any merge: tests, sanitizers, zero warnings, quotations
+
+# The CI's run: make check in a Debian 13 container, the Pi's distribution and
+# GCC 14 — a warning only that compiler raises shows up before make pi-check.
+check-debian: ## make check in Docker on Debian 13, with the Pi's GCC 14, as the CI runs it
+	docker run --rm -v $(CURDIR):/src:ro debian:trixie bash /src/tools/ci/check_debian.sh
 
 clean: ## Remove the build trees, with the simulated bench logs inside them
 	rm -rf $(BUILD_DIR) $(ASAN_DIR)

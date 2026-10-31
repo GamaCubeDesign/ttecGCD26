@@ -277,7 +277,10 @@ crítico. A Pi com um RA-02 e a `gs_cli` continua como reserva.
 
 ## Etapa 4 — CI e imagem de voo (em paralelo, ½ dia)
 
-- [ ] CI com GitHub Actions rodando o `make check` (decisão 9 de 05/10)
+- [x] CI com GitHub Actions rodando o `make check` (decisão 9 de 05/10) —
+      31/10: `.github/workflows/check.yml`, num contêiner Debian 13 (o GCC 14
+      da Pi), pelo mesmo `tools/ci/check_debian.sh` do `make check-debian`;
+      passa a rodar com o push. O build da ESP32 ainda não está nela
 - [ ] UBSan reprovando o teste: `-fno-sanitize-recover=undefined` no
       `make asan`
 - [ ] `make provision`: `dump1090-fa` e o repositório da FlightAware, serviço

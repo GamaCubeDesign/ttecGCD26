@@ -21,6 +21,7 @@ os que o PC grava ficam direto em `docs/vv/bancada/AAAA-MM-DD/`.
 
 ```bash
 make check                 # 37 suítes, nos dois builds, e as citações
+make check-debian          # o mesmo num contêiner Debian 13, com o GCC 14 da Pi
 make esp32-build           # o firmware da ground
 make esp32-tests-qemu      # as 11 suítes portáveis numa ESP32 emulada
 ```

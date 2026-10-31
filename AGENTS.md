@@ -32,6 +32,7 @@ proposing anything that moves bytes over the radio, check it against
 | `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check, downlink emulation over full captures (`downlink_emulation.py`) | PC |
 | `tools/gs_cli/` | Bench ground station: the ground console on a second RA-02 or the UDP radio | Pi / PC |
 | `tools/bench/` | Bench procedure: one `gs_cli` command script per step, and `run_step.sh`, which starts `ttcd` afresh for each; `adsb_chain.sh` | Pi / PC |
+| `tools/ci/` | `check_debian.sh`: `make check` on Debian 13 with the Pi's GCC 14, run by the CI (`.github/workflows/check.yml`) and by `make check-debian` | PC / CI |
 | `tools/sbs_replay/` | Plays dump1090: serves SBS lines from a capture or a simulation, so `adsbd` runs without an SDR | Pi / PC |
 | `Makefile` | Entry point for build, tests, bench, Pi install and PC→Pi runs (`make help`) | Pi / PC |
 | `docs/adr/` | Architecture Decision Records | — |
@@ -69,6 +70,7 @@ make                  # configure + build in build/ (RelWithDebInfo); -j2 on the
 make test             # ctest --output-on-failure; T=regex runs a subset
 make check            # before any merge: test, asan (ASan+UBSan, warnings as errors), requirements
                       # on the Pi, asan is UBSan alone: ASan cannot start in its 39-bit address space
+make check-debian     # the same in a Debian 13 container, with the Pi's GCC 14, as the CI runs it
 
 make budget           # full budget tables (lora_budget.py)
 make budget-check     # verifies the ADRs' figures (lora_budget.py --check, also in ctest)
@@ -220,9 +222,11 @@ risks. As of 2026-10-31:
   AOCS contract included; the contract waits for the AOCS team's answer
   (ICD §6); (3) ~~the ESP32 ground station, which sends the remote commands
   of the tests, and a minimal operator CLI~~ — done in software 2026-10-31;
-  **now the bench** (`docs/vv/bancada/roteiro-2026-11.md`); (4) CI and the
-  flight image (`make provision`); then the new OBC board's bring-up and the
-  validation of CDR Table 67.
+  **now the bench** (`docs/vv/bancada/roteiro-2026-11.md`); (4) ~~CI~~ —
+  `.github/workflows/check.yml`, `make check` on Debian 13 with the Pi's
+  GCC 14 (locally: `make check-debian`), live once pushed; the flight image
+  (`make provision`); then the new OBC board's bring-up and the validation
+  of CDR Table 67.
 - **Pending answers**: the AOCS team's answer to the draft I²C contract
   (another team writes that firmware; we have no access to it yet); the date
   of the new OBC board. Answered 2026-10-31: the INA219 stays on the shared
