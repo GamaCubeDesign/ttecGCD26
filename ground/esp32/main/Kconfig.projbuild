@@ -1,0 +1,47 @@
+menu "Gama ground station"
+
+    config GAMA_GS_PIN_SCK
+        int "RA-02 SCK"
+        range 0 33
+        default 18
+    config GAMA_GS_PIN_MISO
+        int "RA-02 MISO"
+        range 0 39
+        default 19
+    config GAMA_GS_PIN_MOSI
+        int "RA-02 MOSI"
+        range 0 33
+        default 23
+    config GAMA_GS_PIN_NSS
+        int "RA-02 NSS (chip select)"
+        range 0 33
+        default 5
+    config GAMA_GS_PIN_RESET
+        int "RA-02 RESET"
+        range 0 33
+        default 14
+    config GAMA_GS_PIN_DIO0
+        int "RA-02 DIO0 (interrupt)"
+        range 0 39
+        default 26
+
+    config GAMA_GS_SPI_HZ
+        int "SPI clock, Hz"
+        range 100000 8000000
+        default 1000000
+
+    config GAMA_GS_TX_POWER_DBM
+        int "Transmit power at boot, dBm (TTC-03: 14 in flight; the bench sets 2)"
+        range 2 20
+        default 14
+
+    choice GAMA_GS_LBT
+        prompt "Listen before talk (ADR-0007)"
+        default GAMA_GS_LBT_HEADER
+        config GAMA_GS_LBT_HEADER
+            bool "header: busy once a header is being received"
+        config GAMA_GS_LBT_PREAMBLE
+            bool "preamble: busy from the preamble on"
+    endchoice
+
+endmenu

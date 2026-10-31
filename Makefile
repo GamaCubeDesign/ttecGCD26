@@ -192,6 +192,21 @@ adsb-chain: build ## A mission through adsbd, ttcd and the ground, no hardware: 
 	BUILD_DIR=$(BUILD_DIR) PYTHON=$(PYTHON) tools/bench/adsb_chain.sh '$(INPUT)' \
 	    $(CHAIN_DIR)/$(BENCH_DATE)-$(BENCH_TIME)
 
+##@ ESP32 ground station — ESP-IDF in Docker (tools/esp32/idf.sh), on the PC
+
+# The DevKit's USB serial port. Not PORT: that name is often set in the
+# environment for something else.
+ESP32_PORT ?= /dev/ttyUSB0
+IDF_SH      = tools/esp32/idf.sh
+
+.PHONY: esp32-build esp32-flash
+
+esp32-build: ## Build the ground station firmware (ground/esp32)
+	$(IDF_SH) ground/esp32 build
+
+esp32-flash: esp32-build ## Flash it: ESP32_PORT=/dev/ttyUSB0
+	$(IDF_SH) ground/esp32 --port $(ESP32_PORT) -p $(ESP32_PORT) flash
+
 ##@ On the Pi — ttcd, adsbd and obcd as systemd services
 
 .PHONY: provision install service-enable service-stop service-status service-logs \
