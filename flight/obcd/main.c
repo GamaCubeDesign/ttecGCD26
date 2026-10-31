@@ -486,13 +486,29 @@ static void *i2c_main(void *arg)
     return NULL;
 }
 
+/* The DS18B20's reading: from w1_path, or with "auto" from the one DS18B20
+ * the kernel lists, looked up at every reading — the kernel finds the chip
+ * some seconds after boot, and a replaced chip has another serial. */
+static ds18b20_result_t read_battery_temp(int16_t *ccel)
+{
+    if (strcmp(O.cfg.w1_path, "auto") != 0) {
+        return ds18b20_read_file(O.cfg.w1_path, ccel);
+    }
+    char path[sizeof(O.cfg.w1_devices_dir) + 64];
+    int n = ds18b20_find(O.cfg.w1_devices_dir, path, sizeof(path));
+    return n == 1 ? ds18b20_read_file(path, ccel)
+         : n == 0 ? DS18B20_ERR_NOT_FOUND
+         : n > 1  ? DS18B20_ERR_AMBIGUOUS
+                  : DS18B20_ERR_IO;
+}
+
 static void *temp_main(void *arg)
 {
     (void)arg;
     while (!atomic_load(&O.stop_threads)) {
         reading_t r = { .kind = READING_TEMP };
         int16_t ccel = 0;
-        ds18b20_result_t res = ds18b20_read_file(O.cfg.w1_path, &ccel);
+        ds18b20_result_t res = read_battery_temp(&ccel);
         r.ok = res == DS18B20_OK;
         r.value = ccel;
         r.why = (int16_t)res;
@@ -754,6 +770,17 @@ static void start_threads(uint64_t now)
         write_log(now, "sensor", "\"which\":\"ina219\",\"note\":\"not configured\"");
     }
     if (O.cfg.w1_path[0] != '\0') {
+        if (strcmp(O.cfg.w1_path, "auto") == 0) {
+            /* What the thread will find now; it looks again at every reading. */
+            char path[sizeof(O.cfg.w1_devices_dir) + 64];
+            int n = ds18b20_find(O.cfg.w1_devices_dir, path, sizeof(path));
+            if (n == 1) {
+                write_log(now, "sensor", "\"which\":\"ds18b20\",\"found\":1,\"path\":\"%s\"", path);
+            } else {
+                write_log(now, "sensor", "\"which\":\"ds18b20\",\"found\":%d,\"dir\":\"%s\"",
+                          n, O.cfg.w1_devices_dir);
+            }
+        }
         O.temp_started = pthread_create(&O.temp_thread, NULL, temp_main, NULL) == 0;
     } else {
         write_log(now, "sensor", "\"which\":\"ds18b20\",\"note\":\"not configured\"");

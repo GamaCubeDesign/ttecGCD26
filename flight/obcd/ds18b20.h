@@ -15,6 +15,10 @@
  * garbage and is not reported. 85000 is the chip's power-on value, read
  * when a conversion did not happen (typically a missing pull-up, hardware
  * finding A7); it is refused too.
+ *
+ * The file's directory is named after the chip's serial number, so a
+ * configuration cannot know it in advance: ds18b20_find() looks for the one
+ * DS18B20 (family 28) the kernel lists.
  */
 
 #ifndef OBCD_DS18B20_H
@@ -33,7 +37,9 @@ typedef enum {
     DS18B20_ERR_CRC = -2,      /* the kernel says the CRC failed            */
     DS18B20_ERR_POWER_ON = -3, /* 85.000 degC: no conversion took place     */
     DS18B20_ERR_RANGE = -4,    /* outside the chip's -55 .. +125 degC       */
-    DS18B20_ERR_IO = -5        /* the file could not be read                */
+    DS18B20_ERR_IO = -5,       /* the file could not be read                */
+    DS18B20_ERR_NOT_FOUND = -6, /* ds18b20_find(): no DS18B20 listed        */
+    DS18B20_ERR_AMBIGUOUS = -7  /* ds18b20_find(): more than one            */
 } ds18b20_result_t;
 
 /* Parses the text of w1_slave into hundredths of a degree, rounded. */
@@ -41,6 +47,12 @@ ds18b20_result_t ds18b20_parse(const char *text, size_t len, int16_t *ccel);
 
 /* Reads and parses the file at path. Blocks for the conversion. */
 ds18b20_result_t ds18b20_read_file(const char *path, int16_t *ccel);
+
+/* The DS18B20s in dir (the kernel's /sys/bus/w1/devices: one directory per
+ * device, family-serial). Returns how many there are, and when there is
+ * exactly one writes dir/28-<serial>/w1_slave to path; -1 if dir cannot be
+ * read or the path does not fit in cap. */
+int ds18b20_find(const char *dir, char *path, size_t cap);
 
 const char *ds18b20_result_name(ds18b20_result_t r);
 

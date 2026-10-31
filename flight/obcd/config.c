@@ -21,6 +21,7 @@ void obcd_config_default(obcd_config_t *c)
     c->aocs_addr = GAMA_AOCS_ADDR_DEFAULT;
     snprintf(c->i2c_lease_path, sizeof(c->i2c_lease_path), "/var/lib/gama/obcd-i2c.lease");
     c->temp_period_ms = 2000;            /* a conversion takes ~750 ms         */
+    snprintf(c->w1_devices_dir, sizeof(c->w1_devices_dir), "/sys/bus/w1/devices");
     snprintf(c->gpio_chip, sizeof(c->gpio_chip), "/dev/gpiochip0");
     c->burnwire_line = OBCD_LINE_NONE;
     c->heater_line = OBCD_LINE_NONE;
@@ -104,6 +105,9 @@ int obcd_config_set(obcd_config_t *c, const char *key, const char *value,
     if (strcmp(key, "log_path") == 0)  { return set_str(c->log_path, sizeof(c->log_path), key, value, err, errlen); }
     if (strcmp(key, "i2c_dev") == 0)   { return set_str(c->i2c_dev, sizeof(c->i2c_dev), key, value, err, errlen); }
     if (strcmp(key, "w1_path") == 0)   { return set_str(c->w1_path, sizeof(c->w1_path), key, value, err, errlen); }
+    if (strcmp(key, "w1_devices_dir") == 0) {
+        return set_str(c->w1_devices_dir, sizeof(c->w1_devices_dir), key, value, err, errlen);
+    }
     if (strcmp(key, "i2c_lease_path") == 0) {
         return set_str(c->i2c_lease_path, sizeof(c->i2c_lease_path), key, value, err, errlen);
     }
@@ -230,6 +234,10 @@ int obcd_config_validate(const obcd_config_t *c, char *err, size_t errlen)
     }
     if (c->i2c_dev[0] != '\0' && c->aocs_addr == c->ina219_addr) {
         snprintf(err, errlen, "aocs_addr and ina219_addr are on one bus: they must differ");
+        return -1;
+    }
+    if (c->w1_path[0] != '\0' && c->w1_path[0] != '/' && strcmp(c->w1_path, "auto") != 0) {
+        snprintf(err, errlen, "w1_path must be absolute, \"auto\", or empty");
         return -1;
     }
     if (c->i2c_lease_path[0] != '\0' && c->i2c_lease_path[0] != '/') {

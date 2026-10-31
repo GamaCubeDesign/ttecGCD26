@@ -26,6 +26,7 @@ int main(void)
         CHECK_EQ_INT(c.aocs_addr, 0x2A);                 /* docs/icd/obc-aocs-i2c.md */
         CHECK_EQ_INT(c.p.aocs_timeout, 300000);
         CHECK_STR_EQ(c.i2c_lease_path, "/var/lib/gama/obcd-i2c.lease");   /* survives a reboot */
+        CHECK_STR_EQ(c.w1_devices_dir, "/sys/bus/w1/devices");
         CHECK_EQ_INT(obcd_config_validate(&c, err, sizeof(err)), 0);
     }
 
@@ -85,6 +86,16 @@ int main(void)
         CHECK_EQ_INT(obcd_config_validate(&c, err, sizeof(err)), -1);   /* relative */
         obcd_config_set(&c, "i2c_lease_path", "", err, sizeof(err));
         CHECK_EQ_INT(obcd_config_validate(&c, err, sizeof(err)), 0);    /* not kept */
+    }
+
+    TEST_GROUP("obcd config: w1_path is a file, \"auto\", or nothing");
+    {
+        obcd_config_default(&c);
+        CHECK_EQ_INT(obcd_config_set(&c, "w1_path", "auto", err, sizeof(err)), 0);
+        CHECK_EQ_INT(obcd_config_set(&c, "w1_devices_dir", "/tmp/w1", err, sizeof(err)), 0);
+        CHECK_EQ_INT(obcd_config_validate(&c, err, sizeof(err)), 0);
+        obcd_config_set(&c, "w1_path", "28-0000/w1_slave", err, sizeof(err));
+        CHECK_EQ_INT(obcd_config_validate(&c, err, sizeof(err)), -1);   /* relative */
     }
 
     TEST_GROUP("obcd config: unknown keys, bad numbers and contradictions are errors");

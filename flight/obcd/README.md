@@ -48,7 +48,7 @@ início (`sensor`, `output`). A telemetria leva "sem dado" (`0xFFFF`,
 |---|---|---|
 | INA219 (tensão, corrente da carga) | `i2c-dev`, na thread dona do I²C | `i2c_dev`, `ina219_addr`, `ina219_shunt_mohm` |
 | ESP32 do AOCS | a mesma thread, frames fixos (`docs/icd/obc-aocs-i2c.md`) | `aocs_addr`, `aocs_timeout_ms`, `i2c_lease_path` |
-| DS18B20 (bateria de cima) | `w1_therm` do kernel, numa thread própria (D9) | `w1_path` |
+| DS18B20 (bateria de cima) | `w1_therm` do kernel, numa thread própria (D9) | `w1_path`: o arquivo, ou `auto`, o único `28-*` de `w1_devices_dir` |
 | Burn-wire | GPIO chardev | `burnwire_line` |
 | Aquecedores | GPIO chardev | `heater_line` |
 

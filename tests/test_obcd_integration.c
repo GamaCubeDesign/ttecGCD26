@@ -2,7 +2,8 @@
  * The real obcd binary, with no OBC board.
  *
  * This test plays ttcd (the IPC server obcd connects to) and the battery's
- * DS18B20 (a w1_slave file it rewrites). The INA219's bus and the GPIO chip
+ * DS18B20 (a w1_slave file it rewrites, in a directory laid out like the
+ * kernel's /sys/bus/w1/devices, which w1_path = auto searches). The INA219's bus and the GPIO chip
  * do not exist, as on a development PC, so those paths are exercised as
  * failures: no data, outputs not driven, both in the log; with no I2C
  * bus, no AOCS ESP32 answers either. What the unit tests cannot reach is
@@ -27,12 +28,13 @@
 #include <poll.h>
 #include <signal.h>
 #include <stdint.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 
 static char dir[64], sock_path[128], log_path[128], conf_path[128], w1_path[128];
-static char lease_path[128];
+static char lease_path[128], w1_dir[80], w1_chip[112];
 static const char *obcd_bin;
 
 static uint64_t now_ms(void)
@@ -174,18 +176,22 @@ int main(int argc, char **argv)
     snprintf(sock_path, sizeof(sock_path), "%s/ttec.sock", dir);
     snprintf(log_path, sizeof(log_path), "%s/obcd.jsonl", dir);
     snprintf(conf_path, sizeof(conf_path), "%s/obcd.conf", dir);
-    snprintf(w1_path, sizeof(w1_path), "%s/w1_slave", dir);
+    snprintf(w1_dir, sizeof(w1_dir), "%s/w1", dir);
+    snprintf(w1_chip, sizeof(w1_chip), "%s/28-0000075a5c7e", w1_dir);
+    snprintf(w1_path, sizeof(w1_path), "%s/w1_slave", w1_chip);
+    mkdir(w1_dir, 0755);
+    mkdir(w1_chip, 0755);
     snprintf(lease_path, sizeof(lease_path), "%s/obcd-i2c.lease", dir);
 
     FILE *cf = fopen(conf_path, "w");
     fprintf(cf,
             "# integration test: no OBC board; ttcd and the DS18B20 played by the test\n"
             "ipc_path = %s\nlog_path = %s\nretry_ms = 200\n"
-            "w1_path = %s\ntemp_period_ms = 800\ntemp_stale_ms = 2500\n"
+            "w1_path = auto\nw1_devices_dir = %s\ntemp_period_ms = 800\ntemp_stale_ms = 2500\n"
             "i2c_dev = %s/no-i2c\npower_period_ms = 500\ni2c_lease_path = %s\n"
             "gpio_chip = %s/no-gpiochip\nburnwire_line = 22\n"
             "burnwire_ms = 300\n",
-            sock_path, log_path, w1_path, dir, lease_path, dir);
+            sock_path, log_path, w1_dir, dir, lease_path, dir);
     fclose(cf);
     write_w1(8500, "YES");                               /* 8.5 degC: cold */
     write_lease(800);              /* as if an obcd had died during a lease */
@@ -233,6 +239,7 @@ int main(int argc, char **argv)
         CHECK_EQ_INT(count_in_log("\"which\":\"heater\",\"line\":null"), 1);
         CHECK_EQ_INT(count_in_log("\"event\":\"sensor\",\"which\":\"ina219\",\"ok\":false"), 1);
         CHECK_EQ_INT(count_in_log("\"event\":\"sensor\",\"which\":\"ds18b20\",\"ok\":true"), 1);
+        CHECK_EQ_INT(count_in_log("\"which\":\"ds18b20\",\"found\":1,\"path\":"), 1);   /* auto */
         /* 8.5 degC: the thermostat asks for heat, with no line to drive (D4). */
         CHECK_EQ_INT(count_in_log("\"event\":\"heater\",\"on\":true,\"why\":\"cold\""), 1);
     }
@@ -330,6 +337,8 @@ int main(int argc, char **argv)
     unlink(log_path);
     unlink(conf_path);
     unlink(w1_path);
+    rmdir(w1_chip);
+    rmdir(w1_dir);
     unlink(lease_path);
     rmdir(dir);
     TEST_SUMMARY("test_obcd_integration");

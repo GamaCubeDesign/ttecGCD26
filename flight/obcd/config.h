@@ -39,7 +39,9 @@ typedef struct {
     char     i2c_lease_path[256];   /* a lease's end, kept while the ESP32
                                        holds the bus; "" not kept              */
 
-    char     w1_path[256];          /* DS18B20's w1_slave file; "" none        */
+    char     w1_path[256];          /* DS18B20's w1_slave file; "auto" the one
+                                       in w1_devices_dir; "" none              */
+    char     w1_devices_dir[128];   /* the kernel's list of 1-Wire devices     */
     uint32_t temp_period_ms;        /* DS18B20 reading period, in its thread   */
 
     char     gpio_chip[64];

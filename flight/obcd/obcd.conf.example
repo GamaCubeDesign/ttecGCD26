@@ -43,11 +43,13 @@ power_period_ms   = 1000
 power_stale_ms    = 5000
 
 # DS18B20 on the upper battery, through the kernel's w1-gpio and w1_therm
-# (dtoverlay=w1-gpio,gpiopin=17 on the boards as fabricated; it needs the
-# pull-up of hardware finding A7). The file is
-# /sys/bus/w1/devices/28-<serial>/w1_slave. Empty: no sensor, the heaters
-# stay off.
+# (dtoverlay=w1-gpio,gpiopin=17 on both OBC boards; the fabricated one also
+# needs the pull-up of hardware finding A7). The file is
+# /sys/bus/w1/devices/28-<serial>/w1_slave; "auto" reads the one DS18B20
+# listed in w1_devices_dir (none, or more than one: no reading). Empty: no
+# sensor, the heaters stay off.
 w1_path        =
+w1_devices_dir = /sys/bus/w1/devices
 temp_period_ms = 2000          # a conversion takes ~750 ms
 
 # --- outputs (GPIO character device, ADR-0012) -------------------------------

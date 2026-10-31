@@ -1,7 +1,8 @@
 /*
  * obcd's drivers without the hardware: the INA219 against an emulated chip,
- * the DS18B20 against the text the kernel's w1_therm writes, and against a
- * fake w1_slave file (OBC-7, HLR-EPS-04).
+ * the DS18B20 against the text the kernel's w1_therm writes, against a
+ * fake w1_slave file, and against a fake list of 1-Wire devices (OBC-7,
+ * HLR-EPS-04).
  */
 
 #include "test_util.h"
@@ -10,6 +11,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 /* An INA219: its registers, and a bus that can be made to fail. */
@@ -141,6 +143,35 @@ int main(void)
         CHECK_EQ_INT(ds18b20_parse(cut, strlen(cut), &c), DS18B20_ERR_FORMAT);
         const char *junk = "72 01 : crc=57 YES\n72 01 t=12a\n";
         CHECK_EQ_INT(ds18b20_parse(junk, strlen(junk), &c), DS18B20_ERR_FORMAT);
+    }
+
+    TEST_GROUP("ds18b20: w1_path = auto finds the one DS18B20 the kernel lists, and only one");
+    {
+        char dir[] = "/tmp/w1-devices-XXXXXX";
+        CHECK(mkdtemp(dir) != NULL);
+        char sub[4][128], p[256], want[256];
+        const char *names[4] = { "w1_bus_master1",       /* always listed */
+                                 "10-000802b4c1a2",      /* a DS18S20: another family */
+                                 "28-0000075a5c7e", "28-0000075a9999" };
+        for (int i = 0; i < 4; i++) {
+            snprintf(sub[i], sizeof(sub[i]), "%s/%s", dir, names[i]);
+        }
+        mkdir(sub[0], 0755);
+        mkdir(sub[1], 0755);
+        CHECK_EQ_INT(ds18b20_find(dir, p, sizeof(p)), 0);
+        mkdir(sub[2], 0755);
+        CHECK_EQ_INT(ds18b20_find(dir, p, sizeof(p)), 1);
+        snprintf(want, sizeof(want), "%s/w1_slave", sub[2]);
+        CHECK_STR_EQ(p, want);
+        CHECK_EQ_INT(ds18b20_find(dir, p, 16), -1);                  /* does not fit */
+        mkdir(sub[3], 0755);
+        CHECK_EQ_INT(ds18b20_find(dir, p, sizeof(p)), 2);            /* which one? */
+        CHECK_EQ_INT(ds18b20_find("/nonexistent-w1-devices", p, sizeof(p)), -1);
+        CHECK_STR_EQ(ds18b20_result_name(DS18B20_ERR_AMBIGUOUS), "AMBIGUOUS");
+        for (int i = 3; i >= 0; i--) {
+            rmdir(sub[i]);
+        }
+        rmdir(dir);
     }
 
     TEST_GROUP("ds18b20: read from a w1_slave file, and a missing one is an I/O error");

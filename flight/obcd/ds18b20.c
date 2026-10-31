@@ -1,8 +1,10 @@
 #include "ds18b20.h"
 
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -79,6 +81,25 @@ ds18b20_result_t ds18b20_read_file(const char *path, int16_t *ccel)
     return ds18b20_parse(text, have, ccel);
 }
 
+int ds18b20_find(const char *dir, char *path, size_t cap)
+{
+    DIR *d = opendir(dir);
+    if (d == NULL) {
+        return -1;
+    }
+    int n = 0;
+    bool fits = false;
+    struct dirent *e;
+    while ((e = readdir(d)) != NULL) {
+        if (strncmp(e->d_name, "28-", 3) == 0 && ++n == 1) {
+            int w = snprintf(path, cap, "%s/%s/w1_slave", dir, e->d_name);
+            fits = w > 0 && (size_t)w < cap;
+        }
+    }
+    closedir(d);
+    return n == 1 && !fits ? -1 : n;
+}
+
 const char *ds18b20_result_name(ds18b20_result_t r)
 {
     switch (r) {
@@ -88,6 +109,8 @@ const char *ds18b20_result_name(ds18b20_result_t r)
     case DS18B20_ERR_POWER_ON: return "POWER_ON_VALUE";
     case DS18B20_ERR_RANGE:    return "RANGE";
     case DS18B20_ERR_IO:       return "IO";
+    case DS18B20_ERR_NOT_FOUND: return "NOT_FOUND";
+    case DS18B20_ERR_AMBIGUOUS: return "AMBIGUOUS";
     default:                   return "UNKNOWN";
     }
 }
