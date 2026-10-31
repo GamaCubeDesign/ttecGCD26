@@ -91,6 +91,12 @@ set_tests_properties(test_obcd_integration PROPERTIES TIMEOUT 60)
 # The chain end to end: SBS -> adsbd -> ttcd -> UDP radio -> ground. Also
 # shows the radio surviving the payload, and ttcd re-anchoring a restarted
 # adsbd.
+# The ground console: portable, but linked here with gs_console too.
+add_executable(test_gs_console test_gs_console.c)
+target_link_libraries(test_gs_console PRIVATE gs_console gama_common)
+target_include_directories(test_gs_console PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_gs_console COMMAND test_gs_console)
+
 add_executable(test_obcd_core test_obcd_core.c)
 target_link_libraries(test_obcd_core PRIVATE obcd_core)
 target_include_directories(test_obcd_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
