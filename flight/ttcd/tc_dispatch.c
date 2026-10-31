@@ -94,6 +94,11 @@ static tc_result_t do_set_time(ttcd_core_t *c, uint64_t now, const gama_frame_t 
     if (t.nsec >= 1000000000u) {
         return fail(GAMA_ACK_BAD_ARGS, "nsec out of range");
     }
+    if (t.unix_s < 1767225600u) {
+        /* Before 2026-01-01: a ground without a clock (all zeros), not a
+         * time. Anchoring it would date every onboard record 1970. */
+        return fail(GAMA_ACK_BAD_ARGS, "time before 2026");
+    }
     /* The ground stamped the time when it started transmitting. This frame
      * then spent its time on air reaching us, so that instant was earlier than
      * `now` by the frame's time on air. */

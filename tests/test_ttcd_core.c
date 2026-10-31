@@ -882,6 +882,17 @@ int main(void)
         uint8_t cmd, st; uint16_t echo;
         ack_of(find_tx(from, GAMA_FRAME_TC_ACK), &cmd, &st, &echo);
         CHECK_EQ_INT(st, GAMA_ACK_BAD_ARGS);
+
+        /* A ground with no clock sends zeros: refused, the anchor kept. */
+        uint64_t anchor = C.time_anchor_mono;
+        memset(args, 0, sizeof(args));
+        from = H.n_tx;
+        h_send_tc(&C, 52, GAMA_TC_SET_TIME, args, 8);
+        CHECK(step_to(&C, H.now + 1000));
+        ack_of(find_tx(from, GAMA_FRAME_TC_ACK), &cmd, &st, &echo);
+        CHECK_EQ_INT(st, GAMA_ACK_BAD_ARGS);
+        CHECK_EQ_INT(C.time_anchor_mono, anchor);
+        CHECK_EQ_INT(C.time_anchor_unix_s, 1789900000u);
     }
 
     TEST_GROUP("core: a peer that connects after SET_TIME is told the time at once");
