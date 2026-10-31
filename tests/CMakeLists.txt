@@ -108,6 +108,19 @@ target_link_libraries(test_obcd_config PRIVATE obcd_config)
 target_include_directories(test_obcd_config PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_obcd_config COMMAND test_obcd_config)
 
+# Every configuration file shipped, read by its own daemon: each daemon's
+# example, and the files of each board in flight/conf.
+foreach(d ttcd adsbd obcd)
+    add_test(NAME conf_${d}_example
+             COMMAND $<TARGET_FILE:${d}> -c ${CMAKE_SOURCE_DIR}/flight/${d}/${d}.conf.example
+                     --check-config)
+endforeach()
+foreach(d ttcd obcd)
+    add_test(NAME conf_obc_v2_${d}
+             COMMAND $<TARGET_FILE:${d}> -c ${CMAKE_SOURCE_DIR}/flight/conf/obc-v2/${d}.conf
+                     --check-config)
+endforeach()
+
 add_executable(test_adsb_chain test_adsb_chain.c)
 target_link_libraries(test_adsb_chain PRIVATE ttec_radio gama_common)
 target_include_directories(test_adsb_chain PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

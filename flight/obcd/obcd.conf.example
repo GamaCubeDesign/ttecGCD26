@@ -54,8 +54,9 @@ temp_period_ms = 2000          # a conversion takes ~750 ms
 
 # --- outputs (GPIO character device, ADR-0012) -------------------------------
 # On the boards as fabricated: burn-wire GPIO22, heaters GPIO23 — both behind
-# TIP120s whose base drive is too weak (findings A5, A6). The new OBC board
-# sets these; until then, "none" keeps them off, and the log says so.
+# TIP120s whose base drive is too weak (findings A5, A6). The new OBC
+# board's lines are in flight/conf/obc-v2/obcd.conf; here "none" keeps them
+# off, and the log says so.
 gpio_chip     = /dev/gpiochip0
 burnwire_line = none
 heater_line   = none

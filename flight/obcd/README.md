@@ -67,8 +67,8 @@ não reinicia junto), fica fora do barramento até o empréstimo acabar.
 Na placa como fabricada: burn-wire no GPIO22, aquecedores no GPIO23, DS18B20
 no GPIO17 (`dtoverlay=w1-gpio,gpiopin=17`), INA219 em `/dev/i2c-1`, endereço
 0x40. Os achados A5, A6 e A7 (`docs/relatorios/2026-10-22-validacao-obc.html`)
-dizem por que esses circuitos não funcionam como estão; os pinos da placa nova
-entram no `obcd.conf` quando ela existir.
+dizem por que esses circuitos não funcionam como estão. Os pinos da placa nova
+(`hardware/obc-v2`) estão em `flight/conf/obc-v2/obcd.conf`.
 
 ## Compilar e testar
 

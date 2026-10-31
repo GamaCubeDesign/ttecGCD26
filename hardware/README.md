@@ -64,7 +64,8 @@ Pinos da Pi nesta placa:
 | burn-wire, aquecedores (bases dos TIP120) | 22, 23 | 13, 11 |
 
 Com o DIO0 no GPIO4, que é o pino padrão do 1-Wire, o `config.txt` precisa
-de `dtoverlay=w1-gpio,gpiopin=17`.
+de `dtoverlay=w1-gpio,gpiopin=17`. A configuração do software para esta
+placa está em `flight/conf/obc-v2/`.
 
 ## `paineis/`
 

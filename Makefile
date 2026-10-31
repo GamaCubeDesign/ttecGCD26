@@ -250,18 +250,25 @@ provision: ## Once: build tools, SPI0 and I2C1 enabled, the gama user for the se
 
 # Each of ttcd, adsbd and obcd: /usr/local/bin/<d> -c /etc/gama/<d>.conf,
 # run by <d>.service. An existing file in /etc/gama is kept: it may hold this
-# board's own settings.
-install: build ## Install ttcd, adsbd and obcd, their systemd units and, if absent, their /etc/gama files
+# board's own settings. A new one comes from CONF_DIR when the board has one
+# there (CONF_DIR=flight/conf/obc-v2), from the daemon's example otherwise.
+CONF_DIR    ?=
+need-conf-dir = $(if $(CONF_DIR),$(if $(wildcard $(CONF_DIR)/*.conf),,$(error CONF_DIR=$(CONF_DIR) has no .conf file)))
+
+install: build ## Install the daemons, their units and, if absent, /etc/gama files (CONF_DIR=flight/conf/obc-v2)
 	$(need-pi)
+	$(need-conf-dir)
 	for d in ttcd adsbd obcd; do \
 	    $(SUDO) install -m 0755 $(BUILD_DIR)/flight/$$d /usr/local/bin/$$d && \
 	    $(SUDO) install -m 0644 flight/$$d/$$d.service /etc/systemd/system/$$d.service; \
 	done
 	for d in ttcd adsbd obcd; do \
+	    src=flight/$$d/$$d.conf.example; \
+	    if [ -n "$(CONF_DIR)" ] && [ -e "$(CONF_DIR)/$$d.conf" ]; then src=$(CONF_DIR)/$$d.conf; fi; \
 	    if [ -e /etc/gama/$$d.conf ]; then \
-	        echo "kept /etc/gama/$$d.conf; compare it with flight/$$d/$$d.conf.example"; \
+	        echo "kept /etc/gama/$$d.conf; compare it with $$src"; \
 	    else \
-	        $(SUDO) install -D -m 0644 flight/$$d/$$d.conf.example /etc/gama/$$d.conf; \
+	        $(SUDO) install -D -m 0644 $$src /etc/gama/$$d.conf && echo "installed /etc/gama/$$d.conf from $$src"; \
 	    fi; \
 	done
 	$(SUDO) systemctl daemon-reload
