@@ -248,7 +248,8 @@ int main(void)
             int n = frame == 0 ? 20 : 10;
             for (int i = 0; i < n; i++) {
                 gama_roster_t r = { .icao = 0x200000u + (uint32_t)(frame * 20 + i) };
-                snprintf(r.callsign, sizeof(r.callsign), "GLO%04d", frame * 20 + i);
+                /* % 10000: four digits, which GCC 14 can prove fit the callsign */
+                snprintf(r.callsign, sizeof(r.callsign), "GLO%04d", (frame * 20 + i) % 10000);
                 gama_roster_encode(p + (size_t)i * GAMA_ROSTER_WIRE_LEN, GAMA_ROSTER_WIRE_LEN, &r);
             }
             ipc_from(GAMA_IPC_ROLE_ADSBD, GAMA_FRAME_IPC_ROSTER, p,
