@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TT&amp;C GCD26 — O OBC fala com o AOCS, a ground vai para a ESP32 (31/10/2026)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+<style>
+/* Acréscimos deste relatório; o bloco acima é o mesmo dos relatórios. */
+.callout.ok{border-color:var(--ok);background:var(--ok-soft)}
+.diagram .lane{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+.diagram .lane.on{stroke:var(--ok);stroke-width:2}
+.diagram .lane.off{fill:none;stroke-dasharray:5 4}
+.diagram .lane.master{fill:var(--node-hw)}
+.diagram .tick{stroke:var(--line-strong);stroke-width:1;stroke-dasharray:3 3}
+th[colspan]{background:var(--surface-2);font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#entrou">O que entrou nesta sessão</a></li>
+    <li><a href="#sistema">O sistema hoje</a></li>
+    <li><a href="#componentes">Estado por componente</a></li>
+    <li><a href="#verificacao">Verificação</a></li>
+    <li><a href="#aocs">O I²C emprestado ao AOCS</a></li>
+    <li><a href="#esp32">A ground na ESP32</a></li>
+    <li><a href="#placa">A placa nova do OBC</a></li>
+    <li><a href="#decisoes">Decisões registradas</a></li>
+    <li><a href="#requisitos">Requisitos</a></li>
+    <li><a href="#falta">O que falta</a></li>
+    <li><a href="#riscos">Riscos abertos</a></li>
+    <li><a href="#lacunas">Lacunas e inconsistências</a></li>
+    <li><a href="#qa">Perguntas e respostas</a></li>
+    <li><a href="#reproduzir">Como reproduzir</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header class="doc">
+  <p class="eyebrow">Gama Cube Design · CubeDesign 2026 · TT&amp;C e OBC</p>
+  <h1>O OBC fala com o AOCS, a ground vai para a ESP32</h1>
+  <p class="lede">Relatório de estado da sessão de 31 de outubro. Cobre o contrato I²C com o AOCS e o lado do OBC, a ground station na ESP32, a placa nova do OBC e sua configuração, o roteiro da bancada de novembro e a CI. Fecha com o estado do projeto inteiro antes da bancada.</p>
+  <div class="meta">
+    <span>Data: <b>31/10/2026</b></span>
+    <span>Branch: <b><code>feat/novo_protocolo</code></b></span>
+    <span>Commit: <b><code>3927fb0</code></b></span>
+    <span>Commits só locais: <b>32</b></span>
+    <span>Bancada: <b>semana de 02/11</b></span>
+    <span>Teste na UNSAM: <b>24/11/2026</b> (24 dias)</span>
+  </div>
+</header>
+
+<div class="callout" style="margin-top:18px">
+  <p><b>Base deste relatório.</b> Tudo foi conferido contra o commit <code>3927fb0</code>, numa cópia limpa:</p>
+  <ul>
+    <li>os dois builds e a suíte inteira;</li>
+    <li>o <code>make check</code> num contêiner Debian 13, com o GCC 14 da Pi;</li>
+    <li>as suítes portáveis numa ESP32 emulada (QEMU);</li>
+    <li>os seis passos da bancada no rádio UDP, comparados com a execução de 22/09;</li>
+    <li>os scripts de orçamento e de requisitos.</li>
+  </ul>
+  <p>O <a href="2026-10-22-validacao-obc.html">relatório de 22/10</a> continua sendo a lista dos defeitos das placas, e a <a href="2026-10-24-proposta-i2c-ina219-obc.html">proposta de 24/10</a> foi respondida: o INA219 fica no I²C dividido. <b>Nada desta sessão rodou em hardware.</b> O último hardware ligado foi a bancada de 09/10.</p>
+</div>
+
+<h2 id="resumo"><span class="n">1</span>Resumo</h2>
+
+<ul>
+  <li><b>O contrato I²C com o AOCS existe, em rascunho</b> (<code>docs/icd/obc-aocs-i2c.md</code>, ADR-0017). São dois frames fixos: um COMMAND de 16 bytes da Pi e um STATUS de 20 bytes do ESP32, ambos com CRC. O barramento é emprestado ao ESP32 por um tempo contado do fim do START. O documento está pronto para ir à equipe do AOCS, que ainda não respondeu: endereço, duração da tarefa e o que o resultado leva (§6).</li>
+  <li><b>O OBC já fala o lado dele.</b> O <code>obcd</code> manda o START ao entrar em <code>ADVANCED_AOCS</code> e não toca o barramento até o fim do empréstimo. Um teste em tempo virtual prova esse silêncio em todos os desfechos. Sem ESP32, o modo termina na hora; com ele, dura o empréstimo, e a atitude do resultado vai no HK.</li>
+  <li><b>A ground das provas está na ESP32</b> (ADR-0018). O console da <code>gs_cli</code> virou uma biblioteca portátil, <code>ground/console</code>, que roda igual no PC e na placa. A ponte <code>gs_serial.py</code> faz a ESP32 parecer a <code>gs_cli</code>, então todos os passos da bancada aceitam <code>GS=esp32</code>. O firmware tem 228 KiB e zero avisos, e as 11 suítes portáveis passam numa ESP32 emulada.</li>
+  <li><b>A placa nova do OBC está no repositório</b> (<code>hardware/obc-v2</code>), com a configuração de voo em <code>flight/conf/obc-v2</code>. Ela corrige A1, A2, A3 e A7, mas não A5/A6: os resistores de base dos TIP120 continuam de 4,7 kΩ.</li>
+  <li><b>A bancada da semana que vem tem roteiro</b> (<code>docs/vv/bancada/roteiro-2026-11.md</code>): oito etapas, com os comandos prontos. Um <code>make check</code> com o GCC 14 da Pi achou um aviso que derrubaria a primeira delas; já foi corrigido.</li>
+  <li><b>Os testes passaram de 27 para 37 suítes</b>: 4033 verificações em C e 58 testes em Python. Zero avisos, limpos sob ASan, UBSan e, na integração do <code>obcd</code>, ThreadSanitizer.</li>
+  <li><b>Nada disso está no GitHub.</b> São 32 commits só locais, os 12 de 24/10 incluídos. A CI nova só roda depois do push.</li>
+</ul>
+
+<div class="tiles">
+  <div class="tile"><div class="v">20</div><div class="l">commits nesta sessão: +5551 −684 linhas, fora as 13 001 do KiCad da placa nova</div></div>
+  <div class="tile"><div class="v">37</div><div class="l">suítes no CTest, eram 27 em 24/10: 4033 verificações em C (+222) e 58 testes em Python</div></div>
+  <div class="tile"><div class="v">0</div><div class="l">transações da Pi no barramento entre t0+100 ms e o fim do empréstimo, em todo cenário do teste em que o barramento é emprestado</div></div>
+  <div class="tile"><div class="v">11 de 11</div><div class="l">suítes portáveis passando na ESP32 emulada, com as mesmas 2891 verificações do PC (TTC-16)</div></div>
+  <div class="tile"><div class="v">1</div><div class="l">aviso que só o GCC 14 da Pi dá, achado no contêiner Debian e corrigido antes da bancada</div></div>
+  <div class="tile"><div class="v">32</div><div class="l">commits só nesta máquina: o remoto parou em <code>88151a6</code></div></div>
+</div>
+
+<h2 id="entrou"><span class="n">2</span>O que entrou nesta sessão</h2>
+
+<p>20 commits em 31/10, na ordem em que entraram, agrupados pelo assunto. Cada commit de código foi conferido sozinho: o estado intermediário compila e passa os testes. Antes deles, os 12 commits de 24/10 trouxeram o protocolo v2, o TT&amp;C dirigido pelo modo, 433,92 MHz e 14 dBm, e o <code>obcd</code>. Esses também ainda não estão no remoto.</p>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Commit</th><th>Hora</th><th class="r">Linhas</th><th>O que é</th></tr></thead>
+  <tbody>
+    <tr><th colspan="4">O contrato I²C com o AOCS</th></tr>
+    <tr><td><code>fc52241</code></td><td class="nw">16:33</td><td class="r nw">+398 −0</td><td>feat(common): codec dos frames I²C entre o OBC e o AOCS (rascunho v1)</td></tr>
+    <tr><td><code>88bc6b0</code></td><td class="nw">16:33</td><td class="r nw">+325 −10</td><td>docs(icd): contrato I²C com o AOCS (rascunho) e ADR-0017</td></tr>
+    <tr><th colspan="4">A ground, antes da ESP32: rede de segurança, LBT no driver, console portátil, SET_TIME</th></tr>
+    <tr><td><code>96dc5ba</code></td><td class="nw">16:34</td><td class="r nw">+84 −0</td><td>test: um passo real da bancada no rádio UDP, com o JSON da ground conferido</td></tr>
+    <tr><td><code>cf51798</code></td><td class="nw">16:44</td><td class="r nw">+42 −10</td><td>feat(radio): o listen-before-talk entra no driver do SX1278</td></tr>
+    <tr><td><code>0be41f2</code></td><td class="nw">16:44</td><td class="r nw">+1319 −448</td><td>feat(ground): console portátil da ground station; a gs_cli vira casca</td></tr>
+    <tr><td><code>69f48d7</code></td><td class="nw">16:45</td><td class="r nw">+16 −0</td><td>fix(ttcd): SET_TIME anterior a 2026 é recusado com BAD_ARGS</td></tr>
+    <tr><th colspan="4">A ground na ESP32</th></tr>
+    <tr><td><code>b9d81ba</code></td><td class="nw">16:48</td><td class="r nw">+493 −12</td><td>feat(ground): firmware da ground station na ESP32 (ESP-IDF)</td></tr>
+    <tr><td><code>db4b9f2</code></td><td class="nw">16:58</td><td class="r nw">+151 −16</td><td>test(esp32): as suítes portáveis rodam na ESP32 — no QEMU e na placa (TTC-16)</td></tr>
+    <tr><td><code>fc61f0b</code></td><td class="nw">16:58</td><td class="r nw">+403 −1</td><td>feat(ground): ponte serial que faz a ESP32 parecer a gs_cli</td></tr>
+    <tr><td><code>62833c2</code></td><td class="nw">17:00</td><td class="r nw">+240 −14</td><td>docs(adr): ADR-0018, a ground station na ESP32</td></tr>
+    <tr><th colspan="4">O <code>obcd</code> e o AOCS</th></tr>
+    <tr><td><code>fcc676b</code></td><td class="nw">17:02</td><td class="r nw">+565 −1</td><td>feat(obcd): escalonador do I²C dividido com o AOCS, puro e testado</td></tr>
+    <tr><td><code>e736f7e</code></td><td class="nw">17:24</td><td class="r nw">+332 −27</td><td>feat(obcd): o núcleo conduz o ADVANCED_AOCS pelo empréstimo do I²C</td></tr>
+    <tr><td><code>8af97ef</code></td><td class="nw">17:25</td><td class="r nw">+547 −87</td><td>feat(obcd): a thread dona do I²C fala com o ESP32 e guarda o empréstimo</td></tr>
+    <tr><th colspan="4">A placa nova do OBC e a configuração de voo</th></tr>
+    <tr><td><code>99adcf1</code></td><td class="nw">17:27</td><td class="r nw">+0 −0 (+12 999 do KiCad)</td><td>feat(hardware): a placa nova do OBC em hardware/obc-v2</td></tr>
+    <tr><td><code>2985a43</code></td><td class="nw">17:35</td><td class="r nw">+140 −15</td><td>feat(obcd): w1_path = auto acha o DS18B20 pela lista do kernel</td></tr>
+    <tr><td><code>510b726</code></td><td class="nw">17:36</td><td class="r nw">+111 −8 (+2 do KiCad)</td><td>feat(conf): a configuração de voo da placa nova do OBC</td></tr>
+    <tr><th colspan="4">Bancada, CI e documentação</th></tr>
+    <tr><td><code>2dc04e7</code></td><td class="nw">17:46</td><td class="r nw">+274 −2</td><td>docs(vv): roteiro da bancada de novembro</td></tr>
+    <tr><td><code>1677792</code></td><td class="nw">17:46</td><td class="r nw">+46 −27</td><td>ai: atualiza o AGENTS.md com o estado de 31/10</td></tr>
+    <tr><td><code>ae15187</code></td><td class="nw">18:19</td><td class="r nw">+2 −1</td><td>test(ttcd): o callsign do teste de REQ_ROSTER cabe também para o GCC 14</td></tr>
+    <tr><td><code>3927fb0</code></td><td class="nw">18:19</td><td class="r nw">+63 −5</td><td>ci: make check no Debian 13 a cada push, e make check-debian</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="sistema"><span class="n">3</span>O sistema hoje</h2>
+
+<p>São três processos na Pi, ligados pelo <code>ttcd</code>; o <code>obcd</code> agora também fala com o AOCS. Do outro lado do rádio, a mesma ground roda na bancada (<code>gs_cli</code>) e na ESP32.</p>
+
+<figure>
+  <div class="frame">
+<svg class="diagram" viewBox="0 0 980 500" role="img" aria-labelledby="f1t f1d">
+  <title id="f1t">Arquitetura em 31/10</title>
+  <desc id="f1d">Na Pi: o SDR alimenta o dump1090-fa, filho do adsbd, que grava o registro de bordo e troca retratos com o ttcd; o ttcd fala com o rádio e com o obcd; o obcd lê o INA219 no I²C que divide com o ESP32 do AOCS, o DS18B20 por 1-Wire e aciona burn-wire e aquecedores por GPIO. Na ground: o rádio serve a gs_cli de bancada ou a ESP32, que fala com a ponte gs_serial pela USB; os dois entregam JSON ao adaptador e ao estimador. Embaixo, a biblioteca common.</desc>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="ahrf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah-rf" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <rect class="zone" x="10" y="12" width="590" height="408" rx="14"/>
+  <text class="zone-label" x="26" y="36">CUBESAT · RASPBERRY PI ZERO 2 W</text>
+  <rect class="zone" x="690" y="12" width="280" height="408" rx="14"/>
+  <text class="zone-label" x="706" y="36">GROUND STATION</text>
+
+  <rect class="box hw" x="26" y="58" width="156" height="58" rx="8"/>
+  <text class="t-b" x="104" y="82" text-anchor="middle">NESDR Nano 3</text>
+  <text class="t-s" x="104" y="101" text-anchor="middle">1090 MHz</text>
+  <rect class="box ext" x="226" y="58" width="156" height="58" rx="8"/>
+  <text class="t-b" x="304" y="82" text-anchor="middle">dump1090-fa</text>
+  <text class="t-s" x="304" y="101" text-anchor="middle">filho do adsbd</text>
+  <rect class="box hw" x="426" y="58" width="156" height="58" rx="8"/>
+  <text class="t-b" x="504" y="82" text-anchor="middle">SX1278 / RA-02</text>
+  <text class="t-s" x="504" y="101" text-anchor="middle">433,92 MHz · 14 dBm</text>
+
+  <rect class="box hw" x="26" y="188" width="156" height="58" rx="8"/>
+  <text class="t-b" x="104" y="212" text-anchor="middle">adsb.ndjson</text>
+  <text class="t-s" x="104" y="231" text-anchor="middle">registro de bordo</text>
+  <rect class="box done" x="226" y="188" width="156" height="58" rx="8"/>
+  <text class="t-b" x="304" y="212" text-anchor="middle">adsbd</text>
+  <text class="t-s" x="304" y="231" text-anchor="middle">dirigido pelo modo</text>
+  <rect class="box done" x="426" y="188" width="156" height="58" rx="8"/>
+  <text class="t-b" x="504" y="212" text-anchor="middle">ttcd</text>
+  <text class="t-s" x="504" y="231" text-anchor="middle">o hub · protocolo v2</text>
+
+  <rect class="box ext" x="26" y="318" width="156" height="58" rx="8"/>
+  <text class="t-b" x="104" y="342" text-anchor="middle">ESP32 do AOCS</text>
+  <text class="t-s" x="104" y="361" text-anchor="middle">outra equipe · 0x2A</text>
+  <rect class="box hw" x="226" y="318" width="156" height="58" rx="8"/>
+  <text class="t-b" x="304" y="342" text-anchor="middle">INA219</text>
+  <text class="t-s" x="304" y="361" text-anchor="middle">0x40 · V e I</text>
+  <rect class="box done" x="426" y="318" width="156" height="58" rx="8"/>
+  <text class="t-b" x="504" y="342" text-anchor="middle">obcd</text>
+  <text class="t-s" x="504" y="361" text-anchor="middle">modos · AOCS · sensores</text>
+  <text class="t-e" x="504" y="394" text-anchor="middle">DS18B20: 1-Wire</text>
+  <text class="t-e" x="504" y="409" text-anchor="middle">burn-wire, aquecedores: GPIO</text>
+
+  <line class="edge" x1="182" y1="87" x2="224" y2="87" marker-end="url(#ah)"/>
+  <text class="t-e" x="203" y="79" text-anchor="middle">USB</text>
+  <line class="edge" x1="304" y1="116" x2="304" y2="186" marker-end="url(#ah)"/>
+  <text class="t-e" x="296" y="156" text-anchor="end">TCP :30003 · SBS-1</text>
+  <line class="edge" x1="226" y1="217" x2="184" y2="217" marker-end="url(#ah)"/>
+  <text class="t-e" x="205" y="209" text-anchor="middle">grava</text>
+  <line class="edge" x1="384" y1="217" x2="424" y2="217" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text class="t-e" x="404" y="209" text-anchor="middle">IPC</text>
+  <line class="edge" x1="504" y1="186" x2="504" y2="118" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text class="t-e" x="512" y="156">SPI + DIO0</text>
+  <line class="edge" x1="504" y1="248" x2="504" y2="316" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text class="t-e" x="512" y="286">IPC</text>
+  <line class="edge" x1="424" y1="347" x2="384" y2="347" marker-end="url(#ah)"/>
+  <text class="t-e" x="404" y="339" text-anchor="middle">I²C1</text>
+  <line class="edge" x1="224" y1="347" x2="184" y2="347" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text class="t-e" x="205" y="300" text-anchor="middle">o mesmo</text>
+  <text class="t-e" x="205" y="314" text-anchor="middle">barramento</text>
+
+  <line class="edge rf" x1="584" y1="87" x2="714" y2="87" marker-start="url(#ahrf)" marker-end="url(#ahrf)"/>
+  <text class="t-e" x="645" y="78" text-anchor="middle">LoRa</text>
+  <text class="t-e" x="645" y="106" text-anchor="middle">433,92 MHz</text>
+
+  <rect class="box hw" x="706" y="58" width="248" height="48" rx="8"/>
+  <text class="t-b" x="830" y="78" text-anchor="middle">SX1278 / RA-02</text>
+  <text class="t-s" x="830" y="96" text-anchor="middle">o segundo módulo</text>
+  <rect class="box done" x="706" y="140" width="118" height="52" rx="8"/>
+  <text class="t-b" x="765" y="162" text-anchor="middle">gs_cli</text>
+  <text class="t-s" x="765" y="180" text-anchor="middle">bancada, na Pi</text>
+  <rect class="box done" x="836" y="140" width="118" height="52" rx="8"/>
+  <text class="t-b" x="895" y="162" text-anchor="middle">ESP32</text>
+  <text class="t-s" x="895" y="180" text-anchor="middle">a ground das provas</text>
+  <line class="edge" x1="765" y1="106" x2="765" y2="138" marker-end="url(#ah)"/>
+  <line class="edge" x1="895" y1="106" x2="895" y2="138" marker-end="url(#ah)"/>
+  <text class="t-e" x="830" y="127" text-anchor="middle">SPI</text>
+
+  <rect class="box done" x="836" y="226" width="118" height="52" rx="8"/>
+  <text class="t-b" x="895" y="248" text-anchor="middle">gs_serial.py</text>
+  <text class="t-s" x="895" y="266" text-anchor="middle">a ponte, no PC</text>
+  <line class="edge" x1="895" y1="192" x2="895" y2="224" marker-start="url(#ah)" marker-end="url(#ah)"/>
+  <text class="t-e" x="887" y="213" text-anchor="end">USB</text>
+
+  <rect class="box done" x="706" y="306" width="248" height="46" rx="8"/>
+  <text class="t-b" x="830" y="326" text-anchor="middle">adaptador</text>
+  <text class="t-s" x="830" y="343" text-anchor="middle">tracks_to_ndjson.py</text>
+  <line class="edge" x1="765" y1="192" x2="765" y2="304" marker-end="url(#ah)"/>
+  <text class="t-e" x="757" y="252" text-anchor="end">JSON</text>
+  <line class="edge" x1="895" y1="278" x2="895" y2="304" marker-end="url(#ah)"/>
+
+  <rect class="box done" x="706" y="368" width="248" height="40" rx="8"/>
+  <text class="t-b" x="830" y="393" text-anchor="middle">estimador e painel</text>
+  <line class="edge" x1="830" y1="352" x2="830" y2="366" marker-end="url(#ah)"/>
+
+  <rect class="box done" x="10" y="432" width="960" height="58" rx="12"/>
+  <text class="t-b" x="490" y="456" text-anchor="middle">common/ — codec, perfis LoRa, IPC, lado da ground do protocolo e, agora, os frames do AOCS</text>
+  <text class="t-s" x="490" y="476" text-anchor="middle">os mesmos arquivos .c no ttcd, no adsbd, no obcd, na gs_cli e no firmware da ESP32</text>
+</svg>
+  </div>
+  <div class="legend">
+    <span><i class="sw done"></i>pronto em software</span>
+    <span><i class="sw ext"></i>terceiros ou outra equipe</span>
+    <span><i class="sw hw"></i>hardware ou armazenamento</span>
+  </div>
+  <figcaption>Figura 1 — O <code>obcd</code> divide o I²C1 com o ESP32 do AOCS (seção 6); a ESP32 da ground e a <code>gs_cli</code> rodam o mesmo console. Nenhuma caixa verde rodou em hardware desde 09/10; o <code>obcd</code> e a ESP32 nunca rodaram.</figcaption>
+</figure>
+
+<h2 id="componentes"><span class="n">4</span>Estado por componente</h2>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Componente</th><th>Onde</th><th>Estado</th><th>Nesta sessão</th></tr></thead>
+  <tbody>
+    <tr><td>Codec compartilhado</td><td><code>common/</code></td><td><span class="badge b-ok">pronto</span></td><td>ganhou <code>gama_aocs</code>, os frames I²C do AOCS, e uma lista única de fontes (<code>sources.cmake</code>) para a Pi, o PC e a ESP32</td></tr>
+    <tr><td>Daemon de telecom</td><td><code>flight/ttcd/</code></td><td><span class="badge b-ok">pronto</span> <span class="badge b-warn">falta bancada</span></td><td>recusa <code>SET_TIME</code> anterior a 2026 (era a âncora em 1970 de uma ground sem relógio)</td></tr>
+    <tr><td>Driver do rádio</td><td><code>flight/radio/</code></td><td><span class="badge b-ok">pronto</span> <span class="badge b-warn">falta 433,92 MHz na bancada</span></td><td>o listen-before-talk entrou no driver (<code>sx1278_try_transmit</code>), para a Pi e a ESP32 usarem o mesmo</td></tr>
+    <tr><td>Daemon do payload</td><td><code>flight/adsbd/</code></td><td><span class="badge b-ok">pronto</span> <span class="badge b-warn">falta bancada pelo modo</span></td><td>sem mudança</td></tr>
+    <tr><td><b>Daemon do OBC</b></td><td><code>flight/obcd/</code></td><td><span class="badge b-ok">pronto</span> <span class="badge b-bad">nunca rodou na Pi</span></td><td>o <code>ADVANCED_AOCS</code> de verdade: escalonador do I²C, thread dona do barramento, empréstimo guardado no cartão, <code>w1_path = auto</code></td></tr>
+    <tr><td><b>Console da ground</b></td><td><code>ground/console/</code></td><td><span class="badge b-ok">pronto</span></td><td>novo: tudo o que era C puro da <code>gs_cli</code>, portátil; a <code>gs_cli</code> virou casca de 241 linhas</td></tr>
+    <tr><td><b>Firmware da ground</b></td><td><code>ground/esp32/</code></td><td><span class="badge b-ok">compila</span> <span class="badge b-bad">nunca rodou na placa</span></td><td>novo: ESP-IDF 5.3 no Docker, RA-02 no VSPI, 228 KiB, 78% da partição livre</td></tr>
+    <tr><td><b>Ponte serial</b></td><td><code>ground/host/gs_serial.py</code></td><td><span class="badge b-ok">pronto</span></td><td>novo: reset pela linha RTS, relógio do PC, um comando por eco; testado contra uma ESP32 falsa num pseudo-terminal</td></tr>
+    <tr><td>Estimador e adaptador</td><td><code>ground/host/</code></td><td><span class="badge b-ok">pronto</span></td><td>sem mudança</td></tr>
+    <tr><td><b>Placa nova do OBC</b></td><td><code>hardware/obc-v2</code>, <code>flight/conf/obc-v2</code></td><td><span class="badge b-warn">KiCad, não fabricada</span></td><td>nova: fontes, tabela de pinos conferida no netlist, <code>ttcd.conf</code>, <code>obcd.conf</code> e as linhas do <code>config.txt</code></td></tr>
+    <tr><td>Contrato com o AOCS</td><td><code>docs/icd/obc-aocs-i2c.md</code></td><td><span class="badge b-warn">rascunho</span></td><td>novo; espera a resposta da equipe do AOCS</td></tr>
+    <tr><td>Bancada e CI</td><td><code>docs/vv/bancada/</code>, <code>.github/</code></td><td><span class="badge b-ok">roteiro pronto</span> <span class="badge b-todo">CI após o push</span></td><td>roteiro das etapas 8 a 15; <code>make check</code> no Debian 13 a cada push e local (<code>make check-debian</code>)</td></tr>
+    <tr><td>ICDs OBC↔TT&amp;C e do enlace</td><td><code>docs/icd/</code></td><td><span class="badge b-bad">não escritos</span></td><td>sem mudança</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="verificacao"><span class="n">5</span>Verificação</h2>
+
+<h3>5.1 As 37 suítes</h3>
+<p>Build do zero da cópia limpa: 61 arquivos C, 0 avisos sem sanitizers e 0 com ASan e UBSan, com <code>-Werror</code>. 37 de 37 passam nos dois builds, em 47 s. São 27 suítes em C, 3 delas novas (<code>test_aocs_codec</code>, <code>test_gs_console</code>, <code>test_obcd_i2c_sched</code>), mais 5 que leem cada arquivo de configuração pelo próprio daemon, 3 em Python e 2 que conferem documentos.</p>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Área</th><th>Suítes e verificações</th><th>O que mudou nesta sessão</th></tr></thead>
+  <tbody>
+    <tr><td>Codec</td><td><code>test_crc16</code> 260, <code>test_frame</code> 58, <code>test_tm</code> 1325, <code>test_tc</code> 51, <code>test_vectors</code> 70, <code>test_lora</code> 832, <code>test_ipc_codec</code> 65, <code>test_gs_link</code> 39, <b><code>test_aocs_codec</code> 34</b></td><td>os frames do AOCS, com os bytes conferidos por uma implementação independente do CRC (Python, <code>binascii.crc_hqx</code>)</td></tr>
+    <tr><td><code>ttcd</code> e enlace</td><td><code>test_ttcd_core</code> 294, <code>test_link_sim</code> 63, <code>test_config</code> 45, <code>test_libipc</code> 36, <code>test_ttcd_integration</code> 29</td><td><code>SET_TIME</code> antes de 2026 recusado</td></tr>
+    <tr><td>Rádio</td><td><code>test_sx1278</code> 102</td><td>o LBT do driver: canal ocupado, livre e erro</td></tr>
+    <tr><td><code>adsbd</code></td><td><code>test_sbs</code> 64, <code>test_tracks</code> 51, <code>test_adsbd_core</code> 86, <code>test_adsbd_config</code> 35, <code>test_adsbd_integration</code> 62</td><td>—</td></tr>
+    <tr><td><code>obcd</code></td><td><code>test_obcd_core</code> 135, <b><code>test_obcd_i2c_sched</code> 38</b>, <code>test_obcd_drivers</code> 45, <code>test_obcd_config</code> 51, <code>test_obcd_integration</code> 49</td><td>o empréstimo em tempo virtual, o <code>ADVANCED_AOCS</code> no núcleo, o DS18B20 achado sozinho, o binário com um empréstimo deixado em disco</td></tr>
+    <tr><td>Ground</td><td><b><code>test_gs_console</code> 55</b>, <code>gs_serial</code> (2 testes Python), <code>bench_step_udp</code></td><td>novas: as linhas exatas do console; a ponte contra uma ESP32 falsa; um passo real da bancada no rádio UDP, com o JSON da ground conferido linha a linha</td></tr>
+    <tr><td>Cadeia</td><td><code>test_adsb_chain</code> 59</td><td>—</td></tr>
+    <tr><td>Configuração</td><td><code>conf_ttcd_example</code>, <code>conf_adsbd_example</code>, <code>conf_obcd_example</code>, <code>conf_obc_v2_ttcd</code>, <code>conf_obc_v2_obcd</code></td><td>novas: cada <code>.conf</code> do repositório lido pelo daemon com <code>--check-config</code></td></tr>
+    <tr><td>Python e documentos</td><td><code>ground_aeronaves</code> (49), <code>tracks_to_ndjson</code> (7), <code>budget_matches_adrs</code>; e fora do CTest, as citações: 71 de 71</td><td>—</td></tr>
+  </tbody>
+</table></div>
+
+<h3>5.2 Outros compiladores e outro alvo</h3>
+<ul>
+  <li><b>O GCC 14 da Pi, sem a Pi.</b> O <code>make check</code> rodou num contêiner Debian 13 (GCC 14.2.0). O build de sanitizers parou num <code>-Wformat-truncation</code> em <code>tests/test_ttcd_core.c</code>. O aviso existe desde o protocolo v2, de 24/10, e o GCC 16 deste PC não o dá. Com <code>-Werror</code>, ele derrubaria o <code>make pi-check</code> da etapa 8 da bancada. Corrigido; depois disso, 37 de 37 nos dois builds e 71 citações. É o que a CI e o <code>make check-debian</code> rodam agora.</li>
+  <li><b>A ESP32 emulada.</b> 11 suítes no QEMU, 0 falhas, 2891 verificações. Cada suíte contou o mesmo número de verificações que no PC: <code>test_crc16</code>, <code>test_frame</code>, <code>test_tm</code>, <code>test_tc</code>, <code>test_vectors</code>, <code>test_lora</code>, <code>test_ipc_codec</code>, <code>test_gs_link</code>, <code>test_aocs_codec</code>, <code>test_sx1278</code>, <code>test_gs_console</code>. É a metade do TTC-16 que dá para fazer sem a placa.</li>
+  <li><b>ThreadSanitizer</b> na integração do <code>obcd</code>, com o binário filho incluído: nenhum relato. É o primeiro processo do projeto com threads (a do I²C e a do DS18B20).</li>
+  <li><b>O firmware da ground</b> compila com os avisos do projeto: 0 avisos.</li>
+</ul>
+
+<h3>5.3 A bancada no rádio UDP, contra 22/09</h3>
+<p>Os seis passos da bancada rodaram no rádio UDP com o protocolo v2 e o console novo, e foram comparados com a execução de 22/09, de antes das duas mudanças. O resultado é o mesmo em todos. O rádio UDP não diz nada sobre o hardware; prova que os roteiros da bancada continuam funcionando.</p>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Passo</th><th>22/09 (protocolo v1)</th><th>31/10 (protocolo v2)</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">1 · ping</td><td>10/10 · 11 tent. · 11 frames, 0 perdidos</td><td>10/10 · 11 tent. · 11 frames, 0 perdidos</td></tr>
+    <tr><td class="nw">2 · tempo no ar</td><td>pior erro 1,9%</td><td>pior erro 0,5%</td></tr>
+    <tr><td class="nw">3 · taxa de erro</td><td>2200/2200 · 2259 tent. · 2279 frames, 0 perdidos</td><td>2200/2200 · 2259 tent. · 2279 frames, 0 perdidos</td></tr>
+    <tr><td class="nw">4 · troca de taxa</td><td>3/3 · 4 tent. · 21 frames, 0 perdidos</td><td>3/3 · 4 tent. · 22 frames, 0 perdidos</td></tr>
+    <tr><td class="nw">5 · ACK perdido</td><td>3/3 · 3 tent. · 5 frames, 0 perdidos</td><td>3/3 · 3 tent. · 5 frames, 0 perdidos</td></tr>
+    <tr><td class="nw">6 · LBT, cabeçalho</td><td>400/400 · 599 tent. · 606 frames, 0 perdidos</td><td>400/400 · 599 tent. · 606 frames, 0 perdidos</td></tr>
+    <tr><td class="nw">6 · LBT, preâmbulo</td><td>400/400 · 599 tent. · 606 frames, 0 perdidos</td><td>400/400 · 599 tent. · 606 frames, 0 perdidos</td></tr>
+  </tbody>
+</table></div>
+<p class="small">No passo 6 são 599 tentativas para 400 PINGs nas duas datas. O rádio UDP não simula a escuta do canal (<code>lbt_defers</code> fica em 0), então a ground colide com o HK de 1 s que o passo pede. No hardware, em 09/10, o LBT funcionou.</p>
+
+<h2 id="aocs"><span class="n">6</span>O I²C emprestado ao AOCS</h2>
+
+<p>O INA219 e o ESP32 do AOCS estão no mesmo I²C da Pi. O ESP32 precisa ser mestre do barramento durante a tarefa para ler o BMI088. O controlador I²C da Pi não tem arbitragem, e o ESP32, como escravo, não segura o clock. Por isso o contrato funciona por tempo: as duas pontas contam os mesmos prazos a partir do mesmo instante, o fim da escrita do START (t0).</p>
+
+<figure>
+  <div class="frame">
+<svg class="diagram" viewBox="0 0 980 270" role="img" aria-labelledby="f2t f2d">
+  <title id="f2t">A linha do tempo do empréstimo</title>
+  <desc id="f2d">A Pi é mestre e lê o INA219 até escrever o START em t0. Entre t0+20 e t0+100 ms lê a resposta; depois fica em silêncio. O ESP32 vira mestre em t0+250 ms, faz a tarefa, volta a escravo até 250 ms mais a tarefa. A Pi retoma 2 s depois, lê o resultado e volta ao INA219.</desc>
+  <text class="t-b" x="20" y="74">Pi</text>
+  <text class="t-b" x="20" y="164">ESP32</text>
+
+  <line class="tick" x1="250" y1="40" x2="250" y2="200"/>
+  <line class="tick" x1="340" y1="40" x2="340" y2="200"/>
+  <line class="tick" x1="430" y1="40" x2="430" y2="200"/>
+  <line class="tick" x1="760" y1="40" x2="760" y2="200"/>
+  <line class="tick" x1="840" y1="40" x2="840" y2="200"/>
+
+  <rect class="lane on" x="90" y="52" width="160" height="34" rx="6"/>
+  <text class="t-s" x="170" y="74" text-anchor="middle">mestre · lê o INA219</text>
+  <rect class="lane on" x="250" y="52" width="90" height="34" rx="6"/>
+  <text class="t-s" x="295" y="74" text-anchor="middle">lê o STATUS</text>
+  <rect class="lane off" x="340" y="52" width="500" height="34" rx="6"/>
+  <rect class="lane" x="470" y="57" width="240" height="24" rx="4" style="stroke:none"/>
+  <text class="t-s" x="590" y="74" text-anchor="middle">nenhuma transação · V e I "sem dado"</text>
+  <rect class="lane on" x="840" y="52" width="125" height="34" rx="6"/>
+  <text class="t-s" x="902" y="74" text-anchor="middle">resultado, INA219</text>
+
+  <rect class="lane" x="90" y="142" width="340" height="34" rx="6"/>
+  <text class="t-s" x="210" y="164" text-anchor="middle">escravo · STATUS pronto em 5 ms</text>
+  <rect class="lane master" x="430" y="142" width="330" height="34" rx="6"/>
+  <text class="t-s" x="595" y="164" text-anchor="middle">mestre · a tarefa (até max_task_s)</text>
+  <rect class="lane" x="760" y="142" width="205" height="34" rx="6"/>
+  <text class="t-s" x="862" y="164" text-anchor="middle">escravo · resultado pronto</text>
+
+  <text class="t-e" x="250" y="218" text-anchor="middle">t0: START</text>
+  <text class="t-e" x="340" y="238" text-anchor="middle">+100 ms</text>
+  <text class="t-e" x="430" y="218" text-anchor="middle">+250 ms</text>
+  <text class="t-e" x="760" y="218" text-anchor="middle">+250 ms + tarefa</text>
+  <text class="t-e" x="840" y="238" text-anchor="middle">+2 s</text>
+</svg>
+  </div>
+  <figcaption>Figura 2 — Fora de escala. Com o <code>aocs_timeout_ms</code> de 300 s, a tarefa pedida é de 297 s: 250 ms + 297 s + 2 s = 299,25 s de empréstimo, dentro do modo.</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>O que a Pi vê</th><th>Conclui</th><th>Empresta?</th><th>O modo</th></tr></thead>
+  <tbody>
+    <tr><td>NACK no START, ou nenhum barramento</td><td>não há ESP32</td><td><span class="badge b-ok">não</span></td><td>termina na hora (<code>aocs_absent</code>, <code>aocs_unavailable</code>)</td></tr>
+    <tr><td>STATUS = REFUSED</td><td>o ESP32 disse não</td><td><span class="badge b-ok">não</span></td><td>termina na hora (<code>aocs_refused</code>)</td></tr>
+    <tr><td>STATUS = ACCEPTED</td><td>a tarefa roda</td><td><span class="badge b-warn">sim</span></td><td>dura o empréstimo; termina com o resultado (<code>aocs</code>)</td></tr>
+    <tr><td>START com ACK, sem resposta legível até t0+100 ms</td><td>desconhecido</td><td><span class="badge b-warn">sim</span></td><td>a Pi supõe o pior e fica calada</td></tr>
+  </tbody>
+</table></div>
+
+<ul>
+  <li><b>Onde mora a regra.</b> A linha do tempo inteira está em <code>flight/obcd/i2c_sched.c</code>, que é puro: não faz E/S e é testado em tempo virtual contra um ESP32 e um INA219 simulados. O teste registra o intervalo de cada transação da Pi e confere que nenhuma cai entre t0+100 ms e o fim do empréstimo sempre que há empréstimo. Os cenários: aceito, recusado, ausente, resposta ilegível, resposta antiga, resultado ilegível, empréstimo herdado de um <code>obcd</code> anterior e o fim já conhecido na escrita do START.</li>
+  <li><b>Uma thread só</b> é dona do <code>/dev/i2c-1</code>, para o INA219 e para o AOCS. Cada transferência é um único <code>I2C_RDWR</code>, com repeated start na leitura de registrador.</li>
+  <li><b>O empréstimo sobrevive a reinícios.</b> O fim do empréstimo vai para o cartão (<code>/var/lib/gama/obcd-i2c.lease</code>) assim que o START sai. Ele é sincronizado depois da janela do STATUS e apagado com o resultado. O plano previa <code>/run/gama</code>, mas um reboot apaga o <code>/run</code> e não reinicia o ESP32: o <code>obcd</code> novo voltaria a ler o INA219 com o ESP32 ainda mestre. Um arquivo de outro boot (<code>boot_id</code>) vale pelo que faltava quando foi escrito, contado do boot novo.</li>
+  <li><b>O custo, registrado:</b> durante o empréstimo não há tensão nem corrente. É um desvio do OBC-7 do CDR e do HLR-EPS-04 (seção 10). A temperatura não é afetada.</li>
+</ul>
+
+<h2 id="esp32"><span class="n">7</span>A ground na ESP32</h2>
+
+<ul>
+  <li><b>Um console, duas grounds.</b> O parser de comandos, a máquina de atividade, a contagem de perda e o JSON da <code>gs_cli</code> saíram para <code>ground/console/gs_console.c</code> (740 linhas), em C portátil. A <code>gs_cli</code> no Linux e o firmware na ESP32 são cascas finas em volta dele. As linhas que a ESP32 imprime são as mesmas que os roteiros da bancada e o adaptador já leem.</li>
+  <li><b>Correções no caminho:</b>
+    <ul>
+      <li>o registro de tracks perdia o 12º registro;</li>
+      <li>o JSON não escapava aspas no eco de comando e no callsign;</li>
+      <li><code>wait</code>, <code>deafen</code> e <code>stream</code> não validavam os argumentos;</li>
+      <li>a hora era aceita sem relógio. Uma ground sem relógio mandaria <code>SET_TIME</code> zerado, e o <code>ttcd</code> ancoraria em 1970. Agora os dois lados recusam.</li>
+    </ul>
+  </li>
+  <li><b>O firmware</b> (<code>ground/esp32/</code>) compila no Docker, sem instalar o ESP-IDF:
+    <ul>
+      <li>o RA-02 fica no SPI3 com DMA, e o DIO0 entra por interrupção;</li>
+      <li>um laço só, que espera no máximo 20 ms;</li>
+      <li>a UART nunca segura a ground, que tem cerca de 20 ms para responder ao satélite. Linhas que não cabem no buffer são contadas.</li>
+    </ul>
+  </li>
+  <li><b>A ponte</b> (<code>gs_serial.py</code>, só biblioteca padrão):
+    <ul>
+      <li>reseta a placa e espera a linha <code>boot</code>;</li>
+      <li>manda o relógio do PC, porque a ESP32 não tem, e depois cada comando, só após o eco do anterior.</li>
+    </ul>
+    Com ela, <code>make bench GS=esp32</code> roda os seis passos sem mudar nenhum roteiro.</li>
+  <li><b>TTC-16:</b> as suítes portáveis (<code>tests/portable.cmake</code>) compilam para a ESP32 e passam no QEMU (seção 5.2). Na placa, é a etapa 10 do roteiro.</li>
+</ul>
+
+<h2 id="placa"><span class="n">8</span>A placa nova do OBC</h2>
+
+<p>As fontes KiCad de <code>PCB_OBC_NEW.zip</code> (23/10) entraram em <code>hardware/obc-v2</code>. A placa ainda não foi fabricada. As ligações foram conferidas pelo netlist do esquemático e pelos pads do layout, que concordam.</p>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Achado de 22/10</th><th>Na placa nova</th></tr></thead>
+  <tbody>
+    <tr><td>A1 · o 8 V passava pelo INA219 em pinos que a EPS não usa</td><td><span class="badge b-ok">corrigido</span> entra no J1.38, sai no J1.33</td></tr>
+    <tr><td>A2 · barramento do LoRa trocado com o da TT&amp;C</td><td><span class="badge b-ok">corrigido</span> J1.21 SCK, 23 MISO, 25 MOSI, 27 NSS, 29 RESET, 31 DIO0</td></tr>
+    <tr><td>A3 · SDA e SCL trocados no layout</td><td><span class="badge b-ok">corrigido</span> J1.10 SDA, J1.12 SCL</td></tr>
+    <tr><td>A5, A6 · base dos TIP120 por 4,7 kΩ</td><td><span class="badge b-bad">igual</span> ~0,4 A de coletor, pouco para o 1 A do burn-wire</td></tr>
+    <tr><td>A7 · DS18B20 sem pull-up</td><td><span class="badge b-ok">corrigido</span> R1 de 4,7 kΩ ao 3,3 V</td></tr>
+    <tr><td>INA219 num I²C próprio (proposta de 24/10)</td><td><span class="badge b-warn">não adotado</span> fica no I²C1, com o AOCS (seção 6)</td></tr>
+  </tbody>
+</table></div>
+
+<p>Nesta placa, a Pi usa:</p>
+<ul>
+  <li>o SPI0 CE0, com RESET no GPIO25 e DIO0 no GPIO4;</li>
+  <li>o I²C1 (GPIO2/3);</li>
+  <li>o DS18B20 no GPIO17;</li>
+  <li>o burn-wire no 22 e os aquecedores no 23.</li>
+</ul>
+<p>Como o DIO0 fica no GPIO4, que é o pino padrão do 1-Wire, o <code>config.txt</code> precisa do <code>dtoverlay=w1-gpio,gpiopin=17</code>. Os arquivos estão em <code>flight/conf/obc-v2/</code>, com só o que a placa muda, e são instalados com <code>make install CONF_DIR=flight/conf/obc-v2</code>. O <code>obcd</code> passou a achar o DS18B20 sozinho (<code>w1_path = auto</code>), porque o diretório do sensor leva o número de série do chip.</p>
+
+<h2 id="decisoes"><span class="n">9</span>Decisões registradas</h2>
+
+<div class="adr">
+  <h3>ADR-0017 — O I²C dividido é emprestado ao ESP32 do AOCS por tempo limitado; o INA219 não é lido nesse tempo</h3>
+  <p class="sub"><span class="badge b-warn">proposto</span> · 31/10/2026 · HLR-SW-01, HLR-COMM-02, HLR-EPS-04 (desvio), HLR-GEN-03</p>
+  <dl>
+    <dt>Decisão</dt><dd>Frames fixos com CRC, sem mapa de registradores. A posse do barramento é por tempo, contada do fim do START. O modo dura o empréstimo inteiro, sem fim antecipado, e uma resposta ambígua conta como empréstimo. O fim do empréstimo fica no cartão.</dd>
+    <dt>Por quê</dt><dd>O escravo do ESP32 não segura o clock, e a Pi não tem arbitragem. Um prazo que as duas pontas calculam do mesmo instante não pode ser mal entendido: o pior caso é a Pi ficar calada à toa.</dd>
+    <dt>Rejeitado</dt><dd>O INA219 no I²C0 (a equipe não adotou). O ESP32 ler o INA219 por nós. A Pi consultar o ESP32 durante a tarefa. Um mapa de registradores.</dd>
+    <dt>Custo aceito</dt><dd>Sem V e I por até ~300 s, num modo. Um ESP32 travado como mestre só se recupera pelo watchdog dele.</dd>
+  </dl>
+</div>
+
+<div class="adr">
+  <h3>ADR-0018 — A ground na ESP32 roda o console da ground de bancada e fala a língua dele pela USB</h3>
+  <p class="sub"><span class="badge b-warn">proposto</span> · 31/10/2026 · HLR-COMM-01, TTC-16</p>
+  <dl>
+    <dt>Decisão</dt><dd>O mesmo console na <code>gs_cli</code> e na ESP32, as mesmas linhas JSON pela serial e uma ponte no PC com o relógio. Build no Docker. As suítes portáveis rodam no QEMU agora e na placa na bancada.</dd>
+    <dt>Por quê</dt><dd>A ground das provas é a ESP32, e os roteiros, o adaptador e a análise já leem a saída da <code>gs_cli</code>. Duas implementações do mesmo protocolo divergiriam onde ninguém olha.</dd>
+    <dt>Custo aceito</dt><dd>A ESP32 depende de um PC para ter hora. A ponte vira mais uma peça na cadeia da ground.</dd>
+  </dl>
+</div>
+
+<p>Ao todo são 17 ADRs: 9 aceitos e 8 propostos (0007, 0012 e 0013 a 0018). O ADR-0010 (armazenamento a bordo) continua por escrever. O ADR-0016 ganhou uma nota apontando o 0017 para o <code>ADVANCED_AOCS</code>: com o ESP32 ausente, o modo agora termina na hora, em vez de esperar 300 s.</p>
+
+<h2 id="requisitos"><span class="n">10</span>Requisitos</h2>
+<ul>
+  <li><b>HLR-EPS-04 / OBC-7, desvio registrado.</b> Tensão e corrente vão "sem dado" durante o empréstimo do AOCS. Está no <code>docs/requisitos.md</code> e precisa entrar na documentação final.</li>
+  <li><b>TTC-16 (mesmos bytes nas duas pontas):</b> metade feita, no QEMU. A outra metade é a etapa 10 da bancada.</li>
+  <li><b>HLR-COMM-01:</b> a ground das provas (a ESP32) existe e manda todos os telecomandos, inclusive o <code>SET_MODE</code> de cada prova.</li>
+  <li><b>TTC-01 e TTC-03 (433,92 MHz e 14 dBm):</b> no código desde 24/10; a frequência no chip é conferida na etapa 9.</li>
+  <li>O estado geral em <code>docs/requisitos.md</code> ainda é o de 19/09, com acréscimos pontuais.</li>
+</ul>
+
+<h2 id="falta"><span class="n">11</span>O que falta</h2>
+
+<h3>11.1 A bancada da semana de 02/11</h3>
+<p>O roteiro completo está em <code>docs/vv/bancada/roteiro-2026-11.md</code>. Em ordem:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Etapa</th><th>Prova</th></tr></thead>
+  <tbody>
+    <tr><td>8 · <code>make pi-check</code></td><td>o código novo no compilador da Pi (já conferido no contêiner)</td></tr>
+    <tr><td>9 · os rádios em 433,92 MHz</td><td>os seis passos de 09/10 na frequência nova; o RegFrf lido no chip (<code>0x6C7AE1</code>)</td></tr>
+    <tr><td>10 · a ESP32</td><td>as suítes na placa (TTC-16), o firmware da ground, o rádio B passado a ela</td></tr>
+    <tr><td>11 · os rádios com a ESP32</td><td>os seis passos com a ground das provas</td></tr>
+    <tr><td>12 · os três daemons pelo modo</td><td>a Figura 44 em hardware, o <code>adsbd</code> subindo e parando o dump1090 com o modo</td></tr>
+    <tr><td>13 · o <code>obcd</code> com sensores e LEDs</td><td>V e I contra o multímetro, termostato, pulso de 5 s, saídas após <code>kill -9</code>, o NACK do I²C sem ESP32</td></tr>
+    <tr><td>14 · a corrente do RA-02</td><td>a 14 dBm, contra os 110 mA da Tabela 13 do CDR</td></tr>
+    <tr><td>15 · os serviços (opcional)</td><td>as unidades do systemd e o watchdog</td></tr>
+  </tbody>
+</table></div>
+
+<h3>11.2 Fora da bancada</h3>
+<ul>
+  <li><b>O push</b> dos 32 commits. A CI só começa depois dele.</li>
+  <li><b>Levar o contrato à equipe do AOCS</b> e trazer de volta: o endereço, o <code>max_task_s</code> real, o que o resultado leva, se o escravo deles consegue deixar a resposta pronta, e os pull-ups (§6 do ICD).</li>
+  <li><b>A data da placa nova do OBC</b>, que destrava o bring-up (PLANO etapa 5).</li>
+  <li>A imagem de voo (<code>make provision</code> completo) e o build da ESP32 na CI.</li>
+  <li>Os ICDs OBC↔TT&amp;C e do enlace, e o ADR-0010.</li>
+</ul>
+
+<h2 id="riscos"><span class="n">12</span>Riscos abertos</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Risco</th><th>Efeito</th><th>O que reduz</th></tr></thead>
+  <tbody>
+    <tr><td>O firmware do AOCS não segue o contrato, ou chega tarde</td><td>o <code>ADVANCED_AOCS</code> não acontece na prova</td><td>o rascunho vai agora; qualquer ESP32 de desenvolvimento pode fazer o papel de escravo na bancada</td></tr>
+    <tr><td>O driver I²C da Pi devolve outro erro para o NACK</td><td>sem ESP32, o modo duraria o empréstimo inteiro, sem V e I</td><td>etapa 13e, conferida antes com <code>i2ctransfer</code></td></tr>
+    <tr><td>A placa nova sem data</td><td>o stack de voo não roda junto até ela chegar</td><td>toda a configuração dela já está escrita e validada pelos daemons</td></tr>
+    <tr><td>A5/A6 sem correção</td><td>burn-wire com ~0,4 A, abaixo do 1 A necessário</td><td>medir na etapa 13 com carga; levar à equipe de PCB</td></tr>
+    <tr><td>A ESP32 nunca rodou</td><td>a ground das provas pode falhar na janela de ~20 ms de resposta</td><td>etapas 10 e 11, comparadas com a <code>gs_cli</code></td></tr>
+    <tr><td>32 commits só numa máquina</td><td>uma falha de disco perde duas sessões de trabalho</td><td>o push</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="lacunas"><span class="n">13</span>Lacunas e inconsistências</h2>
+<ul>
+  <li><code>docs/requisitos.md</code> diz que o empréstimo vai "até 300 s + 2,25 s". O código pede 297 s de tarefa, então são 299,25 s, dentro dos 300 s do modo.</li>
+  <li>A seção "Estado em 24/10" do <code>PLANO.md</code> é datada e já não descreve o projeto: ainda diz que <code>flight/obcd/</code> e <code>ground/esp32/</code> não começaram. O estado corrente está no <code>AGENTS.md</code> e neste relatório.</li>
+  <li>O <code>obcd.service</code> ainda libera o <code>/dev/i2c-0</code>, que só serviria à proposta não adotada de 24/10.</li>
+  <li>O ESP32 do AOCS não tem firmware de escravo no repositório. A bancada só exercita o caso "sem ESP32" do contrato.</li>
+  <li>A CI não compila o firmware da ESP32: os scripts de <code>tools/esp32</code> chamam o Docker por fora.</li>
+  <li>Os pinos da placa nova vêm do netlist e ninguém mediu ainda.</li>
+</ul>
+
+<h2 id="qa"><span class="n">14</span>Perguntas e respostas</h2>
+
+<details class="qa" id="q1"><summary><span class="qn">1</span>Por que o modo AOCS não termina assim que a tarefa acaba?</summary><div class="body">
+<p>Porque a Pi não tem como saber sem falar no barramento, e falar no barramento enquanto o ESP32 pode ser mestre é exatamente o que o contrato proíbe. Não há outro fio entre os dois. O preço é o modo durar o empréstimo inteiro, mesmo quando a tarefa termina antes.</p></div></details>
+
+<details class="qa" id="q2"><summary><span class="qn">2</span>E se o ESP32 aceitar, mas a resposta chegar corrompida?</summary><div class="body">
+<p>A Pi conta como emprestado e fica calada até o fim. É o pior caso escolhido de propósito: ficar calada à toa custa um intervalo sem V e I; falar com o ESP32 mestre pode travar o barramento.</p></div></details>
+
+<details class="qa" id="q3"><summary><span class="qn">3</span>A bancada ainda usa a <code>gs_cli</code>?</summary><div class="body">
+<p>Usa, e é a referência. Cada passo roda igual com <code>GS=esp32</code>. A comparação entre as etapas 9 e 11 do roteiro separa o que é do rádio do que é da ESP32.</p></div></details>
+
+<details class="qa" id="q4"><summary><span class="qn">4</span>Preciso da placa nova para testar o <code>obcd</code>?</summary><div class="body">
+<p>Não. A etapa 13 usa um INA219 e um DS18B20 avulsos e LEDs ligados direto na Pi da bancada, com os mesmos pinos do <code>obcd.conf.example</code>. A placa nova só muda o arquivo de configuração.</p></div></details>
+
+<details class="qa" id="q5"><summary><span class="qn">5</span>Por que um contêiner Debian, se a Pi está aqui?</summary><div class="body">
+<p>Porque o <code>make pi-check</code> leva muito tempo na Pi, e um aviso só do GCC 14 aparece lá no fim. O contêiner tem a mesma distribuição e o mesmo compilador. Ele achou um aviso desses nesta sessão. A CI usa a mesma imagem.</p></div></details>
+
+<h2 id="reproduzir"><span class="n">15</span>Como reproduzir</h2>
+<pre><code>make check                 # 37 suítes nos dois builds e as citações
+make check-debian          # o mesmo no Debian 13, com o GCC 14 da Pi
+make esp32-build           # o firmware da ground, no Docker
+make esp32-tests-qemu      # as 11 suítes portáveis numa ESP32 emulada
+make -k bench RADIO=udp    # os seis passos da bancada, sem rádio
+build/flight/obcd -c flight/conf/obc-v2/obcd.conf --check-config</code></pre>
+
+<p>Os arquivos que mais explicam esta sessão:</p>
+<ul>
+  <li><code>docs/icd/obc-aocs-i2c.md</code> e <code>docs/adr/0017-shared-i2c-bus-lease-to-aocs.md</code>: o contrato e o porquê;</li>
+  <li><code>flight/obcd/i2c_sched.h</code>: a linha do tempo, no comentário do topo;</li>
+  <li><code>tests/test_obcd_i2c_sched.c</code>: a prova do silêncio;</li>
+  <li><code>docs/adr/0018-esp32-ground-station-firmware.md</code> e <code>ground/esp32/README.md</code>: a ground;</li>
+  <li><code>hardware/README.md</code>, seção <code>obc-v2/</code>: a placa nova;</li>
+  <li><code>docs/vv/bancada/roteiro-2026-11.md</code>: o que fazer na semana que vem.</li>
+</ul>
+<p>Para entender o repositório inteiro, do conceito ao arquivo, há um <a href="2026-10-31-guia-de-estudo.html">guia de estudo</a> desta mesma data.</p>
+
+<footer>
+  <p>Gerado em 31/10/2026 a partir do commit <code>3927fb0</code>, com apoio do Claude Code. Os builds com e sem sanitizers (GCC 16.2.1, CMake 4.4.4), o <code>make check</code> no Debian 13 (GCC 14.2.0), as suítes no QEMU, a bancada UDP e os scripts de verificação foram executados nesta data. Os números vêm das saídas dessas execuções.</p>
+  <p>Relatórios anteriores: <a href="2026-09-28-estado-do-projeto.html">estado em 28/09</a>, <a href="2026-10-06-panorama-ttec-cdr.html">panorama de 06/10</a>, <a href="2026-10-22-validacao-obc.html">validação do OBC (22/10)</a> e <a href="2026-10-24-proposta-i2c-ina219-obc.html">proposta do I²C (24/10)</a>. Para o próximo, gere um novo arquivo datado nesta pasta.</p>
+</footer>
+
+</main>
+</div>
+<script>
+(function () {
+  function setAll(open) {
+    var items = document.querySelectorAll('details.qa');
+    for (var i = 0; i < items.length; i++) { items[i].open = open; }
+  }
+  var openBtn = document.getElementById('qa-open');
+  var closeBtn = document.getElementById('qa-close');
+  if (openBtn) { openBtn.addEventListener('click', function () { setAll(true); }); }
+  if (closeBtn) { closeBtn.addEventListener('click', function () { setAll(false); }); }
+  window.addEventListener('beforeprint', function () { setAll(true); });
+  if (location.hash && location.hash.indexOf('#q') === 0) {
+    var target = document.querySelector(location.hash);
+    if (target && target.tagName === 'DETAILS') { target.open = true; }
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="#q"]');
+    if (!a) { return; }
+    var d = document.querySelector(a.getAttribute('href'));
+    if (d && d.tagName === 'DETAILS') { d.open = true; }
+  });
+})();
+</script>
+</body>
+</html>
