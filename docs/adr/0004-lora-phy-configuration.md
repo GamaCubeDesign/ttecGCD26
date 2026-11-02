@@ -1,6 +1,7 @@
 # ADR-0004: LoRa PHY configuration and rate profiles
 
-- **Status:** Accepted
+- **Status:** Accepted; its carrier frequency (433 MHz) and transmit power
+  (20 dBm) superseded by [ADR-0015](0015-carrier-frequency-and-flight-power.md)
 - **Date:** 2026-09-15
 - **Requirements:** HLR-COMM-01, HLR-COMM-03, HLR-ADS-05, HLR-ADS-08
 - **Deciders:** TT&C team (LoRa sub-team)

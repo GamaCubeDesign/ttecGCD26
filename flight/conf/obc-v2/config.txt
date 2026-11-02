@@ -1,0 +1,15 @@
+# What the new OBC board (hardware/obc-v2) needs in the Pi's
+# /boot/firmware/config.txt: append these lines, then reboot. make provision
+# already turns SPI and I2C on (raspi-config); the 1-Wire line is the new one.
+# The firmware reads no comment after a value: comments stay on their own line.
+
+# SPI0: the RA-02 on CE0, /dev/spidev0.0
+dtparam=spi=on
+
+# I2C1: the INA219 and the AOCS ESP32, /dev/i2c-1, at the ICD's 100 kHz
+dtparam=i2c_arm=on
+dtparam=i2c_arm_baudrate=100000
+
+# The DS18B20 on GPIO17. Without gpiopin=17 the 1-Wire takes GPIO4, which on
+# this board is the RA-02's DIO0: leave no other w1-gpio line in the file.
+dtoverlay=w1-gpio,gpiopin=17

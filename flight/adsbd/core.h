@@ -32,6 +32,10 @@ extern "C" {
 /* Most aircraft one snapshot can carry: 8 IPC frames of 12 records. */
 #define ADSBD_SNAPSHOT_MAX (GAMA_IPC_TRACKS_MAX * GAMA_IPC_TRACKS_MAX_FRAMES)
 
+/* Callsigns remembered for the mission's roster (IPC_ROSTER). Aircraft that
+ * leave the track table stay here: the roster is of every aircraft heard. */
+#define ADSBD_ROSTER_MAX ADSBD_TRACKS_MAX
+
 /* Rejected lines logged one by one; the rest are only counted. */
 #define ADSBD_REJECT_LOG_MAX 20u
 
@@ -46,6 +50,7 @@ typedef struct {
     uint32_t field_ttl;         /* older fields are left out of a record     */
     uint32_t snapshot_max;      /* aircraft per snapshot, <= ADSBD_SNAPSHOT_MAX */
     uint32_t table_capacity;    /* aircraft tracked at once, <= ADSBD_TRACKS_MAX */
+    bool     decoder_always;    /* run dump1090 whatever the mode (bench only) */
 } adsbd_params_t;
 
 void adsbd_params_default(adsbd_params_t *p);
@@ -74,8 +79,16 @@ typedef struct {
     uint32_t ipc_tx_drops;      /* frames ttcd's queue refused               */
     uint32_t ipc_rx_bad;        /* frames from ttcd that made no sense here  */
     uint32_t anchors;           /* wall-clock anchors applied                */
+    uint32_t roster_full;       /* callsigns not kept: the roster was full   */
     uint16_t dump1090_restarts;
 } adsbd_counters_t;
+
+/* One aircraft of the roster; `pending` until ttcd has been sent it. */
+typedef struct {
+    uint32_t icao;
+    char     callsign[GAMA_CALLSIGN_LEN + 1];
+    bool     pending;
+} adsbd_roster_entry_t;
 
 typedef struct {
     adsbd_params_t   p;
@@ -85,6 +98,11 @@ typedef struct {
     int64_t          wall_offset_ns;    /* wall clock = monotonic + this      */
     bool             time_synced;       /* the offset came from the ground    */
     bool             ipc_up;
+    bool             dump1090_up;       /* dump1090's SBS connection is open  */
+    uint8_t          obc_mode;          /* gama_obc_state_t, from ttcd        */
+    bool             decoder_on;        /* dump1090 should be running         */
+    uint32_t         roster_count;
+    adsbd_roster_entry_t roster[ADSBD_ROSTER_MAX];
     uint16_t         ipc_seq;
     uint64_t         next_snapshot, next_stat, next_report;
 } adsbd_core_t;
@@ -102,10 +120,19 @@ void adsbd_on_overlong_line(adsbd_core_t *c, uint64_t now_ns);
 void adsbd_on_ipc_link(adsbd_core_t *c, uint64_t now_ns, bool up);
 void adsbd_on_ipc_frame(adsbd_core_t *c, uint64_t now_ns, const uint8_t *buf, size_t len);
 
+/* The SBS connection to dump1090 opened (up) or closed: dump1090 is, or is
+ * no longer, delivering messages. Reported to ttcd in IPC_STAT. */
+void adsbd_on_dump1090_link(adsbd_core_t *c, uint64_t now_ns, bool up);
+
 /* The shell started dump1090 again after it died. */
 void adsbd_on_dump1090_restart(adsbd_core_t *c, uint64_t now_ns);
 
 void adsbd_on_tick(adsbd_core_t *c, uint64_t now_ns);
+
+/* Whether dump1090 should be running and its SBS output read (ADR-0014):
+ * only in MISSION_ADSB, unless decoder_always. The shell starts and stops
+ * it to match after every event. */
+bool adsbd_decoder_wanted(const adsbd_core_t *c);
 
 /* The earliest instant adsbd_on_tick() has something to do. */
 uint64_t adsbd_next_deadline(const adsbd_core_t *c);

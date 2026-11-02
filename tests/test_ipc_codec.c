@@ -44,10 +44,16 @@ int main(void)
     TEST_GROUP("ipc: stat round-trip");
     {
         gama_ipc_stat_t in = { .msgs_received = 61234, .msgs_decoded = 60001,
-                               .aircraft_tracked = 20, .dump1090_restarts = 3 }, out;
+                               .aircraft_tracked = 20, .dump1090_restarts = 3,
+                               .flags = GAMA_IPC_STAT_F_DUMP1090_UP }, out;
         CHECK_EQ_INT(gama_ipc_stat_encode(buf, sizeof(buf), &in), GAMA_IPC_STAT_LEN);
         CHECK_EQ_INT(gama_ipc_stat_decode(buf, GAMA_IPC_STAT_LEN, &out), GAMA_IPC_STAT_LEN);
-        CHECK_MEM_EQ(&out, &in, sizeof(in));
+        /* Field by field: the struct has padding since the flags byte. */
+        CHECK_EQ_INT(out.msgs_received,     in.msgs_received);
+        CHECK_EQ_INT(out.msgs_decoded,      in.msgs_decoded);
+        CHECK_EQ_INT(out.aircraft_tracked,  in.aircraft_tracked);
+        CHECK_EQ_INT(out.dump1090_restarts, in.dump1090_restarts);
+        CHECK_EQ_INT(out.flags,             in.flags);
     }
 
     TEST_GROUP("ipc: decoders require the exact length");
@@ -60,9 +66,19 @@ int main(void)
         CHECK_EQ_INT(gama_ipc_time_decode(buf, 7, &t), GAMA_FRAME_ERR_LEN);
         CHECK_EQ_INT(gama_ipc_telemetry_decode(buf, 13, &tm), GAMA_FRAME_ERR_LEN);
         CHECK_EQ_INT(gama_ipc_telemetry_decode(buf, 15, &tm), GAMA_FRAME_ERR_LEN);
-        CHECK_EQ_INT(gama_ipc_stat_decode(buf, 11, &st), GAMA_FRAME_ERR_LEN);
+        CHECK_EQ_INT(gama_ipc_stat_decode(buf, 12, &st), GAMA_FRAME_ERR_LEN);   /* v1 */
+        CHECK_EQ_INT(gama_ipc_stat_decode(buf, 14, &st), GAMA_FRAME_ERR_LEN);
         CHECK_EQ_INT(gama_ipc_hello_decode(NULL, 2, &h), GAMA_FRAME_ERR_ARG);
         CHECK_EQ_INT(gama_ipc_hello_encode(buf, 1, &h), GAMA_FRAME_ERR_ARG);
+    }
+
+    TEST_GROUP("ipc: roster payload is one to 22 whole records");
+    {
+        CHECK_EQ_INT(gama_ipc_roster_count(0), GAMA_FRAME_ERR_LEN);
+        CHECK_EQ_INT(gama_ipc_roster_count(11), 1);
+        CHECK_EQ_INT(gama_ipc_roster_count(12), GAMA_FRAME_ERR_LEN);
+        CHECK_EQ_INT(gama_ipc_roster_count(22 * 11), 22);
+        CHECK_EQ_INT(gama_ipc_roster_count(23 * 11), GAMA_FRAME_ERR_LEN);
     }
 
     TEST_GROUP("ipc: tracks payload is a header and whole records");

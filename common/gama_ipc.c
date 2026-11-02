@@ -73,6 +73,7 @@ int gama_ipc_stat_encode(uint8_t *out, size_t cap, const gama_ipc_stat_t *s)
     pos += gama_put_u32(out + pos, s->msgs_decoded);
     pos += gama_put_u16(out + pos, s->aircraft_tracked);
     pos += gama_put_u16(out + pos, s->dump1090_restarts);
+    pos += gama_put_u8(out + pos, s->flags);
     return (int)pos;
 }
 
@@ -84,7 +85,17 @@ int gama_ipc_stat_decode(const uint8_t *in, size_t len, gama_ipc_stat_t *s)
     s->msgs_decoded      = gama_get_u32(in + 4);
     s->aircraft_tracked  = gama_get_u16(in + 8);
     s->dump1090_restarts = gama_get_u16(in + 10);
+    s->flags             = gama_get_u8(in + 12);
     return (int)GAMA_IPC_STAT_LEN;
+}
+
+int gama_ipc_roster_count(size_t len)
+{
+    if (len == 0 || len % GAMA_ROSTER_WIRE_LEN != 0 ||
+        len / GAMA_ROSTER_WIRE_LEN > GAMA_IPC_ROSTER_MAX) {
+        return GAMA_FRAME_ERR_LEN;
+    }
+    return (int)(len / GAMA_ROSTER_WIRE_LEN);
 }
 
 int gama_ipc_tracks_header_encode(uint8_t *out, size_t cap,

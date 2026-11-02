@@ -20,17 +20,13 @@ static int sx_set_power(radio_t *r, int8_t dbm)
 
 static int sx_transmit(radio_t *r, const uint8_t *frame, size_t len)
 {
-    sx_impl_t *s = r->impl;
-    bool busy = false;
-    if (sx1278_rx_busy(&s->dev, &busy) != 0) {
-        return RADIO_TX_ERROR;
-    }
-    if (busy) {
-        return RADIO_TX_BUSY;          /* listen before talk (ADR-0007) */
-    }
-    return sx1278_transmit(&s->dev, frame, (uint8_t)len) == 0 ? RADIO_TX_STARTED
-                                                             : RADIO_TX_ERROR;
+    /* Listen before talk (ADR-0007). */
+    return sx1278_try_transmit(&((sx_impl_t *)r->impl)->dev, frame, (uint8_t)len);
 }
+
+_Static_assert((int)SX_TX_STARTED == (int)RADIO_TX_STARTED &&
+               (int)SX_TX_BUSY == (int)RADIO_TX_BUSY &&
+               (int)SX_TX_ERROR == (int)RADIO_TX_ERROR, "the driver's results are the backend's");
 
 static int sx_next_event(radio_t *r, radio_event_t *ev)
 {

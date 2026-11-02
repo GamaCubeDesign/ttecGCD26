@@ -4,6 +4,7 @@
 #
 #   sbs_replay (dump1090) -> adsbd -> ttcd -> UDP radio -> gs_cli (ground)
 #       -> ground/host/tracks_to_ndjson.py -> the estimator's NDJSON
+#   obcd (the OBC, with no board: no sensors, no outputs) <-> ttcd
 #
 #   adsb_chain.sh INPUT OUT_DIR [DURATION_S]
 #
@@ -15,8 +16,11 @@
 #   cd ground/host/ground-aeronaves && python -m ground --input OUT_DIR/ground.ndjson
 #
 # Real time — a 10-minute mission takes 10 minutes — because adsbd stamps
-# every message on arrival (ADR-0009). The ground streams at the flight
-# period, 5 s, and sends its clock on contact (gs_cli --auto-time on).
+# every message on arrival (ADR-0009). The mission runs as the modes say
+# (ADR-0014): the ground sends SET_MODE MISSION_ADSB, which starts the
+# decoder — the replay begins when adsbd connects to it — and the snapshots
+# every 5 s, with no STREAM_START; at the end, SET_MODE MISSION_DOWNLINK
+# sends the roster and the final statistics, and obcd returns to PRE_TEST. The ground sends its clock on contact (gs_cli --auto-time on).
 #
 # The Makefile runs it: make adsb-chain INPUT=<file>. Ports can be moved
 # with SBS_PORT, SAT_PORT and GND_PORT, if the defaults are taken.
@@ -75,7 +79,14 @@ pids+=($!)
     -o log_path="$out/adsbd.jsonl" &
 pids+=($!)
 
-printf 'stream 5\nwait %s\n' "$duration" \
+# The script ends MISSION_ADSB itself; obcd's own 600 s timeout is moved
+# past the input's end, so an input longer than a mission still plays out.
+"$build"/flight/obcd -c flight/obcd/obcd.conf.example -o ipc_path="$sock" \
+    -o log_path="$out/obcd.jsonl" -o adsb_timeout_ms=$(( (duration + 60) * 1000 )) \
+    -o i2c_dev= -o w1_path= -o burnwire_line=none -o heater_line=none &
+pids+=($!)
+
+printf 'wait 3\nmode mission_adsb\nwait %s\nmode downlink\nwait 5\nhk\n' "$duration" \
     | "$build"/tools/gs_cli/gs_cli --radio udp --port "$gnd_port" --peer-port "$sat_port" \
           --auto-time on \
     | tee "$out/ground.jsonl" \
@@ -88,6 +99,8 @@ grep -c '"ev":"tracks"' "$out/ground.jsonl" | sed 's/^/TM_TRACKS received:    /;
 grep -o '"ev":"summary".*' "$out/ground.jsonl" | sed 's/^/ground summary:        /' || true
 grep -c . "$out/ground.ndjson" | sed 's/^/for the estimator:     /; s/$/ records/' || true
 grep -o '"event":"time_anchor".*' "$out/adsbd.jsonl" | head -1 | sed 's/^/adsbd anchored:        /' || true
+grep -o '"event":"mode".*' "$out/obcd.jsonl" | sed 's/^/obcd:                  /' || true
+grep -o '"event":"downlink_done".*' "$out/ttcd.jsonl" | sed 's/^/ttcd:                  /' || true
 echo
 echo "next, the ground's estimator:"
 echo "  cd ground/host/ground-aeronaves && python -m ground --input $(realpath "$out")/ground.ndjson"

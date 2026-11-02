@@ -15,6 +15,11 @@
  * Regenerate with tools/gen_vectors after a deliberate protocol version
  * bump, and review the diff byte by byte. Never adjust a vector to make a
  * failing test pass.
+ *
+ * These are the protocol version 2 vectors (ADR-0013). From version 1 the
+ * frames differ in byte 0 and, through it, in the CRC; the TM_HK and
+ * IPC_STAT payloads differ in layout; IPC_ROSTER and the ttcd -> adsbd
+ * IPC_MODE are new.
  */
 
 #include "test_util.h"
@@ -81,17 +86,17 @@ int main(void)
 
     TEST_GROUP("vectors: TM_TRACKS frame, header through CRC");
     {
-        /* 01        protocol version 1
+        /* 02        protocol version 2
          * 11        type TM_TRACKS
          * 02 01     sequence 0x0102, little-endian
          * 14        payload length 20
          * ...       the track record above
-         * 7E B4     CRC-16/CCITT-FALSE over the preceding 25 bytes
+         * A2 7A     CRC-16/CCITT-FALSE over the preceding 25 bytes
          */
         static const uint8_t vec[] = {
-            0x01, 0x11, 0x02, 0x01, 0x14, 0xEF, 0xCD, 0xAB, 0x16, 0x6C, 0x01, 0xF5,
+            0x02, 0x11, 0x02, 0x01, 0x14, 0xEF, 0xCD, 0xAB, 0x16, 0x6C, 0x01, 0xF5,
             0x49, 0xFF, 0xE8, 0x03, 0x94, 0x11, 0x28, 0x23, 0x00, 0xFC, 0xE1, 0x10,
-            0x0F, 0x7E, 0xB4,
+            0x0F, 0xA2, 0x7A,
         };
 
         gama_track_t t = {
@@ -137,22 +142,25 @@ int main(void)
 
     TEST_GROUP("vectors: housekeeping layout");
     {
-        /* 08 20  battery 8200 mV       06 FF  current -250 mA
-         * E6 FB  ext temp -10.50 C     0B 13  SoC temp 48.75 C
+        /* The OBC's block, bytes 0..13, as IPC_TELEMETRY carries it:
+         * 08 20  battery 8200 mV       06 FF  current -250 mA
+         * 6A FF  battery temp -1.50 C  E6 FB  ext temp -10.50 C
          * 64 00  roll 1.00 deg         38 FF  pitch -2.00 deg
-         * 28 23  yaw 90.00 deg         4E 61 BC 00  12345678 ADS-B messages
+         * 28 23  yaw 90.00 deg
+         * then ttcd's, bytes 14..26:
+         * 0B 13  SoC temp 48.75 C      4E 61 BC 00  12345678 ADS-B messages
          * 03     OBC mode MISSION_ADSB 02     link state STREAM
          * 80 51 01 00  uptime 86400 s  0F     all four status flags set
          */
         static const uint8_t vec[] = {
-            0x08, 0x20, 0x06, 0xFF, 0xE6, 0xFB, 0x0B, 0x13, 0x64, 0x00, 0x38, 0xFF,
-            0x28, 0x23, 0x4E, 0x61, 0xBC, 0x00, 0x03, 0x02, 0x80, 0x51, 0x01, 0x00,
-            0x0F,
+            0x08, 0x20, 0x06, 0xFF, 0x6A, 0xFF, 0xE6, 0xFB, 0x64, 0x00, 0x38, 0xFF,
+            0x28, 0x23, 0x0B, 0x13, 0x4E, 0x61, 0xBC, 0x00, 0x03, 0x02, 0x80, 0x51,
+            0x01, 0x00, 0x0F,
         };
         gama_hk_t hk = {
-            .battery_mv = 8200, .current_ma = -250,
-            .temp_ext_ccel = -1050, .temp_soc_ccel = 4875,
-            .roll_cdeg = 100, .pitch_cdeg = -200, .yaw_cdeg = 9000,
+            .battery_mv = 8200, .current_ma = -250, .temp_bat_ccel = -150,
+            .temp_ext_ccel = -1050, .roll_cdeg = 100, .pitch_cdeg = -200,
+            .yaw_cdeg = 9000, .temp_soc_ccel = 4875,
             .adsb_msgs = 12345678u, .obc_mode = GAMA_OBC_ST_MISSION_ADSB,
             .link_state = GAMA_LINK_STREAM, .uptime_s = 86400u,
             .flags = GAMA_HK_F_OBC_LINKED | GAMA_HK_F_ADSB_LINKED |
@@ -161,6 +169,72 @@ int main(void)
 
         CHECK_EQ_INT(gama_hk_encode(buf, sizeof(buf), &hk), sizeof(vec));
         CHECK_MEM_EQ(buf, vec, sizeof(vec));
+
+        gama_hk_t back;
+        CHECK_EQ_INT(gama_hk_decode(vec, sizeof(vec), &back), GAMA_HK_WIRE_LEN);
+        CHECK_EQ_INT(back.temp_bat_ccel, -150);
+        CHECK_EQ_INT(back.temp_soc_ccel, 4875);
+        CHECK_EQ_INT(back.flags, 0x0F);
+
+        /* The same values, sent by the OBC, are the first 14 bytes of HK. */
+        gama_ipc_telemetry_t tel = {
+            .battery_mv = 8200, .current_ma = -250, .temp_bat_ccel = -150,
+            .temp_ext_ccel = -1050, .roll_cdeg = 100, .pitch_cdeg = -200, .yaw_cdeg = 9000,
+        };
+        uint8_t tel_bytes[GAMA_IPC_TELEMETRY_LEN];
+        gama_ipc_telemetry_encode(tel_bytes, sizeof(tel_bytes), &tel);
+        CHECK_MEM_EQ(vec, tel_bytes, GAMA_IPC_TELEMETRY_LEN);
+    }
+
+    TEST_GROUP("vectors: housekeeping with no source reads unknown, never zero");
+    {
+        /* FF FF        battery voltage: no data (0xFFFF)
+         * 00 80 x 7    current, battery temp, ext temp, roll, pitch, yaw,
+         *              SoC temp: no data (INT16_MIN)
+         * FF FF FF FF  ADS-B count: no data   FF  OBC mode UNKNOWN
+         * 00  link IDLE   0A 00 00 00  uptime 10 s   00  no flags
+         */
+        static const uint8_t vec[] = {
+            0xFF, 0xFF, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80,
+            0x00, 0x80, 0x00, 0x80, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x0A, 0x00,
+            0x00, 0x00, 0x00,
+        };
+        gama_hk_t hk = {
+            .battery_mv = GAMA_NO_DATA_U16, .current_ma = GAMA_NO_DATA_I16,
+            .temp_bat_ccel = GAMA_NO_DATA_I16, .temp_ext_ccel = GAMA_NO_DATA_I16,
+            .roll_cdeg = GAMA_NO_DATA_I16, .pitch_cdeg = GAMA_NO_DATA_I16,
+            .yaw_cdeg = GAMA_NO_DATA_I16, .temp_soc_ccel = GAMA_NO_DATA_I16,
+            .adsb_msgs = GAMA_NO_DATA_U32, .obc_mode = GAMA_OBC_ST_UNKNOWN,
+            .link_state = GAMA_LINK_IDLE, .uptime_s = 10, .flags = 0,
+        };
+        CHECK_EQ_INT(gama_hk_encode(buf, sizeof(buf), &hk), sizeof(vec));
+        CHECK_MEM_EQ(buf, vec, sizeof(vec));
+    }
+
+    TEST_GROUP("vectors: TM_HK frame, header through CRC");
+    {
+        /* 02 10 03 02 1B  version 2, TM_HK, sequence 0x0203, 27 bytes
+         * ...             the housekeeping record above
+         * A6 CC           CRC over the preceding 32 bytes */
+        static const uint8_t vec[] = {
+            0x02, 0x10, 0x03, 0x02, 0x1B, 0x08, 0x20, 0x06, 0xFF, 0x6A, 0xFF, 0xE6,
+            0xFB, 0x64, 0x00, 0x38, 0xFF, 0x28, 0x23, 0x0B, 0x13, 0x4E, 0x61, 0xBC,
+            0x00, 0x03, 0x02, 0x80, 0x51, 0x01, 0x00, 0x0F, 0xA6, 0xCC,
+        };
+        gama_hk_t hk = {
+            .battery_mv = 8200, .current_ma = -250, .temp_bat_ccel = -150,
+            .temp_ext_ccel = -1050, .roll_cdeg = 100, .pitch_cdeg = -200,
+            .yaw_cdeg = 9000, .temp_soc_ccel = 4875,
+            .adsb_msgs = 12345678u, .obc_mode = GAMA_OBC_ST_MISSION_ADSB,
+            .link_state = GAMA_LINK_STREAM, .uptime_s = 86400u, .flags = 0x0F,
+        };
+        uint8_t payload[GAMA_HK_WIRE_LEN];
+        gama_hk_encode(payload, sizeof(payload), &hk);
+        CHECK_EQ_INT(gama_frame_encode(buf, sizeof(buf), GAMA_FRAME_TM_HK, 0x0203,
+                                       payload, GAMA_HK_WIRE_LEN), sizeof(vec));
+        CHECK_MEM_EQ(buf, vec, sizeof(vec));
+        /* 34 bytes on the air: the data budget's housekeeping frame. */
+        CHECK_EQ_INT(sizeof(vec), 34);
     }
 
     TEST_GROUP("vectors: mission statistics layout");
@@ -188,20 +262,20 @@ int main(void)
 
     TEST_GROUP("vectors: SET_RATE telecommand and its acknowledgement");
     {
-        /* 01 01 01 00 02 | 20 02 | 9A EE
+        /* 02 01 01 00 02 | 20 02 | 18 36
          * version, TC, sequence 1, 2 argument bytes, SET_RATE(FAST), CRC */
         static const uint8_t vec_tc[] = {
-            0x01, 0x01, 0x01, 0x00, 0x02, 0x20, 0x02, 0x9A, 0xEE,
+            0x02, 0x01, 0x01, 0x00, 0x02, 0x20, 0x02, 0x18, 0x36,
         };
         uint8_t args[2] = { GAMA_TC_SET_RATE, GAMA_RATE_FAST };
         CHECK_EQ_INT(gama_frame_encode(buf, sizeof(buf), GAMA_FRAME_TC,
                                        0x0001, args, 2), sizeof(vec_tc));
         CHECK_MEM_EQ(buf, vec_tc, sizeof(vec_tc));
 
-        /* 01 02 01 00 04 | 20 00 01 00 | EF 49
+        /* 02 02 01 00 04 | 20 00 01 00 | AB 64
          * TC_ACK for SET_RATE, status OK, echoing sequence 1 */
         static const uint8_t vec_ack[] = {
-            0x01, 0x02, 0x01, 0x00, 0x04, 0x20, 0x00, 0x01, 0x00, 0xEF, 0x49,
+            0x02, 0x02, 0x01, 0x00, 0x04, 0x20, 0x00, 0x01, 0x00, 0xAB, 0x64,
         };
         uint8_t ack[GAMA_TC_ACK_WIRE_LEN];
         ack[0] = GAMA_TC_SET_RATE;
@@ -215,8 +289,8 @@ int main(void)
 
     TEST_GROUP("vectors: beacon is the smallest legal frame");
     {
-        /* 01 7F FF 00 00 A5 E2 -- seven bytes, which is the framing overhead. */
-        static const uint8_t vec[] = { 0x01, 0x7F, 0xFF, 0x00, 0x00, 0xA5, 0xE2 };
+        /* 02 7F FF 00 00 77 0C -- seven bytes, which is the framing overhead. */
+        static const uint8_t vec[] = { 0x02, 0x7F, 0xFF, 0x00, 0x00, 0x77, 0x0C };
 
         CHECK_EQ_INT(gama_frame_encode(buf, sizeof(buf), GAMA_FRAME_BEACON,
                                        0x00FF, NULL, 0), sizeof(vec));
@@ -230,8 +304,8 @@ int main(void)
          * here is a change to an interface owned jointly with another team,
          * and must go through the ICD, not just this file. */
 
-        /* 02 01 -- role OBC, IPC version 1 */
-        static const uint8_t vec_hello[] = { 0x02, 0x01 };
+        /* 02 02 -- role OBC, IPC version 2 */
+        static const uint8_t vec_hello[] = { 0x02, 0x02 };
         gama_ipc_hello_t h = { .role = GAMA_IPC_ROLE_OBC, .version = GAMA_IPC_VERSION };
         CHECK_EQ_INT(gama_ipc_hello_encode(buf, sizeof(buf), &h), sizeof(vec_hello));
         CHECK_MEM_EQ(buf, vec_hello, sizeof(vec_hello));
@@ -258,22 +332,61 @@ int main(void)
         CHECK_MEM_EQ(buf, vec_telemetry, sizeof(vec_telemetry));
 
         /* 60 EA 00 00  60000 received   00 E1 00 00  57600 decoded
-         * 14 00        20 aircraft      01 00        one dump1090 restart */
+         * 14 00        20 aircraft      01 00        one dump1090 restart
+         * 01           flags: dump1090 up */
         static const uint8_t vec_stat[] = {
             0x60, 0xEA, 0x00, 0x00, 0x00, 0xE1, 0x00, 0x00, 0x14, 0x00, 0x01, 0x00,
+            0x01,
         };
         gama_ipc_stat_t st = { .msgs_received = 60000, .msgs_decoded = 57600,
-                               .aircraft_tracked = 20, .dump1090_restarts = 1 };
+                               .aircraft_tracked = 20, .dump1090_restarts = 1,
+                               .flags = GAMA_IPC_STAT_F_DUMP1090_UP };
         CHECK_EQ_INT(gama_ipc_stat_encode(buf, sizeof(buf), &st), sizeof(vec_stat));
         CHECK_MEM_EQ(buf, vec_stat, sizeof(vec_stat));
 
-        /* 01 30 05 00 01 | 03 | 49 F8
+        /* 02 30 05 00 01 | 03 | A9 36
          * version, IPC_TC_EVENT, sequence 5, one byte: EV_TC_MISSION_ADSB, CRC */
-        static const uint8_t vec_frame[] = { 0x01, 0x30, 0x05, 0x00, 0x01, 0x03, 0x49, 0xF8 };
+        static const uint8_t vec_frame[] = { 0x02, 0x30, 0x05, 0x00, 0x01, 0x03, 0xA9, 0x36 };
         uint8_t ev = GAMA_OBC_EV_TC_MISSION_ADSB;
         CHECK_EQ_INT(gama_frame_encode(buf, sizeof(buf), GAMA_FRAME_IPC_TC_EVENT, 0x0005,
                                        &ev, GAMA_IPC_TC_EVENT_LEN), sizeof(vec_frame));
         CHECK_MEM_EQ(buf, vec_frame, sizeof(vec_frame));
+
+        /* 02 37 07 00 16  version 2, IPC_ROSTER, sequence 7, 22 bytes
+         * 56 34 12 47 4F 4C 31 32 33 34 20  0x123456 "GOL1234 "
+         * 01 8C E4 54 41 4D 33 30 35 34 20  0xE48C01 "TAM3054 "
+         * 9A 28           CRC
+         * Two TM_ROSTER records, byte for byte. */
+        static const uint8_t vec_roster[] = {
+            0x02, 0x37, 0x07, 0x00, 0x16, 0x56, 0x34, 0x12, 0x47, 0x4F, 0x4C, 0x31,
+            0x32, 0x33, 0x34, 0x20, 0x01, 0x8C, 0xE4, 0x54, 0x41, 0x4D, 0x33, 0x30,
+            0x35, 0x34, 0x20, 0x9A, 0x28,
+        };
+        gama_roster_t ra = { .icao = 0x123456u, .callsign = "GOL1234" };
+        gama_roster_t rb = { .icao = 0xE48C01u, .callsign = "TAM3054" };
+        uint8_t recs[2 * GAMA_ROSTER_WIRE_LEN];
+        gama_roster_encode(recs, GAMA_ROSTER_WIRE_LEN, &ra);
+        gama_roster_encode(recs + GAMA_ROSTER_WIRE_LEN, GAMA_ROSTER_WIRE_LEN, &rb);
+        CHECK_EQ_INT(gama_frame_encode(buf, sizeof(buf), GAMA_FRAME_IPC_ROSTER, 0x0007,
+                                       recs, sizeof(recs)), sizeof(vec_roster));
+        CHECK_MEM_EQ(buf, vec_roster, sizeof(vec_roster));
+        CHECK_EQ_INT(gama_ipc_roster_count(22), 2);
+
+        /* 02 33 09 00 01 | 03 | 49 97
+         * IPC_MODE, sequence 9, MISSION_ADSB: what ttcd forwards to adsbd */
+        static const uint8_t vec_mode[] = { 0x02, 0x33, 0x09, 0x00, 0x01, 0x03, 0x49, 0x97 };
+        uint8_t mode = GAMA_OBC_ST_MISSION_ADSB;
+        CHECK_EQ_INT(gama_frame_encode(buf, sizeof(buf), GAMA_FRAME_IPC_MODE, 0x0009,
+                                       &mode, GAMA_IPC_MODE_LEN), sizeof(vec_mode));
+        CHECK_MEM_EQ(buf, vec_mode, sizeof(vec_mode));
+    }
+
+    TEST_GROUP("vectors: a version-1 frame is rejected");
+    {
+        /* The v1 beacon. Its CRC is valid; its version is not. */
+        static const uint8_t v1[] = { 0x01, 0x7F, 0xFF, 0x00, 0x00, 0xA5, 0xE2 };
+        gama_frame_t f;
+        CHECK_EQ_INT(gama_frame_decode(v1, sizeof(v1), &f), GAMA_FRAME_ERR_VERSION);
     }
 
     TEST_GROUP("vectors: record sizes match the data budget");
@@ -282,10 +395,16 @@ int main(void)
          * If a record grows, the budget and the ADR must be revisited. */
         CHECK_EQ_INT(GAMA_TRACK_WIRE_LEN,  20);
         CHECK_EQ_INT(GAMA_ROSTER_WIRE_LEN, 11);
-        CHECK_EQ_INT(GAMA_HK_WIRE_LEN,     25);
+        CHECK_EQ_INT(GAMA_HK_WIRE_LEN,     27);
         CHECK_EQ_INT(GAMA_STAT_WIRE_LEN,   26);
         CHECK_EQ_INT(GAMA_FRAME_OVERHEAD,   7);
         CHECK_EQ_INT(GAMA_FRAME_MAX_PAYLOAD, 248);
+        CHECK_EQ_INT(GAMA_IPC_TELEMETRY_LEN, 14);
+        CHECK_EQ_INT(GAMA_IPC_STAT_LEN,      13);
+        CHECK_EQ_INT(GAMA_ROSTERS_PER_FRAME, 22);
+
+        /* The downlink phase's roster of 20 aircraft is one frame. */
+        CHECK_EQ_INT(GAMA_FRAME_OVERHEAD + 20 * GAMA_ROSTER_WIRE_LEN, 227);
 
         /* A 20-aircraft snapshot is two frames of 12 + 8 records. */
         CHECK_EQ_INT(GAMA_FRAME_OVERHEAD + 12 * GAMA_TRACK_WIRE_LEN, 247);

@@ -7,12 +7,22 @@
  *   1. acknowledgements            — the ground is waiting on them
  *   2. housekeeping, if requested or due
  *   3. statistics, if requested or due while streaming
- *   4. the next frame of the track snapshot being sent, or a new snapshot
+ *   4. the roster, frame by frame, after a REQ_ROSTER
+ *   5. the next frame of the track snapshot being sent, or a new snapshot
  *      when the stream period has elapsed
- *   5. the beacon, in SAFE
+ *   6. the beacon, in SAFE
  *
- * Periods come from docs/budgets/data-budget.md §5: snapshot every 5 s
- * (commanded), housekeeping every 10 s, statistics every 30 s. In SAFE the
+ * Periods come from docs/budgets/data-budget.md §5: snapshot every 5 s,
+ * housekeeping every 10 s, statistics every 30 s.
+ *
+ * The OBC's mode drives the stream (CDR Table 55, TTC-07, ADR-0014):
+ * entering MISSION_ADSB starts the snapshots and statistics, leaving it stops
+ * them, with no ground command. MISSION_DOWNLINK sends the final statistics
+ * and the roster, then tells the OBC the task is done (EV_TASK_DONE, PLANO
+ * D2). UNKNOWN — the OBC not connected — changes nothing: a crash of the OBC
+ * process must not stop the payload's downlink mid-mission (ADR-0005).
+ * STREAM_START and STREAM_STOP remain as a manual override until the next
+ * mode change. In SAFE the
  * link is at SF12, where one snapshot would take 23 s of air time, so tracks
  * are suppressed and only the beacon and a slower housekeeping go out.
  *
@@ -30,6 +40,8 @@
 
 #include <inttypes.h>
 #include <string.h>
+
+static void check_downlink_done(ttcd_core_t *c, uint64_t now);
 
 /* Signed difference of two wrapping 32-bit millisecond clocks. */
 static bool epoch_after(uint32_t a, uint32_t b)
@@ -138,6 +150,9 @@ ttcd_tx_kind_t tm_pick(ttcd_core_t *c, uint64_t now)
     if (c->stat_requested || (!safe && c->stream_on && now >= c->next_stat)) {
         return TTCD_TXK_STAT;
     }
+    if (c->roster_requested) {
+        return TTCD_TXK_ROSTER;
+    }
     if (!safe && c->stream_on) {
         if (sending_remaining(c)) {
             return TTCD_TXK_TRACKS;
@@ -162,37 +177,51 @@ static uint32_t since_epoch_ds(const ttcd_core_t *c, uint64_t now)
     return (elapsed_ms + 50u) / 100u;
 }
 
+/* TTC-06: every field without data reads as unknown (GAMA_NO_DATA_*). The
+ * OBC's block is copied as the OBC sent it, its own unknowns included. */
 static void fill_hk(const ttcd_core_t *c, uint64_t now, gama_hk_t *hk)
 {
     memset(hk, 0, sizeof(*hk));
     if (c->have_telemetry) {
         hk->battery_mv    = c->telemetry.battery_mv;
         hk->current_ma    = c->telemetry.current_ma;
+        hk->temp_bat_ccel = c->telemetry.temp_bat_ccel;   /* HLR-EPS-04 */
         hk->temp_ext_ccel = c->telemetry.temp_ext_ccel;
         hk->roll_cdeg     = c->telemetry.roll_cdeg;
         hk->pitch_cdeg    = c->telemetry.pitch_cdeg;
         hk->yaw_cdeg      = c->telemetry.yaw_cdeg;
     } else {
-        hk->battery_mv    = 0;
-        hk->current_ma    = TTCD_HK_UNKNOWN;
-        hk->temp_ext_ccel = TTCD_HK_UNKNOWN;
-        hk->roll_cdeg     = TTCD_HK_UNKNOWN;
-        hk->pitch_cdeg    = TTCD_HK_UNKNOWN;
-        hk->yaw_cdeg      = TTCD_HK_UNKNOWN;
+        hk->battery_mv    = GAMA_NO_DATA_U16;
+        hk->current_ma    = GAMA_NO_DATA_I16;
+        hk->temp_bat_ccel = GAMA_NO_DATA_I16;
+        hk->temp_ext_ccel = GAMA_NO_DATA_I16;
+        hk->roll_cdeg     = GAMA_NO_DATA_I16;
+        hk->pitch_cdeg    = GAMA_NO_DATA_I16;
+        hk->yaw_cdeg      = GAMA_NO_DATA_I16;
     }
-    int16_t soc = TTCD_HK_UNKNOWN;
+    int16_t soc = GAMA_NO_DATA_I16;
     if (c->ops.soc_temp == NULL || c->ops.soc_temp(c->ops.ctx, &soc) != 0) {
-        soc = TTCD_HK_UNKNOWN;
+        soc = GAMA_NO_DATA_I16;
     }
     hk->temp_soc_ccel = soc;
-    hk->adsb_msgs  = c->have_stat ? c->payload_stat.msgs_decoded : 0;
+    hk->adsb_msgs  = c->have_stat ? c->payload_stat.msgs_decoded : GAMA_NO_DATA_U32;
     hk->obc_mode   = c->obc_linked ? c->obc_mode : GAMA_OBC_ST_UNKNOWN;
     hk->link_state = ttcd_link_mode(c);
     hk->uptime_s   = (uint32_t)((now - c->boot_ms) / 1000u);
+    bool dump1090_up = c->adsbd_linked && c->have_stat &&
+                       (c->payload_stat.flags & GAMA_IPC_STAT_F_DUMP1090_UP) != 0;
     hk->flags      = (uint8_t)((c->obc_linked   ? GAMA_HK_F_OBC_LINKED  : 0u) |
                                (c->adsbd_linked ? GAMA_HK_F_ADSB_LINKED : 0u) |
-                               (c->time_synced  ? GAMA_HK_F_TIME_SYNCED : 0u));
-    /* GAMA_HK_F_DUMP1090_UP needs adsbd to report it (PLANO phase 3). */
+                               (c->time_synced  ? GAMA_HK_F_TIME_SYNCED : 0u) |
+                               (dump1090_up     ? GAMA_HK_F_DUMP1090_UP : 0u));
+}
+
+/* Records in the next TM_ROSTER frame. Recomputed by tm_commit() in the
+ * same event as tm_build(), so both see the same table. */
+static uint32_t roster_frame_records(const ttcd_core_t *c)
+{
+    uint32_t left = c->roster_count - c->roster_next;
+    return left < GAMA_ROSTERS_PER_FRAME ? left : GAMA_ROSTERS_PER_FRAME;
 }
 
 static void fill_stat(const ttcd_core_t *c, gama_stat_t *st)
@@ -253,6 +282,18 @@ size_t tm_build(ttcd_core_t *c, uint64_t now, ttcd_tx_kind_t kind,
         len = (int)bytes;
         break;
     }
+    case TTCD_TXK_ROSTER: {
+        /* An empty table still sends one frame without records: the answer
+         * "no callsign heard yet". */
+        uint32_t n = roster_frame_records(c);
+        for (uint32_t r = 0; r < n; r++) {
+            memcpy(payload + r * GAMA_ROSTER_WIRE_LEN, c->roster[c->roster_next + r],
+                   GAMA_ROSTER_WIRE_LEN);
+        }
+        type = GAMA_FRAME_TM_ROSTER;
+        len = (int)(n * GAMA_ROSTER_WIRE_LEN);
+        break;
+    }
     case TTCD_TXK_BEACON:
         type = GAMA_FRAME_BEACON;
         len = 0;
@@ -302,10 +343,18 @@ void tm_commit(ttcd_core_t *c, uint64_t now, ttcd_tx_kind_t kind)
     case TTCD_TXK_STAT:
         c->stat_requested = false;
         c->next_stat = now + c->p.stat_period;
+        check_downlink_done(c, now);
         break;
     case TTCD_TXK_TRACKS:
         record_latency(c, now);
         c->sending_next++;
+        break;
+    case TTCD_TXK_ROSTER:
+        c->roster_next += roster_frame_records(c);
+        if (c->roster_next >= c->roster_count) {
+            c->roster_requested = false;
+        }
+        check_downlink_done(c, now);
         break;
     case TTCD_TXK_BEACON:
         c->next_beacon = now + c->p.safe_beacon_period;
@@ -316,10 +365,70 @@ void tm_commit(ttcd_core_t *c, uint64_t now, ttcd_tx_kind_t kind)
     }
 }
 
+void tm_stream_start(ttcd_core_t *c, uint64_t now, uint32_t period_ms, const char *by)
+{
+    c->stream_on = true;
+    c->stream_period = period_ms;
+    c->next_tracks = now;
+    c->next_stat = now + c->p.stat_period;
+    core_log(c, now, "stream", "\"on\":true,\"period_ms\":%" PRIu32 ",\"by\":\"%s\"",
+             period_ms, by);
+}
+
+void tm_stream_stop(ttcd_core_t *c, uint64_t now, const char *by)
+{
+    c->stream_on = false;
+    c->sending.valid = false;
+    core_log(c, now, "stream", "\"on\":false,\"by\":\"%s\"", by);
+}
+
+void tm_on_mode(ttcd_core_t *c, uint64_t now, uint8_t mode)
+{
+    if (mode == GAMA_OBC_ST_UNKNOWN || mode == c->mission_mode) {
+        return;
+    }
+    uint8_t from = c->mission_mode;
+    c->mission_mode = mode;
+
+    if (from == GAMA_OBC_ST_MISSION_ADSB && c->stream_on) {
+        tm_stream_stop(c, now, "mode");
+    }
+    if (from == GAMA_OBC_ST_MISSION_DOWNLINK && c->downlink_pending) {
+        /* Left before the end, by the ground: no task to report done. */
+        c->downlink_pending = false;
+        core_log(c, now, "downlink_abandoned", "\"to\":\"%s\"", gama_obc_state_name(mode));
+    }
+    if (mode == GAMA_OBC_ST_MISSION_ADSB) {
+        tm_stream_start(c, now, c->p.stream_period, "mode");   /* TTC-07 */
+    } else if (mode == GAMA_OBC_ST_MISSION_DOWNLINK) {
+        /* Final statistics, then the roster (tm_pick's order): 33 + 227 B
+         * for 20 aircraft, 1.4 s at NOMINAL (CDR Table 55). */
+        c->stat_requested = true;
+        c->roster_requested = true;
+        c->roster_next = 0;
+        c->downlink_pending = true;
+        core_log(c, now, "downlink_start", "\"roster\":%" PRIu32, c->roster_count);
+    }
+}
+
+/* MISSION_DOWNLINK's frames have all left: the task is done (PLANO D2). */
+static void check_downlink_done(ttcd_core_t *c, uint64_t now)
+{
+    if (!c->downlink_pending || c->stat_requested || c->roster_requested) {
+        return;
+    }
+    c->downlink_pending = false;
+    uint8_t ev = GAMA_OBC_EV_TASK_DONE;
+    bool sent = c->obc_linked &&
+                core_ipc_send(c, now, GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_TC_EVENT,
+                              &ev, GAMA_IPC_TC_EVENT_LEN);
+    core_log(c, now, "downlink_done", "\"task_done_sent\":%s", sent ? "true" : "false");
+}
+
 uint64_t tm_next_due(const ttcd_core_t *c)
 {
     bool safe = c->profile == GAMA_RATE_SAFE;
-    if (c->ack_count > 0 || c->hk_requested || c->stat_requested) {
+    if (c->ack_count > 0 || c->hk_requested || c->stat_requested || c->roster_requested) {
         return 0;
     }
     if (!safe && c->stream_on && c->sending.valid && c->sending_next < c->sending.count) {

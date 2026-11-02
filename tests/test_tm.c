@@ -197,7 +197,7 @@ int main(void)
     TEST_GROUP("hk: round-trip preserves every field");
     {
         gama_hk_t in = {
-            .battery_mv = 8214, .current_ma = -342,
+            .battery_mv = 8214, .current_ma = -342, .temp_bat_ccel = 3150,
             .temp_ext_ccel = -1150, .temp_soc_ccel = 6725,
             .roll_cdeg = 1234, .pitch_cdeg = -5678, .yaw_cdeg = 18000,
             .adsb_msgs = 4294967295u, .obc_mode = GAMA_OBC_ST_MISSION_ADSB,
@@ -213,6 +213,7 @@ int main(void)
          * Pi under UBSan they held stack garbage). */
         CHECK_EQ_INT(out.battery_mv,    in.battery_mv);
         CHECK_EQ_INT(out.current_ma,    in.current_ma);
+        CHECK_EQ_INT(out.temp_bat_ccel, in.temp_bat_ccel);
         CHECK_EQ_INT(out.temp_ext_ccel, in.temp_ext_ccel);
         CHECK_EQ_INT(out.temp_soc_ccel, in.temp_soc_ccel);
         CHECK_EQ_INT(out.roll_cdeg,     in.roll_cdeg);

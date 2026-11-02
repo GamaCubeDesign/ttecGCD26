@@ -89,6 +89,9 @@ static struct {
     uint64_t log_bytes;
     bool     log_full;
 
+    bool     decoder_stopping;    /* SIGTERM sent because the mode changed  */
+    uint64_t decoder_stop_deadline;
+
     bool     stopping;
     uint64_t stop_deadline;
     bool     exiting;
@@ -187,11 +190,14 @@ static void rewatch(int fd, uint32_t events)
 static void arm_timer(uint64_t now)
 {
     uint64_t d = adsbd_next_deadline(&A.core);
-    if (A.sbs_fd < 0 && A.sbs_retry_at < d) {
+    if (A.sbs_fd < 0 && adsbd_decoder_wanted(&A.core) && A.sbs_retry_at < d) {
         d = A.sbs_retry_at;
     }
     if (A.ipc_fd < 0 && A.ipc_retry_at < d) {
         d = A.ipc_retry_at;
+    }
+    if (A.decoder_stopping && A.decoder_stop_deadline < d) {
+        d = A.decoder_stop_deadline;
     }
     if (A.restart_at != 0 && A.restart_at < d) {
         d = A.restart_at;
@@ -269,7 +275,9 @@ static void reap(uint64_t now)
         }
         if (A.stopping) {
             A.exiting = true;
-        } else {
+        } else if (A.decoder_stopping) {
+            A.decoder_stopping = false;          /* stopped by the mode: done */
+        } else if (adsbd_decoder_wanted(&A.core)) {
             schedule_restart(now);
             write_log(now, "dump1090_restart_in", "\"ms\":%" PRIu32, A.backoff_ms);
         }
@@ -285,6 +293,7 @@ static void sbs_close(uint64_t now, const char *why)
         close(A.sbs_fd);
         if (!A.sbs_connecting) {
             write_log(now, "sbs_down", "\"why\":\"%s\"", why);
+            adsbd_on_dump1090_link(&A.core, now, false);
         } else if (!A.sbs_complained) {
             write_log(now, "sbs_connect_failed", "\"why\":\"%s\"", why);
             A.sbs_complained = true;
@@ -302,6 +311,7 @@ static void sbs_up(uint64_t now)
     A.sbs_connecting = false;
     A.sbs_complained = false;
     write_log(now, "sbs_up", "\"host\":\"%s\",\"port\":%u", A.cfg.sbs_host, A.cfg.sbs_port);
+    adsbd_on_dump1090_link(&A.core, now, true);
 }
 
 static void sbs_try_connect(uint64_t now)
@@ -475,8 +485,40 @@ static void begin_stop(uint64_t now, uint32_t signo)
     }
 }
 
+/* Matches dump1090 and the SBS connection to the mode (ADR-0014): started
+ * when the core wants the decoder, stopped when it does not. A start here is
+ * the mode's, not a crash's, and is not counted as a restart. */
+static void reconcile(uint64_t now)
+{
+    if (A.stopping) {
+        return;
+    }
+    if (adsbd_decoder_wanted(&A.core)) {
+        if (A.argc > 0 && A.child < 0 && A.restart_at == 0 && !A.decoder_stopping) {
+            start_dump1090(now);
+        }
+        return;
+    }
+    A.restart_at = 0;
+    if (A.child > 0 && !A.decoder_stopping) {
+        kill(A.child, SIGTERM);
+        A.decoder_stopping = true;
+        A.decoder_stop_deadline = now + (uint64_t)STOP_GRACE_MS * NS_PER_MS;
+        write_log(now, "dump1090_stop", "\"pid\":%d,\"why\":\"mode\"", (int)A.child);
+    } else if (A.decoder_stopping && A.child > 0 && now >= A.decoder_stop_deadline) {
+        /* It ignored SIGTERM. SIGCHLD reaps it; nothing here waits. */
+        kill(A.child, SIGKILL);
+        write_log(now, "dump1090_killed", "\"pid\":%d", (int)A.child);
+        A.decoder_stop_deadline = UINT64_MAX;
+    }
+    if (A.sbs_fd >= 0) {
+        sbs_close(now, "mode");
+    }
+}
+
 static void service(uint64_t now)
 {
+    reconcile(now);
     if (A.stopping) {
         if (A.child > 0 && now >= A.stop_deadline) {
             /* Shutdown only: the child ignored SIGTERM; this wait is for a
@@ -491,7 +533,7 @@ static void service(uint64_t now)
         start_dump1090(now);
         adsbd_on_dump1090_restart(&A.core, now);
     }
-    if (A.sbs_fd < 0 && now >= A.sbs_retry_at) {
+    if (A.sbs_fd < 0 && adsbd_decoder_wanted(&A.core) && now >= A.sbs_retry_at) {
         sbs_try_connect(now);
     }
     if (A.ipc_fd < 0 && now >= A.ipc_retry_at) {
@@ -618,10 +660,11 @@ int main(int argc, char **argv)
     int64_t offset = (int64_t)wall.tv_sec * 1000000000 + (int64_t)wall.tv_nsec - (int64_t)now;
     write_log(now, "start",
               "\"version\":\"%s\",\"sbs\":\"%s:%u\",\"ipc_path\":\"%s\",\"ndjson_path\":\"%s\","
-              "\"record_bytes\":%" PRIu64 ",\"dump1090\":\"%s\",\"wall_s\":%lld,"
+              "\"record_bytes\":%" PRIu64 ",\"dump1090\":\"%s\",\"decoder\":\"%s\",\"wall_s\":%lld,"
               "\"wall_note\":\"system clock until the ground's SET_TIME\"",
               TTEC_VERSION, A.cfg.sbs_host, A.cfg.sbs_port, A.cfg.ipc_path, A.cfg.ndjson_path,
-              A.rec_bytes, A.argc > 0 ? A.argv[0] : "external", (long long)wall.tv_sec);
+              A.rec_bytes, A.argc > 0 ? A.argv[0] : "external",
+              A.cfg.p.decoder_always ? "always" : "mode", (long long)wall.tv_sec);
     if (A.rec_full) {
         write_log(now, "record_full", "\"bytes\":%" PRIu64 ",\"at_start\":true", A.rec_bytes);
     }
@@ -645,9 +688,6 @@ int main(int argc, char **argv)
     adsbd_ops_t ops = { .ctx = NULL, .ipc_send = op_ipc_send, .record = op_record,
                         .log = op_log };
     adsbd_init(&A.core, &A.cfg.p, &ops, now, offset);
-    if (A.argc > 0) {
-        start_dump1090(now);
-    }
     A.sbs_retry_at = now;
     A.ipc_retry_at = now;
     service(now);

@@ -143,6 +143,7 @@ int ttcd_config_set(ttcd_config_t *c, const char *key, const char *value,
     if (strcmp(key, "dio0_line") == 0)             { U32(dio0_line, 0, 511); }
     if (strcmp(key, "hk_period_ms") == 0)          { U32(p.hk_period, 1000, DAY_MS); }
     if (strcmp(key, "stat_period_ms") == 0)        { U32(p.stat_period, 1000, DAY_MS); }
+    if (strcmp(key, "stream_period_ms") == 0)      { U32(p.stream_period, 3000, 60000); }
     if (strcmp(key, "safe_beacon_period_ms") == 0) { U32(p.safe_beacon_period, 1000, DAY_MS); }
     if (strcmp(key, "safe_hk_period_ms") == 0)     { U32(p.safe_hk_period, 1000, DAY_MS); }
     if (strcmp(key, "contact_timeout_ms") == 0)    { U32(p.contact_timeout, 1000, DAY_MS); }

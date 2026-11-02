@@ -176,11 +176,12 @@ int gama_hk_encode(uint8_t *out, size_t out_cap, const gama_hk_t *hk)
     size_t pos = 0;
     pos += gama_put_u16(out + pos, hk->battery_mv);
     pos += gama_put_i16(out + pos, hk->current_ma);
+    pos += gama_put_i16(out + pos, hk->temp_bat_ccel);
     pos += gama_put_i16(out + pos, hk->temp_ext_ccel);
-    pos += gama_put_i16(out + pos, hk->temp_soc_ccel);
     pos += gama_put_i16(out + pos, hk->roll_cdeg);
     pos += gama_put_i16(out + pos, hk->pitch_cdeg);
     pos += gama_put_i16(out + pos, hk->yaw_cdeg);
+    pos += gama_put_i16(out + pos, hk->temp_soc_ccel);
     pos += gama_put_u32(out + pos, hk->adsb_msgs);
     pos += gama_put_u8(out + pos, hk->obc_mode);
     pos += gama_put_u8(out + pos, hk->link_state);
@@ -197,16 +198,17 @@ int gama_hk_decode(const uint8_t *in, size_t in_len, gama_hk_t *hk)
 
     hk->battery_mv    = gama_get_u16(in + 0);
     hk->current_ma    = gama_get_i16(in + 2);
-    hk->temp_ext_ccel = gama_get_i16(in + 4);
-    hk->temp_soc_ccel = gama_get_i16(in + 6);
+    hk->temp_bat_ccel = gama_get_i16(in + 4);
+    hk->temp_ext_ccel = gama_get_i16(in + 6);
     hk->roll_cdeg     = gama_get_i16(in + 8);
     hk->pitch_cdeg    = gama_get_i16(in + 10);
     hk->yaw_cdeg      = gama_get_i16(in + 12);
-    hk->adsb_msgs     = gama_get_u32(in + 14);
-    hk->obc_mode      = gama_get_u8(in + 18);
-    hk->link_state    = gama_get_u8(in + 19);
-    hk->uptime_s      = gama_get_u32(in + 20);
-    hk->flags         = gama_get_u8(in + 24);
+    hk->temp_soc_ccel = gama_get_i16(in + 14);
+    hk->adsb_msgs     = gama_get_u32(in + 16);
+    hk->obc_mode      = gama_get_u8(in + 20);
+    hk->link_state    = gama_get_u8(in + 21);
+    hk->uptime_s      = gama_get_u32(in + 22);
+    hk->flags         = gama_get_u8(in + 26);
 
     return (int)GAMA_HK_WIRE_LEN;
 }

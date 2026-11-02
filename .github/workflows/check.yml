@@ -1,0 +1,24 @@
+# make check on every push and pull request (decision 9 of 2026-10-05, PLANO
+# etapa 4), in Debian 13: the Pi's distribution and its GCC 14, so a warning
+# the Pi's compiler raises fails here before it fails on the bench. The same
+# script runs locally: make check-debian.
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    container: debian:trixie
+    steps:
+      - name: git, so that the checkout keeps .git
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends git ca-certificates
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # git describe names the build in every log
+      - name: make check
+        run: bash tools/ci/check_debian.sh "$GITHUB_WORKSPACE"

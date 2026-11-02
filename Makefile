@@ -43,7 +43,7 @@ need-pi = $(if $(ON_PI),,$(error $@ is for the Raspberry Pi — from the PC, mak
 
 ##@ Build and test — on the PC and on the Pi
 
-.PHONY: build test asan check clean vectors
+.PHONY: build test asan check check-debian clean vectors
 
 # Configures on every run, like the one-liner it replaces: that is what
 # refreshes TTEC_VERSION (git describe), which ttcd writes into every log.
@@ -63,6 +63,11 @@ asan: ## Build with ASan+UBSan (UBSan alone on the Pi) and warnings as errors, t
 	cd $(ASAN_DIR) && ctest --output-on-failure $(if $(T),-R '$(T)')
 
 check: test asan requirements ## Before any merge: tests, sanitizers, zero warnings, quotations
+
+# The CI's run: make check in a Debian 13 container, the Pi's distribution and
+# GCC 14 — a warning only that compiler raises shows up before make pi-check.
+check-debian: ## make check in Docker on Debian 13, with the Pi's GCC 14, as the CI runs it
+	docker run --rm -v $(CURDIR):/src:ro debian:trixie bash /src/tools/ci/check_debian.sh
 
 clean: ## Remove the build trees, with the simulated bench logs inside them
 	rm -rf $(BUILD_DIR) $(ASAN_DIR)
@@ -118,9 +123,21 @@ SOCK       ?= /tmp/ttec-bench.sock
 
 TTCD_CMD    = $(BUILD_DIR)/flight/ttcd -c $(TTCD_CONF) -o radio=$(RADIO) -o ipc_path=$(SOCK) \
               -o tx_power_dbm=$(POWER) -o lbt=$(LBT) $(TTCD_OPTS)
+# The ground: gs_cli on radio B (GS=gs_cli), or the ESP32 ground station on
+# ESP32_PORT through its serial bridge (GS=esp32), which takes the same
+# commands and prints the same lines. The ESP32 hangs off this machine's USB.
+GS         ?= gs_cli
+ifeq ($(GS),esp32)
+ifeq ($(RADIO),udp)
+$(error GS=esp32 is a real radio: run it where ttcd drives an RA-02 (RADIO=sx1278))
+endif
+GS_CMD      = $(PYTHON) ground/host/gs_serial.py --port $(ESP32_PORT) --power $(POWER) \
+              --lbt $(LBT) $(GS_OPTS)
+else
 GS_CMD      = $(BUILD_DIR)/tools/gs_cli/gs_cli --radio $(RADIO) \
               $(if $(filter sx1278,$(RADIO)),--spi $(GS_SPI) --reset $(GS_RESET) \
               --dio0 $(GS_DIO0) --power $(POWER) --lbt $(LBT)) $(GS_OPTS)
+endif
 
 # $(call bench-step,COMMANDS[,NAME[,ttcd options[,gs_cli options]]]): one
 # step, from tools/bench/COMMANDS.txt, logged as $(BENCH_DIR)/TIME-NAME-*.jsonl.
@@ -192,43 +209,75 @@ adsb-chain: build ## A mission through adsbd, ttcd and the ground, no hardware: 
 	BUILD_DIR=$(BUILD_DIR) PYTHON=$(PYTHON) tools/bench/adsb_chain.sh '$(INPUT)' \
 	    $(CHAIN_DIR)/$(BENCH_DATE)-$(BENCH_TIME)
 
-##@ On the Pi — ttcd and adsbd as systemd services
+##@ ESP32 ground station — ESP-IDF in Docker (tools/esp32/idf.sh), on the PC
+
+# The DevKit's USB serial port. Not PORT: that name is often set in the
+# environment for something else.
+ESP32_PORT ?= /dev/ttyUSB0
+IDF_SH      = tools/esp32/idf.sh
+
+.PHONY: esp32-build esp32-flash esp32-tests-qemu esp32-tests-flash
+
+esp32-build: ## Build the ground station firmware (ground/esp32)
+	$(IDF_SH) ground/esp32 build
+
+esp32-flash: esp32-build ## Flash it: ESP32_PORT=/dev/ttyUSB0
+	$(IDF_SH) ground/esp32 --port $(ESP32_PORT) -p $(ESP32_PORT) flash
+
+esp32-tests-qemu: ## The portable test suites on an emulated ESP32 (TTC-16)
+	tools/esp32/run_tests_qemu.sh
+
+# On the board: flash the suites, then read them with the serial bridge.
+# Flash the ground station back afterwards (make esp32-flash).
+esp32-tests-flash: ## The same suites on the DevKit: ESP32_PORT=/dev/ttyUSB0
+	$(IDF_SH) ground/esp32-tests --port $(ESP32_PORT) -p $(ESP32_PORT) flash
+	$(PYTHON) ground/host/gs_serial.py --port $(ESP32_PORT) --suites
+
+##@ On the Pi — ttcd, adsbd and obcd as systemd services
 
 .PHONY: provision install service-enable service-stop service-status service-logs \
-        adsbd-enable adsbd-stop adsbd-status
+        adsbd-enable adsbd-stop adsbd-status obcd-enable obcd-stop obcd-status
 
 # Once, on a fresh Pi: the build tools, tmux (a long bench run inside it
-# survives a dropped ssh), SPI0 (spidev0.0 and spidev0.1) and the unprivileged
-# user the service runs as. Plain sudo, not $(SUDO): the same line runs over
+# survives a dropped ssh), SPI0 (spidev0.0 and spidev0.1), I2C1 for obcd's
+# INA219, and the unprivileged user the services run as. Plain sudo, not $(SUDO): the same line runs over
 # ssh in pi-provision.
 PROVISION   = sudo apt-get update && sudo apt-get install -y build-essential cmake git python3 rsync tmux \
-              && sudo raspi-config nonint do_spi 0 \
-              && { id -u gama >/dev/null 2>&1 || sudo useradd --system --no-create-home --groups spi,gpio gama; }
+              && sudo raspi-config nonint do_spi 0 && sudo raspi-config nonint do_i2c 0 \
+              && { id -u gama >/dev/null 2>&1 || sudo useradd --system --no-create-home --groups spi,gpio,i2c gama; } \
+              && sudo usermod -aG i2c gama
 # log_path in /etc/gama/ttcd.conf.
 SERVICE_LOG ?= /var/lib/gama/ttcd.jsonl
 
-provision: ## Once: build tools, SPI0 enabled, the gama user for the service
+provision: ## Once: build tools, SPI0 and I2C1 enabled, the gama user for the services
 	$(need-pi)
 	$(PROVISION)
 
-# ttcd.service runs /usr/local/bin/ttcd -c /etc/gama/ttcd.conf, and
-# adsbd.service /usr/local/bin/adsbd -c /etc/gama/adsbd.conf. An existing
-# file in /etc/gama is kept: it may hold this board's own settings.
-install: build ## Install ttcd and adsbd, their systemd units and, if absent, their /etc/gama files
+# Each of ttcd, adsbd and obcd: /usr/local/bin/<d> -c /etc/gama/<d>.conf,
+# run by <d>.service. An existing file in /etc/gama is kept: it may hold this
+# board's own settings. A new one comes from CONF_DIR when the board has one
+# there (CONF_DIR=flight/conf/obc-v2), from the daemon's example otherwise.
+CONF_DIR    ?=
+need-conf-dir = $(if $(CONF_DIR),$(if $(wildcard $(CONF_DIR)/*.conf),,$(error CONF_DIR=$(CONF_DIR) has no .conf file)))
+
+install: build ## Install the daemons, their units and, if absent, /etc/gama files (CONF_DIR=flight/conf/obc-v2)
 	$(need-pi)
-	$(SUDO) install -m 0755 $(BUILD_DIR)/flight/ttcd /usr/local/bin/ttcd
-	$(SUDO) install -m 0755 $(BUILD_DIR)/flight/adsbd /usr/local/bin/adsbd
-	$(SUDO) install -m 0644 flight/ttcd/ttcd.service /etc/systemd/system/ttcd.service
-	$(SUDO) install -m 0644 flight/adsbd/adsbd.service /etc/systemd/system/adsbd.service
-	for d in ttcd adsbd; do \
+	$(need-conf-dir)
+	for d in ttcd adsbd obcd; do \
+	    $(SUDO) install -m 0755 $(BUILD_DIR)/flight/$$d /usr/local/bin/$$d && \
+	    $(SUDO) install -m 0644 flight/$$d/$$d.service /etc/systemd/system/$$d.service; \
+	done
+	for d in ttcd adsbd obcd; do \
+	    src=flight/$$d/$$d.conf.example; \
+	    if [ -n "$(CONF_DIR)" ] && [ -e "$(CONF_DIR)/$$d.conf" ]; then src=$(CONF_DIR)/$$d.conf; fi; \
 	    if [ -e /etc/gama/$$d.conf ]; then \
-	        echo "kept /etc/gama/$$d.conf; compare it with flight/$$d/$$d.conf.example"; \
+	        echo "kept /etc/gama/$$d.conf; compare it with $$src"; \
 	    else \
-	        $(SUDO) install -D -m 0644 flight/$$d/$$d.conf.example /etc/gama/$$d.conf; \
+	        $(SUDO) install -D -m 0644 $$src /etc/gama/$$d.conf && echo "installed /etc/gama/$$d.conf from $$src"; \
 	    fi; \
 	done
 	$(SUDO) systemctl daemon-reload
-	for d in ttcd adsbd; do \
+	for d in ttcd adsbd obcd; do \
 	    if systemctl is-active --quiet $$d; then $(SUDO) systemctl restart $$d; echo "$$d restarted"; fi; \
 	done
 
@@ -265,6 +314,22 @@ adsbd-status: ## systemd's view of adsbd, and the end of its log
 	$(need-pi)
 	systemctl status adsbd --no-pager || true
 	tail -n 20 $(ADSBD_LOG)
+
+# log_path in /etc/gama/obcd.conf.
+OBCD_LOG    ?= /var/lib/gama/obcd.jsonl
+
+obcd-enable: ## Start obcd now and at every boot (pins and sensors in /etc/gama/obcd.conf)
+	$(need-pi)
+	$(SUDO) systemctl enable --now obcd
+
+obcd-stop: ## Stop obcd until the next boot: the modes stop, the outputs go off
+	$(need-pi)
+	$(SUDO) systemctl stop obcd
+
+obcd-status: ## systemd's view of obcd, and the end of its log
+	$(need-pi)
+	systemctl status obcd --no-pager || true
+	tail -n 20 $(OBCD_LOG)
 
 ##@ From the PC — the same targets, run on the Pi over ssh
 

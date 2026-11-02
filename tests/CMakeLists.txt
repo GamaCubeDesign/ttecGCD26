@@ -1,18 +1,9 @@
-# Host-side unit tests for the shared codec. No external framework, so these
-# can be cross-compiled and run on the ESP32 to prove both ends of the link
-# really do produce identical bytes.
-set(TTEC_TESTS
-    test_crc16
-    test_frame
-    test_tm
-    test_tc
-    test_vectors
-    test_lora
-    test_ipc_codec
-    test_gs_link
-)
+# Host-side unit tests for the shared codec. No external framework, so the
+# same files also run on the ESP32 (ground/esp32-tests), proving both ends of
+# the link produce identical bytes. The list is in portable.cmake.
+include(${CMAKE_CURRENT_SOURCE_DIR}/portable.cmake)
 
-foreach(t IN LISTS TTEC_TESTS)
+foreach(t IN LISTS TTEC_CODEC_TESTS)
     add_executable(${t} ${t}.c)
     target_link_libraries(${t} PRIVATE gama_common)
     target_include_directories(${t} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -81,14 +72,61 @@ target_include_directories(test_adsbd_integration PRIVATE ${CMAKE_CURRENT_SOURCE
 add_test(NAME test_adsbd_integration COMMAND test_adsbd_integration $<TARGET_FILE:adsbd>)
 set_tests_properties(test_adsbd_integration PROPERTIES TIMEOUT 60)
 
+add_executable(test_obcd_integration test_obcd_integration.c)
+target_link_libraries(test_obcd_integration PRIVATE ttec_ipc gama_common)
+target_include_directories(test_obcd_integration PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_obcd_integration COMMAND test_obcd_integration $<TARGET_FILE:obcd>)
+set_tests_properties(test_obcd_integration PROPERTIES TIMEOUT 60)
+
 # The chain end to end: SBS -> adsbd -> ttcd -> UDP radio -> ground. Also
 # shows the radio surviving the payload, and ttcd re-anchoring a restarted
 # adsbd.
+# The ground console: portable, but linked here with gs_console too.
+add_executable(test_gs_console test_gs_console.c)
+target_link_libraries(test_gs_console PRIVATE gs_console gama_common)
+target_include_directories(test_gs_console PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_gs_console COMMAND test_gs_console)
+
+add_executable(test_obcd_core test_obcd_core.c)
+target_link_libraries(test_obcd_core PRIVATE obcd_core)
+target_include_directories(test_obcd_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_obcd_core COMMAND test_obcd_core)
+
+add_executable(test_obcd_i2c_sched test_obcd_i2c_sched.c)
+target_link_libraries(test_obcd_i2c_sched PRIVATE obcd_core)
+target_include_directories(test_obcd_i2c_sched PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_obcd_i2c_sched COMMAND test_obcd_i2c_sched)
+
+add_executable(test_obcd_drivers test_obcd_drivers.c)
+target_link_libraries(test_obcd_drivers PRIVATE obcd_drivers)
+target_include_directories(test_obcd_drivers PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(test_obcd_drivers PRIVATE _POSIX_C_SOURCE=200809L)
+add_test(NAME test_obcd_drivers COMMAND test_obcd_drivers)
+
+add_executable(test_obcd_config test_obcd_config.c)
+target_link_libraries(test_obcd_config PRIVATE obcd_config)
+target_include_directories(test_obcd_config PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_obcd_config COMMAND test_obcd_config)
+
+# Every configuration file shipped, read by its own daemon: each daemon's
+# example, and the files of each board in flight/conf.
+foreach(d ttcd adsbd obcd)
+    add_test(NAME conf_${d}_example
+             COMMAND $<TARGET_FILE:${d}> -c ${CMAKE_SOURCE_DIR}/flight/${d}/${d}.conf.example
+                     --check-config)
+endforeach()
+foreach(d ttcd obcd)
+    add_test(NAME conf_obc_v2_${d}
+             COMMAND $<TARGET_FILE:${d}> -c ${CMAKE_SOURCE_DIR}/flight/conf/obc-v2/${d}.conf
+                     --check-config)
+endforeach()
+
 add_executable(test_adsb_chain test_adsb_chain.c)
 target_link_libraries(test_adsb_chain PRIVATE ttec_radio gama_common)
 target_include_directories(test_adsb_chain PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_adsb_chain
-         COMMAND test_adsb_chain $<TARGET_FILE:ttcd> $<TARGET_FILE:adsbd>)
+         COMMAND test_adsb_chain $<TARGET_FILE:ttcd> $<TARGET_FILE:adsbd>
+                 $<TARGET_FILE:obcd>)
 set_tests_properties(test_adsb_chain PROPERTIES TIMEOUT 90)
 
 # test_tm exercises NaN handling and quantisation bounds.
@@ -111,4 +149,14 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME tracks_to_ndjson
              COMMAND ${Python3_EXECUTABLE} -m unittest test_tracks_to_ndjson
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
+    # The ESP32 ground station's serial bridge, against a fake board on a pty.
+    add_test(NAME gs_serial
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_gs_serial
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
+    # A real bench step (run_step.sh, ping.txt) with the real ttcd and the
+    # real ground on the UDP radio: the ground's JSON as the scripts read it.
+    add_test(NAME bench_step_udp
+             COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_bench_step.py
+                     ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR})
+    set_tests_properties(bench_step_udp PROPERTIES TIMEOUT 150)
 endif()

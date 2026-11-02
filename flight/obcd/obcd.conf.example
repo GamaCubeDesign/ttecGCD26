@@ -1,0 +1,62 @@
+# obcd configuration. One `key = value` per line; '#' starts a comment.
+# Unknown keys are an error, so a typo cannot silently keep a default.
+# Any key can be overridden on the command line: obcd -c FILE -o key=value
+# Check a file without starting: obcd -c FILE --check-config
+
+# --- where things live -----------------------------------------------------
+ipc_path      = /run/gama/ttec.sock         # ttcd's socket; obcd reconnects on its own
+log_path      = /var/lib/gama/obcd.jsonl    # events, one JSON object per line; "-" = stdout
+log_max_bytes = 67108864
+retry_ms      = 1000
+
+# --- the mission modes (CDR Figure 44; PLANO D3, D6) -------------------------
+adsb_timeout_ms     = 600000   # MISSION_ADSB ends by itself (OBC-6)
+burnwire_ms         = 5000     # the burn-wire pulse in BASIC_INTERMEDIATE (D3)
+telemetry_period_ms = 1000     # IPC_TELEMETRY to ttcd (D6)
+
+# --- ADVANCED_AOCS: the I2C bus lent to the AOCS ESP32 (ADR-0017) -----------
+# The mode is the lease: 250 ms + the task + 2 s, so 300000 asks the ESP32
+# for 297 s of task (a placeholder until the AOCS team answers, ICD §6).
+aocs_timeout_ms   = 300000
+aocs_addr         = 0x2A       # docs/icd/obc-aocs-i2c.md
+aocs_azimuth_cdeg = 0          # the azimuth the START asks for, 0.01 deg
+aocs_hold_ms      = 60000      # the task's attitude stays in telemetry this long
+# The lease's end, kept on the SD card while the ESP32 holds the bus: an
+# obcd restarted, or a Pi rebooted, stays off the bus until it is over.
+# Empty: not kept, only for a bench with no ESP32.
+i2c_lease_path    = /var/lib/gama/obcd-i2c.lease
+
+# --- battery heaters (D4) ----------------------------------------------------
+heater_on_below_ccel  = 1000   # on below 10.00 degC
+heater_off_above_ccel = 1200   # off above 12.00 degC
+temp_stale_ms         = 10000  # no good reading this long: sensor failed, heaters off
+
+# --- sensors -----------------------------------------------------------------
+# INA219, battery voltage and the satellite's load current (OBC-7), on the
+# bus it shares with the AOCS ESP32 (I2C1: pins 3/5, /dev/i2c-1). During an
+# AOCS lease it is not read, and voltage and current go as "no data"
+# (ADR-0017). Empty: no bus, no INA219, and ADVANCED_AOCS ends at once.
+i2c_dev           =
+ina219_addr       = 0x40
+ina219_shunt_mohm = 100        # the previous OBC's calibration; measure the board's
+power_period_ms   = 1000
+power_stale_ms    = 5000
+
+# DS18B20 on the upper battery, through the kernel's w1-gpio and w1_therm
+# (dtoverlay=w1-gpio,gpiopin=17 on both OBC boards; the fabricated one also
+# needs the pull-up of hardware finding A7). The file is
+# /sys/bus/w1/devices/28-<serial>/w1_slave; "auto" reads the one DS18B20
+# listed in w1_devices_dir (none, or more than one: no reading). Empty: no
+# sensor, the heaters stay off.
+w1_path        =
+w1_devices_dir = /sys/bus/w1/devices
+temp_period_ms = 2000          # a conversion takes ~750 ms
+
+# --- outputs (GPIO character device, ADR-0012) -------------------------------
+# On the boards as fabricated: burn-wire GPIO22, heaters GPIO23 — both behind
+# TIP120s whose base drive is too weak (findings A5, A6). The new OBC
+# board's lines are in flight/conf/obc-v2/obcd.conf; here "none" keeps them
+# off, and the log says so.
+gpio_chip     = /dev/gpiochip0
+burnwire_line = none
+heater_line   = none

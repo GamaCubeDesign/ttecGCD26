@@ -227,6 +227,18 @@ int sx1278_transmit(sx1278_t *d, const uint8_t *buf, uint8_t len)
     return 0;
 }
 
+int sx1278_try_transmit(sx1278_t *d, const uint8_t *buf, uint8_t len)
+{
+    bool busy = false;
+    if (sx1278_rx_busy(d, &busy) != 0) {
+        return SX_TX_ERROR;
+    }
+    if (busy) {
+        return SX_TX_BUSY;
+    }
+    return sx1278_transmit(d, buf, len) == 0 ? SX_TX_STARTED : SX_TX_ERROR;
+}
+
 int sx1278_service(sx1278_t *d, sx1278_event_t *event, uint8_t *buf, uint8_t *len,
                    int16_t *rssi_dbm, int8_t *snr_db)
 {

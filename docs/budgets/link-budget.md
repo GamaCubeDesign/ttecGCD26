@@ -8,10 +8,10 @@
 
 | Parameter | Value | Note |
 |---|---|---|
-| Frequency | 433 MHz | fixed: RA-02 front end is matched for this band |
-| Transmit power | 20 dBm | SX1278 PA_BOOST maximum |
-| Antenna gain | 2 dBi each end | quarter-wave whip |
-| Feedline and connector loss | 2 dB total | both ends combined |
+| Frequency | 433.92 MHz | TTC-01: the centre of the 433.05-434.79 MHz allocation (ADR-0015) |
+| Transmit power | 14 dBm | TTC-03: flight power, commandable 2..20 dBm (ADR-0015) |
+| Antenna gain | 2.15 dBi each end | half-wave dipole |
+| Losses | 2.3 dB total | baluns, cables and connectors, both ends combined |
 | Bandwidth | 125 kHz | ADR-0004 |
 | Propagation model | free space | see §4 for why this is optimistic and why it does not matter |
 
@@ -29,12 +29,15 @@ SX1276/78 datasheet typical values at BW 125 kHz:
 
 | Distance | FSPL | Rx power | Margin SF7 | Margin SF9 | Margin SF12 |
 |---|---|---|---|---|---|
-| 10 m | 45.2 dB | -23.2 dBm | 99.8 dB | 105.8 dB | 113.8 dB |
-| 50 m | 59.1 dB | -37.1 dBm | 85.9 dB | 91.9 dB | 99.9 dB |
-| 100 m | 65.2 dB | -43.2 dBm | 79.8 dB | 85.8 dB | 93.8 dB |
-| 500 m | 79.1 dB | -57.1 dBm | 65.9 dB | 71.9 dB | 79.9 dB |
-| 1 km | 85.2 dB | -63.2 dBm | 59.8 dB | 65.8 dB | 73.8 dB |
-| 5 km | 99.1 dB | -77.1 dBm | 45.9 dB | 51.9 dB | 59.9 dB |
+| 10 m | 45.2 dB | -29.2 dBm | 93.8 dB | 99.8 dB | 107.8 dB |
+| 50 m | 59.2 dB | -43.2 dBm | 79.8 dB | 85.8 dB | 93.8 dB |
+| 100 m | 65.2 dB | -49.2 dBm | 73.8 dB | 79.8 dB | 87.8 dB |
+| 500 m | 79.2 dB | -63.2 dBm | 59.8 dB | 65.8 dB | 73.8 dB |
+| 1 km | 85.2 dB | -69.2 dBm | 53.8 dB | 59.8 dB | 67.8 dB |
+| 5 km | 99.2 dB | -83.2 dBm | 39.8 dB | 45.8 dB | 53.8 dB |
+
+Until 2026-10-24 this table was at 433 MHz and 20 dBm with 2 dBi and 2 dB
+(ADR-0004): 6 dB more margin everywhere. ADR-0015 explains the change.
 
 ## 4. Degradation allowance
 
@@ -51,7 +54,9 @@ and at 100 m — ten times the distance the competition requires:
 | Unmodelled | 10 dB |
 | **Total** | **70 dB** |
 
-SF9 at 100 m: 85.8 - 70 = **15.8 dB remaining**. SF7: 9.8 dB. Both close.
+SF9 at 100 m: 79.8 - 70 = **9.8 dB remaining**. SF7: 3.8 dB. Both close; if
+the site turns out worse than this, `SET_TX_POWER 20` buys back 6 dB from the
+ground.
 
 This is why the design does not need SF12's extra 8 dB, and why paying an 11x
 data-rate penalty for it was the previous mission's binding constraint
@@ -61,6 +66,8 @@ data-rate penalty for it was the previous mission's binding constraint
 
 - Bench-measure packet error rate over 1000 frames per profile at 1 m and at
   the expected operating distance.
+- Confirm both RA-02 at 433.92 MHz on the bench, and the current drawn at
+  14 dBm for the power budget.
 - Measure the 433 MHz noise floor at the venue before the test. The 10 dB
   interference allowance above is an estimate, and 433 MHz is a crowded band.
 - Confirm the actual antenna gain and pattern once the 1U structure is closed;

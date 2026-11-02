@@ -126,7 +126,7 @@ typedef enum {
     SX_EVENT_TX_DONE
 } sx1278_event_t;
 
-/* Resets the chip, checks its version, and configures it: LoRa mode, 433 MHz,
+/* Resets the chip, checks its version, and configures it: LoRa mode, GAMA_LORA_FREQ_HZ,
  * sync word, preamble, the given profile and power, then continuous reception.
  * Returns 0, or -1 with the reason in *why (never NULL on failure). */
 int sx1278_init(sx1278_t *d, const sx1278_bus_t *bus, uint8_t profile,
@@ -146,6 +146,15 @@ int sx1278_rx_busy(sx1278_t *d, bool *busy);
 /* Loads the FIFO and starts transmitting. Returns at once; the end is a
  * DIO0 interrupt reported by sx1278_service(). */
 int sx1278_transmit(sx1278_t *d, const uint8_t *buf, uint8_t len);
+
+/* Results of sx1278_try_transmit: the values of the radio backends' and of
+ * gs_link's transmit callbacks, so either can pass them straight on. */
+enum { SX_TX_STARTED = 0, SX_TX_BUSY = 1, SX_TX_ERROR = -1 };
+
+/* Listen before talk, then transmit (ADR-0007): SX_TX_BUSY, touching
+ * nothing, while a reception is in progress at d->lbt's sensitivity. The one
+ * transmit path of the satellite's radio and of the ESP32 ground station. */
+int sx1278_try_transmit(sx1278_t *d, const uint8_t *buf, uint8_t len);
 
 /*
  * Services a DIO0 interrupt: reads and clears the IRQ flags and reports what

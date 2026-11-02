@@ -36,6 +36,7 @@ endif()
 
 add_subdirectory(common)
 add_subdirectory(flight)
+add_subdirectory(ground/console)
 
 include(CTest)
 if(BUILD_TESTING)

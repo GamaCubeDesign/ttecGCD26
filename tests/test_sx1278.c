@@ -96,14 +96,16 @@ static void inject_rx(const uint8_t *bytes, uint8_t len, uint8_t at,
 
 int main(void)
 {
-    TEST_GROUP("sx1278: init configures 433 MHz LoRa at NOMINAL and listens");
+    TEST_GROUP("sx1278: init configures 433.92 MHz LoRa at NOMINAL and listens");
     {
         CHECK_EQ_INT(init_nominal(), 0);
         CHECK_EQ_INT(CHIP.resets, 1);
-        /* Frf = 433 MHz * 2^19 / 32 MHz = 7094272 = 0x6C4000. */
+        /* Frf = 433.92 MHz * 2^19 / 32 MHz = 7109345.28, truncated to
+         * 7109345 = 0x6C7AE1: 433.919983 MHz, 17 Hz low, against the
+         * crystal's +/-10 ppm (4.3 kHz). TTC-01. */
         CHECK_EQ_INT(CHIP.regs[SX_REG_FRF_MSB], 0x6C);
-        CHECK_EQ_INT(CHIP.regs[SX_REG_FRF_MID], 0x40);
-        CHECK_EQ_INT(CHIP.regs[SX_REG_FRF_LSB], 0x00);
+        CHECK_EQ_INT(CHIP.regs[SX_REG_FRF_MID], 0x7A);
+        CHECK_EQ_INT(CHIP.regs[SX_REG_FRF_LSB], 0xE1);
         CHECK_EQ_INT(CHIP.regs[SX_REG_SYNC_WORD], 0x12);
         CHECK_EQ_INT(CHIP.regs[SX_REG_PREAMBLE_MSB], 0x00);
         CHECK_EQ_INT(CHIP.regs[SX_REG_PREAMBLE_LSB], 0x08);
@@ -283,6 +285,21 @@ int main(void)
         sx1278_rx_busy(&D, &busy); CHECK(!busy);                 /* HEADER mode */
         D.lbt = SX_LBT_PREAMBLE;
         sx1278_rx_busy(&D, &busy); CHECK(busy);                  /* PREAMBLE mode */
+    }
+
+    TEST_GROUP("sx1278: try_transmit defers while receiving, and leaves the modem alone");
+    {
+        const uint8_t pkt[] = { 0x02, 0x01, 0x05, 0x00, 0x00, 0x11, 0x22 };
+        CHECK_EQ_INT(init_nominal(), 0);
+        CHIP.regs[SX_REG_MODEM_STAT] = SX_STAT_HEADER_VALID;      /* a frame arriving */
+        uint8_t mode = CHIP.regs[SX_REG_OP_MODE];
+        CHECK_EQ_INT(sx1278_try_transmit(&D, pkt, sizeof(pkt)), SX_TX_BUSY);
+        CHECK(!D.transmitting);
+        CHECK_EQ_INT(CHIP.regs[SX_REG_OP_MODE], mode);           /* still receiving */
+        CHIP.regs[SX_REG_MODEM_STAT] = SX_STAT_RX_ONGOING;        /* the channel is free */
+        CHECK_EQ_INT(sx1278_try_transmit(&D, pkt, sizeof(pkt)), SX_TX_STARTED);
+        CHECK(D.transmitting);
+        CHECK_EQ_INT(sx1278_try_transmit(&D, pkt, sizeof(pkt)), SX_TX_ERROR);  /* half-duplex */
     }
 
     TEST_SUMMARY("test_sx1278");

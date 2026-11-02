@@ -286,7 +286,7 @@ rádios.
 ### Explorar à mão
 
 Para o que está fora dos roteiros — `hk`, `stat`, `stream 5`, `mode aocs`,
-`power 10`; a lista completa está no cabeçalho de `tools/gs_cli/gs_cli.c`:
+`power 10`; a lista completa está em `ground/console/gs_console.h`:
 
 ```bash
 make bench-ttcd       # terminal 1: o satélite; log na tela e em manual-ttcd.jsonl; Ctrl-C para
@@ -298,6 +298,12 @@ Os parâmetros valem para todos os alvos da bancada: `POWER=10`,
 `LBT=preamble`, `TTCD_OPTS='-o hk_period_ms=1000'` (sobrescritas extras do
 `ttcd`), `GS_OPTS=...` (opções extras do `gs_cli`). `make help` mostra os
 valores em uso.
+
+**Com a ESP32 como ground** (ADR-0018, `ground/esp32/README.md`): a ESP32 no
+USB da Pi, no lugar do rádio B, e `GS=esp32 ESP32_PORT=/dev/ttyUSB0` em
+qualquer alvo — `make bench GS=esp32 ESP32_PORT=/dev/ttyUSB0` roda os seis
+passos com os mesmos roteiros, e `make bench-gs GS=esp32 ...` é a ground à
+mão.
 
 ### Registrar
 
@@ -323,7 +329,10 @@ principais:
 | `rate`, `rate_commit` | troca de perfil (comandada, revertida, por perda de contato) |
 | `contact_lost` | queda para SAFE |
 | `lbt_defer` | transmissão adiada porque havia recepção em curso |
-| `obc_telemetry`, `obc_mode` | o que o OBC reportou (inclui temperatura da bateria) |
+| `obc_telemetry`, `obc_mode` | o que o OBC reportou (inclui temperatura da bateria, que também vai no `TM_HK` desde a versão 2) |
+| `roster_full` | a tabela de callsigns (128) encheu; os seguintes são contados em `roster_full` |
+| `stream` | streaming ligado ou desligado; `by` diz se foi o modo do OBC ou um telecomando (ADR-0014) |
+| `downlink_start`, `downlink_done`, `downlink_abandoned` | `MISSION_DOWNLINK`: estatísticas e roster na fila; os dois saíram e o `EV_TASK_DONE` foi (ou não) ao OBC; o modo mudou antes |
 | `ipc_peer`, `ipc_drop_peer` | clientes IPC conectando e saindo |
 | `time_anchor` | `SET_TIME`: par relógio monotônico ↔ UTC |
 | `shutdown`, `stop`, `log_full` | fim |

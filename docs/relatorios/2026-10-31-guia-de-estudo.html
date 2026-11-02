@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TT&amp;C GCD26 — Guia de estudo do repositório (31/10/2026)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+<style>
+/* Acréscimos deste guia; o bloco acima é o mesmo dos relatórios. */
+.callout.ok{border-color:var(--ok);background:var(--ok-soft)}
+th[colspan]{background:var(--surface-2);font-size:13.5px}
+td.f{white-space:nowrap;font-family:var(--mono);font-size:13px}
+.steps{counter-reset:s;list-style:none;padding-left:0}
+.steps>li{counter-increment:s;position:relative;padding-left:38px;margin:10px 0}
+.steps>li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+.pass{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}
+.pass>div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.pass h4{margin:0 0 6px}
+.pass p{margin:0;font-size:14.5px}
+@media (max-width:760px){.pass{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#usar">Como usar este guia</a></li>
+    <li><a href="#problema">O problema</a></li>
+    <li><a href="#decisoes">As decisões de arquitetura</a></li>
+    <li><a href="#funcionamento">A arquitetura funcionando</a></li>
+    <li><a href="#padrao">Núcleo puro, casca epoll</a></li>
+    <li><a href="#protocolos">Os protocolos</a></li>
+    <li><a href="#ferramentas">As ferramentas</a></li>
+    <li><a href="#testes">Como é testado</a></li>
+    <li><a href="#makefile">O Makefile</a></li>
+    <li><a href="#diretorios">O mapa de diretórios</a></li>
+    <li><a href="#arquivos">Arquivo por arquivo</a></li>
+    <li><a href="#c">Tópicos de C e onde aparecem</a></li>
+    <li><a href="#trilha">Uma trilha de leitura</a></li>
+    <li><a href="#glossario">Glossário</a></li>
+    <li><a href="#alem">Para ir além</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header class="doc">
+  <p class="eyebrow">Gama Cube Design · CubeDesign 2026 · TT&amp;C, OBC e ground</p>
+  <h1>Guia de estudo do repositório</h1>
+  <p class="lede">Do amplo ao detalhe: o problema, as decisões, como as peças conversam, os protocolos, as ferramentas, os testes e o Makefile. Depois, o mapa dos diretórios e cada um dos 148 arquivos de código, com o que observar ao ler. O objetivo é chegar a qualquer arquivo já sabendo onde ele está na arquitetura.</p>
+  <div class="meta">
+    <span>Data: <b>31/10/2026</b></span>
+    <span>Commit: <b><code>3927fb0</code></b></span>
+    <span>C de voo e codec: <b>11 189 linhas</b></span>
+    <span>Testes em C: <b>8542 linhas</b></span>
+    <span>Suítes: <b>37</b></span>
+  </div>
+</header>
+
+<h2 id="usar"><span class="n">1</span>Como usar este guia</h2>
+
+<p>Faça três passadas, cada uma com uma pergunta diferente.</p>
+<div class="pass">
+  <div><h4>1 · Contexto</h4><p>Seções 2 a 9. <i>Por que</i> o sistema é assim, e <i>como</i> as partes conversam. Leia sem abrir código; volte aos ADRs quando uma decisão parecer estranha.</p></div>
+  <div><h4>2 · Mapa</h4><p>Seção 10. <i>Onde</i> cada coisa mora, e quem depende de quem. No fim, você deve saber em que pasta procurar qualquer comportamento.</p></div>
+  <div><h4>3 · Arquivo</h4><p>Seções 11 a 13. <i>Como</i> é feito. Leia os arquivos na ordem sugerida, o <code>.h</code> antes do <code>.c</code>, e o teste junto com o código. É nessa passada que entram as dúvidas de C.</p></div>
+</div>
+
+<div class="callout">
+  <p><b>Três hábitos que valem para o repositório inteiro.</b></p>
+  <ol>
+    <li>Todo <code>.h</code> começa com um comentário que diz o que o módulo é e por quê: leia-o antes do código.</li>
+    <li>Todo comportamento tem um teste em <code>tests/</code> com o nome do módulo, e o teste é a melhor documentação do que o módulo promete.</li>
+    <li>Toda decisão que custou pensar tem um ADR em <code>docs/adr/</code>, citado no comentário do código que a implementa.</li>
+  </ol>
+  <p><code>AGENTS.md</code>, na raiz, resume as regras; vale lê-lo antes de tudo.</p>
+</div>
+
+<h2 id="problema"><span class="n">2</span>O problema</h2>
+
+<p>O CubeSat da Gama, na CubeDesign 2026, leva uma carga de ADS-B: um rádio definido por software (SDR) escuta os aviões em 1090 MHz, e o satélite precisa mandar à ground o que viu. A comunicação é um rádio LoRa de 433,92 MHz (SX1278, módulo RA-02), com uma ground station numa ESP32. O computador de bordo é uma Raspberry Pi Zero 2 W, que roda também o software do OBC: os modos da missão, os sensores da bateria, o burn-wire e os aquecedores.</p>
+
+<div class="tiles">
+  <div class="tile"><div class="v">7,34 MiB</div><div class="l">o que 20 aviões geram de ADS-B bruto em 10 min, a 4 mensagens por segundo cada</div></div>
+  <div class="tile"><div class="v">58,3 KB</div><div class="l">o que o LoRa no perfil NOMINAL desce em 10 min com metade do tempo no ar: 129 vezes menos</div></div>
+  <div class="tile"><div class="v">155:1</div><div class="l">a redução que o processamento a bordo consegue: 48,5 KB de estados de aeronave a cada 5 s</div></div>
+</div>
+
+<p><b>Esse é o número que governa a arquitetura</b> (<code>docs/budgets/data-budget.md</code>). Mandar o fluxo bruto é impossível, então o satélite precisa decodificar e agregar a bordo. Ele mantém uma tabela de aeronaves e desce retratos compactos dela, com registros de tamanho fixo (20 bytes por avião). O resto decorre disso:</p>
+<ul>
+  <li>um protocolo de rádio próprio, enxuto, com perfis de taxa;</li>
+  <li>um processo só para o payload;</li>
+  <li>o registro completo guardado a bordo;</li>
+  <li>a ground reconstruindo trajetórias a partir dos retratos.</li>
+</ul>
+
+<p>Duas restrições atravessam tudo:</p>
+<ul>
+  <li><b>A Pi não tem relógio de tempo real.</b> Todo carimbo é monotônico, e a hora de parede vem da ground.</li>
+  <li><b>Os defeitos da missão anterior</b>, guardada em <code>ultima_missao/</code>: structs mandadas por cast, <code>sleep</code> em laço de eventos, caminhos fixos no binário, arquivos como IPC. Eles viraram as "regras duras" do <code>AGENTS.md</code>; cada uma cita a linha do código antigo que a motivou.</li>
+</ul>
+
+<h2 id="decisoes"><span class="n">3</span>As decisões de arquitetura</h2>
+
+<p>Os ADRs ficam em <code>docs/adr/</code>, em inglês, porque alimentam o Design Package. Um ADR aceito é imutável: para mudar a decisão, escreve-se outro. São 17 hoje, 9 aceitos e 8 propostos. Leia o <code>README.md</code> da pasta primeiro; os dois que mais determinam o que a missão pode fazer são o 0003 e o 0004.</p>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>ADR</th><th>A decisão, em uma linha</th><th>Onde aparece no código</th></tr></thead>
+  <tbody>
+    <tr><th colspan="3">Como trabalhar</th></tr>
+    <tr><td class="nw">0001</td><td>Toda decisão arquitetural é registrada quando é tomada</td><td><code>docs/adr/</code></td></tr>
+    <tr><td class="nw">0002</td><td>C11 no voo e na ground, com um codec compartilhado; Python só na análise e no PC</td><td><code>common/</code> compilado igual na Pi, no PC e na ESP32</td></tr>
+    <tr><td class="nw">0011</td><td>Documentos do Design Package em inglês; notas de trabalho em português</td><td>ADRs, ICDs × READMEs, PLANO</td></tr>
+    <tr><th colspan="3">O que a missão faz</th></tr>
+    <tr><td class="nw">0003</td><td>Decodificar e agregar a bordo, até o estado de cada aeronave; estimar origem e destino na ground</td><td><code>flight/adsbd/tracks.c</code>, <code>ground/host/</code></td></tr>
+    <tr><td class="nw">0004</td><td>Três perfis LoRa fixos (SAFE, NOMINAL, FAST), trocados por telecomando</td><td><code>common/gama_lora.c</code></td></tr>
+    <tr><td class="nw">0015</td><td>433,92 MHz e 14 dBm de voo, como o CDR</td><td><code>common/gama_lora.h</code>, <code>flight/ttcd/link.c</code></td></tr>
+    <tr><th colspan="3">Processos e comunicação interna</th></tr>
+    <tr><td class="nw">0005</td><td>Um processo para o telecom (<code>ttcd</code>), outro para o payload (<code>adsbd</code>); o <code>ttcd</code> é o hub. Núcleos sem chamadas de sistema</td><td>todo <code>core.c</code> e <code>main.c</code></td></tr>
+    <tr><td class="nw">0006</td><td>IPC por <code>AF_UNIX SOCK_SEQPACKET</code>, carregando os mesmos frames do rádio</td><td><code>flight/libipc/</code></td></tr>
+    <tr><td class="nw">0008</td><td>O <code>adsbd</code> é dono do SDR, através do <code>dump1090-fa</code>, que ele sobe como processo filho</td><td><code>flight/adsbd/main.c</code></td></tr>
+    <tr><td class="nw">0014</td><td>O modo do OBC liga o streaming do <code>ttcd</code> e o decodificador do <code>adsbd</code></td><td><code>tm_sched.c</code>, <code>adsbd/core.c</code></td></tr>
+    <tr><td class="nw">0016</td><td>O software do OBC é o <code>obcd</code>, um terceiro processo no mesmo padrão</td><td><code>flight/obcd/</code></td></tr>
+    <tr><th colspan="3">O enlace</th></tr>
+    <tr><td class="nw">0007</td><td>Frame próprio com CRC, acesso ao meio por janela de resposta e escuta antes de falar, ACK por telecomando, troca de taxa com reversão</td><td><code>flight/ttcd/link.c</code>, <code>common/gama_gs_link.c</code></td></tr>
+    <tr><td class="nw">0013</td><td>Protocolo v2: temperatura da bateria no HK, valores de "sem dado", roster e modo pelo IPC</td><td><code>common/gama_tm.h</code>, <code>tests/test_vectors.c</code></td></tr>
+    <tr><th colspan="3">Tempo e hardware</th></tr>
+    <tr><td class="nw">0009</td><td>Relógio monotônico em todo lugar; a hora de parede é uma âncora que a ground manda</td><td><code>SET_TIME</code>, <code>IPC_TIME_SET</code>, <code>rx_epoch_ns</code></td></tr>
+    <tr><td class="nw">0012</td><td>Hardware pelas interfaces do kernel: spidev, GPIO por character device, i2c-dev</td><td><code>sx1278_linux.c</code>, <code>obcd/hw_linux.c</code></td></tr>
+    <tr><td class="nw">0017</td><td>O I²C dividido é emprestado ao ESP32 do AOCS por tempo; sem leitura do INA219 nesse tempo</td><td><code>flight/obcd/i2c_sched.c</code></td></tr>
+    <tr><td class="nw">0018</td><td>A ground na ESP32 roda o console da ground de bancada e fala a língua dele pela USB</td><td><code>ground/console/</code>, <code>ground/esp32/</code></td></tr>
+  </tbody>
+</table></div>
+<p class="small">O ADR-0010 (armazenamento a bordo) ainda não foi escrito, embora a política já esteja no <code>adsbd</code>.</p>
+
+<h2 id="funcionamento"><span class="n">4</span>A arquitetura funcionando</h2>
+
+<figure>
+  <div class="frame">
+<svg class="diagram" viewBox="0 0 980 500" role="img" aria-labelledby="g1t g1d">
+  <title id="g1t">Processos, hardware e as ligações entre eles</title>
+  <desc id="g1d">Na Pi: o SDR alimenta o dump1090-fa, filho do adsbd, que grava o registro de bordo e troca retratos com o ttcd; o ttcd fala com o rádio e com o obcd; o obcd lê o INA219 no I²C que divide com o ESP32 do AOCS, o DS18B20 por 1-Wire e aciona burn-wire e aquecedores por GPIO. Na ground: o rádio serve a gs_cli de bancada ou a ESP32, que fala com a ponte gs_serial pela USB; os dois entregam JSON ao adaptador e ao estimador. Embaixo, a biblioteca common.</desc>
+  <defs>
+    <marker id="gah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="gahrf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah-rf" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+  <rect class="zone" x="10" y="12" width="590" height="408" rx="14"/>
+  <text class="zone-label" x="26" y="36">CUBESAT · RASPBERRY PI ZERO 2 W</text>
+  <rect class="zone" x="690" y="12" width="280" height="408" rx="14"/>
+  <text class="zone-label" x="706" y="36">GROUND STATION</text>
+  <rect class="box hw" x="26" y="58" width="156" height="58" rx="8"/>
+  <text class="t-b" x="104" y="82" text-anchor="middle">NESDR Nano 3</text>
+  <text class="t-s" x="104" y="101" text-anchor="middle">1090 MHz</text>
+  <rect class="box ext" x="226" y="58" width="156" height="58" rx="8"/>
+  <text class="t-b" x="304" y="82" text-anchor="middle">dump1090-fa</text>
+  <text class="t-s" x="304" y="101" text-anchor="middle">filho do adsbd</text>
+  <rect class="box hw" x="426" y="58" width="156" height="58" rx="8"/>
+  <text class="t-b" x="504" y="82" text-anchor="middle">SX1278 / RA-02</text>
+  <text class="t-s" x="504" y="101" text-anchor="middle">433,92 MHz · 14 dBm</text>
+  <rect class="box hw" x="26" y="188" width="156" height="58" rx="8"/>
+  <text class="t-b" x="104" y="212" text-anchor="middle">adsb.ndjson</text>
+  <text class="t-s" x="104" y="231" text-anchor="middle">registro de bordo</text>
+  <rect class="box done" x="226" y="188" width="156" height="58" rx="8"/>
+  <text class="t-b" x="304" y="212" text-anchor="middle">adsbd</text>
+  <text class="t-s" x="304" y="231" text-anchor="middle">o payload</text>
+  <rect class="box done" x="426" y="188" width="156" height="58" rx="8"/>
+  <text class="t-b" x="504" y="212" text-anchor="middle">ttcd</text>
+  <text class="t-s" x="504" y="231" text-anchor="middle">o telecom · o hub</text>
+  <rect class="box ext" x="26" y="318" width="156" height="58" rx="8"/>
+  <text class="t-b" x="104" y="342" text-anchor="middle">ESP32 do AOCS</text>
+  <text class="t-s" x="104" y="361" text-anchor="middle">outra equipe · 0x2A</text>
+  <rect class="box hw" x="226" y="318" width="156" height="58" rx="8"/>
+  <text class="t-b" x="304" y="342" text-anchor="middle">INA219</text>
+  <text class="t-s" x="304" y="361" text-anchor="middle">0x40 · V e I</text>
+  <rect class="box done" x="426" y="318" width="156" height="58" rx="8"/>
+  <text class="t-b" x="504" y="342" text-anchor="middle">obcd</text>
+  <text class="t-s" x="504" y="361" text-anchor="middle">o OBC · os modos</text>
+  <text class="t-e" x="504" y="394" text-anchor="middle">DS18B20: 1-Wire</text>
+  <text class="t-e" x="504" y="409" text-anchor="middle">burn-wire, aquecedores: GPIO</text>
+  <line class="edge" x1="182" y1="87" x2="224" y2="87" marker-end="url(#gah)"/>
+  <text class="t-e" x="203" y="79" text-anchor="middle">USB</text>
+  <line class="edge" x1="304" y1="116" x2="304" y2="186" marker-end="url(#gah)"/>
+  <text class="t-e" x="296" y="156" text-anchor="end">TCP :30003 · SBS-1</text>
+  <line class="edge" x1="226" y1="217" x2="184" y2="217" marker-end="url(#gah)"/>
+  <text class="t-e" x="205" y="209" text-anchor="middle">NDJSON</text>
+  <line class="edge" x1="384" y1="217" x2="424" y2="217" marker-start="url(#gah)" marker-end="url(#gah)"/>
+  <text class="t-e" x="404" y="209" text-anchor="middle">IPC</text>
+  <line class="edge" x1="504" y1="186" x2="504" y2="118" marker-start="url(#gah)" marker-end="url(#gah)"/>
+  <text class="t-e" x="512" y="156">SPI + DIO0</text>
+  <line class="edge" x1="504" y1="248" x2="504" y2="316" marker-start="url(#gah)" marker-end="url(#gah)"/>
+  <text class="t-e" x="512" y="286">IPC</text>
+  <line class="edge" x1="424" y1="347" x2="384" y2="347" marker-end="url(#gah)"/>
+  <text class="t-e" x="404" y="339" text-anchor="middle">I²C1</text>
+  <line class="edge" x1="224" y1="347" x2="184" y2="347" marker-start="url(#gah)" marker-end="url(#gah)"/>
+  <text class="t-e" x="205" y="300" text-anchor="middle">o mesmo</text>
+  <text class="t-e" x="205" y="314" text-anchor="middle">barramento</text>
+  <line class="edge rf" x1="584" y1="87" x2="714" y2="87" marker-start="url(#gahrf)" marker-end="url(#gahrf)"/>
+  <text class="t-e" x="645" y="78" text-anchor="middle">LoRa</text>
+  <text class="t-e" x="645" y="106" text-anchor="middle">433,92 MHz</text>
+  <rect class="box hw" x="706" y="58" width="248" height="48" rx="8"/>
+  <text class="t-b" x="830" y="78" text-anchor="middle">SX1278 / RA-02</text>
+  <text class="t-s" x="830" y="96" text-anchor="middle">o segundo módulo</text>
+  <rect class="box done" x="706" y="140" width="118" height="52" rx="8"/>
+  <text class="t-b" x="765" y="162" text-anchor="middle">gs_cli</text>
+  <text class="t-s" x="765" y="180" text-anchor="middle">bancada, na Pi</text>
+  <rect class="box done" x="836" y="140" width="118" height="52" rx="8"/>
+  <text class="t-b" x="895" y="162" text-anchor="middle">ESP32</text>
+  <text class="t-s" x="895" y="180" text-anchor="middle">a ground das provas</text>
+  <line class="edge" x1="765" y1="106" x2="765" y2="138" marker-end="url(#gah)"/>
+  <line class="edge" x1="895" y1="106" x2="895" y2="138" marker-end="url(#gah)"/>
+  <text class="t-e" x="830" y="127" text-anchor="middle">SPI</text>
+  <rect class="box done" x="836" y="226" width="118" height="52" rx="8"/>
+  <text class="t-b" x="895" y="248" text-anchor="middle">gs_serial.py</text>
+  <text class="t-s" x="895" y="266" text-anchor="middle">a ponte, no PC</text>
+  <line class="edge" x1="895" y1="192" x2="895" y2="224" marker-start="url(#gah)" marker-end="url(#gah)"/>
+  <text class="t-e" x="887" y="213" text-anchor="end">USB</text>
+  <rect class="box done" x="706" y="306" width="248" height="46" rx="8"/>
+  <text class="t-b" x="830" y="326" text-anchor="middle">adaptador</text>
+  <text class="t-s" x="830" y="343" text-anchor="middle">tracks_to_ndjson.py</text>
+  <line class="edge" x1="765" y1="192" x2="765" y2="304" marker-end="url(#gah)"/>
+  <text class="t-e" x="757" y="252" text-anchor="end">JSON</text>
+  <line class="edge" x1="895" y1="278" x2="895" y2="304" marker-end="url(#gah)"/>
+  <rect class="box done" x="706" y="368" width="248" height="40" rx="8"/>
+  <text class="t-b" x="830" y="393" text-anchor="middle">estimador e painel</text>
+  <line class="edge" x1="830" y1="352" x2="830" y2="366" marker-end="url(#gah)"/>
+  <rect class="box done" x="10" y="432" width="960" height="58" rx="12"/>
+  <text class="t-b" x="490" y="456" text-anchor="middle">common/ — o codec dos frames, os registros, os perfis LoRa, o IPC, o lado da ground e os frames do AOCS</text>
+  <text class="t-s" x="490" y="476" text-anchor="middle">os mesmos arquivos .c no ttcd, no adsbd, no obcd, na gs_cli e no firmware da ESP32</text>
+</svg>
+  </div>
+  <figcaption>Figura 1 — Três processos na Pi, ligados pelo <code>ttcd</code>; uma ground que roda o mesmo console no PC e na ESP32; e, embaixo de tudo, um único codec.</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Processo</th><th>O que faz</th><th>Fala com</th><th>Comece por</th></tr></thead>
+  <tbody>
+    <tr><td><code>ttcd</code></td><td>o rádio: decide o que transmitir e quando, recebe e executa telecomandos, mantém o enlace. É o servidor do IPC</td><td>RA-02 (SPI), <code>adsbd</code> e <code>obcd</code> (IPC)</td><td><code>flight/ttcd/core.h</code></td></tr>
+    <tr><td><code>adsbd</code></td><td>o payload: sobe o <code>dump1090-fa</code>, lê o SBS, grava cada mensagem e manda ao <code>ttcd</code> um retrato da tabela de aeronaves por segundo</td><td><code>dump1090-fa</code> (processo filho, TCP), <code>ttcd</code></td><td><code>flight/adsbd/core.h</code></td></tr>
+    <tr><td><code>obcd</code></td><td>o OBC: os modos da missão (Figura 44 do CDR), o burn-wire, o termostato, V, I e temperatura, o empréstimo do I²C ao AOCS</td><td><code>ttcd</code>, INA219 e ESP32 do AOCS (I²C), DS18B20 (1-Wire), GPIO</td><td><code>flight/obcd/core.h</code></td></tr>
+    <tr><td><code>dump1090-fa</code></td><td>software de terceiros: demodula o ADS-B do SDR e publica em SBS-1 na porta 30003</td><td>SDR (USB), <code>adsbd</code></td><td><code>flight/adsbd/sbs.h</code></td></tr>
+    <tr><td>ground</td><td>o console (<code>ground/console</code>) sobre o lado da ground do protocolo; na bancada é a <code>gs_cli</code>, nas provas é a ESP32 com a ponte <code>gs_serial.py</code></td><td>RA-02, operador (texto), scripts (JSON)</td><td><code>ground/console/gs_console.h</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3>4.1 Um avião, do ar até o estimador</h3>
+<ol class="steps">
+  <li>O SDR entrega amostras ao <code>dump1090-fa</code>, que decodifica as mensagens Mode S e escreve uma linha SBS-1 por mensagem na porta TCP 30003.</li>
+  <li>O <code>adsbd</code> lê as linhas (<code>main.c</code>), carimba a chegada com o relógio monotônico e entrega cada uma ao núcleo (<code>adsbd_on_line</code>). <code>sbs.c</code> separa os campos.</li>
+  <li><code>ndjson.c</code> escreve a mensagem inteira no registro de bordo (<code>adsb.ndjson</code>), uma linha JSON por mensagem.</li>
+  <li><code>tracks.c</code> funde posição, velocidade e identificação de cada endereço ICAO numa tabela de tamanho fixo. A cada segundo, o núcleo monta um retrato e o manda ao <code>ttcd</code> como <code>IPC_TRACKS</code>.</li>
+  <li>O <code>ttcd</code> guarda só o retrato mais recente. Em <code>MISSION_ADSB</code>, <code>tm_sched.c</code> o transmite a cada 5 s, em frames <code>TM_TRACKS</code> de registros de 20 bytes.</li>
+  <li>Na ground, <code>gama_gs_link.c</code> valida o frame e conta perdas pelos buracos no <code>seq</code>. <code>gs_console.c</code> imprime uma linha JSON com os bytes do frame, o RSSI e o SNR.</li>
+  <li><code>tracks_to_ndjson.py</code> converte essas linhas no formato do estimador de origem e destino (<code>ground-aeronaves/</code>), que reconstrói as trajetórias.</li>
+</ol>
+
+<h3>4.2 Um telecomando que muda o modo</h3>
+<ol class="steps">
+  <li>O operador digita <code>mode mission_adsb</code>. O console traduz para o telecomando <code>SET_MODE</code> com o evento <code>EV_TC_MISSION_ADSB</code> e o põe na fila do <code>gama_gs_link</code>.</li>
+  <li>A ground transmite assim que o modem não está recebendo, num frame <code>TC</code>, e espera o ACK. Sem ACK, retransmite com o mesmo <code>seq</code> (seção 6.6).</li>
+  <li>No satélite, <code>link.c</code> recebe o frame e <code>tc_dispatch.c</code> valida e executa: manda o evento ao <code>obcd</code> como <code>IPC_TC_EVENT</code> e prepara o <code>TC_ACK</code>. Uma repetição do mesmo telecomando só reenvia o ACK, sem executar de novo.</li>
+  <li>O núcleo do <code>obcd</code> consulta <code>obcd_transition()</code>, que é a Figura 44 inteira numa função. Se o evento vale no modo atual, troca de modo, registra no log e avisa o <code>ttcd</code> com <code>IPC_MODE</code>; se não vale, recusa e conta.</li>
+  <li>O <code>ttcd</code> repassa o modo ao <code>adsbd</code>, que sobe o <code>dump1090</code> só em <code>MISSION_ADSB</code>. O próprio <code>ttcd</code> começa a mandar retratos e estatísticas. O HK seguinte já mostra o modo novo.</li>
+</ol>
+
+<h3>4.3 A saúde do satélite</h3>
+<p>As threads do <code>obcd</code> leem o INA219 (V e I) e o DS18B20 (temperatura da bateria). O núcleo guarda as leituras, roda o termostato e manda ao <code>ttcd</code> um <code>IPC_TELEMETRY</code> por segundo. O <code>ttcd</code> põe o mais recente no <code>TM_HK</code> (27 bytes, a cada 10 s). Tudo o que não foi medido, ou foi medido há tempo demais, vai como "sem dado" (<code>0xFFFF</code>, <code>0x8000</code>), nunca como zero (ADR-0013).</p>
+
+<h3>4.4 O tempo</h3>
+<p>Nenhum processo confia no relógio de parede da Pi, que pode estar errado: não há RTC. Todos carimbam com <code>CLOCK_MONOTONIC</code>. A ground manda <code>SET_TIME</code> a cada contato, e o <code>ttcd</code> guarda a âncora (monotônico ↔ parede) e a repassa aos outros como <code>IPC_TIME_SET</code>, inclusive a quem se conectar depois. O registro de bordo usa a âncora para o <code>rx_epoch_ns</code>. Nada no sistema acerta o relógio do Linux (ADR-0009).</p>
+
+<h3>4.5 O AOCS</h3>
+<p>Ao entrar em <code>ADVANCED_AOCS</code>, o <code>obcd</code> manda um START ao ESP32 do AOCS pelo I²C e deixa o barramento com ele por um tempo contado do fim do START. Durante esse tempo não fala no barramento; depois, lê o resultado. Toda essa linha do tempo está em <code>flight/obcd/i2c_sched.c</code>; o porquê está no ADR-0017 e o contrato com a outra equipe, em <code>docs/icd/obc-aocs-i2c.md</code>. A figura está no <a href="2026-10-31-estado-do-projeto.html#aocs">relatório de estado</a>.</p>
+
+<h2 id="padrao"><span class="n">5</span>Núcleo puro, casca epoll</h2>
+
+<p>O padrão mais importante do repositório (ADR-0005). Cada daemon é dividido em duas partes:</p>
+<ul>
+  <li><b>o núcleo</b> (<code>core.c</code> e vizinhos) decide tudo e não faz nenhuma chamada de sistema: não lê relógio, não dorme, não abre arquivo;</li>
+  <li><b>a casca</b> (<code>main.c</code>) é a única que fala com o sistema operacional.</li>
+</ul>
+
+<figure>
+  <div class="frame">
+<svg class="diagram" viewBox="0 0 980 300" role="img" aria-labelledby="g2t g2d">
+  <title id="g2t">O padrão núcleo e casca</title>
+  <desc id="g2d">O mundo (rádio, sockets, relógio, sinais, arquivos) fala só com a casca, main.c, que espera num único epoll_wait. A casca chama as funções on_ do núcleo com o instante atual; o núcleo age chamando a tabela de operações, que a casca implementa. Nos testes, um harness com relógio virtual faz o papel da casca.</desc>
+  <defs>
+    <marker id="gah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+  <rect class="box hw" x="20" y="40" width="200" height="120" rx="10"/>
+  <text class="t-b" x="120" y="70" text-anchor="middle">o mundo</text>
+  <text class="t-s" x="120" y="94" text-anchor="middle">rádio, sockets, relógio,</text>
+  <text class="t-s" x="120" y="112" text-anchor="middle">sinais, arquivos, GPIO,</text>
+  <text class="t-s" x="120" y="130" text-anchor="middle">I²C, processo filho</text>
+
+  <rect class="box done" x="340" y="40" width="250" height="120" rx="10"/>
+  <text class="t-b" x="465" y="70" text-anchor="middle">casca · main.c</text>
+  <text class="t-s" x="465" y="94" text-anchor="middle">espera num só lugar: epoll_wait</text>
+  <text class="t-s" x="465" y="112" text-anchor="middle">timerfd · signalfd · sockets</text>
+  <text class="t-s" x="465" y="130" text-anchor="middle">fd do DIO0 · pipes das threads</text>
+
+  <rect class="box done" x="720" y="40" width="240" height="120" rx="10"/>
+  <text class="t-b" x="840" y="70" text-anchor="middle">núcleo · core.c</text>
+  <text class="t-s" x="840" y="94" text-anchor="middle">decide; nenhuma syscall</text>
+  <text class="t-s" x="840" y="112" text-anchor="middle">estado numa struct</text>
+  <text class="t-s" x="840" y="130" text-anchor="middle">tempo chega como argumento</text>
+
+  <line class="edge" x1="222" y1="80" x2="338" y2="80" marker-end="url(#gah2)"/>
+  <text class="t-e" x="280" y="72" text-anchor="middle">fd pronto</text>
+  <line class="edge" x1="338" y1="122" x2="222" y2="122" marker-end="url(#gah2)"/>
+  <text class="t-e" x="280" y="142" text-anchor="middle">write, ioctl</text>
+
+  <line class="edge" x1="592" y1="80" x2="718" y2="80" marker-end="url(#gah2)"/>
+  <text class="t-e" x="655" y="72" text-anchor="middle">on_rx(now, …)</text>
+  <line class="edge" x1="718" y1="122" x2="592" y2="122" marker-end="url(#gah2)"/>
+  <text class="t-e" x="655" y="142" text-anchor="middle">ops.radio_tx(…)</text>
+
+  <rect class="box plan" x="720" y="210" width="240" height="70" rx="10"/>
+  <text class="t-b" x="840" y="238" text-anchor="middle">teste · harness</text>
+  <text class="t-s" x="840" y="260" text-anchor="middle">relógio virtual · ops falsas</text>
+  <line class="edge" x1="840" y1="208" x2="840" y2="162" marker-end="url(#gah2)"/>
+  <text class="t-e" x="832" y="190" text-anchor="end">as mesmas chamadas</text>
+</svg>
+  </div>
+  <figcaption>Figura 2 — A casca traduz o sistema operacional em eventos com hora; o núcleo decide e age por uma tabela de ponteiros de função. Nos testes, a casca é trocada por um simulador com relógio virtual: uma hora de enlace roda em milissegundos.</figcaption>
+</figure>
+
+<ul>
+  <li><b>Entrada do núcleo:</b> funções <code>xxx_on_algo(core, now, …)</code>, como <code>ttcd_on_radio_rx</code>, <code>adsbd_on_line</code> e <code>obcd_on_power</code>, e um <code>xxx_on_tick(core, now)</code>. O <code>now</code> sempre vem de fora.</li>
+  <li><b>Saída do núcleo:</b> a struct de operações. <code>ttcd_ops_t</code> tem <code>radio_tx</code>, <code>radio_set_profile</code>, <code>ipc_send</code>, <code>log</code> e outras; <code>adsbd_ops_t</code> tem <code>ipc_send</code>, <code>record</code> e <code>log</code>; <code>obcd_ops_t</code> tem <code>ipc_send</code>, <code>log</code>, <code>burnwire_set</code>, <code>heater_set</code> e <code>aocs_start</code>. Cada operação é um ponteiro de função com um <code>void *ctx</code>.</li>
+  <li><b>O temporizador:</b> <code>xxx_next_deadline(core)</code> diz quando o núcleo quer ser chamado de novo. A casca arma um <code>timerfd</code> para esse instante, então não há laço girando à toa.</li>
+  <li><b>A exceção das threads:</b> o <code>obcd</code> tem duas, porque o DS18B20 leva ~750 ms por leitura e o I²C pode travar. As threads não tocam no núcleo: entregam leituras prontas por um <code>pipe</code>, que é só mais um fd no <code>epoll</code>. A regra 3 do <code>AGENTS.md</code> continua valendo: o laço principal nunca espera.</li>
+  <li><b>Na ESP32</b> a casca é <code>gs_main.c</code>: um laço FreeRTOS que espera a interrupção do DIO0 ou o próximo prazo. O núcleo é o mesmo <code>gs_console.c</code> da <code>gs_cli</code>.</li>
+</ul>
+
+<h2 id="protocolos"><span class="n">6</span>Os protocolos</h2>
+
+<h3>6.1 O frame: um formato para o rádio e para o IPC</h3>
+<div class="bytes">
+  <div>ver<small>1 B · =2</small></div>
+  <div>type<small>1 B</small></div>
+  <div>seq<small>2 B</small></div>
+  <div>len<small>1 B · 0–248</small></div>
+  <div class="pl">payload<small>0 a 248 B · registros de tamanho fixo</small></div>
+  <div>crc16<small>2 B</small></div>
+</div>
+<p>Little-endian em todos os campos. O CRC é CRC-16/CCITT-FALSE, sobre o cabeçalho e o payload. 248 bytes cabem na FIFO de 255 do SX1278 com os 7 de enquadramento. O <code>seq</code> conta por sentido, e um buraco nele é um frame perdido (HLR-ADS-08). Arquivos: <code>common/gama_frame.h</code>, <code>common/crc16.h</code>, <code>common/gama_bytes.h</code>. Os bytes exatos de cada registro estão fixados em <code>tests/test_vectors.c</code>.</p>
+
+<h3>6.2 Os tipos de frame</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Valor</th><th>Tipo</th><th>Por onde</th><th>O que leva</th></tr></thead>
+  <tbody>
+    <tr><td><code>0x01</code></td><td>TC</td><td>rádio, ground → sat</td><td>um telecomando: id e argumentos</td></tr>
+    <tr><td><code>0x02</code></td><td>TC_ACK</td><td>rádio, sat → ground</td><td>id, status e o <code>seq</code> do TC</td></tr>
+    <tr><td><code>0x10</code></td><td>TM_HK</td><td>rádio</td><td>housekeeping, 27 B: bateria, temperaturas, atitude, modo, flags</td></tr>
+    <tr><td><code>0x11</code></td><td>TM_TRACKS</td><td>rádio</td><td>um pedaço do retrato: registros de 20 B por aeronave</td></tr>
+    <tr><td><code>0x12</code></td><td>TM_ROSTER</td><td>rádio</td><td>ICAO → callsign, 11 B por aeronave</td></tr>
+    <tr><td><code>0x13</code></td><td>TM_STAT</td><td>rádio</td><td>contadores do payload e do enlace, 26 B</td></tr>
+    <tr><td><code>0x20</code>, <code>0x21</code></td><td>BULK_DATA, BULK_ACK</td><td>rádio</td><td>transferência em janelas (definida, pouco usada)</td></tr>
+    <tr><td><code>0x30</code>–<code>0x37</code></td><td>IPC_*</td><td>só IPC, nunca no ar</td><td><code>TC_EVENT</code>, <code>TIME_SET</code>, <code>TELEMETRY</code>, <code>MODE</code>, <code>TRACKS</code>, <code>STAT</code>, <code>HELLO</code>, <code>ROSTER</code></td></tr>
+    <tr><td><code>0x7F</code></td><td>BEACON</td><td>rádio</td><td>"estou vivo", em SAFE</td></tr>
+  </tbody>
+</table></div>
+
+<h3>6.3 Telecomandos</h3>
+<p>Todos têm valor numérico fixo, porque esses números viajam no ar (<code>common/gama_tc.h</code>):</p>
+<ul>
+  <li><code>PING</code>;</li>
+  <li><code>SET_TIME</code> (segundos e nanossegundos Unix);</li>
+  <li><code>SET_MODE</code> (um evento da Figura 44);</li>
+  <li><code>SET_RATE</code> (um perfil);</li>
+  <li><code>SET_TX_POWER</code>;</li>
+  <li><code>STREAM_START</code> e <code>STREAM_STOP</code>;</li>
+  <li><code>REQ_HK</code>, <code>REQ_STAT</code> e <code>REQ_ROSTER</code>;</li>
+  <li><code>BULK_START</code> e <code>BULK_ABORT</code>;</li>
+  <li><code>SHUTDOWN</code>, com um número mágico.</li>
+</ul>
+<p>Todo telecomando recebe exatamente um <code>TC_ACK</code> com status, por qualquer caminho (<code>flight/ttcd/tc_dispatch.c</code>).</p>
+
+<h3>6.4 Os perfis LoRa</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Perfil</th><th>SF</th><th>Banda</th><th>CR</th><th class="r">Tempo no ar de 208 B</th><th class="r">Vazão útil</th><th>Quando</th></tr></thead>
+  <tbody>
+    <tr><td>SAFE</td><td>12</td><td>125 kHz</td><td>4/8</td><td class="r">11,67 s</td><td class="r">143 bit/s</td><td>quando a ground some; beacon</td></tr>
+    <tr><td>NOMINAL</td><td>9</td><td>125 kHz</td><td>4/5</td><td class="r">1,05 s</td><td class="r">1592 bit/s</td><td>o da missão</td></tr>
+    <tr><td>FAST</td><td>7</td><td>125 kHz</td><td>4/5</td><td class="r">0,33 s</td><td class="r">5074 bit/s</td><td>enlace bom, perto</td></tr>
+  </tbody>
+</table></div>
+<p>A tabela existe uma vez, em <code>common/gama_lora.c</code>, e é compilada nas duas pontas. O tempo no ar segue o datasheet do SX1278 em microssegundos inteiros. <code>tools/analysis/lora_budget.py</code> implementa a mesma fórmula de forma independente, e <code>tests/test_lora.c</code> confere que as duas batem. Não existe API para escolher SF ou banda solto: só perfis.</p>
+
+<h3>6.5 Acesso ao meio e confirmação (ADR-0007)</h3>
+<p>O SX1278 é half-duplex: enquanto transmite, não ouve.</p>
+<ul>
+  <li><b>A janela de resposta.</b> Depois de cada frame seu, o satélite fica calado o bastante para a ground responder: 112 ms no NOMINAL.</li>
+  <li><b>Escuta antes de falar.</b> As duas pontas perguntam ao modem se há uma recepção em curso antes de transmitir; se há, esperam (<code>sx1278_try_transmit</code>).</li>
+  <li><b>Pare e espere.</b> A ground manda um telecomando por vez e só passa ao próximo depois do ACK. Sem ACK, retransmite com o mesmo <code>seq</code>. O satélite reconhece a repetição e reenvia o ACK sem executar de novo (no máximo uma execução). A resposta típica no NOMINAL é de 1,40 s, e 3,37 s com uma perda.</li>
+  <li><b>Troca de taxa com reversão.</b> O satélite responde no perfil antigo e só então troca. A ground confirma com um PING no perfil novo; se a confirmação não vier, os dois voltam ao anterior em 20 s. Se a ground some por 120 s, o satélite cai para SAFE.</li>
+</ul>
+<p>O lado do satélite está em <code>flight/ttcd/link.c</code>; o da ground, em <code>common/gama_gs_link.c</code>. Os dois são testados juntos num canal simulado (<code>tests/link_sim.h</code>).</p>
+
+<h3>6.6 IPC entre os processos</h3>
+<p><code>AF_UNIX SOCK_SEQPACKET</code>, em <code>/run/gama/ttec.sock</code> (<code>flight/libipc/</code>). Esse tipo de socket preserva a fronteira das mensagens: um <code>send</code> é um <code>recv</code>, então cada datagrama é um frame inteiro, sem remontagem. A missão anterior perdia a sincronia ao perder um byte. O <code>ttcd</code> escuta; o <code>adsbd</code> e o <code>obcd</code> se conectam e se apresentam com <code>IPC_HELLO</code>, que diz o papel de cada um. Os dois lados reconectam sozinhos, e a ordem de partida não importa. Os payloads estão em <code>common/gama_ipc.h</code>.</p>
+
+<h3>6.7 Os outros formatos</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Formato</th><th>Entre</th><th>Onde</th></tr></thead>
+  <tbody>
+    <tr><td>SBS-1 (BaseStation): linhas CSV, uma mensagem por linha</td><td><code>dump1090-fa</code> → <code>adsbd</code>, TCP 30003</td><td><code>flight/adsbd/sbs.h</code> (os campos estão no comentário)</td></tr>
+    <tr><td>NDJSON do registro de bordo: um objeto JSON por mensagem ADS-B</td><td><code>adsbd</code> → cartão SD</td><td><code>flight/adsbd/ndjson.h</code></td></tr>
+    <tr><td>Logs: um objeto JSON por linha, com <code>mono_ms</code> e <code>event</code></td><td>cada daemon → <code>/var/lib/gama/*.jsonl</code></td><td>a função de log de cada <code>main.c</code></td></tr>
+    <tr><td>Linhas do console: comandos em texto entrando, um JSON por evento saindo (<code>mono_ms</code>, <code>wall_ms</code>, <code>ev</code>)</td><td>operador ou scripts ↔ ground</td><td><code>ground/console/gs_console.h</code></td></tr>
+    <tr><td>Serial da ESP32: as mesmas linhas, mais <code>boot</code>, <code>set</code>, <code>begin</code></td><td>ESP32 ↔ <code>gs_serial.py</code>, USB</td><td><code>ground/esp32/main/gs_main.c</code>, ADR-0018</td></tr>
+    <tr><td>Frames I²C do AOCS: COMMAND de 16 B, STATUS de 20 B, com CRC</td><td><code>obcd</code> ↔ ESP32 do AOCS</td><td><code>common/gama_aocs.h</code>, <code>docs/icd/obc-aocs-i2c.md</code></td></tr>
+    <tr><td>Configuração: linhas <code>chave = valor</code>, sobrescritas por <code>-o chave=valor</code></td><td>arquivo → daemon</td><td><code>flight/*/config.c</code>, <code>*.conf.example</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3>6.8 O hardware, pelas interfaces do kernel (ADR-0012)</h3>
+<ul>
+  <li><b>SPI:</b> <code>/dev/spidev0.0</code> com <code>ioctl(SPI_IOC_MESSAGE)</code>.</li>
+  <li><b>GPIO:</b> o character device v2 (<code>/dev/gpiochip0</code>). O DIO0 do rádio é pedido com detecção de borda, e o kernel devolve um fd que fica legível a cada interrupção: a interrupção vira mais um fd no <code>epoll</code>.</li>
+  <li><b>I²C:</b> <code>/dev/i2c-1</code> com <code>ioctl(I2C_RDWR)</code>, uma transação por chamada.</li>
+  <li><b>1-Wire:</b> o arquivo <code>w1_slave</code> do driver <code>w1_therm</code>.</li>
+</ul>
+<p>Nada de wiringPi, pigpio ou root: só os grupos <code>spi</code>, <code>gpio</code> e <code>i2c</code>. Os pinos vêm só da configuração.</p>
+
+<h2 id="ferramentas"><span class="n">7</span>As ferramentas</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Ferramenta</th><th>Para quê</th><th>Onde aparece</th></tr></thead>
+  <tbody>
+    <tr><td>C11, GCC</td><td>todo o código de voo, a ground e os testes. Sem avisos sob <code>-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wstrict-prototypes -Wshadow</code></td><td><code>CMakeLists.txt</code> da raiz</td></tr>
+    <tr><td>CMake e CTest</td><td>o build (bibliotecas estáticas por módulo) e o registro das suítes</td><td><code>CMakeLists.txt</code>, <code>flight/</code>, <code>tests/</code></td></tr>
+    <tr><td>Make</td><td>o painel de comandos: só encadeia os outros</td><td><code>Makefile</code> (seção 9)</td></tr>
+    <tr><td>ASan, UBSan, TSan</td><td>erros de memória, comportamento indefinido e corridas entre threads</td><td><code>make asan</code>, <code>TTEC_SANITIZERS</code></td></tr>
+    <tr><td>Python 3, só a biblioteca padrão</td><td>análise, orçamento, ponte serial, adaptador, estimador, simulador do <code>dump1090</code></td><td><code>tools/</code>, <code>ground/host/</code></td></tr>
+    <tr><td>ESP-IDF 5.3, no Docker</td><td>o firmware da ESP32, sem instalar nada no PC</td><td><code>tools/esp32/idf.sh</code></td></tr>
+    <tr><td>QEMU</td><td>uma ESP32 emulada, para rodar as suítes portáveis</td><td><code>tools/esp32/run_tests_qemu.sh</code></td></tr>
+    <tr><td>Docker, Debian 13</td><td>o <code>make check</code> com o GCC 14 da Pi, local e na CI</td><td><code>tools/ci/check_debian.sh</code></td></tr>
+    <tr><td>GitHub Actions</td><td>CI a cada push</td><td><code>.github/workflows/check.yml</code></td></tr>
+    <tr><td>systemd</td><td>os daemons como serviços, sem root; o <code>obcd</code> com watchdog</td><td><code>flight/*/*.service</code></td></tr>
+    <tr><td>rsync e ssh</td><td>levar a árvore à Pi e rodar alvos lá</td><td><code>make pi-&lt;alvo&gt;</code></td></tr>
+    <tr><td><code>dump1090-fa</code></td><td>o decodificador de ADS-B, de terceiros</td><td>processo filho do <code>adsbd</code></td></tr>
+    <tr><td><code>kicad-cli</code>, <code>pdftotext</code></td><td>netlist das placas; as citações das regras</td><td><code>hardware/README.md</code>, <code>make requirements</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="testes"><span class="n">8</span>Como é testado</h2>
+
+<h3>8.1 As camadas</h3>
+<p>Os testes vão do byte ao hardware. Cada camada pega um tipo de defeito que a de baixo não vê.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Camada</th><th>O que prova</th><th>Exemplos</th></tr></thead>
+  <tbody>
+    <tr><td>Bytes fixados</td><td>que o formato no ar não mudou. Encode e decode podem concordar entre si e mesmo assim estar errados</td><td><code>test_vectors</code></td></tr>
+    <tr><td>Codec e funções puras</td><td>ida e volta, limites, cada rejeição</td><td><code>test_frame</code>, <code>test_tm</code>, <code>test_lora</code>, <code>test_aocs_codec</code></td></tr>
+    <tr><td>Núcleos em tempo virtual</td><td>o comportamento de cada daemon, um evento por vez, sem relógio de verdade</td><td><code>test_ttcd_core</code>, <code>test_adsbd_core</code>, <code>test_obcd_core</code>, <code>test_obcd_i2c_sched</code></td></tr>
+    <tr><td>Canal simulado</td><td>os dois lados do protocolo juntos: colisões, perdas, troca de taxa</td><td><code>test_link_sim</code></td></tr>
+    <tr><td>Drivers contra chips emulados</td><td>a lógica de registradores sem o chip</td><td><code>test_sx1278</code>, <code>test_obcd_drivers</code></td></tr>
+    <tr><td>Binários reais, sem hardware</td><td>a casca: epoll, sockets, reconexão, sinais, configuração</td><td><code>test_*_integration</code>, <code>test_adsb_chain</code>, <code>bench_step_udp</code></td></tr>
+    <tr><td>Configuração</td><td>cada <code>.conf</code> do repositório lido pelo próprio daemon</td><td><code>conf_*</code></td></tr>
+    <tr><td>Documentos</td><td>que os números dos ADRs e as citações das regras não ficaram para trás</td><td><code>budget_matches_adrs</code>, <code>make requirements</code></td></tr>
+    <tr><td>Outro compilador, outro alvo</td><td>sanitizers, o GCC 14 da Pi, a ESP32 no QEMU</td><td><code>make asan</code>, <code>make check-debian</code>, <code>make esp32-tests-qemu</code></td></tr>
+    <tr><td>Bancada</td><td>o que só o hardware mostra: RF, tempos, corrente</td><td><code>make bench</code>, <code>docs/vv/bancada/</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3>8.2 Anatomia de uma suíte</h3>
+<p>Não há framework: <code>tests/test_util.h</code> tem 90 linhas de macros, para que as mesmas suítes compilem na ESP32. Uma suíte é um <code>main()</code> com grupos:</p>
+<pre><code>#include "test_util.h"
+#include "gama_frame.h"
+
+int main(void)
+{
+    TEST_GROUP("frame: a round-trip keeps every byte");   /* só imprime o título */
+    {
+        uint8_t buf[GAMA_FRAME_MAX_TOTAL];
+        int n = gama_frame_encode(buf, sizeof(buf), GAMA_FRAME_TM_HK, 7, payload, len);
+        CHECK(n &gt; 0);                                       /* conta e, se falhar, imprime arquivo:linha */
+        CHECK_EQ_INT(n, len + 7);
+    }
+    TEST_SUMMARY("test_frame");   /* "test_frame: N checks, 0 failed" e o código de saída */
+}</code></pre>
+<p>Cada <code>CHECK*</code> incrementa um contador estático. Uma falha imprime <code>FAIL arquivo:linha</code> e continua, para mostrar todas as falhas de uma vez. <code>TEST_SUMMARY</code> retorna diferente de zero se algo falhou, e é isso que o CTest lê. As outras macros são <code>CHECK_STR_EQ</code>, <code>CHECK_MEM_EQ</code> (mostra os bytes em hexadecimal) e <code>CHECK_NEAR</code>.</p>
+
+<h3>8.3 Como uma suíte entra no CTest</h3>
+<ul>
+  <li><code>tests/CMakeLists.txt</code> declara cada suíte: <code>add_executable</code>, <code>target_link_libraries</code> com a biblioteca do módulo e <code>add_test</code>. As de integração recebem o caminho do binário real (<code>$&lt;TARGET_FILE:ttcd&gt;</code>).</li>
+  <li><code>tests/portable.cmake</code> é a lista das suítes que não usam o sistema operacional. A mesma lista vai para o PC e para a ESP32 (<code>ground/esp32-tests</code>), onde cada <code>main</code> é renomeado e chamado em sequência.</li>
+  <li>As suítes em Python entram como <code>add_test</code> chamando <code>python3 -m unittest</code>.</li>
+</ul>
+
+<h3>8.4 Tempo virtual e harnesses</h3>
+<p>Como o núcleo recebe o tempo como argumento, o teste o controla. <code>tests/ttcd_harness.h</code> faz o papel do <code>main.c</code> do <code>ttcd</code>:</p>
+<ul>
+  <li>um rádio falso que reporta o fim de cada transmissão no tempo no ar previsto;</li>
+  <li>pares de IPC que guardam o que receberam;</li>
+  <li><code>step_to(t)</code>, que entrega cada tick na ordem.</li>
+</ul>
+<p><code>tests/link_sim.h</code> põe o núcleo do <code>ttcd</code> e o <code>gama_gs_link</code> num canal half-duplex com colisões e perdas por semente. Uma hora de enlace roda em milissegundos, e cada execução é reproduzível. Os números do ADR-0007 saem daí.</p>
+
+<h3>8.5 <code>make check</code>, sanitizers e CI</h3>
+<p><code>make check</code> é o que precisa passar antes de qualquer merge. Ele roda:</p>
+<ol>
+  <li><code>make test</code>, o build normal com o CTest inteiro;</li>
+  <li><code>make asan</code>, um segundo build em Debug com ASan e UBSan e <b>avisos como erro</b>, com o CTest de novo;</li>
+  <li><code>make requirements</code>, que confere as citações.</li>
+</ol>
+<p>Na Pi, o ASan não cabe no espaço de endereços de 39 bits, e roda só o UBSan. <code>make check-debian</code> faz o mesmo num contêiner com o GCC 14 da Pi, e é o que a CI roda a cada push.</p>
+
+<h3>8.6 As 37 suítes</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Suíte</th><th class="r">Verif.</th><th>O que cobre</th></tr></thead>
+  <tbody>
+    <tr><th colspan="3">Codec (portáveis: rodam também na ESP32)</th></tr>
+    <tr><td><code>test_crc16</code></td><td class="r">260</td><td>que o CRC é o CCITT-FALSE, e não uma das variantes quase iguais</td></tr>
+    <tr><td><code>test_frame</code></td><td class="r">58</td><td>enquadramento: ida e volta, tamanhos-limite, cada rejeição</td></tr>
+    <tr><td><code>test_tm</code></td><td class="r">1325</td><td>registros de telemetria: quantização, limites, entradas degeneradas</td></tr>
+    <tr><td><code>test_tc</code></td><td class="r">51</td><td>catálogo de telecomandos: tamanhos de argumento, valores estáveis</td></tr>
+    <tr><td><code>test_vectors</code></td><td class="r">70</td><td>os bytes exatos de cada registro; o teste que segura o formato</td></tr>
+    <tr><td><code>test_lora</code></td><td class="r">832</td><td>a tabela de perfis e o tempo no ar</td></tr>
+    <tr><td><code>test_ipc_codec</code></td><td class="r">65</td><td>os payloads do IPC</td></tr>
+    <tr><td><code>test_gs_link</code></td><td class="r">39</td><td>o lado da ground, isolado</td></tr>
+    <tr><td><code>test_aocs_codec</code></td><td class="r">34</td><td>os frames I²C do AOCS</td></tr>
+    <tr><td><code>test_sx1278</code></td><td class="r">102</td><td>o driver contra um SX1278 emulado (registradores e FIFO)</td></tr>
+    <tr><td><code>test_gs_console</code></td><td class="r">55</td><td>as linhas exatas do console</td></tr>
+    <tr><th colspan="3"><code>ttcd</code> e IPC</th></tr>
+    <tr><td><code>test_libipc</code></td><td class="r">36</td><td>o transporte SEQPACKET</td></tr>
+    <tr><td><code>test_ttcd_core</code></td><td class="r">294</td><td>o núcleo, um comportamento por vez</td></tr>
+    <tr><td><code>test_link_sim</code></td><td class="r">63</td><td>o protocolo inteiro no canal simulado</td></tr>
+    <tr><td><code>test_config</code></td><td class="r">45</td><td>a configuração do <code>ttcd</code></td></tr>
+    <tr><td><code>test_ttcd_integration</code></td><td class="r">29</td><td>o binário real, no rádio UDP</td></tr>
+    <tr><th colspan="3"><code>adsbd</code></th></tr>
+    <tr><td><code>test_sbs</code></td><td class="r">64</td><td>o parser SBS e a linha do registro, byte a byte</td></tr>
+    <tr><td><code>test_tracks</code></td><td class="r">51</td><td>a tabela e as regras do retrato</td></tr>
+    <tr><td><code>test_adsbd_core</code></td><td class="r">86</td><td>o núcleo em tempo virtual</td></tr>
+    <tr><td><code>test_adsbd_config</code></td><td class="r">35</td><td>a configuração</td></tr>
+    <tr><td><code>test_adsbd_integration</code></td><td class="r">62</td><td>o binário real, sem SDR</td></tr>
+    <tr><th colspan="3"><code>obcd</code></th></tr>
+    <tr><td><code>test_obcd_core</code></td><td class="r">135</td><td>cada aresta da Figura 44, burn-wire, termostato, AOCS</td></tr>
+    <tr><td><code>test_obcd_i2c_sched</code></td><td class="r">38</td><td>o silêncio da Pi durante o empréstimo do I²C</td></tr>
+    <tr><td><code>test_obcd_drivers</code></td><td class="r">45</td><td>INA219 emulado, DS18B20 por arquivo falso</td></tr>
+    <tr><td><code>test_obcd_config</code></td><td class="r">51</td><td>a configuração</td></tr>
+    <tr><td><code>test_obcd_integration</code></td><td class="r">49</td><td>o binário real, sem placa</td></tr>
+    <tr><th colspan="3">Juntos, configuração, Python e documentos</th></tr>
+    <tr><td><code>test_adsb_chain</code></td><td class="r">59</td><td>SBS → <code>adsbd</code> → <code>ttcd</code> → rádio UDP → ground; e o rádio sobrevivendo ao payload (21 s)</td></tr>
+    <tr><td><code>conf_*</code> (5)</td><td class="r">—</td><td>cada <code>.conf</code> pelo <code>--check-config</code> do daemon</td></tr>
+    <tr><td><code>ground_aeronaves</code>, <code>tracks_to_ndjson</code>, <code>gs_serial</code></td><td class="r">58</td><td>testes Python: estimador (49), adaptador (7), ponte serial (2)</td></tr>
+    <tr><td><code>bench_step_udp</code></td><td class="r">—</td><td>um passo real da bancada no rádio UDP</td></tr>
+    <tr><td><code>budget_matches_adrs</code></td><td class="r">—</td><td>os números citados nos ADRs</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="makefile"><span class="n">9</span>O Makefile</h2>
+
+<p><b>A regra:</b> o <code>Makefile</code> só encadeia comandos que funcionam sozinhos. Isso inclui <code>cmake</code>, <code>ctest</code>, os scripts de <code>tools/</code> e o <code>docker</code>. Qualquer falha pode ser reproduzida sem o make: leia o alvo e rode a linha. São 43 alvos; <code>make help</code> lista todos, gerados dos comentários <code>##</code> do próprio arquivo.</p>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Alvo</th><th>O que faz</th></tr></thead>
+  <tbody>
+    <tr><th colspan="2">Build and test — on the PC and on the Pi</th></tr>
+    <tr><td class="nw"><code>make build</code></td><td>Configure and build everything (the default target)</td></tr>
+    <tr><td class="nw"><code>make test</code></td><td>Run the tests; T=regex runs only those whose name matches</td></tr>
+    <tr><td class="nw"><code>make asan</code></td><td>Build with ASan+UBSan (UBSan alone on the Pi) and warnings as errors, then run the tests</td></tr>
+    <tr><td class="nw"><code>make check</code></td><td>Before any merge: tests, sanitizers, zero warnings, quotations</td></tr>
+    <tr><td class="nw"><code>make check-debian</code></td><td>make check in Docker on Debian 13, with the Pi's GCC 14, as the CI runs it</td></tr>
+    <tr><td class="nw"><code>make clean</code></td><td>Remove the build trees, with the simulated bench logs inside them</td></tr>
+    <tr><td class="nw"><code>make vectors</code></td><td>Print the golden wire vectors — only on a deliberate version bump</td></tr>
+    <tr><th colspan="2">Analysis</th></tr>
+    <tr><td class="nw"><code>make budget</code></td><td>Link and data budget tables (tools/analysis/lora_budget.py)</td></tr>
+    <tr><td class="nw"><code>make budget-check</code></td><td>Check the figures the ADRs quote (make test runs it too)</td></tr>
+    <tr><td class="nw"><code>make requirements</code></td><td>Check that docs/requisitos.md quotes the rules verbatim (pdftotext)</td></tr>
+    <tr><td class="nw"><code>make toa</code></td><td>Time on air, measured against the model, in a ttcd log: LOG=file</td></tr>
+    <tr><th colspan="2">Bench — two RA-02 (RADIO=sx1278) or the simulated link (RADIO=udp)</th></tr>
+    <tr><td class="nw"><code>make bench</code></td><td>Steps 1 to 6, in order</td></tr>
+    <tr><td class="nw"><code>make bench-config</code></td><td>Step 0: validate ttcd's bench configuration, radio untouched</td></tr>
+    <tr><td class="nw"><code>make bench-ping</code></td><td>Step 1: both radios answer — 10 PINGs, all acked</td></tr>
+    <tr><td class="nw"><code>make bench-toa</code></td><td>Step 2: time on air in each profile, within 5% of the model</td></tr>
+    <tr><td class="nw"><code>make bench-per</code></td><td>Step 3: packet error rate, 1000 PINGs per profile (200 at SAFE)</td></tr>
+    <tr><td class="nw"><code>make bench-rates</code></td><td>Step 4: rate changes between every pair of profiles</td></tr>
+    <tr><td class="nw"><code>make bench-lost-ack</code></td><td>Step 5: the ACK of SET_RATE lost — the revert must recover</td></tr>
+    <tr><td class="nw"><code>make bench-lbt</code></td><td>Step 6: listen-before-talk, header against preamble</td></tr>
+    <tr><td class="nw"><code>make bench-ttcd</code></td><td>By hand, terminal 1: ttcd on radio A, its log on screen; Ctrl-C stops it</td></tr>
+    <tr><td class="nw"><code>make bench-gs</code></td><td>By hand, terminal 2: gs_cli on radio B, commands typed in; quit leaves</td></tr>
+    <tr><th colspan="2">ADS-B without an SDR — a recorded or simulated mission through the chain</th></tr>
+    <tr><td class="nw"><code>make adsb-chain</code></td><td>A mission through adsbd, ttcd and the ground, no hardware: INPUT=&lt;ndjson|.sbs&gt;</td></tr>
+    <tr><th colspan="2">ESP32 ground station — ESP-IDF in Docker (tools/esp32/idf.sh), on the PC</th></tr>
+    <tr><td class="nw"><code>make esp32-build</code></td><td>Build the ground station firmware (ground/esp32)</td></tr>
+    <tr><td class="nw"><code>make esp32-flash</code></td><td>Flash it: ESP32_PORT=/dev/ttyUSB0</td></tr>
+    <tr><td class="nw"><code>make esp32-tests-qemu</code></td><td>The portable test suites on an emulated ESP32 (TTC-16)</td></tr>
+    <tr><td class="nw"><code>make esp32-tests-flash</code></td><td>The same suites on the DevKit: ESP32_PORT=/dev/ttyUSB0</td></tr>
+    <tr><th colspan="2">On the Pi — ttcd, adsbd and obcd as systemd services</th></tr>
+    <tr><td class="nw"><code>make provision</code></td><td>Once: build tools, SPI0 and I2C1 enabled, the gama user for the services</td></tr>
+    <tr><td class="nw"><code>make install</code></td><td>Install the daemons, their units and, if absent, /etc/gama files (CONF_DIR=flight/conf/obc-v2)</td></tr>
+    <tr><td class="nw"><code>make service-enable</code></td><td>Start ttcd now and at every boot — the flight configuration</td></tr>
+    <tr><td class="nw"><code>make service-stop</code></td><td>Stop ttcd until the next boot: the bench needs radio A</td></tr>
+    <tr><td class="nw"><code>make service-status</code></td><td>systemd's view of ttcd, and the end of its log</td></tr>
+    <tr><td class="nw"><code>make service-logs</code></td><td>Follow ttcd's log; Ctrl-C leaves</td></tr>
+    <tr><td class="nw"><code>make adsbd-enable</code></td><td>Start adsbd now and at every boot (dump1090-fa must be installed)</td></tr>
+    <tr><td class="nw"><code>make adsbd-stop</code></td><td>Stop adsbd until the next boot: frees the SDR</td></tr>
+    <tr><td class="nw"><code>make adsbd-status</code></td><td>systemd's view of adsbd, and the end of its log</td></tr>
+    <tr><td class="nw"><code>make obcd-enable</code></td><td>Start obcd now and at every boot (pins and sensors in /etc/gama/obcd.conf)</td></tr>
+    <tr><td class="nw"><code>make obcd-stop</code></td><td>Stop obcd until the next boot: the modes stop, the outputs go off</td></tr>
+    <tr><td class="nw"><code>make obcd-status</code></td><td>systemd's view of obcd, and the end of its log</td></tr>
+    <tr><th colspan="2">From the PC — the same targets, run on the Pi over ssh</th></tr>
+    <tr><td class="nw"><code>make pi-sync</code></td><td>Copy this tree to the Pi: only what changed, uncommitted work included</td></tr>
+    <tr><td class="nw"><code>make pi-&lt;target&gt;</code></td><td>Sync, then run the target on the Pi: pi-test, pi-bench, pi-install, ...</td></tr>
+    <tr><td class="nw"><code>make pi-fetch</code></td><td>Bring the Pi's bench logs into docs/vv/bancada/</td></tr>
+    <tr><td class="nw"><code>make pi-provision</code></td><td>Once: make provision on a Pi that has only ssh so far</td></tr>
+    <tr><th colspan="2">Help</th></tr>
+    <tr><td class="nw"><code>make help</code></td><td>This list</td></tr>
+  </tbody>
+</table></div>
+
+<h3>9.1 Variáveis que mudam o comportamento</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Variável</th><th>Para</th></tr></thead>
+  <tbody>
+    <tr><td><code>T=regex</code></td><td>rodar só as suítes cujo nome casa (<code>make test T=obcd</code>)</td></tr>
+    <tr><td><code>RADIO=udp|sx1278</code></td><td>a bancada no rádio simulado ou nos RA-02. O padrão é <code>sx1278</code> na Pi e <code>udp</code> fora dela</td></tr>
+    <tr><td><code>GS=gs_cli|esp32</code>, <code>ESP32_PORT</code></td><td>quem é a ground na bancada</td></tr>
+    <tr><td><code>POWER</code>, <code>LBT</code>, <code>TTCD_OPTS</code>, <code>GS_OPTS</code></td><td>potência, escuta antes de falar e opções extras das duas pontas</td></tr>
+    <tr><td><code>CONF_DIR</code></td><td>de onde o <code>make install</code> tira os <code>.conf</code> de uma placa</td></tr>
+    <tr><td><code>PI_HOST</code>, <code>PI_DIR</code></td><td>a Pi dos alvos <code>pi-*</code>; ficam no <code>local.mk</code>, fora do git</td></tr>
+    <tr><td><code>ON_PI</code></td><td>detectado pelo <code>/proc/device-tree/model</code>; troca sanitizers, paralelismo e rádio padrão</td></tr>
+  </tbody>
+</table></div>
+
+<h3>9.2 Como funcionam os alvos que não são óbvios</h3>
+<ul>
+  <li><b><code>make pi-&lt;alvo&gt;</code></b> faz um <code>rsync</code> da árvore para a Pi, trabalho não commitado incluído, e roda <code>make &lt;alvo&gt;</code> lá por <code>ssh</code>. Repassa as variáveis da linha de comando (<code>$(MAKEOVERRIDES)</code>). Nos alvos de bancada, traz os logs de volta no fim, mesmo quando o passo falha.</li>
+  <li><b>Os passos da bancada</b> chamam <code>tools/bench/run_step.sh</code> com um roteiro <code>.txt</code>. O script sobe um <code>ttcd</code> novo, alimenta a ground com os comandos, guarda os dois logs com hora no nome e derruba o <code>ttcd</code>. Um passo é reproduzível porque começa sempre do zero.</li>
+  <li><b>Configurar a cada <code>make</code></b> é de propósito: atualiza o <code>TTEC_VERSION</code> (<code>git describe</code>), que todo log registra.</li>
+  <li><b>Os alvos da ESP32</b> rodam o <code>idf.py</code> dentro da imagem Docker do ESP-IDF, com o repositório montado. O <code>--port</code> repassa o dispositivo USB.</li>
+</ul>
+
+<h2 id="diretorios"><span class="n">10</span>O mapa de diretórios</h2>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Pasta</th><th>Papel</th><th>Depende de</th><th>Linhas</th></tr></thead>
+  <tbody>
+    <tr><td><code>common/</code></td><td>o codec compartilhado: frames, CRC, registros, telecomandos, IPC, perfis LoRa, lado da ground, frames do AOCS. Sem SO, sem <code>malloc</code></td><td>nada</td><td class="r">2523</td></tr>
+    <tr><td><code>flight/libipc/</code></td><td>o transporte IPC</td><td>Linux</td><td class="r">237</td></tr>
+    <tr><td><code>flight/radio/</code></td><td>o driver do SX1278, o barramento Linux e os dois rádios (real e UDP)</td><td><code>common/</code></td><td class="r">991</td></tr>
+    <tr><td><code>flight/ttcd/</code></td><td>o daemon de telecom</td><td><code>common/</code>, <code>libipc</code>, <code>radio</code></td><td class="r">2365</td></tr>
+    <tr><td><code>flight/adsbd/</code></td><td>o daemon do payload</td><td><code>common/</code>, <code>libipc</code></td><td class="r">2380</td></tr>
+    <tr><td><code>flight/obcd/</code></td><td>o daemon do OBC</td><td><code>common/</code>, <code>libipc</code>, pthreads</td><td class="r">2693</td></tr>
+    <tr><td><code>flight/conf/</code></td><td>configuração de voo por placa</td><td>—</td><td class="r">—</td></tr>
+    <tr><td><code>ground/console/</code></td><td>o console da ground, portátil</td><td><code>common/</code></td><td class="r">917</td></tr>
+    <tr><td><code>ground/esp32/</code>, <code>ground/esp32-tests/</code></td><td>o firmware da ground e as suítes na ESP32</td><td><code>common/</code>, <code>radio/sx1278.c</code>, <code>console</code>, ESP-IDF</td><td class="r">327</td></tr>
+    <tr><td><code>ground/host/</code></td><td>Python no PC da ground: ponte serial, adaptador, estimador, banco de aeroportos</td><td>stdlib</td><td class="r">4846 (Py)</td></tr>
+    <tr><td><code>tools/</code></td><td><code>gs_cli</code>, bancada, simulador do <code>dump1090</code>, análise, ESP32, CI, vetores</td><td>varia</td><td class="r">—</td></tr>
+    <tr><td><code>tests/</code></td><td>as suítes e os harnesses</td><td>tudo</td><td class="r">8542</td></tr>
+    <tr><td><code>docs/</code></td><td>ADRs, orçamentos, ICDs, requisitos, CDR, relatórios, evidência da bancada</td><td>—</td><td class="r">—</td></tr>
+    <tr><td><code>hardware/</code></td><td>KiCad das placas</td><td>—</td><td class="r">—</td></tr>
+    <tr><td><code>ultima_missao/</code></td><td>o código da competição anterior, congelado: só referência</td><td>—</td><td class="r">—</td></tr>
+  </tbody>
+</table></div>
+
+<h3>10.1 As bibliotecas do build</h3>
+<p>Cada módulo vira uma biblioteca estática no CMake. Os testes ligam só a do módulo que testam, e é isso que garante que um núcleo não depende da casca.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Biblioteca</th><th>Arquivos</th><th>Usada por</th></tr></thead>
+  <tbody>
+    <tr><td><code>gama_common</code></td><td><code>common/*.c</code> (lista em <code>sources.cmake</code>)</td><td>todos</td></tr>
+    <tr><td><code>ttec_ipc</code></td><td><code>libipc/ipc.c</code></td><td><code>ttcd</code>, <code>adsbd</code>, <code>obcd</code></td></tr>
+    <tr><td><code>ttec_sx1278</code> → <code>ttec_sx1278_linux</code> → <code>ttec_radio</code></td><td><code>sx1278.c</code>; <code>sx1278_linux.c</code>; <code>radio_sx1278.c</code>, <code>radio_udp.c</code></td><td><code>ttcd</code>, <code>gs_cli</code>; a ESP32 usa só <code>sx1278.c</code></td></tr>
+    <tr><td><code>ttcd_core</code>, <code>ttcd_config</code></td><td><code>link.c</code>, <code>tc_dispatch.c</code>, <code>tm_sched.c</code>; <code>config.c</code></td><td><code>ttcd</code>, testes</td></tr>
+    <tr><td><code>adsbd_core</code>, <code>adsbd_config</code></td><td><code>sbs.c</code>, <code>tracks.c</code>, <code>ndjson.c</code>, <code>core.c</code>; <code>config.c</code></td><td><code>adsbd</code>, testes</td></tr>
+    <tr><td><code>obcd_core</code>, <code>obcd_drivers</code>, <code>obcd_config</code></td><td><code>core.c</code>, <code>i2c_sched.c</code>; <code>ina219.c</code>, <code>ds18b20.c</code>; <code>config.c</code></td><td><code>obcd</code>, testes</td></tr>
+    <tr><td><code>gs_console</code></td><td><code>ground/console/gs_console.c</code></td><td><code>gs_cli</code>, a ESP32, testes</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="arquivos"><span class="n">11</span>Arquivo por arquivo</h2>
+
+<p>Todos os 148 arquivos de código e de build, fora o estimador do colega (<code>ground/host/ground-aeronaves/</code>, que tem README próprio). As pastas seguem a ordem de dependência: leia nessa ordem. Dentro de cada pasta, o <code>.h</code> diz o que o módulo promete e o <code>.c</code> como cumpre. A coluna "repare em" aponta o que vale a pena entender ao ler.</p>
+
+<h3>11.1 Raiz e build</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Arquivo</th><th class="r">Linhas</th><th>O que é</th><th>Repare em</th></tr></thead>
+  <tbody>
+    <tr><td class="f">CMakeLists.txt</td><td class="r">48</td><td>o build: C11, os avisos do projeto, sanitizers opcionais, as subpastas</td><td>a lista de <code>-W…</code> e o porquê do <code>-Wconversion</code>, no comentário</td></tr>
+    <tr><td class="f">Makefile</td><td class="r">389</td><td>o painel de comandos (seção 9)</td><td><code>?=</code> para tudo ser sobrescrevível; <code>pi-%</code>; <code>bench-step</code> como função <code>$(call …)</code></td></tr>
+    <tr><td class="f">.github/workflows/check.yml</td><td class="r">24</td><td>a CI: <code>make check</code> no Debian 13</td><td>o <code>container:</code> e o <code>fetch-depth: 0</code> para o <code>git describe</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3>11.2 <code>common/</code> — o codec compartilhado</h3>
+<p>Comece aqui: tudo depende disto, e tudo aqui é C puro, sem sistema operacional, sem alocação e sem cabeçalhos de plataforma (regra 7). Leia nesta ordem.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Arquivo</th><th class="r">Linhas</th><th>O que é</th><th>Repare em</th></tr></thead>
+  <tbody>
+    <tr><td class="f">gama_bytes.h</td><td class="r">114</td><td>leitura e escrita little-endian, byte a byte</td><td><code>static inline</code>; por que nunca <code>(uint8_t*)&amp;struct</code> (regra 1); seguro em endereço desalinhado</td></tr>
+    <tr><td class="f">crc16.h</td><td class="r">51</td><td>o CRC-16/CCITT-FALSE</td><td>os parâmetros exatos no comentário; o vetor de verificação "123456789"</td></tr>
+    <tr><td class="f">crc16.c</td><td class="r">26</td><td>a implementação, bit a bit</td><td>sem tabela: pouca memória, rápido o bastante</td></tr>
+    <tr><td class="f">gama_frame.h</td><td class="r">148</td><td>o frame (seção 6.1), os tipos e os códigos de erro</td><td>enums com valores explícitos; códigos de erro negativos</td></tr>
+    <tr><td class="f">gama_frame.c</td><td class="r">117</td><td><code>gama_frame_encode</code> e <code>gama_frame_decode</code></td><td>o chamador fornece o buffer e o tamanho dele: nunca há <code>malloc</code>; cada rejeição tem um código</td></tr>
+    <tr><td class="f">gama_tm.h</td><td class="r">215</td><td>os registros de telemetria: HK, track, roster, stat</td><td>grandezas físicas como inteiros escalados, nunca <code>float</code> no fio; tamanhos fixos</td></tr>
+    <tr><td class="f">gama_tm.c</td><td class="r">251</td><td>encode e decode dos registros</td><td>arredondamento e saturação na quantização; o valor de "sem dado"</td></tr>
+    <tr><td class="f">gama_tc.h</td><td class="r">146</td><td>o catálogo de telecomandos e o vocabulário de modos e eventos do OBC</td><td>por que cada número é fixo à mão</td></tr>
+    <tr><td class="f">gama_tc.c</td><td class="r">106</td><td>tamanhos de argumento e nomes legíveis de cada id</td><td>um <code>switch</code> por função, e o que ela devolve para um id desconhecido</td></tr>
+    <tr><td class="f">gama_lora.h</td><td class="r">82</td><td>os perfis e o tempo no ar</td><td>tudo em microssegundos inteiros, sem ponto flutuante</td></tr>
+    <tr><td class="f">gama_lora.c</td><td class="r">71</td><td>a tabela dos três perfis e a fórmula do datasheet</td><td><code>(uint64_t)</code> antes de multiplicar, para não estourar</td></tr>
+    <tr><td class="f">gama_ipc.h</td><td class="r">200</td><td>os payloads das mensagens entre processos</td><td>são contrato entre processos: tamanhos fixos</td></tr>
+    <tr><td class="f">gama_ipc.c</td><td class="r">145</td><td>encode e decode do IPC</td><td>a rejeição por tamanho exato</td></tr>
+    <tr><td class="f">gama_gs_link.h</td><td class="r">177</td><td>o lado da ground do protocolo</td><td>a lista do que ele faz, no comentário; é uma máquina de estados pura</td></tr>
+    <tr><td class="f">gama_gs_link.c</td><td class="r">411</td><td>a fila de telecomandos, a retransmissão, a troca de taxa, o keepalive, a perda</td><td>como um estado guarda "o que espero agora" e um prazo</td></tr>
+    <tr><td class="f">gama_aocs.h</td><td class="r">128</td><td>os frames I²C do AOCS e as constantes de tempo do empréstimo</td><td>o rascunho do contrato em código; o limite de <code>max_task_s</code></td></tr>
+    <tr><td class="f">gama_aocs.c</td><td class="r">135</td><td>encode e decode, com CRC</td><td>o mesmo estilo do <code>gama_tm.c</code></td></tr>
+    <tr><td class="f">sources.cmake</td><td class="r">13</td><td>a lista única de fontes do codec</td><td>usada pelo CMake da Pi e pelo componente da ESP32</td></tr>
+    <tr><td class="f">CMakeLists.txt</td><td class="r">12</td><td>a biblioteca <code>gama_common</code></td><td><code>target_include_directories PUBLIC</code>: quem liga, enxerga os headers</td></tr>
+  </tbody>
+</table></div>
+
+<h3>11.3 <code>flight/libipc/</code> e <code>flight/radio/</code></h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Arquivo</th><th class="r">Linhas</th><th>O que é</th><th>Repare em</th></tr></thead>
+  <tbody>
+    <tr><td class="f">libipc/ipc.h</td><td class="r">79</td><td>o transporte SEQPACKET</td><td>por que SEQPACKET (fronteira de mensagem); tudo não bloqueante</td></tr>
+    <tr><td class="f">libipc/ipc.c</td><td class="r">158</td><td>servidor, cliente, envio e recepção</td><td><code>SOCK_NONBLOCK | SOCK_CLOEXEC</code>; <code>MSG_TRUNC</code> para detectar mensagem cortada; <code>EAGAIN</code></td></tr>
+    <tr><td class="f">radio/radio.h</td><td class="r">69</td><td>o rádio como a casca o vê: um fd, transmitir, coletar eventos</td><td>uma "interface" em C: struct com ponteiros de função e um <code>impl</code> opaco</td></tr>
+    <tr><td class="f">radio/sx1278.h</td><td class="r">179</td><td>o driver de registradores do SX1278</td><td>o que mudou em relação ao driver antigo; barramento abstrato (<code>sx1278_bus_t</code>)</td></tr>
+    <tr><td class="f">radio/sx1278.c</td><td class="r">294</td><td>init, perfil, potência, transmitir, receber, LBT</td><td>cálculo do registrador de frequência; nada dorme, exceto o pulso de reset</td></tr>
+    <tr><td class="f">radio/sx1278_linux.h</td><td class="r">55</td><td>o barramento no Linux: spidev e GPIO v2</td><td>o DIO0 como fd de borda, direto no <code>epoll</code></td></tr>
+    <tr><td class="f">radio/sx1278_linux.c</td><td class="r">142</td><td>as chamadas ao kernel</td><td><code>struct spi_ioc_transfer</code>; <code>gpio_v2_line_request</code></td></tr>
+    <tr><td class="f">radio/radio_sx1278.c</td><td class="r">85</td><td>o rádio real atrás da interface</td><td>um dos dois <code>malloc</code> do voo: o estado privado do backend; <code>_Static_assert</code> entre enums</td></tr>
+    <tr><td class="f">radio/radio_udp.c</td><td class="r">167</td><td>um rádio simulado por UDP</td><td>segura o frame pelo tempo no ar com um <code>timerfd</code>; descarta se o perfil difere</td></tr>
+  </tbody>
+</table></div>
+
+<h3>11.4 <code>flight/ttcd/</code> — o telecom</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Arquivo</th><th class="r">Linhas</th><th>O que é</th><th>Repare em</th></tr></thead>
+  <tbody>
+    <tr><td class="f">core.h</td><td class="r">234</td><td>a API do núcleo: parâmetros, <code>ttcd_ops_t</code>, contadores, estado, as funções <code>on_*</code></td><td>o estado inteiro numa struct que o chamador aloca; nenhum global</td></tr>
+    <tr><td class="f">core_internal.h</td><td class="r">66</td><td>o que os três <code>.c</code> do núcleo dividem</td><td>como esconder funções internas sem expor no <code>core.h</code></td></tr>
+    <tr><td class="f">link.c</td><td class="r">485</td><td>entradas de eventos, acesso ao meio, troca de perfil</td><td>as três regras do comentário do topo; como o prazo seguinte é calculado</td></tr>
+    <tr><td class="f">tc_dispatch.c</td><td class="r">284</td><td>validar, executar e confirmar telecomandos</td><td>a execução no máximo uma vez e a exceção do <code>SET_RATE</code></td></tr>
+    <tr><td class="f">tm_sched.c</td><td class="r">467</td><td>o que transmitir em cada oportunidade</td><td>a ordem de prioridade; o modo do OBC ligando o streaming</td></tr>
+    <tr><td class="f">main.c</td><td class="r">515</td><td>a casca: sockets, rádio, timer, sinais, log</td><td>o laço de <code>epoll_wait</code>; <code>signalfd</code> em vez de handler de sinal; <code>timerfd</code> com tempo absoluto</td></tr>
+    <tr><td class="f">config.h</td><td class="r">68</td><td>a configuração</td><td>arrays de <code>char</code> de tamanho fixo para caminhos</td></tr>
+    <tr><td class="f">config.c</td><td class="r">246</td><td>ler <code>chave = valor</code> e validar</td><td><code>strtoull</code> com checagem de fim e de faixa; chave desconhecida é erro</td></tr>
+    <tr><td class="f">ttcd.conf.example</td><td class="r">40</td><td>a configuração comentada</td><td>cada valor com a origem (ADR, orçamento)</td></tr>
+    <tr><td class="f">ttcd.service</td><td class="r">47</td><td>a unidade systemd</td><td>usuário <code>gama</code> sem root, <code>Restart=always</code>, <code>ProtectSystem</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3>11.5 <code>flight/adsbd/</code> — o payload</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Arquivo</th><th class="r">Linhas</th><th>O que é</th><th>Repare em</th></tr></thead>
+  <tbody>
+    <tr><td class="f">sbs.h</td><td class="r">85</td><td>o formato SBS-1, campo a campo</td><td>o booleano "−1 é verdadeiro", que o protótipo leu errado</td></tr>
+    <tr><td class="f">sbs.c</td><td class="r">246</td><td>o parser</td><td>parsing sem alocar: ponteiros para dentro da linha e tamanhos</td></tr>
+    <tr><td class="f">ndjson.h</td><td class="r">44</td><td>a linha do registro de bordo</td><td>idêntica à do protótipo, byte a byte, porque o orçamento depende dela</td></tr>
+    <tr><td class="f">ndjson.c</td><td class="r">61</td><td>monta a linha</td><td><code>snprintf</code> num buffer fixo e a checagem do retorno</td></tr>
+    <tr><td class="f">tracks.h</td><td class="r">106</td><td>a tabela de aeronaves e o retrato</td><td>capacidade fixa, busca linear (e a conta que a justifica); idade de cada campo</td></tr>
+    <tr><td class="f">tracks.c</td><td class="r">212</td><td>fundir mensagens e montar o retrato</td><td>expiração e o que fica de fora por estar velho</td></tr>
+    <tr><td class="f">core.h</td><td class="r">147</td><td>o núcleo do payload</td><td>tempo em nanossegundos aqui; o relógio de parede só como deslocamento</td></tr>
+    <tr><td class="f">core.c</td><td class="r">399</td><td>linhas entrando; registro, retratos e contadores saindo</td><td>o decodificador seguindo o modo do OBC</td></tr>
+    <tr><td class="f">main.c</td><td class="r">748</td><td>a casca: o <code>dump1090</code> como filho, sockets, arquivos</td><td><code>fork</code>/<code>exec</code>, <code>waitpid</code> não bloqueante, reinício com espera dobrando; montar linhas a partir de um stream TCP</td></tr>
+    <tr><td class="f">config.h</td><td class="r">65</td><td>a configuração</td><td>—</td></tr>
+    <tr><td class="f">config.c</td><td class="r">267</td><td>ler e validar</td><td>o comando do <code>dump1090</code> partido em palavras, sem shell</td></tr>
+    <tr><td class="f">adsbd.conf.example</td><td class="r">39</td><td>a configuração comentada</td><td><code>decoder = mode</code></td></tr>
+    <tr><td class="f">adsbd.service</td><td class="r">49</td><td>a unidade systemd</td><td>—</td></tr>
+  </tbody>
+</table></div>
+
+<h3>11.6 <code>flight/obcd/</code> — o OBC</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Arquivo</th><th class="r">Linhas</th><th>O que é</th><th>Repare em</th></tr></thead>
+  <tbody>
+    <tr><td class="f">core.h</td><td class="r">189</td><td>o núcleo: modos, burn-wire, termostato, AOCS</td><td>a Figura 44 em texto, no comentário; <code>obcd_ops_t</code></td></tr>
+    <tr><td class="f">core.c</td><td class="r">506</td><td>as transições, as saídas, a telemetria</td><td><code>obcd_transition</code>, um <code>switch</code> com a figura inteira; por que o fim de um modo é postado no tick e não dentro do <code>enter</code></td></tr>
+    <tr><td class="f">i2c_sched.h</td><td class="r">118</td><td>o que a thread do I²C faz e quando</td><td>a linha do tempo no comentário; fases como enum</td></tr>
+    <tr><td class="f">i2c_sched.c</td><td class="r">192</td><td>o escalonador puro</td><td><code>next()</code> e <code>done()</code>: a thread pergunta, faz e relata</td></tr>
+    <tr><td class="f">ina219.h</td><td class="r">61</td><td>o INA219, só a lógica de registradores</td><td>barramento abstrato, como o SX1278</td></tr>
+    <tr><td class="f">ina219.c</td><td class="r">36</td><td>configurar e ler V e I</td><td>a corrente a partir da tensão no shunt; arredondamento de inteiro com sinal</td></tr>
+    <tr><td class="f">ds18b20.h</td><td class="r">63</td><td>a temperatura pelo <code>w1_slave</code> do kernel</td><td>o 85 °C de power-on, recusado</td></tr>
+    <tr><td class="f">ds18b20.c</td><td class="r">116</td><td>parse do texto, leitura do arquivo, busca do sensor</td><td><code>read</code> com <code>EINTR</code>; <code>opendir</code>/<code>readdir</code></td></tr>
+    <tr><td class="f">hw_linux.h</td><td class="r">53</td><td>I²C e GPIO pelo kernel</td><td>retornos em <code>-errno</code></td></tr>
+    <tr><td class="f">hw_linux.c</td><td class="r">118</td><td>as chamadas</td><td><code>struct i2c_msg</code>, repeated start; <code>I2C_RDWR</code></td></tr>
+    <tr><td class="f">main.c</td><td class="r">924</td><td>a casca: laço, threads, pipes, GPIO, arquivo do empréstimo, watchdog do systemd</td><td><code>pthread_create</code>, <code>atomic_bool</code>, pipe com escrita atômica (<code>PIPE_BUF</code>); <code>fsync</code> e <code>rename</code> para gravar sem meio arquivo</td></tr>
+    <tr><td class="f">config.h</td><td class="r">65</td><td>a configuração</td><td>nenhum pino no binário</td></tr>
+    <tr><td class="f">config.c</td><td class="r">252</td><td>ler e validar</td><td>a macro <code>INT(…)</code> que gera cada chave numérica</td></tr>
+    <tr><td class="f">obcd.conf.example</td><td class="r">62</td><td>a configuração comentada</td><td>—</td></tr>
+    <tr><td class="f">obcd.service</td><td class="r">48</td><td>a unidade systemd</td><td><code>WatchdogSec</code>, <code>DeviceAllow</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3>11.7 <code>flight/CMakeLists.txt</code> e <code>flight/conf/</code></h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Arquivo</th><th class="r">Linhas</th><th>O que é</th><th>Repare em</th></tr></thead>
+  <tbody>
+    <tr><td class="f">flight/CMakeLists.txt</td><td class="r">100</td><td>as bibliotecas e os três executáveis</td><td>a separação núcleo / configuração / executável</td></tr>
+    <tr><td class="f">conf/obc-v2/ttcd.conf</td><td class="r">9</td><td>o rádio na placa nova</td><td>só o que a placa muda</td></tr>
+    <tr><td class="f">conf/obc-v2/obcd.conf</td><td class="r">20</td><td>I²C, DS18B20, burn-wire e aquecedores na placa nova</td><td><code>w1_path = auto</code></td></tr>
+    <tr><td class="f">conf/obc-v2/config.txt</td><td class="r">15</td><td>as linhas do firmware da Pi</td><td>o 1-Wire no GPIO17</td></tr>
+  </tbody>
+</table></div>
+
+<h3>11.8 <code>ground/</code></h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Arquivo</th><th class="r">Linhas</th><th>O que é</th><th>Repare em</th></tr></thead>
+  <tbody>
+    <tr><th colspan="4"><code>ground/console/</code></th></tr>
+    <tr><td class="f">gs_console.h</td><td class="r">177</td><td>o console do operador</td><td>as duas fases (<code>set</code>, depois <code>begin</code>); a forma das linhas JSON</td></tr>
+    <tr><td class="f">gs_console.c</td><td class="r">740</td><td>parser de comandos, atividade, JSON</td><td>escapar texto em JSON; parsing de números com <code>strtoul</code></td></tr>
+    <tr><td class="f">CMakeLists.txt</td><td class="r">6</td><td>a biblioteca <code>gs_console</code></td><td>—</td></tr>
+    <tr><th colspan="4"><code>ground/esp32/</code></th></tr>
+    <tr><td class="f">main/gs_main.c</td><td class="r">201</td><td>a casca na ESP32: UART, laço, console</td><td>notificação de tarefa do FreeRTOS no lugar do <code>epoll</code>; UART que nunca bloqueia</td></tr>
+    <tr><td class="f">main/radio_esp32.h</td><td class="r">21</td><td>o RA-02 na ESP32</td><td>—</td></tr>
+    <tr><td class="f">main/radio_esp32.c</td><td class="r">105</td><td>o barramento do driver sobre o SPI e o GPIO do ESP-IDF</td><td>buffers de DMA alinhados (<code>WORD_ALIGNED_ATTR</code>); ISR curta</td></tr>
+    <tr><td class="f">main/Kconfig.projbuild</td><td class="r">47</td><td>o menu de pinos e opções</td><td>—</td></tr>
+    <tr><td class="f">main/CMakeLists.txt</td><td class="r">5</td><td>o componente principal</td><td>—</td></tr>
+    <tr><td class="f">components/ttec/CMakeLists.txt</td><td class="r">22</td><td>puxa <code>common/</code>, o driver e o console por caminho</td><td>nada copiado: o mesmo arquivo nas duas pontas</td></tr>
+    <tr><td class="f">CMakeLists.txt</td><td class="r">5</td><td>o projeto IDF</td><td>—</td></tr>
+    <tr><td class="f">sdkconfig.defaults</td><td class="r">18</td><td>tick do FreeRTOS, pilha, log</td><td>—</td></tr>
+    <tr><th colspan="4"><code>ground/esp32-tests/</code></th></tr>
+    <tr><td class="f">main/run_tests.c</td><td class="r">33</td><td>roda cada suíte e imprime a linha-sentinela</td><td>—</td></tr>
+    <tr><td class="f">main/CMakeLists.txt</td><td class="r">33</td><td>renomeia o <code>main</code> de cada suíte</td><td><code>-Dmain=…</code> e um header gerado com os protótipos</td></tr>
+    <tr><td class="f">CMakeLists.txt</td><td class="r">7</td><td>o projeto IDF das suítes</td><td>—</td></tr>
+    <tr><td class="f">sdkconfig.defaults</td><td class="r">9</td><td>watchdog relaxado para as suítes</td><td>—</td></tr>
+    <tr><th colspan="4"><code>ground/host/</code> (Python)</th></tr>
+    <tr><td class="f">gs_serial.py</td><td class="r">271</td><td>a ponte que faz a ESP32 parecer a <code>gs_cli</code></td><td>termios na mão, sem pyserial; o reset pelo RTS</td></tr>
+    <tr><td class="f">test_gs_serial.py</td><td class="r">110</td><td>a ponte contra uma ESP32 falsa</td><td>um pseudo-terminal (<code>pty</code>) como cabo</td></tr>
+    <tr><td class="f">tracks_to_ndjson.py</td><td class="r">106</td><td>do log da ground ao formato do estimador</td><td>—</td></tr>
+    <tr><td class="f">test_tracks_to_ndjson.py</td><td class="r">102</td><td>conferido pelo parser do próprio estimador</td><td>—</td></tr>
+    <tr><td class="f">banco-aeronaves/importar_bases.py</td><td class="r">85</td><td>importa os CSVs de aeroportos para SQLite</td><td>—</td></tr>
+    <tr><td class="f">banco-aeronaves/abrir-banco.sh</td><td class="r">4</td><td>abre o banco</td><td>—</td></tr>
+    <tr><td class="f">.gitignore</td><td class="r">22</td><td>o que fica fora do git, como o banco</td><td>—</td></tr>
+  </tbody>
+</table></div>
+
+<h3>11.9 <code>tools/</code></h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Arquivo</th><th class="r">Linhas</th><th>O que é</th><th>Repare em</th></tr></thead>
+  <tbody>
+    <tr><td class="f">gs_cli/gs_cli.c</td><td class="r">241</td><td>a ground de bancada: o console sobre um rádio, linhas pelo stdin</td><td>uma casca fina: argumentos viram <code>set</code>; <code>epoll</code> com stdin e rádio</td></tr>
+    <tr><td class="f">gs_cli/CMakeLists.txt</td><td class="r">4</td><td>o executável</td><td>—</td></tr>
+    <tr><td class="f">bench/run_step.sh</td><td class="r">86</td><td>um passo da bancada: sobe o <code>ttcd</code>, alimenta a ground, guarda os logs</td><td><code>trap</code> para derrubar o <code>ttcd</code> mesmo em falha</td></tr>
+    <tr><td class="f">bench/ping.txt, toa.txt, per.txt, rates.txt, lost-ack.txt, lbt.txt</td><td class="r">3, 12, 10, 13, 14, 8</td><td>os roteiros de comandos dos seis passos</td><td>são entradas do console, linha a linha</td></tr>
+    <tr><td class="f">bench/adsb_chain.sh</td><td class="r">106</td><td>uma missão gravada pela cadeia inteira</td><td>—</td></tr>
+    <tr><td class="f">sbs_replay/sbs_replay.py</td><td class="r">194</td><td>faz o papel do <code>dump1090</code>: serve SBS de uma captura</td><td>—</td></tr>
+    <tr><td class="f">analysis/lora_budget.py</td><td class="r">387</td><td>tempo no ar, orçamento de dados e de enlace; <code>--check</code> confere os ADRs</td><td>a fonte dos números deste guia</td></tr>
+    <tr><td class="f">analysis/toa_from_log.py</td><td class="r">77</td><td>tempo no ar medido contra o modelo</td><td>—</td></tr>
+    <tr><td class="f">analysis/downlink_emulation.py</td><td class="r">201</td><td>o que a ground receberia de uma captura completa</td><td>—</td></tr>
+    <tr><td class="f">analysis/check_requirements.py</td><td class="r">94</td><td>as citações de <code>requisitos.md</code> contra o PDF das regras</td><td>—</td></tr>
+    <tr><td class="f">gen_vectors/gen_vectors.c</td><td class="r">170</td><td>imprime os vetores de <code>test_vectors.c</code></td><td>só numa troca deliberada de versão</td></tr>
+    <tr><td class="f">gen_vectors/CMakeLists.txt</td><td class="r">2</td><td>o executável</td><td>—</td></tr>
+    <tr><td class="f">esp32/idf.sh</td><td class="r">36</td><td><code>idf.py</code> dentro do Docker</td><td><code>-u uid:gid</code> para não criar arquivos de root</td></tr>
+    <tr><td class="f">esp32/run_tests_qemu.sh</td><td class="r">37</td><td>as suítes numa ESP32 emulada</td><td>a sentinela final decide o resultado</td></tr>
+    <tr><td class="f">ci/check_debian.sh</td><td class="r">21</td><td><code>make check</code> no Debian 13</td><td>copia a árvore para não escrever na montada</td></tr>
+  </tbody>
+</table></div>
+
+<h3>11.10 <code>tests/</code></h3>
+<p>Leia o teste junto com o módulo: ele mostra o que o módulo promete, com valores concretos. Os números de verificações estão na seção 8.6.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Arquivo</th><th class="r">Linhas</th><th>O que é</th><th>Repare em</th></tr></thead>
+  <tbody>
+    <tr><td class="f">test_util.h</td><td class="r">90</td><td>as macros de verificação</td><td><code>do { … } while (0)</code>; <code>#cond</code> para imprimir a expressão</td></tr>
+    <tr><td class="f">CMakeLists.txt</td><td class="r">162</td><td>o registro de cada suíte no CTest</td><td><code>foreach</code>; os testes que recebem o binário real</td></tr>
+    <tr><td class="f">portable.cmake</td><td class="r">19</td><td>as suítes que rodam também na ESP32</td><td>—</td></tr>
+    <tr><td class="f">ttcd_harness.h</td><td class="r">211</td><td>uma casca simulada para o núcleo do <code>ttcd</code></td><td><code>step_to()</code>: o tempo avança só quando o teste manda</td></tr>
+    <tr><td class="f">link_sim.h</td><td class="r">485</td><td>as duas pontas num canal half-duplex simulado</td><td>o modelo de colisão e de LBT, no comentário</td></tr>
+    <tr><td class="f">test_crc16.c</td><td class="r">58</td><td>o CRC</td><td>—</td></tr>
+    <tr><td class="f">test_frame.c</td><td class="r">179</td><td>o enquadramento</td><td>cada caminho de rejeição tem um caso</td></tr>
+    <tr><td class="f">test_tm.c</td><td class="r">270</td><td>os registros de telemetria</td><td>varreduras de valores (daí as muitas verificações)</td></tr>
+    <tr><td class="f">test_tc.c</td><td class="r">85</td><td>o catálogo de telecomandos</td><td>—</td></tr>
+    <tr><td class="f">test_vectors.c</td><td class="r">415</td><td>os bytes fixados</td><td>nunca editar um vetor para passar</td></tr>
+    <tr><td class="f">test_lora.c</td><td class="r">134</td><td>os perfis e o tempo no ar</td><td>—</td></tr>
+    <tr><td class="f">test_ipc_codec.c</td><td class="r">174</td><td>o IPC</td><td>—</td></tr>
+    <tr><td class="f">test_gs_link.c</td><td class="r">148</td><td>o lado da ground isolado</td><td>—</td></tr>
+    <tr><td class="f">test_aocs_codec.c</td><td class="r">133</td><td>os frames do AOCS</td><td>—</td></tr>
+    <tr><td class="f">test_libipc.c</td><td class="r">236</td><td>o transporte</td><td>um par de sockets de verdade</td></tr>
+    <tr><td class="f">test_ttcd_core.c</td><td class="r">962</td><td>o núcleo do <code>ttcd</code></td><td>o maior arquivo de teste; um grupo por comportamento</td></tr>
+    <tr><td class="f">test_link_sim.c</td><td class="r">370</td><td>o protocolo no canal simulado</td><td>a semente fixa: reproduzível</td></tr>
+    <tr><td class="f">test_sx1278.c</td><td class="r">306</td><td>o driver contra um chip emulado</td><td>um banco de registradores e uma FIFO em C</td></tr>
+    <tr><td class="f">test_config.c</td><td class="r">110</td><td>a configuração do <code>ttcd</code></td><td>—</td></tr>
+    <tr><td class="f">test_ttcd_integration.c</td><td class="r">325</td><td>o binário do <code>ttcd</code></td><td><code>fork</code>/<code>exec</code> do binário e conversa por UDP e IPC</td></tr>
+    <tr><td class="f">test_sbs.c</td><td class="r">171</td><td>o parser SBS e a linha NDJSON</td><td>—</td></tr>
+    <tr><td class="f">test_tracks.c</td><td class="r">214</td><td>a tabela e o retrato</td><td>—</td></tr>
+    <tr><td class="f">test_adsbd_core.c</td><td class="r">459</td><td>o núcleo do <code>adsbd</code></td><td>—</td></tr>
+    <tr><td class="f">test_adsbd_config.c</td><td class="r">116</td><td>a configuração</td><td>—</td></tr>
+    <tr><td class="f">test_adsbd_integration.c</td><td class="r">517</td><td>o binário, com um <code>dump1090</code> falso</td><td>—</td></tr>
+    <tr><td class="f">test_obcd_core.c</td><td class="r">593</td><td>o núcleo do <code>obcd</code></td><td>as ops falsas que gravam o que o núcleo pediu</td></tr>
+    <tr><td class="f">test_obcd_i2c_sched.c</td><td class="r">267</td><td>o escalonador do I²C contra um ESP32 simulado</td><td>a propriedade testada é "nenhuma transação no intervalo"</td></tr>
+    <tr><td class="f">test_obcd_drivers.c</td><td class="r">194</td><td>INA219 e DS18B20 sem hardware</td><td>—</td></tr>
+    <tr><td class="f">test_obcd_config.c</td><td class="r">125</td><td>a configuração</td><td>—</td></tr>
+    <tr><td class="f">test_obcd_integration.c</td><td class="r">345</td><td>o binário, fazendo o papel do <code>ttcd</code> e do DS18B20</td><td>—</td></tr>
+    <tr><td class="f">test_gs_console.c</td><td class="r">320</td><td>as linhas do console</td><td>—</td></tr>
+    <tr><td class="f">test_adsb_chain.c</td><td class="r">530</td><td>a cadeia inteira, com três binários</td><td>matar o <code>adsbd</code> e ver o rádio seguir</td></tr>
+    <tr><td class="f">test_bench_step.py</td><td class="r">78</td><td>um passo da bancada no rádio UDP</td><td>—</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="c"><span class="n">12</span>Tópicos de C e onde aparecem</h2>
+<p>Para levar as dúvidas de implementação a um exemplo concreto do próprio repositório:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Tópico</th><th>Por que importa aqui</th><th>Veja em</th></tr></thead>
+  <tbody>
+    <tr><td>Inteiros de largura fixa (<code>uint16_t</code>…) e <code>-Wconversion</code></td><td>um campo truncado ou um sinal perdido aparece primeiro como conversão implícita</td><td>qualquer <code>.c</code>; casts explícitos onde o valor é provadamente pequeno</td></tr>
+    <tr><td>Serialização byte a byte, nunca struct por cast</td><td>o layout de uma struct depende do compilador (padding, alinhamento)</td><td><code>common/gama_bytes.h</code>, <code>gama_tm.c</code></td></tr>
+    <tr><td>Sem <code>malloc</code>: buffers do chamador, tamanhos máximos em <code>#define</code>, capacidade fixa</td><td>memória previsível e o mesmo código na ESP32</td><td><code>common/</code> inteiro, <code>tracks.c</code></td></tr>
+    <tr><td>Os dois <code>malloc</code> do voo</td><td>o estado privado de um backend atrás de uma interface, uma vez na partida</td><td><code>radio_sx1278.c</code>, <code>radio_udp.c</code></td></tr>
+    <tr><td>Ponteiros de função e <code>void *ctx</code></td><td>injetar o mundo no núcleo, e um rádio falso no teste</td><td><code>ttcd_ops_t</code>, <code>radio.h</code>, <code>sx1278_bus_t</code></td></tr>
+    <tr><td>Estado numa struct passada por ponteiro, sem globais</td><td>vários núcleos no mesmo teste; reinício limpo</td><td><code>ttcd_core_t</code>, <code>obcd_core_t</code></td></tr>
+    <tr><td><code>enum</code> com valores explícitos</td><td>os números viajam no fio</td><td><code>gama_tc.h</code>, <code>gama_frame.h</code></td></tr>
+    <tr><td>Códigos de erro negativos, <code>-errno</code></td><td>falha sem exceções, testável</td><td><code>gama_frame.h</code>, <code>obcd/hw_linux.c</code></td></tr>
+    <tr><td><code>static inline</code> em header</td><td>funções pequenas sem custo de chamada nem <code>.c</code></td><td><code>gama_bytes.h</code></td></tr>
+    <tr><td><code>_Static_assert</code></td><td>pegar no compilador uma divergência entre duas definições</td><td><code>radio_sx1278.c</code></td></tr>
+    <tr><td>Inicializadores designados (<code>.campo = …</code>)</td><td>structs legíveis, campos omitidos zerados</td><td>todo <code>main.c</code>, os testes</td></tr>
+    <tr><td><code>epoll</code>, <code>timerfd</code>, <code>signalfd</code></td><td>esperar num lugar só por tudo: rede, rádio, tempo, sinais</td><td><code>flight/*/main.c</code>, <code>gs_cli.c</code></td></tr>
+    <tr><td>Descritores não bloqueantes e <code>EAGAIN</code></td><td>um <code>recv</code> que bloqueia trava o laço inteiro (regra 2)</td><td><code>libipc/ipc.c</code></td></tr>
+    <tr><td><code>fork</code>, <code>exec</code>, <code>waitpid</code></td><td>supervisionar o <code>dump1090</code> sem shell</td><td><code>adsbd/main.c</code></td></tr>
+    <tr><td><code>pthread</code>, <code>atomic_bool</code>, <code>pipe</code></td><td>o que pode bloquear fica numa thread que entrega o resultado por um fd</td><td><code>obcd/main.c</code></td></tr>
+    <tr><td><code>ioctl</code> do kernel (SPI, GPIO v2, I²C)</td><td>hardware sem biblioteca e sem root</td><td><code>sx1278_linux.c</code>, <code>obcd/hw_linux.c</code></td></tr>
+    <tr><td><code>snprintf</code> e truncamento</td><td>texto em buffer fixo; o GCC avisa quando pode truncar</td><td><code>ndjson.c</code>, logs, <code>gs_console.c</code></td></tr>
+    <tr><td>Gravar arquivo sem deixar meio arquivo</td><td>um crash no meio não pode corromper o estado</td><td><code>obcd/main.c</code> (<code>lease_save</code>: temporário, <code>fsync</code>, <code>rename</code>)</td></tr>
+    <tr><td>Macros com <code>do { … } while (0)</code> e <code>#x</code></td><td>macros que se comportam como um comando</td><td><code>tests/test_util.h</code>, <code>obcd/config.c</code></td></tr>
+    <tr><td><code>extern "C"</code> e guardas de header</td><td>headers incluíveis em C++ e uma vez só</td><td>todo <code>.h</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="trilha"><span class="n">13</span>Uma trilha de leitura</h2>
+<p>Uma ordem que constrói cada passo sobre o anterior. Leve as perguntas; se conseguir respondê-las, entendeu o trecho.</p>
+<ol class="steps">
+  <li><b><code>AGENTS.md</code>, <code>docs/adr/README.md</code>, <code>docs/budgets/data-budget.md</code>.</b> Por que um retrato a cada 5 s, e não o fluxo bruto? Quais são as regras duras, e que defeito antigo cada uma evita?</li>
+  <li><b><code>common/gama_bytes.h</code>, <code>crc16</code>, <code>gama_frame</code>, com <code>test_frame.c</code> e <code>test_vectors.c</code>.</b> Por que serializar campo a campo? O que acontece com um frame de CRC errado, e onde isso é contado?</li>
+  <li><b><code>gama_tm</code>, <code>gama_tc</code>, <code>gama_lora</code>.</b> Como uma latitude cabe num inteiro e com que erro? Quanto tempo no ar custa um frame no NOMINAL?</li>
+  <li><b><code>flight/ttcd/core.h</code>, depois <code>tests/ttcd_harness.h</code> e alguns grupos de <code>test_ttcd_core.c</code>.</b> O que entra no núcleo, o que sai, e como o teste controla o tempo?</li>
+  <li><b><code>link.c</code>, <code>tc_dispatch.c</code>, <code>tm_sched.c</code>, com <code>gama_gs_link.h</code> e <code>link_sim.h</code>.</b> Por que a janela de resposta? O que garante que um telecomando não executa duas vezes?</li>
+  <li><b><code>flight/ttcd/main.c</code>, <code>flight/libipc/</code>, <code>flight/radio/</code>.</b> Onde o programa espera? Como uma interrupção do rádio vira um evento do núcleo?</li>
+  <li><b><code>flight/adsbd/</code>: <code>sbs</code>, <code>ndjson</code>, <code>tracks</code>, <code>core</code>, <code>main</code>.</b> Como três mensagens viram um registro de 20 bytes? O que acontece quando o <code>dump1090</code> morre?</li>
+  <li><b><code>flight/obcd/</code>: <code>core</code>, depois <code>i2c_sched</code>, depois <code>main</code>.</b> Onde está a Figura 44? Por que as threads, e como elas falam com o laço sem travá-lo?</li>
+  <li><b><code>ground/console/</code>, <code>tools/gs_cli/</code>, <code>ground/esp32/main/</code>.</b> O que muda entre a ground no PC e na ESP32, e o que é igual?</li>
+  <li><b><code>tests/CMakeLists.txt</code>, <code>Makefile</code>, <code>tools/bench/run_step.sh</code>.</b> O que acontece, comando por comando, num <code>make check</code>? E num <code>make pi-bench-ping</code>?</li>
+</ol>
+
+<h2 id="glossario"><span class="n">14</span>Glossário</h2>
+<div class="table-wrap"><table>
+  <tbody>
+    <tr><td><b>ADR</b></td><td>Architecture Decision Record: o registro de uma decisão, com alternativas e custo</td></tr>
+    <tr><td><b>ADS-B</b></td><td>o sinal que os aviões transmitem com posição, velocidade e identificação, em 1090 MHz</td></tr>
+    <tr><td><b>AOCS</b></td><td>controle de atitude e órbita; aqui, um ESP32 de outra equipe, com o BMI088</td></tr>
+    <tr><td><b>ARQ</b></td><td>retransmissão automática a pedido: aqui, pare e espere pelo ACK</td></tr>
+    <tr><td><b>Casca / núcleo</b></td><td>o <code>main.c</code> que fala com o SO / o <code>core.c</code> que decide (seção 5)</td></tr>
+    <tr><td><b>CDR</b></td><td>Critical Design Review: o Design Package entregue em 11/10, em <code>docs/cdr/</code></td></tr>
+    <tr><td><b>CR, SF, BW</b></td><td>coding rate, spreading factor e largura de banda: os parâmetros de um perfil LoRa</td></tr>
+    <tr><td><b>DIO0</b></td><td>o pino do SX1278 que avisa fim de transmissão ou de recepção</td></tr>
+    <tr><td><b>HK</b></td><td>housekeeping: a telemetria de saúde</td></tr>
+    <tr><td><b>HLR</b></td><td>requisito de alto nível das regras da competição (HLR-COMM-01…), em <code>docs/requisitos.md</code></td></tr>
+    <tr><td><b>ICAO</b></td><td>o endereço de 24 bits que identifica cada aeronave</td></tr>
+    <tr><td><b>ICD</b></td><td>Interface Control Document: o contrato entre duas partes</td></tr>
+    <tr><td><b>IPC</b></td><td>comunicação entre os processos da Pi</td></tr>
+    <tr><td><b>LBT</b></td><td>listen-before-talk: escutar antes de transmitir</td></tr>
+    <tr><td><b>OBC</b></td><td>on-board computer: os modos e os sensores; aqui, o <code>obcd</code></td></tr>
+    <tr><td><b>Retrato (snapshot)</b></td><td>o estado de todas as aeronaves num instante, em registros de 20 B</td></tr>
+    <tr><td><b>Roster</b></td><td>a tabela ICAO → callsign, mandada à parte</td></tr>
+    <tr><td><b>SBS-1</b></td><td>o formato de texto que o <code>dump1090</code> publica na porta 30003</td></tr>
+    <tr><td><b>TC / TM</b></td><td>telecomando (ground → satélite) / telemetria (satélite → ground)</td></tr>
+    <tr><td><b>TTC-nn</b></td><td>requisito derivado do TT&amp;C, na Tabela 65 do CDR</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="alem"><span class="n">15</span>Para ir além</h2>
+<ul>
+  <li><code>AGENTS.md</code>: as regras, o mapa e o estado corrente; <code>PLANO.md</code>: o plano, as decisões D1–D12 e os riscos.</li>
+  <li><code>docs/adr/</code>: as 17 decisões; <code>docs/budgets/</code>: os orçamentos; <code>docs/requisitos.md</code>: cada requisito citado literalmente, com o estado.</li>
+  <li><code>docs/icd/obc-aocs-i2c.md</code>: o contrato com o AOCS.</li>
+  <li>Os READMEs, em português: <code>flight/ttcd/README.md</code> (instalação e bancada), <code>flight/adsbd/README.md</code>, <code>flight/obcd/README.md</code>, <code>ground/esp32/README.md</code>, <code>ground/host/README.md</code>, <code>hardware/README.md</code>.</li>
+  <li><code>docs/vv/bancada/</code>: a evidência em hardware e o roteiro de novembro.</li>
+  <li><code>docs/cdr/CDR_GCD_Cubedesign_2026.pdf</code>: o que foi prometido.</li>
+  <li>O <a href="2026-10-31-estado-do-projeto.html">relatório de estado de 31/10</a>: o que foi feito na última sessão e o que falta.</li>
+</ul>
+
+<footer>
+  <p>Gerado em 31/10/2026 a partir do commit <code>3927fb0</code>, com apoio do Claude Code. As contagens de linhas, de suítes e de verificações, os alvos do <code>make</code> e os números do orçamento vêm das execuções desta data; as descrições de cada arquivo partem do comentário de cabeçalho do próprio arquivo.</p>
+  <p>Outros relatórios: <a href="2026-10-31-estado-do-projeto.html">estado em 31/10</a>, <a href="2026-10-06-panorama-ttec-cdr.html">panorama de 06/10</a>, <a href="2026-09-28-comparativo-ultima-missao.html">comparativo com a missão anterior</a>.</p>
+</footer>
+
+</main>
+</div>
+<script>
+(function () {
+  function setAll(open) {
+    var items = document.querySelectorAll('details.qa');
+    for (var i = 0; i < items.length; i++) { items[i].open = open; }
+  }
+  var openBtn = document.getElementById('qa-open');
+  var closeBtn = document.getElementById('qa-close');
+  if (openBtn) { openBtn.addEventListener('click', function () { setAll(true); }); }
+  if (closeBtn) { closeBtn.addEventListener('click', function () { setAll(false); }); }
+  window.addEventListener('beforeprint', function () { setAll(true); });
+  if (location.hash && location.hash.indexOf('#q') === 0) {
+    var target = document.querySelector(location.hash);
+    if (target && target.tagName === 'DETAILS') { target.open = true; }
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="#q"]');
+    if (!a) { return; }
+    var d = document.querySelector(a.getAttribute('href'));
+    if (d && d.tagName === 'DETAILS') { d.open = true; }
+  });
+})();
+</script>
+</body>
+</html>

@@ -14,6 +14,7 @@
 #include "test_util.h"
 #include "gama_frame.h"
 #include "gama_ipc.h"
+#include "gama_tc.h"
 #include "gama_tm.h"
 #include "ipc.h"
 
@@ -34,6 +35,9 @@
 static char dir[64], sock_path[128], rec_path[128], log_path[128], conf_path[128];
 static const char *adsbd_bin;
 static uint16_t sbs_port;
+/* Most groups run the decoder whatever the mode, as on a bench without an
+ * OBC; the mode-driven one sets "mode". */
+static const char *decoder = "always";
 
 static uint64_t now_ms(void)
 {
@@ -91,9 +95,9 @@ static void write_conf(const char *dump1090_cmd)
             "# integration test: no SDR, no ttcd — both played by the test\n"
             "ipc_path = %s\nsbs_port = %u\n"
             "ndjson_path = %s\nlog_path = %s\n"
-            "dump1090_cmd = %s\n"
+            "dump1090_cmd = %s\ndecoder = %s\n"
             "retry_ms = 200\nrestart_min_ms = 100\nrestart_max_ms = 400\n",
-            sock_path, sbs_port, rec_path, log_path, dump1090_cmd);
+            sock_path, sbs_port, rec_path, log_path, dump1090_cmd, decoder);
     fclose(cf);
 }
 
@@ -201,6 +205,31 @@ static void listen_ttcd(int fd, int ms, heard_t *h, bool (*done)(const heard_t *
 static bool has_hello(const heard_t *h)   { return h->hellos > 0; }
 static bool has_both(const heard_t *h)    { return heard_track(h, 0xE48DF5) && heard_track(h, 0xE49608); }
 static bool has_restarts(const heard_t *h) { return h->stat.dump1090_restarts >= 3; }
+
+/* What ttcd forwards from the OBC. */
+static void send_mode(int fd, uint8_t mode)
+{
+    uint8_t f[GAMA_FRAME_MAX_TOTAL];
+    int n = gama_frame_encode(f, sizeof(f), GAMA_FRAME_IPC_MODE, 0, &mode, GAMA_IPC_MODE_LEN);
+    if (n < 0 || ipc_send(fd, f, (size_t)n) != IPC_OK) {
+        printf("  could not send IPC_MODE\n");
+    }
+}
+
+/* The pid of the latest dump1090_start in the log, or -1. */
+static int dump1090_pid(void)
+{
+    int pid = -1;
+    FILE *f = fopen(log_path, "r");
+    char line[512];
+    const char *key = "\"event\":\"dump1090_start\",\"pid\":";
+    while (f != NULL && fgets(line, sizeof(line), f) != NULL) {
+        const char *s = strstr(line, key);
+        if (s != NULL) { pid = atoi(s + strlen(key)); }
+    }
+    if (f != NULL) { fclose(f); }
+    return pid;
+}
 
 static bool file_contains(const char *path, const char *needle)
 {
@@ -395,6 +424,64 @@ int main(int argc, char **argv)
         CHECK(file_contains(log_path, "\"event\":\"dump1090_restart_in\""));
         CHECK_EQ_INT(stop_adsbd(pid), 0);
         close(ipc);
+    }
+
+    TEST_GROUP("integration: dump1090 runs only in MISSION_ADSB, as ttcd reports it");
+    {
+        unlink(log_path);
+        /* Connections earlier groups' adsbd left in the listener's queue. */
+        for (int stale; (stale = accept_within(sbs_lfd, 10)) >= 0;) { close(stale); }
+        decoder = "mode";
+        pid_t pid = start_adsbd("/bin/sleep 30");
+        ipc = accept_within(ttcd_lfd, 3000);
+        CHECK(ipc >= 0);
+        /* Boot: no mode yet, so no decoder and no SBS connection. */
+        CHECK(!wait_for_log("\"event\":\"dump1090_start\"", 800));
+        int early = accept_within(sbs_lfd, 10);
+        CHECK(early < 0);
+        if (early >= 0) { close(early); }
+
+        send_mode(ipc, GAMA_OBC_ST_PRE_TEST);
+        CHECK(!wait_for_log("\"event\":\"dump1090_start\"", 500));
+        send_mode(ipc, GAMA_OBC_ST_MISSION_ADSB);
+        CHECK(wait_for_log("\"event\":\"dump1090_start\"", 2000));
+        int dpid = dump1090_pid();
+        CHECK(dpid > 0 && kill(dpid, 0) == 0);
+        int reader = accept_within(sbs_lfd, 2000);        /* and it reads SBS */
+        CHECK(reader >= 0);
+
+        /* UNKNOWN (the OBC process died) leaves the decoder running. */
+        send_mode(ipc, GAMA_OBC_ST_UNKNOWN);
+        pause_ms(500);
+        CHECK(dpid > 0 && kill(dpid, 0) == 0);
+
+        send_mode(ipc, GAMA_OBC_ST_MISSION_DOWNLINK);
+        CHECK(wait_for_log("\"event\":\"dump1090_stop\"", 2000));
+        bool gone = false;
+        for (int i = 0; i < 100 && !gone; i++) {
+            gone = dpid > 0 && kill(dpid, 0) != 0 && errno == ESRCH;
+            if (!gone) { pause_ms(20); }
+        }
+        CHECK(gone);
+        if (reader >= 0) {                                /* the SBS reader closes too */
+            char b;
+            CHECK(readable(reader, 2000) && read(reader, &b, 1) == 0);
+            close(reader);
+        }
+        /* A stop by the mode is not a crash: nothing restarts or is counted. */
+        pause_ms(600);
+        CHECK(!file_contains(log_path, "\"event\":\"dump1090_restart_in\""));
+        memset(&h, 0, sizeof(h));
+        if (ipc >= 0) {
+            fcntl(ipc, F_SETFL, O_NONBLOCK);
+            listen_ttcd(ipc, 1500, &h, NULL);
+        }
+        CHECK(h.stats > 0);
+        CHECK_EQ_INT(h.stat.dump1090_restarts, 0);
+        CHECK_EQ_INT(h.stat.flags & GAMA_IPC_STAT_F_DUMP1090_UP, 0);
+        CHECK_EQ_INT(stop_adsbd(pid), 0);
+        if (ipc >= 0) { close(ipc); }
+        decoder = "always";
     }
 
     TEST_GROUP("integration: stopping adsbd stops its dump1090 too");

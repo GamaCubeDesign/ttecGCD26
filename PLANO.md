@@ -111,38 +111,42 @@ vezes. Decisões 2, 3 e 4 de 05/10.
 
 ### 1.1 Troca de versão do protocolo (`GAMA_FRAME_VERSION` 1 → 2)
 
-- [ ] Temperatura da bateria no `TM_HK` (25 → 27 B) (HLR-EPS-04, TTC-06,
+- [x] Temperatura da bateria no `TM_HK` (25 → 27 B) (HLR-EPS-04, TTC-06,
       OBC-7) — revisar `data-budget.md` (+120 B em 10 min)
-- [ ] Valor reservado de "sem dado" nos campos do `IPC_TELEMETRY` e do `TM_HK`
+- [x] Valor reservado de "sem dado" nos campos do `IPC_TELEMETRY` e do `TM_HK`
       (D6)
-- [ ] Indicador de `dump1090` vivo no `IPC_STAT`, que liga o bit
-      `GAMA_HK_F_DUMP1090_UP` (hoje nunca ligado)
-- [ ] Mensagem IPC `adsbd` → `ttcd` com a tabela ICAO → callsign, que destrava
-      o `REQ_ROSTER` (hoje `FAILED`)
-- [ ] Mensagem IPC `ttcd` → `adsbd` com o modo do OBC
-- [ ] `make vectors`, diff revisado byte a byte; ADR novo da troca de versão
+- [x] Indicador de `dump1090` vivo no `IPC_STAT`, que liga o bit
+      `GAMA_HK_F_DUMP1090_UP` (era nunca ligado)
+- [x] Mensagem IPC `adsbd` → `ttcd` com a tabela ICAO → callsign, que destrava
+      o `REQ_ROSTER` (era `FAILED`)
+- [x] Mensagem IPC `ttcd` → `adsbd` com o modo do OBC
+- [x] `make vectors`, diff revisado byte a byte; ADR novo da troca de versão
+      — ADR-0013, em 24/10; falta a bancada com os dois RA-02
 
 ### 1.2 O modo do OBC dirige o `ttcd` e o `adsbd` (Tabela 55)
 
-- [ ] `ttcd` repassa ao `adsbd` cada `IPC_MODE` do OBC; o `adsbd` só roda o
+- [x] `ttcd` repassa ao `adsbd` cada `IPC_MODE` do OBC; o `adsbd` só roda o
       `dump1090` em `MISSION_ADSB` (tentando a cada 1 s até abrir o SDR)
-- [ ] Retratos a cada 5 s e estatísticas a cada 30 s começam e param com o
+- [x] Retratos a cada 5 s e estatísticas a cada 30 s começam e param com o
       modo; `STREAM_START`/`STREAM_STOP` ficam como comando manual (TTC-07,
       GEN-03.3)
-- [ ] `MISSION_DOWNLINK`: o `dump1090` para, o `ttcd` manda o roster e as
+- [x] `MISSION_DOWNLINK`: o `dump1090` para, o `ttcd` manda o roster e as
       estatísticas finais (260 B, 1,4 s no ar) e então `EV_TASK_DONE` ao OBC
       (D2)
-- [ ] Sem OBC conectado, o HK reporta o modo como desconhecido e o enlace segue
-- [ ] ADR novo (TT&C dirigido pelo modo); testes de integração atualizados
+- [x] Sem OBC conectado, o HK reporta o modo como desconhecido e o enlace segue
+- [x] ADR novo (TT&C dirigido pelo modo); testes de integração atualizados
+      — ADR-0014, em 24/10; `UNKNOWN` mantém o modo anterior; até o `obcd`,
+      `tools/obc_standin` faz o papel do OBC
 
 ### 1.3 Frequência e potência do CDR (TTC-01, TTC-03)
 
-- [ ] 433,92 MHz em `common/gama_lora.h` (hoje 433,000 MHz), no `test_sx1278`
+- [x] 433,92 MHz em `common/gama_lora.h` (era 433,000 MHz), no `test_sx1278`
       e no `lora_budget.py`
-- [ ] 14 dBm de voo, 2,15 dBi e 2,3 dB de perdas no `lora_budget.py`, no
-      `link-budget.md` e no `ttcd.conf.example` (hoje 20 dBm)
-- [ ] ADR que substitui a frequência e a potência do ADR-0004
-- [ ] `data-budget.md` §8 com a latência máxima de 10 s (TTC-09); §9 com a CPU
+- [x] 14 dBm de voo, 2,15 dBi e 2,3 dB de perdas no `lora_budget.py`, no
+      `link-budget.md` e no `ttcd.conf.example` (era 20 dBm)
+- [x] ADR que substitui a frequência e a potência do ADR-0004 — ADR-0015,
+      em 24/10; em 433,000 MHz o canal saía 12,5 kHz abaixo de 433,05
+- [x] `data-budget.md` §8 com a latência máxima de 10 s (TTC-09); §9 com a CPU
       medida (21,9%) e sem o recuo de 2,0 MS/s
 
 ---
@@ -158,66 +162,78 @@ que derruba o OBC quando falha e o formato de log em português (D7).
 
 ### 2.1 Núcleo puro (ADR-0005: sem chamadas de sistema)
 
-- [ ] Máquina de estados da Figura 44 com `PRE_TEST` como centro (D1);
+- [x] Máquina de estados da Figura 44 com `PRE_TEST` como centro (D1);
       `EV_TC_*` vindos do `SET_MODE`; o que não vale no modo atual é recusado
       e registrado
-- [ ] Fim de tarefa por modo (D2); janela da missão: `EV_ADSB_TIMEOUT` 600 s
+- [x] Fim de tarefa por modo (D2); janela da missão: `EV_ADSB_TIMEOUT` 600 s
       depois de entrar em `MISSION_ADSB`, ou antes por `EV_TC_DOWNLINK`
       (OBC-6)
-- [ ] Burn-wire na entrada de `BASIC_INTERMEDIATE` (D3), seguido de
+- [x] Burn-wire na entrada de `BASIC_INTERMEDIATE` (D3), seguido de
       `EV_TASK_DONE`
-- [ ] Termostato com histerese 10 → 12 °C em todos os modos, sensor em falha
+- [x] Termostato com histerese 10 → 12 °C em todos os modos, sensor em falha
       → desligado (D4)
-- [ ] Boot e reinício em `PRE_TEST` (D5)
-- [ ] Toda transição no log, com tempo monotônico e âncora (OBC-5, OBC-9)
-- [ ] Testes do núcleo em tempo virtual, cobrindo cada aresta da Figura 44
+- [x] Boot e reinício em `PRE_TEST` (D5)
+- [x] Toda transição no log, com tempo monotônico e âncora (OBC-5, OBC-9)
+- [x] Testes do núcleo em tempo virtual, cobrindo cada aresta da Figura 44
 
 ### 2.2 Casca: epoll, como o `ttcd`
 
-- [ ] `timerfd` de 1 s; cliente IPC do `ttcd` (`HELLO`, `IPC_MODE`,
+- [x] `timerfd` de 1 s; cliente IPC do `ttcd` (`HELLO`, `IPC_MODE`,
       `IPC_TELEMETRY` a cada 1 s; recebe `IPC_TC_EVENT` e `IPC_TIME_SET`),
       reconectando se o `ttcd` cair
-- [ ] Log em JSON por linha (D7); configuração por arquivo + `-o`; unidade
+- [x] Log em JSON por linha (D7); configuração por arquivo + `-o`; unidade
       systemd sem root, `Restart=always`, watchdog (D8, OBC-1)
-- [ ] Teste de integração com o `ttcd` e o `adsbd` reais e o rádio UDP: o
+- [~] Teste de integração com o `ttcd` e o `adsbd` reais e o rádio UDP: o
       `SET_MODE` da ground vira transição no log do OBC dentro do limite + 1 s
       (OBC-3, COMM-01.4), em todos os modos — substitui o cliente substituto
-      dos testes atuais
+      dos testes atuais — 24/10: feito para `MISSION_ADSB` → downlink →
+      `PRE_TEST` (`test_adsb_chain`); falta medir o limite em todos os modos
 
 ### 2.3 Drivers (interfaces do kernel), testados com simulação
 
-- [ ] INA219 por `i2c-dev`: tensão e corrente (OBC-7). Mede o consumo do
+- [x] INA219 por `i2c-dev`: tensão e corrente (OBC-7). Mede o consumo do
       satélite, não a carga da bateria (A9)
-- [ ] DS18B20 pelo 1-Wire do kernel (`w1_therm`) numa thread própria (D9); em
+- [x] DS18B20 pelo 1-Wire do kernel (`w1_therm`) numa thread própria (D9); em
       teste, um arquivo falso no lugar do `w1_slave`
-- [ ] Burn-wire (GPIO22) e aquecedores (GPIO23) por GPIO chardev; em teste, o
-      `gpio-sim` do kernel do PC
-- [ ] Pinos só no arquivo de configuração: os da placa nova do OBC entram
-      quando ela existir
+- [x] Burn-wire (GPIO22) e aquecedores (GPIO23) por GPIO chardev; em teste, o
+      `gpio-sim` do kernel do PC — 24/10: testado com saídas falsas no núcleo;
+      o `gpio-sim` precisa de root e fica para a Pi
+- [x] Pinos só no arquivo de configuração: os da placa nova do OBC entram
+      quando ela existir — 31/10: `flight/conf/obc-v2/` (`ttcd.conf`,
+      `obcd.conf`, as linhas do `config.txt`), conferidos contra o netlist
+      e os pads; o DS18B20 achado sozinho (`w1_path = auto`)
 
 ### 2.4 Contrato I²C com o AOCS
 
-- [ ] Documento do contrato (endereço do ESP32, mapa de registradores,
+- [x] Documento do contrato (endereço do ESP32, mapa de registradores,
       comandos, atitude, fim de tarefa, timeout), para o firmware do ESP32
-      seguir
-- [ ] Lado do OBC, com um ESP32 simulado; só em `ADVANCED_AOCS`
-- [ ] Esquema de posse do barramento compartilhado (pinos 10/12): fora do
+      seguir — 31/10: rascunho v1 em `docs/icd/obc-aocs-i2c.md` (frames fixos,
+      endereço 0x2A, empréstimo contado do START), codec em
+      `common/gama_aocs.{h,c}`, ADR-0017; **levar à equipe do AOCS**
+- [x] Lado do OBC, com um ESP32 simulado; só em `ADVANCED_AOCS` — 31/10:
+      `flight/obcd/i2c_sched.c`, puro, testado contra um ESP32 e um INA219
+      simulados; uma thread dona do `/dev/i2c-1`; o fim do empréstimo guardado
+      no cartão, para um `obcd` reiniciado ou uma Pi reiniciada não invadirem
+      o barramento
+- [x] Esquema de posse do barramento compartilhado (pinos 10/12): fora do
       `ADVANCED_AOCS`, o ESP32 é só escravo e a Pi é a única mestre; ao entrar
       no modo, a Pi manda o comando e larga o barramento, o ESP32 vira mestre
       do BMI088 até terminar e volta a escravo; a Pi lê o resultado depois de
       um prazo máximo, com checksum, e gera `EV_TASK_DONE` mesmo sem resposta
-- [ ] INA219 num I²C próprio da Pi (I²C0, GPIO0/1), fora do barramento
-      compartilhado, para a tensão e a corrente continuarem durante o AOCS —
-      **proposta enviada à equipe da PCB, aguardando resposta (Q2)**:
-      `docs/relatorios/2026-10-24-proposta-i2c-ina219-obc.html`. Se for
-      recusada, o INA219 fica "sem dado" durante o `ADVANCED_AOCS`; nos dois
-      casos o firmware só muda o número do barramento na configuração
+      — 31/10: empréstimo por tempo, contado do fim do START (ADR-0017); o
+      modo dura o empréstimo inteiro, sem fim antecipado
+- [x] ~~INA219 num I²C próprio da Pi~~ — 31/10: **fica no I²C dividido**
+      (placa nova em `hardware/obc-v2`); tensão e corrente "sem dado" durante
+      o empréstimo do `ADVANCED_AOCS`, desvio do OBC-7 registrado no ADR-0017.
+      Proposta original, não adotada:
+      `docs/relatorios/2026-10-24-proposta-i2c-ina219-obc.html`
 
 ### 2.5 Documentos
 
-- [ ] ADR do OBC: processo próprio no repositório, núcleo puro + casca epoll,
+- [x] ADR do OBC: processo próprio no repositório, núcleo puro + casca epoll,
       a thread do 1-Wire, o I²C com o AOCS, o que foi descartado do `../obc`
-- [ ] `AGENTS.md`: o OBC deixa de ser "outro repositório, não editar"
+      — ADR-0016, em 24/10; o I²C com o AOCS entra com o 2.4
+- [x] `AGENTS.md`: o OBC deixa de ser "outro repositório, não editar"
 - [ ] `docs/icd/obc-ttec-icd.md` — o CDR cita o ICD; agora documenta a
       interface entre dois processos nossos (corta se apertar)
 
@@ -230,21 +246,27 @@ crítico. A Pi com um RA-02 e a `gs_cli` continua como reserva.
 
 ### 3.1 `ground/esp32/` — ESP-IDF (§11.3.8 do CDR)
 
-- [ ] Projeto IDF puxando `common/` como componente: traz o lado da ground do
-      protocolo (`gama_gs_link`), já testado na simulação
-- [ ] Barramento do `sx1278_bus_t` com o SPI e o GPIO do ESP-IDF; o driver
+- [x] Projeto IDF puxando `common/` como componente: traz o lado da ground do
+      protocolo (`gama_gs_link`), já testado na simulação — 31/10, compilado
+      no Docker (`make esp32-build`), ADR-0018
+- [x] Barramento do `sx1278_bus_t` com o SPI e o GPIO do ESP-IDF; o driver
       `flight/radio/sx1278.c` é o mesmo
-- [ ] Telecomandos recebidos pela serial; um JSON por evento de volta, no
+- [x] Telecomandos recebidos pela serial; um JSON por evento de volta, no
       formato da `gs_cli` (frame bruto, RSSI, SNR, hora de chegada; ACK, troca
-      de perfil, perda)
-- [ ] `tests/test_vectors.c` compilado para o ESP32: mesmos bytes nas duas
-      pontas (TTC-16)
+      de perfil, perda) — o console da `gs_cli` foi para `ground/console/` e
+      roda igual nas duas
+- [~] `tests/test_vectors.c` compilado para o ESP32: mesmos bytes nas duas
+      pontas (TTC-16) — 31/10: as 11 suítes portáveis passam no QEMU
+      (`make esp32-tests-qemu`); falta na placa (`make esp32-tests-flash`)
 - [ ] Os seis passos da bancada com a ESP32 no lugar da `gs_cli`
+      (`make bench GS=esp32 ESP32_PORT=...`)
 
 ### 3.2 `ground/host/` — CLI do operador
 
-- [ ] Programa em Python: envia telecomandos (`SET_MODE` de cada prova),
-      grava o log de eventos, alimenta o adaptador `tracks_to_ndjson.py`
+- [x] Programa em Python: envia telecomandos (`SET_MODE` de cada prova),
+      grava o log de eventos, alimenta o adaptador `tracks_to_ndjson.py` —
+      `ground/host/gs_serial.py`, a ponte serial da ESP32, com os comandos da
+      `gs_cli`
 - [ ] Painel do estimador ao vivo (corta se apertar)
 
 ### 3.3 `docs/icd/ota-protocol-icd.md`
@@ -255,7 +277,10 @@ crítico. A Pi com um RA-02 e a `gs_cli` continua como reserva.
 
 ## Etapa 4 — CI e imagem de voo (em paralelo, ½ dia)
 
-- [ ] CI com GitHub Actions rodando o `make check` (decisão 9 de 05/10)
+- [x] CI com GitHub Actions rodando o `make check` (decisão 9 de 05/10) —
+      31/10: `.github/workflows/check.yml`, num contêiner Debian 13 (o GCC 14
+      da Pi), pelo mesmo `tools/ci/check_debian.sh` do `make check-debian`;
+      passa a rodar com o push. O build da ESP32 ainda não está nela
 - [ ] UBSan reprovando o teste: `-fno-sanitize-recover=undefined` no
       `make asan`
 - [ ] `make provision`: `dump1090-fa` e o repositório da FlightAware, serviço
@@ -334,8 +359,8 @@ Na ordem da Tabela 67 do CDR: primeiro o que pode mudar uma decisão.
 
 | # | Questão | Bloqueia |
 |---|---|---|
-| Q1 | Quem escreve o firmware do ESP32 do AOCS — o contrato I²C (2.4) tem de ser combinado com essa pessoa | 2.4, 6 |
-| Q2 | Resposta da equipe da PCB: INA219 no I²C0 (proposta de 24/10); a revisão cobre A1, A2, A3, A5, A6 e A7; data da placa nova | 2.4, 5 |
+| Q1 | ~~Quem escreve o firmware do ESP32 do AOCS~~ — em 24/10: está sendo escrito e entra no repositório quando terminar; o contrato I²C (2.4) é combinado com quem o escreve | 2.4, 6 |
+| Q2 | ~~INA219 no I²C0~~ — 31/10: fica no I²C dividido (ADR-0017). A placa nova (`hardware/obc-v2`, 23/10) corrige A1, A2, A3 e A7, **não** A5/A6 (R2/R3 ainda 4,7 kΩ); falta a data da fabricação | 5 |
 | Q3 | Placa do mecanismo (burn-wire): esquemático e corrente real; o 5 s de D3 pode mudar | 5 |
 | Q4 | Organização: ordem das provas; como avaliam a tensão e a corrente de recarga (REG-09) — o INA219 não vê a corrente de carga | 6 |
 
@@ -347,7 +372,7 @@ Na ordem da Tabela 67 do CDR: primeiro o que pode mudar uma decisão.
 |---|---|---|---|
 | **Uma pessoa para OBC, TT&C e ground** | Algo fica sem validar em hardware | Firmware pronto antes do hardware (etapas 1–3); lista do que corta; `gs_cli` na Pi como ground de reserva | Sempre |
 | **Placa nova do OBC atrasa** | Sem bring-up nem validação do OBC | Drivers testados com simulação; Pi da bancada com sensores soltos | Etapa 5 |
-| **Dois mestres no I²C (Pi e ESP32)** | Leituras corrompidas, AOCS ou INA219 mudos | INA219 num I²C próprio (proposta à PCB); posse do barramento por modo para os comandos do AOCS (2.4) | Etapa 2, 6 |
+| **Dois mestres no I²C (Pi e ESP32)** | Leituras corrompidas, AOCS ou INA219 mudos | Empréstimo do barramento contado do START, frames fixos, uma thread dona do `/dev/i2c-1` (ADR-0017); o ESP32 precisa de watchdog e limpar o barramento | Etapa 2, 6 |
 | **Convivência LoRa × ADS-B** | Meta de ≥ 95% não cumprida | Medir na bancada; bloqueio por IPC ou filtro | Etapa 6 |
 | **Enlace na distância real não medido** | Margem menor que a modelada | Bancada com as antenas da equipe; `SAFE` como recurso | Etapa 6 |
 | **CPU com ~20 aeronaves não medida** | Disputa com `ttcd` e `obcd` | 21,9% com pouco tráfego; repetir com fonte conhecida | Etapa 6 |

@@ -67,9 +67,9 @@ int main(void)
 
     /* --- housekeeping --- */
     gama_hk_t hk = {
-        .battery_mv = 8200, .current_ma = -250,
-        .temp_ext_ccel = -1050, .temp_soc_ccel = 4875,
-        .roll_cdeg = 100, .pitch_cdeg = -200, .yaw_cdeg = 9000,
+        .battery_mv = 8200, .current_ma = -250, .temp_bat_ccel = -150,
+        .temp_ext_ccel = -1050, .roll_cdeg = 100, .pitch_cdeg = -200,
+        .yaw_cdeg = 9000, .temp_soc_ccel = 4875,
         .adsb_msgs = 0x00BC614Eu, .obc_mode = GAMA_OBC_ST_MISSION_ADSB,
         .link_state = GAMA_LINK_STREAM, .uptime_s = 0x00015180u,
         .flags = GAMA_HK_F_OBC_LINKED | GAMA_HK_F_ADSB_LINKED |
@@ -77,6 +77,23 @@ int main(void)
     };
     n = gama_hk_encode(payload, sizeof(payload), &hk);
     dump("vec_hk", payload, (size_t)n);
+
+    /* --- housekeeping with no source connected: every "no data" value --- */
+    gama_hk_t hk_none = {
+        .battery_mv = GAMA_NO_DATA_U16, .current_ma = GAMA_NO_DATA_I16,
+        .temp_bat_ccel = GAMA_NO_DATA_I16, .temp_ext_ccel = GAMA_NO_DATA_I16,
+        .roll_cdeg = GAMA_NO_DATA_I16, .pitch_cdeg = GAMA_NO_DATA_I16,
+        .yaw_cdeg = GAMA_NO_DATA_I16, .temp_soc_ccel = GAMA_NO_DATA_I16,
+        .adsb_msgs = GAMA_NO_DATA_U32, .obc_mode = GAMA_OBC_ST_UNKNOWN,
+        .link_state = GAMA_LINK_IDLE, .uptime_s = 10, .flags = 0,
+    };
+    n = gama_hk_encode(payload, sizeof(payload), &hk_none);
+    dump("vec_hk_no_data", payload, (size_t)n);
+
+    /* --- the TM_HK frame of the first --- */
+    n = gama_hk_encode(payload, sizeof(payload), &hk);
+    n = gama_frame_encode(frame, sizeof(frame), GAMA_FRAME_TM_HK, 0x0203, payload, (uint8_t)n);
+    dump("vec_frame_hk", frame, (size_t)n);
 
     /* --- mission statistics --- */
     gama_stat_t st = {
@@ -119,9 +136,25 @@ int main(void)
     dump("vec_ipc_telemetry", payload, (size_t)n);
 
     gama_ipc_stat_t ist = { .msgs_received = 60000, .msgs_decoded = 57600,
-                            .aircraft_tracked = 20, .dump1090_restarts = 1 };
+                            .aircraft_tracked = 20, .dump1090_restarts = 1,
+                            .flags = GAMA_IPC_STAT_F_DUMP1090_UP };
     n = gama_ipc_stat_encode(payload, sizeof(payload), &ist);
     dump("vec_ipc_stat", payload, (size_t)n);
+
+    /* --- an IPC_ROSTER frame with two records --- */
+    gama_roster_t ra = { .icao = 0x123456u, .callsign = "GOL1234" };
+    gama_roster_t rb = { .icao = 0xE48C01u, .callsign = "TAM3054" };
+    gama_roster_encode(payload, sizeof(payload), &ra);
+    gama_roster_encode(payload + GAMA_ROSTER_WIRE_LEN, sizeof(payload) - GAMA_ROSTER_WIRE_LEN, &rb);
+    n = gama_frame_encode(frame, sizeof(frame), GAMA_FRAME_IPC_ROSTER, 0x0007,
+                          payload, 2 * GAMA_ROSTER_WIRE_LEN);
+    dump("vec_frame_ipc_roster", frame, (size_t)n);
+
+    /* --- IPC_MODE, ttcd -> adsbd --- */
+    payload[0] = GAMA_OBC_ST_MISSION_ADSB;
+    n = gama_frame_encode(frame, sizeof(frame), GAMA_FRAME_IPC_MODE, 0x0009,
+                          payload, GAMA_IPC_MODE_LEN);
+    dump("vec_frame_ipc_mode", frame, (size_t)n);
 
     /* --- a complete IPC frame: telecommand event for the OBC --- */
     payload[0] = GAMA_OBC_EV_TC_MISSION_ADSB;

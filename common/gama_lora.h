@@ -25,9 +25,12 @@
 extern "C" {
 #endif
 
-/* Fixed for the mission: the RA-02 front end is matched for 433 MHz, and the
- * private-network sync word keeps us off LoRaWAN traffic (ADR-0004). */
-#define GAMA_LORA_FREQ_HZ    433000000u
+/* Fixed for the mission. 433.92 MHz is the centre of the 433.05-434.79 MHz
+ * allocation, so the whole 125 kHz channel is inside it (TTC-01, ADR-0015);
+ * at the previous 433.000 MHz its lower 12.5 kHz fell below 433.05. The
+ * RA-02 front end is matched for the band, and the private-network sync word
+ * keeps us off LoRaWAN traffic (ADR-0004). */
+#define GAMA_LORA_FREQ_HZ    433920000u
 #define GAMA_LORA_SYNC_WORD  0x12u
 
 /* The SX1278 FIFO is 256 bytes, but its payload length register is 8 bits and

@@ -20,11 +20,12 @@ lbt        = header            # "preamble" once the bench confirms it (ADR-0007
 
 # --- link (ADR-0004, ADR-0007) ---------------------------------------------
 profile      = nominal         # safe | nominal | fast
-tx_power_dbm = 20              # 2..20; use 2 on the bench with the radios close
+tx_power_dbm = 14              # flight: 14 (TTC-03, ADR-0015); 2..20; 2 on the bench with the radios close
 
 # --- timing, milliseconds (docs/budgets/data-budget.md, ADR-0007) ------------
 hk_period_ms          = 10000
 stat_period_ms        = 30000
+stream_period_ms      = 5000     # snapshots in MISSION_ADSB; STREAM_START overrides
 safe_beacon_period_ms = 30000
 safe_hk_period_ms     = 60000
 contact_timeout_ms    = 120000   # silence from the ground before falling to SAFE
