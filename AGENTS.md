@@ -41,7 +41,7 @@ proposing anything that moves bytes over the radio, check it against
 | `docs/cdr/` | The delivered CDR (Design Package, v4, 2026-10-11): what the project promised. Its LaTeX source is a local, gitignored copy | — |
 | `docs/relatorios/` | Dated status reports for the team, in Portuguese (HTML, self-contained) | — |
 | `docs/vv/bancada/` | Hardware bench evidence: progress per roadmap stage and the Pi's setup (`README.md`), the November bench script (`roteiro-2026-11.md`), one folder per day with `notas.md` and the logs `make pi-fetch` brings back | — |
-| `hardware/` | KiCad sources of the boards as fabricated (panels of 2026-10-08), one folder per board, and `obc-v2/`, the new OBC board (KiCad of 2026-10-23, not fabricated yet); `hardware/README.md` | — |
+| `hardware/` | KiCad sources of the boards as fabricated (panels of 2026-10-08), one folder per board, and the `-v2` folders, not fabricated yet: `obc-v2/`, the new OBC board (schematic of 2026-10-23, layout of the TF revision of 2026-11-02), and `eps-potencia-v2/` and `aocs-v2/` (TF layouts, the same connections as fabricated, no schematic); `hardware/README.md` | — |
 | `ultima_missao/` | Previous competition's code, **frozen**, reference only | — |
 
 **The OBC software is ours since 2026-10-20** and is written here, in
@@ -55,11 +55,13 @@ documents the interface between two of our own processes.
 **The flight stack has known wiring defects.** The boards as fabricated
 (`hardware/`) cannot run together: the 8 V path through the OBC's INA219, the
 LoRa bus between the OBC and TT&C boards, the OBC's I²C and its TIP120 and
-DS18B20 resistors. The new OBC board (`hardware/obc-v2`, KiCad of
-2026-10-23; not fabricated, no date) fixes all of them but the TIP120 base
-resistors (findings A5, A6), and keeps the INA219 on the I²C bus shared with
-the AOCS (ADR-0017). Pins come only from configuration files: the new
-board's are in `flight/conf/obc-v2/`; the example `ttcd.conf` pins
+DS18B20 resistors. The new OBC board (`hardware/obc-v2`: schematic of
+2026-10-23, layout re-routed on 2026-11-02 with the same connections; not
+fabricated, no date) fixes all of them but the TIP120 base resistors
+(findings A5, A6), and keeps the INA219 on the I²C bus shared with the AOCS
+(ADR-0017). Pins come only from configuration files: the new board's are in
+`flight/conf/obc-v2/`, and `tools/analysis/board_check.py` (in CTest) checks
+them wire by wire against the stack's layouts; the example `ttcd.conf` pins
 (GPIO 20/21) are the bench wiring, not the flight stack. Details:
 `docs/relatorios/2026-10-22-validacao-obc.html` and `hardware/README.md`.
 

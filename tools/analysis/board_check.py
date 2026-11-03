@@ -31,10 +31,10 @@ from collections import defaultdict
 STACK = {
     "OBC": ("hardware/obc-v2", "J1"),
     "TT&C": ("hardware/ttec", "J3"),
-    "EPS": ("hardware/eps-potencia", "J1"),
+    "EPS": ("hardware/eps-potencia-v2", "J1"),
     "bat. cima": ("hardware/bateria-cima", "J1"),
     "bat. baixo": ("hardware/bateria-baixo", "J1"),
-    "AOCS": ("hardware/aocs", "Barramento1"),
+    "AOCS": ("hardware/aocs-v2", "Barramento1"),
 }
 CONF = "flight/conf/obc-v2"
 
