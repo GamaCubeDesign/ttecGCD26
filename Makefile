@@ -77,7 +77,7 @@ vectors: build ## Print the golden wire vectors — only on a deliberate version
 
 ##@ Analysis
 
-.PHONY: budget budget-check requirements toa
+.PHONY: budget budget-check requirements toa boards
 
 budget: ## Link and data budget tables (tools/analysis/lora_budget.py)
 	$(PYTHON) tools/analysis/lora_budget.py
@@ -87,6 +87,9 @@ budget-check: ## Check the figures the ADRs quote (make test runs it too)
 
 requirements: ## Check that docs/requisitos.md quotes the rules verbatim (pdftotext)
 	$(PYTHON) tools/analysis/check_requirements.py
+
+boards: ## Check the flight configuration against the boards' layouts, wire by wire (make test runs it too)
+	$(PYTHON) tools/analysis/board_check.py
 
 toa: ## Time on air, measured against the model, in a ttcd log: LOG=file
 	@test -f '$(LOG)' || { echo "toa: no ttcd log at $(LOG); name one with LOG=<file>" >&2; exit 1; }

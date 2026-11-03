@@ -141,6 +141,11 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME budget_matches_adrs
              COMMAND ${Python3_EXECUTABLE}
                      ${CMAKE_SOURCE_DIR}/tools/analysis/lora_budget.py --check)
+    # The flight configuration against the boards' layouts in hardware/:
+    # every wire the firmware counts on, from the Pi's GPIO to the chip.
+    add_test(NAME boards_match_conf
+             COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/analysis/board_check.py
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
     # The ground's ADS-B estimator, with its own tests.
     add_test(NAME ground_aeronaves
              COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests
