@@ -10,8 +10,10 @@ the other end of the 40-pin bus:
   ttcd.conf   spi_dev, reset_line, dio0_line   -> the RA-02 on the TT&C board
   obcd.conf   i2c_dev                          -> the INA219, and the AOCS
                                                   ESP32 and BMI088 on the same bus
-              burnwire_line, heater_line       -> the mechanism's connector, the
-                                                  TIP120 bases on both batteries
+              burnwire_line, heater_line       -> the burn-wire's TIP120 on the
+                                                  antenna board, through the TT&C's
+                                                  J4 and a cable; the TIP120 bases
+                                                  on both batteries
   config.txt  w1-gpio gpiopin                  -> the DS18B20's DQ, with a pull-up
   the INA219's input and output                -> the EPS's 8 V Bruto and 8 V Liq
 
@@ -37,6 +39,11 @@ STACK = {
     "AOCS": ("hardware/aocs-v2", "Barramento1"),
 }
 CONF = "flight/conf/obc-v2"
+
+# Off the bus: the antenna board carries the burn-wire's TIP120 and the two
+# terminals of the NiCr wire. A cable joins the TT&C's J4 (JST XH) to the
+# antenna board's JST1 (JST EH), pin n to pin n.
+ANTENNA = ("hardware/antenas", "JST1")
 
 # The Pi's fixed functions: SPI0 and the two I2C buses.
 SPI0 = {"SCK": 11, "MOSI": 10, "MISO": 9}
@@ -145,6 +152,7 @@ class Checker:
         self.conf = conf
         self.boards = {name: load(folder) for name, (folder, _) in STACK.items()}
         self.bus = {name: bus_of(self.boards[name], ref) for name, (_, ref) in STACK.items()}
+        self.antenna = load(ANTENNA[0])
         obc = self.boards["OBC"]
         pi = obc.find(r"RASPBERRY")
         self.gpio = {}                               # BCM GPIO -> net on the OBC board
@@ -271,12 +279,42 @@ class Checker:
         # the outputs (findings A5, A6): the base resistor values are reported, not judged
         mech = tt.find(r"Conn_01x03")
         hop = self.follow("burn-wire", f"obcd burnwire_line {obcd['burnwire_line']}", int(obcd["burnwire_line"]),
-                          "TT&C", mech, pad="3", label=f"TT&C {mech} pin 3, the mechanism", series_ok=True)
+                          "TT&C", mech, pad="3", label=f"TT&C {mech} pin 3", series_ok=True)
+        self.burnwire(tt, mech)
         for name in ("bat. cima", "bat. baixo"):
             b = self.boards[name]
             hop = self.follow(f"heaters, {name}", f"obcd heater_line {obcd['heater_line']}", int(obcd["heater_line"]),
                               name, b.find(r"TIP120"), "B", series_ok=True)
         return self.failed
+
+    def burnwire(self, tt, mech):
+        """The cable from the TT&C's J4 to the antenna board: the signal to
+        the TIP120's base, the ground to its emitter, the 5 V to the NiCr,
+        whose other end is the collector."""
+        ant, jref = self.antenna, ANTENNA[1]
+        q = ant.find(r"TIP120")
+        j4 = {p: n for p, (_, n) in tt.fp[mech]["pads"].items()}
+        jst = {p: n for p, (_, n) in ant.fp[jref]["pads"].items()}
+        leg = {fn[:1]: n for fn, n in ant.fp[q]["pads"].values()}     # B, C, E -> net
+
+        def resistors(a, b):
+            return ", ".join(r + " " + f["value"] for r, f in ant.fp.items() if r.startswith("R")
+                             and sorted(n for _, n in f["pads"].values()) == sorted((a, b)))
+
+        def others(net, ref):
+            return list(dict.fromkeys(r for r, _, _ in ant.members.get(net, []) if r != ref))
+
+        base, pull = resistors(jst.get("3"), leg["B"]), resistors(leg["B"], leg["E"])
+        self.report(bool(base), "burn-wire, base", f"TT&C {mech} pin 3 -> antenas {jref} pin 3 -> "
+                    f"{base or 'no resistor'} -> TIP120 B ({pull or 'no resistor'} from B to E)")
+        ok = "GND" in j4.get("1", "").upper() and jst.get("1") == leg["E"]
+        self.report(ok, "burn-wire, GND", f"TT&C {mech} pin 1 ({j4.get('1')}) -> antenas {jref} pin 1 -> TIP120 E")
+        # the NiCr is not in the layout: what it joins are two bare terminals
+        top, bottom = others(jst.get("2"), jref), others(leg["C"], q)
+        ok = ("5V" in j4.get("2", "").upper() and bool(top) and bool(bottom)
+              and all(r not in (q, jref) and not r.startswith("R") for r in top + bottom))
+        self.report(ok, "burn-wire, 5 V", f"TT&C {mech} pin 2 ({j4.get('2')}) -> antenas {jref} pin 2 -> "
+                    f"{','.join(top) or 'nothing'} = NiCr = {','.join(bottom) or 'nothing'} -> TIP120 C")
 
 
 def bus_table():

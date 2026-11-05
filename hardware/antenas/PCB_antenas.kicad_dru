@@ -1,0 +1,9 @@
+(version 1)
+# Regras proprias da placa de antenas (Gama Cube)
+
+# H9-H13: interligacao GND top-bottom por fio. H14-H15: terminais do fio de queima.
+# O furo e NAO metalizado (0,8 mm) e fica dentro de um anel de cobre de 1,6 mm em cada face, onde o
+# fio e soldado: a proximidade furo-cobre e intencional.
+(rule "Furo de fio GND"
+	(condition "A.memberOfFootprint('H9') || B.memberOfFootprint('H9') || A.memberOfFootprint('H10') || B.memberOfFootprint('H10') || A.memberOfFootprint('H11') || B.memberOfFootprint('H11') || A.memberOfFootprint('H12') || B.memberOfFootprint('H12') || A.memberOfFootprint('H13') || B.memberOfFootprint('H13') || A.memberOfFootprint('H14') || B.memberOfFootprint('H14') || A.memberOfFootprint('H15') || B.memberOfFootprint('H15')")
+	(constraint hole_clearance (min 0mm)))
