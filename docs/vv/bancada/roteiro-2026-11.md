@@ -1,5 +1,12 @@
 # Roteiro da bancada — novembro de 2026
 
+> **Para o dia da bancada, use o roteiro completo em HTML:**
+> [`docs/relatorios/2026-11-03-roteiro-bancada.html`](../../relatorios/2026-11-03-roteiro-bancada.html).
+> Ele tem a montagem, a pinagem, a rede pelo `nmcli` e os comandos, e põe a
+> bancada nos GPIOs e na configuração de voo da placa nova do OBC
+> (`flight/conf/obc-v2/`), para o firmware sair validado para as placas.
+> Este arquivo fica como o resumo das etapas.
+
 Desde 09/10 entrou muita coisa que **nunca rodou em hardware**:
 
 - o protocolo v2 (ADR-0013);
@@ -133,7 +140,7 @@ build/flight/adsbd -c flight/adsbd/adsbd.conf.example -o ipc_path=/tmp/ttec-benc
     -o ndjson_path=docs/vv/bancada/$(date +%F)/adsb-e12.ndjson | tee -a docs/vv/bancada/$(date +%F)/adsbd-e12.jsonl
 ```
 
-No PC, a ground: `make bench-gs GS=esp32 ESP32_PORT=/dev/ttyUSB0 GS_OPTS='--auto-time on'`.
+No PC, a ground: `make bench-gs GS=esp32 RADIO=sx1278 ESP32_PORT=/dev/ttyUSB0 GS_OPTS='--auto-time on'`.
 
 | Comando na ground | Esperado |
 |---|---|
@@ -212,6 +219,13 @@ A ground é a ESP32 no PC, como na etapa 12.
   `"lent":true` e o modo durar ~5 min com V e I "sem dado", o driver deu ao
   NACK um erro que o `obcd` não reconhece: anote o erro do `i2ctransfer`
   acima e avise.
+- **13f · O burn-wire de verdade, numa protoboard.** No lugar do LED do
+  GPIO22, uma réplica do circuito da placa de antenas: GPIO22 → R_OBC →
+  220 Ω → base do TIP120, 10 kΩ da base ao emissor, e o NiCr entre o 5 V da
+  fonte de bancada (limite de 1,5 A) e o coletor. Duas rodadas de
+  `mode basic_inter`: R_OBC de 4,7 kΩ (a placa do OBC como está) e de
+  470 Ω (a correção proposta). Anote a corrente no NiCr e se o nylon corta.
+  Decide a pendência P2 das placas.
 
 ## Etapa 14 · A corrente do RA-02 a 14 dBm
 

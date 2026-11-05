@@ -4,7 +4,8 @@ Evidência dos testes do TT&C no hardware de verdade: a Raspberry Pi Zero 2 W,
 os dois RA-02, o NESDR Nano 3 e a ESP32 da ground. O procedimento das
 etapas 1 a 7 é o
 [roteiro de testes na Raspberry Pi](../../relatorios/2026-10-05-roteiro-testes-raspberry.html);
-o das etapas 8 a 15, o [roteiro de novembro](roteiro-2026-11.md). Os passos
+o das etapas 8 a 15, o [roteiro de novembro em HTML](../../relatorios/2026-11-03-roteiro-bancada.html)
+(resumo em [`roteiro-2026-11.md`](roteiro-2026-11.md)). Os passos
 da bancada dos rádios estão em `flight/ttcd/README.md`.
 
 ## Como a pasta se organiza
@@ -41,7 +42,7 @@ Etapas do roteiro. ✅ feito · ⏳ em andamento · — não começado.
 | 10 · A ESP32 | as suítes portáveis na placa (TTC-16); o firmware da ground | — | [roteiro](roteiro-2026-11.md#etapa-10--a-esp32-as-suítes-na-placa-e-o-firmware-da-ground) |
 | 11 · Os rádios com a ESP32 de ground | os seis passos com a ground das provas (ADR-0018) | — | [roteiro](roteiro-2026-11.md#etapa-11--a-bancada-dos-rádios-com-a-esp32-de-ground) |
 | 12 · Os três daemons pelo modo | a Figura 44 em hardware; o `adsbd` seguindo o modo (ADR-0014, ADR-0016) | — | [roteiro](roteiro-2026-11.md#etapa-12--os-três-daemons-pelo-modo-com-o-sdr) |
-| 13 · O `obcd` com sensores e LEDs | V, I e temperatura (OBC-7), termostato, burn-wire, saídas após `kill -9`, NACK do I²C (ADR-0017) | — | [roteiro](roteiro-2026-11.md#etapa-13--o-obcd-com-sensores-avulsos-e-leds) |
+| 13 · O `obcd` com sensores e LEDs | V, I e temperatura (OBC-7), termostato, burn-wire, saídas após `kill -9`, NACK do I²C (ADR-0017); a corrente do burn-wire numa réplica (P2) | — | [roteiro](roteiro-2026-11.md#etapa-13--o-obcd-com-sensores-avulsos-e-leds) |
 | 14 · A corrente do RA-02 a 14 dBm | o orçamento de potência (CDR, Tabela 13: 110 mA) | — | [roteiro](roteiro-2026-11.md#etapa-14--a-corrente-do-ra-02-a-14-dbm) |
 | 15 · Os serviços (opcional) | as unidades do systemd e o watchdog na Pi | — | [roteiro](roteiro-2026-11.md#etapa-15--opcional-os-daemons-como-serviços) |
 
