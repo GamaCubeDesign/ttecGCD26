@@ -41,7 +41,7 @@ proposing anything that moves bytes over the radio, check it against
 | `docs/cdr/` | The delivered CDR (Design Package, v4, 2026-10-11): what the project promised. Its LaTeX source is a local, gitignored copy | — |
 | `docs/relatorios/` | Dated status reports for the team, in Portuguese (HTML, self-contained) | — |
 | `docs/vv/bancada/` | Hardware bench evidence: progress per roadmap stage and the Pi's setup (`README.md`), the November bench script (`roteiro-2026-11.md`), one folder per day with `notas.md` and the logs `make pi-fetch` brings back | — |
-| `hardware/` | KiCad sources of the boards as fabricated (panels of 2026-10-08), one folder per board, and the `-v2` folders, not fabricated yet: `obc-v2/`, the new OBC board (schematic of 2026-10-23, layout of the TF revision of 2026-11-02), and `eps-potencia-v2/` and `aocs-v2/` (TF layouts, the same connections as fabricated, no schematic); `hardware/README.md` | — |
+| `hardware/` | KiCad sources of the boards as fabricated (panels of 2026-10-08), one folder per board, and the `-v2` folders, not fabricated yet: `obc-v2/`, the new OBC board (schematic of 2026-10-23, layout of the TF revision of 2026-11-02), and `eps-potencia-v2/` and `aocs-v2/` (TF layouts, the same connections as fabricated, no schematic); `antenas/`, the antenna board, which carries the burn-wire's TIP120 (KiCad of 2026-10-19); `hardware/README.md` | — |
 | `ultima_missao/` | Previous competition's code, **frozen**, reference only | — |
 
 **The OBC software is ours since 2026-10-20** and is written here, in
@@ -49,8 +49,9 @@ proposing anything that moves bytes over the radio, check it against
 `adsbd`. The other team's repository (`../obc`) is **frozen, reference
 only**, like `ultima_missao/`: keep its mode and event enums (already pinned
 in `common/gama_tc.h`) and the transitions of the CDR's Figure 44; do not
-port its main loop, wiringPi calls or fixed paths. `docs/icd/obc-ttec-icd.md`
-documents the interface between two of our own processes.
+port its main loop, wiringPi calls or fixed paths. The interface between
+`obcd` and `ttcd` is defined by `common/gama_ipc.h` and ADR-0013/0014; its
+ICD (`docs/icd/obc-ttec-icd.md`) is not written yet.
 
 **The flight stack has known wiring defects.** The boards as fabricated
 (`hardware/`) cannot run together: the 8 V path through the OBC's INA219, the
@@ -196,7 +197,7 @@ built from those.
 
 See `PLANO.md`: the decisions of 22–24/10 (D1–D12), the priority order with
 dates, what is cut first if time runs short, the open questions and the
-risks. As of 2026-10-31:
+risks. As of 2026-11-03:
 
 - **Done in software**: shared codec, IPC, `ttcd`, the ground side of the
   protocol, the SX1278 driver, the channel simulation, the bench tooling,
@@ -208,10 +209,14 @@ risks. As of 2026-10-31:
   the bus lent to the ESP32 for its task, voltage and current "no data"
   meanwhile); since 2026-10-31 etapa 3, the ESP32 ground station (ADR-0018),
   its portable suites passing in QEMU; and the new OBC board's sources and
-  flight configuration. 37 CTest suites, zero warnings, clean under ASan and
-  UBSan, and under ThreadSanitizer for `obcd`'s integration test. **None of
-  this has been run on the bench yet**: the script for the week of
-  2026-11-02 is `docs/vv/bancada/roteiro-2026-11.md`.
+  flight configuration, checked wire by wire against the boards' layouts
+  (`tools/analysis/board_check.py`, 2026-11-03). 38 CTest suites, zero
+  warnings, clean under ASan and UBSan, and under ThreadSanitizer for
+  `obcd`'s integration test. **None of this has been run on the bench yet**:
+  the script is `docs/relatorios/2026-11-03-roteiro-bancada.html` (summary in
+  `docs/vv/bancada/roteiro-2026-11.md`); it wires the bench Pi on the new OBC
+  board's GPIOs and runs the flight configuration, so that the bench
+  validates the firmware for the boards.
 - **Validated on the bench** (2026-10-07/09, `docs/vv/bancada/`, in
   Portuguese — **update it as each stage closes**): `make check` on the Pi
   (`pi@gamapi.local`, 64-bit Debian 13, reached through `local.mk`); the
@@ -224,15 +229,21 @@ risks. As of 2026-10-31:
   AOCS contract included; the contract waits for the AOCS team's answer
   (ICD §6); (3) ~~the ESP32 ground station, which sends the remote commands
   of the tests, and a minimal operator CLI~~ — done in software 2026-10-31;
-  **now the bench** (`docs/vv/bancada/roteiro-2026-11.md`); (4) ~~CI~~ —
+  **now the bench** (`docs/relatorios/2026-11-03-roteiro-bancada.html`); (4) ~~CI~~ —
   `.github/workflows/check.yml`, `make check` on Debian 13 with the Pi's
   GCC 14 (locally: `make check-debian`), live once pushed; the flight image
   (`make provision`); then the new OBC board's bring-up and the validation
   of CDR Table 67.
 - **Pending answers**: the AOCS team's answer to the draft I²C contract
   (another team writes that firmware; we have no access to it yet); the date
-  of the new OBC board. Answered 2026-10-31: the INA219 stays on the shared
-  bus (ADR-0017); the organisers' test order cannot be known in advance.
+  of the new boards, and the fixes they need first
+  (`docs/relatorios/2026-11-03-pendencias-placas.html`, revised after the
+  meeting of 2026-11-03): the OBC board is made in-house, so its DRC errors
+  against the in-house rule stand; the OBC's R2 (4.7 kΩ) in series with the
+  antenna board's 220 Ω starves the burn-wire's base (proposed: 470 Ω, bench
+  stage 13f); the heaters' base resistor and pull-downs. Answered 2026-10-31:
+  the INA219 stays on the shared bus (ADR-0017); the organisers' test order
+  cannot be known in advance.
 - **ADRs**: 0007 and 0012 *Proposed*, with the bench results in their
   verification sections; 0013 to 0018 *Proposed*, tested without hardware,
   bench pending; 0010 (onboard storage) still to write.
@@ -241,7 +252,8 @@ risks. As of 2026-10-31:
   TTC-01..16 (Table 65), traceability (Table 66), remaining validation
   (Table 67).
 - Requirement status and open gaps: `docs/requisitos.md` (§7 lists the
-  actions) — its status is still that of 2026-09-19.
+  actions) — its per-requirement status is still that of 2026-09-19 (a
+  header note says so); the full revision comes with the bench evidence.
 
 ## Working style for this repo
 

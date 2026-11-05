@@ -1,8 +1,10 @@
-# Ground ADS-B
+# Ground station no PC
 
-Este diretório contém o projeto ADS-B da ground, trazido da branch `ADSB-ground` (onde ficava em `ground- adsb/`).
+O que roda no computador da ground station, em Python:
 
-- `ground-aeronaves/`: recepção de NDJSON, estimador por aeroportos/pistas, memória temporal, painel web, simulador e testes.
+- `gs_serial.py`: a ponte com a ESP32 da ground (ADR-0018). Reseta a placa, dá a ela o relógio do PC (a ESP32 não tem), manda os comandos e grava as linhas JSON. Para os roteiros da bancada, a ESP32 fica igual à `gs_cli`. Uso em `ground/esp32/README.md`; testado contra uma ESP32 falsa num pseudo-terminal (`test_gs_serial.py`, CTest `gs_serial`).
+- `tracks_to_ndjson.py`: do log da ground ao formato do estimador (abaixo).
+- `ground-aeronaves/`: o projeto ADS-B da ground, trazido da branch `ADSB-ground` (onde ficava em `ground- adsb/`): recepção de NDJSON, estimador por aeroportos/pistas, memória temporal, painel web, simulador e testes.
 - `banco-aeronaves/`: importador do cadastro OurAirports. O banco de rotas foi removido.
 
 ## Executar
@@ -34,10 +36,11 @@ O simulador e o painel usam por padrão `~/adsb/eventos.ndjson`. Para processar 
 
 ## Do downlink ao estimador
 
-`tracks_to_ndjson.py` converte o log da ground station (um JSON por evento, como o `tools/gs_cli` escreve e como o ESP32 vai mandar pela UART) no NDJSON que o estimador lê: um objeto por registro de aeronave recebido, com o horário refeito no relógio desta máquina — chegada menos tempo no ar menos idade, ADR-0007 — e só os campos que o registro marca como válidos. O teste dele passa cada linha pelo `parser.py` do estimador.
+`tracks_to_ndjson.py` converte o log da ground station (um JSON por evento, como o `tools/gs_cli` escreve e como a ESP32 manda pela USB, pelo `gs_serial.py`) no NDJSON que o estimador lê: um objeto por registro de aeronave recebido, com o horário refeito no relógio desta máquina — chegada menos tempo no ar menos idade, ADR-0007 — e só os campos que o registro marca como válidos. O teste dele passa cada linha pelo `parser.py` do estimador.
 
 ```bash
 gs_cli --radio udp ... | python3 tracks_to_ndjson.py | (cd ground-aeronaves && python -m ground --input -)
+python3 gs_serial.py --port /dev/ttyUSB0 --auto-time on | python3 tracks_to_ndjson.py | (cd ground-aeronaves && python -m ground --input -)
 ```
 
 A cadeia inteira sem hardware — captura ou simulação, `adsbd`, `ttcd`, rádio UDP, ground e estimador — é o `make adsb-chain INPUT=...`, descrito em `flight/adsbd/README.md`.

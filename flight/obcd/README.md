@@ -146,9 +146,11 @@ mesmo do `ttcd` e do `adsbd` (D7, ADR-0009).
   o `obcd` já fala o lado da Pi, testado contra um ESP32 simulado. Na
   bancada, qualquer ESP32 de desenvolvimento fazendo o papel de escravo nos
   pinos 3 e 5 serve.
-- **Na bancada:** INA219 e DS18B20 avulsos numa Pi, LEDs no lugar do burn-wire
-  e do aquecedor; conferir o que a linha de GPIO faz quando o processo morre
-  sem passar pelo `SIGTERM` (o `obcd` desliga as saídas ao sair, e de novo ao
-  reiniciar, em ~1 s).
+- **Na bancada (nunca rodou em hardware):** INA219 e DS18B20 avulsos na Pi,
+  LEDs no lugar do burn-wire e do aquecedor, nos pinos e com o `obcd.conf` da
+  placa nova; conferir o que a linha de GPIO faz quando o processo morre sem
+  passar pelo `SIGTERM` (o `obcd` desliga as saídas ao sair, e de novo ao
+  reiniciar, em ~1 s). Roteiro: `docs/relatorios/2026-11-03-roteiro-bancada.html`,
+  etapas 12 e 13.
 - **O shunt da placa:** `ina219_shunt_mohm = 100` é a calibração do OBC
   anterior; medir o resistor da placa nova.

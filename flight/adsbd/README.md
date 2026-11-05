@@ -13,7 +13,7 @@ lê as mensagens decodificadas na porta SBS e entrega três coisas:
 |---|---|
 | Quem é dono do SDR, e por quê | ADR-0008 |
 | Processos separados, `ttcd` no centro | ADR-0005 |
-| O tempo de cada mensagem | ADR-0009 (*Proposed*) |
+| O tempo de cada mensagem | ADR-0009 |
 | Leitura do SBS-1 | `sbs.c` |
 | Tabela de aeronaves e regras do retrato | `tracks.c` (o comentário de `tracks.h` define cada regra) |
 | Linha do registro de bordo | `ndjson.c` |
@@ -122,11 +122,12 @@ Ligar e desligar pelo modo não conta como reinício; só as quedas entram em
 
 ## Na Pi
 
-O `dump1090-fa` precisa estar instalado no caminho do `dump1090_cmd` — é a
-primeira tarefa da medição do PLANO 3.4. Depois:
+O `dump1090-fa` precisa estar instalado no caminho do `dump1090_cmd`; na Pi
+da bancada ele foi instalado em 09/10 (a versão 11.1, pelo repositório da
+FlightAware). Depois:
 
 ```bash
-make install          # ttcd e adsbd, as unidades e, se ainda não existirem, /etc/gama/*.conf
+make install          # ttcd, adsbd e obcd, as unidades e, se ainda não existirem, /etc/gama/*.conf
 make adsbd-enable     # sobe agora e a cada boot
 make adsbd-status     # o que o systemd diz, e o fim do log
 make adsbd-stop       # libera o SDR, por exemplo para a varredura de ganho
@@ -161,7 +162,10 @@ mesma base do log do `ttcd`, para os dois se alinharem.
 
 ## O que falta
 
-- **Medições na Pi (PLANO 3.4):** CPU do `dump1090` a 2,4 MS/s, varredura de
-  ganho, taxa de decodificação contra um cenário conhecido.
-- **Na Pi, com o SDR:** o `dump1090` subindo e descendo com o modo, e o tempo
-  de `SET_MODE MISSION_ADSB` até a primeira mensagem decodificada.
+- **Com tráfego de verdade:** em 09/10 o `dump1090-fa` ficou em 21,9% de um
+  núcleo com pouco tráfego, e a varredura de ganho foi inconclusiva (0 a 3
+  aeronaves). Falta repetir com ~20 aeronaves ou uma fonte conhecida, e medir
+  a taxa de decodificação (PLANO etapa 6).
+- **O `adsbd` dirigido pelo modo, na Pi:** o `dump1090` subindo e descendo com
+  o modo, e o tempo de `SET_MODE MISSION_ADSB` até a primeira mensagem
+  decodificada (roteiro de novembro, etapa 12).

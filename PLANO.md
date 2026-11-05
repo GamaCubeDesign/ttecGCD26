@@ -35,33 +35,44 @@ pasta por placa (`hardware/README.md`).
 
 ---
 
-## Estado em 24/10
+## Estado em 03/11
 
-**Pronto e testado em software** (fases 1 a 3): `common/` (codec, TM/TC, IPC,
-perfis LoRa, lado da ground do protocolo), `flight/libipc/`, `flight/ttcd/`,
-`flight/radio/` (SX1278 + barramento Linux + rádio UDP), `flight/adsbd/`,
-`tools/gs_cli/`, `tools/bench/`, `tools/sbs_replay/`, `ground/host/` (adaptador
-do downlink e estimador do colega). 23 suítes no CTest, zero warnings, limpo
-sob ASan e UBSan.
+**Pronto e testado em software** (etapas 1 a 3, e a CI):
+- protocolo v2 (ADR-0013), `ttcd` e `adsbd` dirigidos pelo modo (ADR-0014),
+  433,92 MHz e 14 dBm (ADR-0015);
+- `flight/obcd/` (ADR-0016) com o lado da Pi do contrato I²C com o AOCS
+  (ADR-0017, `docs/icd/obc-aocs-i2c.md`, rascunho);
+- a ground station na ESP32 (ADR-0018), com o console compartilhado com a
+  `gs_cli` e a ponte `ground/host/gs_serial.py`; as suítes portáveis passam
+  numa ESP32 emulada;
+- a configuração de voo da placa nova (`flight/conf/obc-v2/`), conferida fio a
+  fio contra os layouts das placas (`tools/analysis/board_check.py`);
+- a CI (`make check` no Debian 13, com o GCC 14 da Pi).
 
-**Validado em hardware** (07 e 09/10, `docs/vv/bancada/`): `make check` na Pi
-(Debian 13 arm64); os seis passos da bancada dos rádios a 80 cm (tempo no ar
-dentro de 1,9%, nenhuma perda, ACK perdido recuperado em 23,2 s);
-`dump1090-fa` a 21,9% de um núcleo; `adsbd` com o SDR real; a cadeia SDR →
-`adsbd` → `ttcd` → LoRa → ground, sem `TM_TRACKS` (nenhuma posição no ar).
+São 38 suítes no CTest, zero warnings, limpo sob ASan e UBSan, e sob TSan na
+integração do `obcd`.
 
-**Não começado:** `flight/obcd/`, `ground/esp32/`, a CLI do operador,
-`docs/icd/`, a CI.
+**Validado em hardware** (07 e 09/10, `docs/vv/bancada/`, ainda no protocolo
+v1):
+- `make check` na Pi (Debian 13 arm64);
+- os seis passos da bancada dos rádios a 80 cm: tempo no ar dentro de 1,9%,
+  nenhuma perda, ACK perdido recuperado em 23,2 s;
+- o `dump1090-fa` a 21,9% de um núcleo, e o `adsbd` com o SDR real;
+- a cadeia SDR → `adsbd` → `ttcd` → LoRa → ground, sem `TM_TRACKS`.
 
-**Hardware:** as placas fabricadas têm defeitos de ligação que impedem o stack
-de funcionar (lista em `docs/relatorios/2026-10-22-validacao-obc.html`). A
-equipe está refazendo **só a placa do OBC**; a revisão precisa cobrir A1
-(8 V no pino 38), A2 (LoRa), A3 (I²C trocado no layout), A5/A6 (resistores
-de base dos TIP120) e A7 (pull-up do DS18B20); proposta de 24/10 para
-ligar o INA219 a um I²C próprio da Pi, enviada à equipe. Ainda sem data.
+**Nunca rodou em hardware:** o `obcd`, a ESP32 de ground, 433,92 MHz e o
+protocolo v2. É a bancada de novembro
+(`docs/relatorios/2026-11-03-roteiro-bancada.html`), montada nos GPIOs e com
+a configuração da placa nova.
 
-**ADRs:** 0007 e 0012 *Proposed*, com a evidência da bancada; 0010 por
-escrever.
+**Hardware:** a placa nova do OBC (`hardware/obc-v2`, esquemático de 23/10)
+corrige A1, A2, A3 e A7, mas não A5/A6. A revisão TF de 01–02/11 (OBC, EPS e
+AOCS) re-roteou o cobre sem mudar nenhuma ligação, e trouxe erros de DRC a
+corrigir antes de fabricar. Ainda sem data de fabricação. As pendências estão
+em `docs/relatorios/2026-11-03-pendencias-placas.html`.
+
+**ADRs:** 0007 e 0012 *Proposed*, com a evidência da bancada; 0013 a 0018
+*Proposed*, à espera da bancada; 0010 por escrever.
 
 ---
 
@@ -359,7 +370,7 @@ Na ordem da Tabela 67 do CDR: primeiro o que pode mudar uma decisão.
 
 | # | Questão | Bloqueia |
 |---|---|---|
-| Q1 | ~~Quem escreve o firmware do ESP32 do AOCS~~ — em 24/10: está sendo escrito e entra no repositório quando terminar; o contrato I²C (2.4) é combinado com quem o escreve | 2.4, 6 |
+| Q1 | ~~Quem escreve o firmware do ESP32 do AOCS~~ — em 31/10: outra equipe, sem acesso ao código ainda; o rascunho do contrato I²C (`docs/icd/obc-aocs-i2c.md`) foi para ela, e a resposta (§6) está pendente | 6 |
 | Q2 | ~~INA219 no I²C0~~ — 31/10: fica no I²C dividido (ADR-0017). A placa nova (`hardware/obc-v2`, 23/10) corrige A1, A2, A3 e A7, **não** A5/A6 (R2/R3 ainda 4,7 kΩ); falta a data da fabricação | 5 |
 | Q3 | Placa do mecanismo (burn-wire): esquemático e corrente real; o 5 s de D3 pode mudar | 5 |
 | Q4 | Organização: ordem das provas; como avaliam a tensão e a corrente de recarga (REG-09) — o INA219 não vê a corrente de carga | 6 |

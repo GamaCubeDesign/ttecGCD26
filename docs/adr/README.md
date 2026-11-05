@@ -16,8 +16,10 @@ Three reasons, in order of importance to the project:
 2. **The Design Package is assembled from them.** An ADR written at the moment
    the code materialises the decision needs no archaeology later. An ADR
    written the week before submission is a reconstruction, and reads like one.
-3. **Two teams, two repositories.** The OBC is developed separately. A written
-   contract with a stated rationale is what keeps the two halves from drifting.
+3. **Several teams, one satellite.** The OBC software moved into this
+   repository on 2026-10-20, but the AOCS firmware, the boards and the EPS
+   are other teams' work. A written decision with a stated rationale is what
+   keeps the pieces from drifting apart.
 
 ## Process
 
