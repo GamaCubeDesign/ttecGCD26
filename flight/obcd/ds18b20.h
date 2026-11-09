@@ -16,6 +16,12 @@
  * when a conversion did not happen (typically a missing pull-up, hardware
  * finding A7); it is refused too.
  *
+ * So is a first line whose fifth byte, the configuration register, is not
+ * one a DS18B20 holds (0x1F, 0x3F, 0x5F or 0x7F, by resolution). Nine zero
+ * bytes pass the CRC — the CRC of zeros is zero — and the kernel then says
+ * YES and t=0: the likeliest cause of the two 0.00 degC readings that turned
+ * the heaters on during the bench of 2026-11-05, with noise on DQ.
+ *
  * The file's directory is named after the chip's serial number, so a
  * configuration cannot know it in advance: ds18b20_find() looks for the one
  * DS18B20 (family 28) the kernel lists.
@@ -39,7 +45,8 @@ typedef enum {
     DS18B20_ERR_RANGE = -4,    /* outside the chip's -55 .. +125 degC       */
     DS18B20_ERR_IO = -5,       /* the file could not be read                */
     DS18B20_ERR_NOT_FOUND = -6, /* ds18b20_find(): no DS18B20 listed        */
-    DS18B20_ERR_AMBIGUOUS = -7  /* ds18b20_find(): more than one            */
+    DS18B20_ERR_AMBIGUOUS = -7, /* ds18b20_find(): more than one            */
+    DS18B20_ERR_SCRATCHPAD = -8 /* registers no DS18B20 holds: all zero ... */
 } ds18b20_result_t;
 
 /* Parses the text of w1_slave into hundredths of a degree, rounded. */

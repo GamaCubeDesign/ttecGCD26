@@ -135,14 +135,38 @@ int main(void)
         const char *por = "50 05 4b 46 7f ff 0c 10 1c : crc=1c YES\n"
                           "50 05 4b 46 7f ff 0c 10 1c t=85000\n";
         CHECK_EQ_INT(ds18b20_parse(por, strlen(por), &c), DS18B20_ERR_POWER_ON);
-        const char *hot = "aa : crc=aa YES\naa t=130000\n";
+        const char *hot = "08 08 4b 46 7f ff 08 10 aa : crc=aa YES\n"
+                          "08 08 4b 46 7f ff 08 10 aa t=130000\n";
         CHECK_EQ_INT(ds18b20_parse(hot, strlen(hot), &c), DS18B20_ERR_RANGE);
         CHECK_EQ_INT(ds18b20_parse("", 0, &c), DS18B20_ERR_FORMAT);
         CHECK_EQ_INT(ds18b20_parse("no newline", 10, &c), DS18B20_ERR_FORMAT);
-        const char *cut = "72 01 : crc=57 YES\n72 01 t=";
+        const char *cut = "72 01 4b 46 7f ff 0e 10 57 : crc=57 YES\n72 01 t=";
         CHECK_EQ_INT(ds18b20_parse(cut, strlen(cut), &c), DS18B20_ERR_FORMAT);
-        const char *junk = "72 01 : crc=57 YES\n72 01 t=12a\n";
+        const char *junk = "72 01 4b 46 7f ff 0e 10 57 : crc=57 YES\n72 01 t=12a\n";
         CHECK_EQ_INT(ds18b20_parse(junk, strlen(junk), &c), DS18B20_ERR_FORMAT);
+        const char *short_regs = "72 01 : crc=57 YES\n72 01 t=23125\n";
+        CHECK_EQ_INT(ds18b20_parse(short_regs, strlen(short_regs), &c), DS18B20_ERR_FORMAT);
+    }
+
+    TEST_GROUP("ds18b20: registers no DS18B20 holds are refused, though the CRC passes");
+    {
+        /* Nine zero bytes have a CRC of zero: the kernel says YES, t=0. */
+        const char *zeros = "00 00 00 00 00 00 00 00 00 : crc=00 YES\n"
+                            "00 00 00 00 00 00 00 00 00 t=0\n";
+        CHECK_EQ_INT(ds18b20_parse(zeros, strlen(zeros), &c), DS18B20_ERR_SCRATCHPAD);
+        const char *ones = "ff ff ff ff ff ff ff ff ff : crc=ff YES\n"
+                           "ff ff ff ff ff ff ff ff ff t=-62\n";
+        CHECK_EQ_INT(ds18b20_parse(ones, strlen(ones), &c), DS18B20_ERR_SCRATCHPAD);
+        /* Every resolution is a DS18B20's: 9 bits (1f) to 12 bits (7f). The
+         * last is a reading from the bench of 2026-11-05. */
+        const char *nine = "a0 01 55 00 1f ff 0c 10 4e : crc=4e YES\n"
+                           "a0 01 55 00 1f ff 0c 10 4e t=26000\n";
+        CHECK_EQ_INT(ds18b20_parse(nine, strlen(nine), &c), DS18B20_OK);
+        const char *bench = "a0 01 55 00 7f ff 0c 10 f2 : crc=f2 YES\n"
+                            "a0 01 55 00 7f ff 0c 10 f2 t=26000\n";
+        CHECK_EQ_INT(ds18b20_parse(bench, strlen(bench), &c), DS18B20_OK);
+        CHECK_EQ_INT(c, 2600);
+        CHECK(strcmp(ds18b20_result_name(DS18B20_ERR_SCRATCHPAD), "SCRATCHPAD") == 0);
     }
 
     TEST_GROUP("ds18b20: w1_path = auto finds the one DS18B20 the kernel lists, and only one");
