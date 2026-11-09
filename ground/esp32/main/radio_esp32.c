@@ -1,5 +1,6 @@
 #include "radio_esp32.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "driver/gpio.h"
@@ -103,5 +104,17 @@ int radio_esp32_open(sx1278_t *dev, TaskHandle_t task, const char **why)
 #else
     sx1278_lbt_t lbt = SX_LBT_HEADER;
 #endif
-    return sx1278_init(dev, &b, GAMA_RATE_NOMINAL, (int8_t)CONFIG_GAMA_GS_TX_POWER_DBM, lbt, why);
+    int rc = sx1278_init(dev, &b, GAMA_RATE_NOMINAL, (int8_t)CONFIG_GAMA_GS_TX_POWER_DBM, lbt, why);
+    if (rc != 0 && strstr(*why, "RegVersion") != NULL) {
+        /* What the chip answered tells the wiring faults apart: 0x00 is a
+         * chip in reset or unpowered, 0xFF a MISO that nothing drives. */
+        static char msg[96];
+        const uint8_t tx[2] = { 0x42u, 0u };          /* RegVersion, read */
+        uint8_t rx[2] = { 0, 0 };
+        if (spi_xfer(NULL, tx, rx, 2) == 0) {
+            snprintf(msg, sizeof msg, "%s: read 0x%02x, expected 0x12", *why, rx[1]);
+            *why = msg;
+        }
+    }
+    return rc;
 }
