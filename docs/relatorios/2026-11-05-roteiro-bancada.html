@@ -438,7 +438,7 @@ ssh -t pi@gamapi.local tmux new -A -s bench</code></pre></div>
 ls /sys/bus/w1/devices/                        # exatamente um 28-…
 cat /sys/bus/w1/devices/28-*/w1_slave          # crc=.. YES e t=25375 (25,375 °C)
 i2ctransfer -y 1 w1@0x2a 0x00                  # sem ESP32: deve falhar</code></pre></div>
-<p><b>Esperado:</b> 0x40 na tabela; um diretório <code>28-…</code> com <code>YES</code>; o último comando com <code>Remote I/O error</code> ou <code>No such device or address</code>. <b>Anote o texto exato</b> do erro: o A8 mostra o efeito. Não avance com CRC falhando, sensor ausente ou dúvida na ligação.</p>
+<p><b>Esperado:</b> 0x40 na tabela; um diretório <code>28-…</code> com <code>YES</code>; o último comando falhando: na Pi da bancada (kernel 6.18) é <code>Input/output error</code>; outros kernels dizem <code>Remote I/O error</code> ou <code>No such device or address</code>. <b>Anote o texto exato</b> do erro. Não avance com CRC falhando, sensor ausente ou dúvida na ligação.</p>
 <div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-A1"><label for="c-A1">INA219 em 0x40, um DS18B20 com CRC YES, erro do 0x2A anotado</label></li></ul>
 <p class="notes-l">Temperatura bruta · texto do erro</p><textarea id="n-A1" placeholder="t=..., erro do i2ctransfer: ..."></textarea></div>
 </section>
@@ -448,13 +448,14 @@ i2ctransfer -y 1 w1@0x2a 0x00                  # sem ESP32: deve falhar</code></
 <p class="why"><b>Prova</b> o caminho ground → UDP → <code>ttcd</code> → IPC → <code>obcd</code>, e o formato do HK. Não testa o enlace LoRa.</p>
 <p><span class="where pi">na Pi, no tmux</span> três janelas (<kbd>Ctrl+b</kbd> <kbd>c</kbd> abre outra, <kbd>Ctrl+b</kbd> <kbd>n</kbd> passa à seguinte):</p>
 <div class="cmd"><pre><code># janela 1 · TT&amp;C com o rádio simulado
-cd ~/ttec &amp;&amp; make bench-ttcd RADIO=udp</code></pre></div>
+cd ~/ttec &amp;&amp; make bench-ttcd RADIO=udp BENCH_DIR=docs/vv/bancada/$(date +%F)</code></pre></div>
 <div class="cmd"><pre><code># janela 2 · OBC com a configuração de voo; só o socket, o log e o empréstimo mudam
 cd ~/ttec &amp;&amp; mkdir -p docs/vv/bancada/$(date +%F)
 build/flight/obcd -c flight/conf/obc-v2/obcd.conf -o ipc_path=/tmp/ttec-bench.sock -o log_path=- \
     -o i2c_lease_path=/tmp/obcd-i2c.lease | tee -a docs/vv/bancada/$(date +%F)/obcd-A.jsonl</code></pre></div>
 <div class="cmd"><pre><code># janela 3 · a ground (gs_cli no rádio UDP); digite os comandos dentro dela
-cd ~/ttec &amp;&amp; make bench-gs RADIO=udp</code></pre></div>
+cd ~/ttec &amp;&amp; make bench-gs RADIO=udp BENCH_DIR=docs/vv/bancada/$(date +%F)</code></pre></div>
+<p>O <code>BENCH_DIR</code> põe os logs do <code>ttcd</code> e da ground (<code>manual-ttcd.jsonl</code>, <code>manual-ground.jsonl</code>) na pasta do dia, junto do log do <code>obcd</code>: com o rádio UDP o padrão seria <code>build/bench-udp/</code>, que o <code>make pi-fetch</code> não traz, e esses logs são evidência, porque o <code>obcd</code> lê sensores de verdade. <b>Mantenha a ground aberta:</b> com mais de 2 min sem ouvi-la, o <code>ttcd</code> cai na taxa SAFE e os comandos seguintes falham (<code>tc_failed</code>).</p>
 <p>Na janela 3 digite <code>ping 3</code> e <code>hk</code>. <b>Esperado:</b> 3 ACKs; o log do <code>obcd</code> começa em <code>PRE_TEST</code> e mostra o DS18B20 achado, o INA219 respondendo e as saídas nas linhas 22 e 23. Campos do HK:</p>
 <div class="table-wrap"><table>
   <thead><tr><th>Campo</th><th>Unidade</th></tr></thead>
@@ -541,7 +542,7 @@ cd ~/ttec &amp;&amp; make bench-gs RADIO=udp</code></pre></div>
 
 <section class="item" id="A8">
 <h3>A8 · <code>ADVANCED_AOCS</code> sem ESP32 (ADR-0017) <span class="badge b-todo">A registrar</span></h3>
-<p>Na janela 3: <code>mode aocs</code>. <b>Esperado:</b> volta a <code>PRE_TEST</code> na hora, com <code>"lent":false,"why":"aocs_absent"</code> no log. Se vier <code>"lent":true</code> e o modo durar ~5 min com V e I "sem dado", o driver deu ao NACK um erro que o <code>obcd</code> não reconhece: anote o texto do erro do A1 e avise (a correção é de uma linha). Não apague o arquivo de empréstimo para contornar isso. O teste vale para a ausência do AOCS, não para o controle de atitude.</p>
+<p>Na janela 3: <code>mode aocs</code>. <b>Esperado:</b> volta a <code>PRE_TEST</code> em menos de 0,1 s, com <code>"lent":false,"why":"aocs_absent"</code> no log, e tensão e corrente seguem com valor. O START dá erro (EIO nesta Pi) e nenhuma das 3 leituras de STATUS que vêm em seguida é respondida: ninguém no barramento, nada emprestado (ADR-0017). Se vier <code>"lent":true</code> e o modo durar ~5 min com V e I "sem dado", algo respondeu no endereço 0x2A: anote e avise. Não apague o arquivo de empréstimo para contornar isso com ESP32 conectado. O teste vale para a ausência do AOCS, não para o controle de atitude.</p>
 <div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-A8"><label for="c-A8"><code>aocs_absent</code> na hora, <code>lent:false</code></label></li></ul>
 <p class="notes-l">Latência · log</p><textarea id="n-A8" placeholder="ficou ... ms em ADVANCED_AOCS; linha do log..."></textarea></div>
 </section>
