@@ -26,8 +26,10 @@ static int spi_xfer(void *ctx, const uint8_t *tx, uint8_t *rx, size_t len)
     memcpy(s_tx, tx, len);
     spi_transaction_t t = { .length = len * 8u, .rxlength = len * 8u,
                             .tx_buffer = s_tx, .rx_buffer = s_rx };
-    /* Polling, with a bound: a stuck bus is an error, not a hang. */
-    if (spi_device_polling_start(s_spi, &t, pdMS_TO_TICKS(10)) != ESP_OK ||
+    /* Polling, with a bound: a stuck bus is an error, not a hang. IDF 5.3
+     * takes only portMAX_DELAY on the start (it waits for the bus semaphore,
+     * which this one task never holds); the bound is on the end. */
+    if (spi_device_polling_start(s_spi, &t, portMAX_DELAY) != ESP_OK ||
         spi_device_polling_end(s_spi, pdMS_TO_TICKS(10)) != ESP_OK) {
         return -1;
     }
