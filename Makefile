@@ -189,6 +189,23 @@ bench-gs: build ## By hand, terminal 2: gs_cli on radio B, commands typed in; qu
 	@mkdir -p $(BENCH_DIR)
 	$(GS_CMD) | tee -i -a $(BENCH_DIR)/manual-ground.jsonl
 
+# The ground's browser interface (ground/host/gs_web.py), on this machine:
+# the ESP32 on ESP32_PORT by default, gs_cli on the UDP radio with UDP=1, or a
+# recorded ground log with REPLAY=<file.jsonl> (SPEED=10 plays it faster).
+# POWER is the ground's dBm, as in the bench; WEB_HOST=0.0.0.0 opens the page
+# to the network (there is no password).
+WEB_HOST   ?= 127.0.0.1
+WEB_PORT   ?= 8080
+SPEED      ?= 1
+GS_WEB      = $(PYTHON) ground/host/gs_web.py --host $(WEB_HOST) --port $(WEB_PORT) \
+              $(if $(REPLAY),--replay '$(REPLAY)' --speed $(SPEED),$(if $(UDP),--udp,--serial $(ESP32_PORT) --power $(POWER)))
+
+.PHONY: gs-web
+
+gs-web: $(if $(UDP),build) ## The ground's browser page: ESP32_PORT=/dev/ttyUSB0, or UDP=1, or REPLAY=<log>
+	@echo "gs-web: open http://$(WEB_HOST):$(WEB_PORT)"
+	$(GS_WEB)
+
 # One radio, one owner: a ttcd already running — the service, or make
 # bench-ttcd in another terminal — holds radio A (or the UDP port).
 radio-a-free:
