@@ -231,8 +231,10 @@ risks. As of 2026-11-05:
   counts, and its radio, after a firmware fix (`polling_start`); the OBC's
   sensors found, the burn-wire pulse (5000 ms, on a LED) and
   `ENV_SURVIVAL`. Open from that day: the DS18B20's wiring, the radio
-  steps, the thermostat, and `obcd` taking the Pi's EIO for an absent I²C
-  device as an error rather than a NACK.
+  steps and the thermostat. Fixed in software since (2026-11-09): with no
+  AOCS ESP32, `ADVANCED_AOCS` ends at once although the Pi's driver says
+  EIO, not NACK (ADR-0017); a DS18B20 reading of registers no DS18B20 holds
+  (all zero, which passes the CRC) is refused.
 - **Priority now: the bench, then the hardware.** (1) ~~protocol version 2,
   mode-driven `ttcd`/`adsbd`, 433.92 MHz and 14 dBm~~ — done in software
   2026-10-24; (2) ~~`flight/obcd/`~~ — done in software, the Pi's side of the
