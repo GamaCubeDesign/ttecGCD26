@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnóstico do 1-Wire (DS18B20) · bancada 05/11</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#fff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57; --line:#cfcbc1;
+  --accent:#1d5fc4; --accent-soft:#e7eefa; --ok:#1b7443; --ok-soft:#e2f2e8;
+  --warn:#8f5a00; --warn-soft:#faefd9; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --wire-pwr:#c0392b; --wire-sig:#1d5fc4; --wire-gnd:#444;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#141518;--surface:#1b1d21;--surface-2:#23262b;--fg:#e7e5e0;--muted:#a19f99;--line:#3a3d44;
+    --accent:#80b1ff;--accent-soft:#1b2940;--ok:#6dd39b;--ok-soft:#15301f;--warn:#f0ba5d;--warn-soft:#33280e;
+    --bad:#ff8b80;--bad-soft:#3a1b19;--wire-pwr:#ff8b80;--wire-sig:#80b1ff;--wire-gnd:#a8a8b0}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 var(--sans)}
+main{max-width:920px;margin:0 auto;padding:28px 16px 70px}
+.eyebrow{font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+h1{font-size:30px;line-height:1.15;margin:0 0 8px}
+h2{font-size:22px;margin:42px 0 10px;padding-top:16px;border-top:1px solid var(--line)}
+.lede{color:var(--muted);font-size:17.5px;margin:0 0 6px}
+p{margin:0 0 12px}
+code{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:.1em .35em;border-radius:4px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:0 0 14px}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:var(--sans);fill:var(--fg);font-size:14px}
+svg .m{fill:var(--muted);font-size:12.5px}
+svg .b{font-weight:600}
+svg .box{fill:var(--surface-2);stroke:var(--line);stroke-width:1.4}
+svg .rail{stroke:var(--line);stroke-width:8;stroke-linecap:round}
+svg .w{fill:none;stroke-width:3;stroke-linecap:round}
+svg .pwr{stroke:var(--wire-pwr)} svg .sig{stroke:var(--wire-sig)} svg .gnd{stroke:var(--wire-gnd)}
+svg .res{fill:var(--surface);stroke:var(--fg);stroke-width:1.6}
+svg .sus{fill:none;stroke:var(--bad);stroke-width:2.4;stroke-dasharray:6 4}
+svg .good{fill:none;stroke:var(--ok);stroke-width:2.4}
+svg .burn{fill:var(--bad-soft);stroke:var(--bad);stroke-dasharray:3 3}
+svg .num circle{fill:var(--bad);} svg .num text{fill:#fff;font-weight:700;font-size:13px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;color:var(--muted);margin-top:6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:26px;height:0;border-top:3px solid}
+.t{width:100%;border-collapse:collapse;font-size:14.5px;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.t th,.t td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+.t th{background:var(--surface-2)} .t tr:last-child td{border-bottom:0}
+.tw{overflow-x:auto;margin:0 0 14px}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.ok{color:var(--ok);background:var(--ok-soft)} .bad{color:var(--bad);background:var(--bad-soft)} .warn{color:var(--warn);background:var(--warn-soft)}
+.step{display:flex;gap:12px;margin:10px 0}
+.step .n{flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:center}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 14px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:700px){.cols{grid-template-columns:1fr} h1{font-size:25px}}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">GCD26 · bancada de 05/11 · bloco A</p>
+<h1>O DS18B20 não aparece: onde pode estar o defeito</h1>
+<p class="lede">O sensor de temperatura funcionou por mais de 30 minutos e depois sumiu. Esta página junta o que foi medido e mostra, no desenho do circuito, os pontos que ainda não sabemos separar.</p>
+
+<h2>1 · O circuito e os pontos suspeitos</h2>
+<div class="card">
+<svg viewBox="0 0 760 430" role="img" aria-label="Circuito 1-Wire: pinos da Pi, linhas da protoboard, resistor de pull-up e o sensor, com quatro pontos suspeitos numerados">
+  <!-- Pi -->
+  <rect class="box" x="10" y="20" width="190" height="390" rx="12"/>
+  <text class="b" x="28" y="48">Raspberry Pi</text>
+  <text class="m" x="28" y="66">conector de 40 pinos</text>
+  <text x="28" y="98">pino 17 · 3,3 V</text>
+  <text x="28" y="218">pino 11 · GPIO17</text>
+  <text class="m" x="28" y="236">(dados, DQ)</text>
+  <text x="28" y="338">pino 39 · GND</text>
+  <!-- GPIO17 healthy -->
+  <rect class="good" x="18" y="196" width="174" height="48" rx="8"/>
+  <text class="m" x="28" y="262" style="fill:var(--ok)">✔ pino em bom estado</text>
+  <text class="m" x="28" y="278" style="fill:var(--ok)">sem curto ao GND</text>
+
+  <!-- wires Pi -> rails -->
+  <path class="w pwr" d="M200 90 H300"/>
+  <path class="w sig" d="M200 210 H300"/>
+  <path class="w gnd" d="M200 330 H300"/>
+
+  <!-- protoboard -->
+  <rect class="box" x="300" y="40" width="250" height="340" rx="10" style="fill:var(--surface)"/>
+  <text class="m" x="312" y="60">protoboard (linhas)</text>
+  <line class="rail" x1="320" y1="90" x2="530" y2="90"/>
+  <line class="rail" x1="320" y1="210" x2="530" y2="210"/>
+  <line class="rail" x1="320" y1="330" x2="530" y2="330"/>
+  <text class="m" x="440" y="80">linha do 3,3 V (VDD)</text>
+  <text class="m" x="440" y="200">linha do DQ</text>
+  <text class="m" x="440" y="320">linha do GND</text>
+
+  <!-- pull-up resistor -->
+  <path class="w pwr" d="M350 90 V130"/>
+  <rect class="res" x="334" y="130" width="32" height="50" rx="4"/>
+  <text x="372" y="160" class="b">4,7 kΩ</text>
+  <text class="m" x="372" y="176">pull-up</text>
+  <path class="w sig" d="M350 180 V210"/>
+
+  <!-- sensor wires -->
+  <path class="w pwr" d="M530 90 H590"/>
+  <path class="w sig" d="M530 210 H590"/>
+  <path class="w gnd" d="M530 330 H590"/>
+  <rect class="box" x="590" y="40" width="160" height="340" rx="12"/>
+  <text class="b" x="606" y="68">DS18B20</text>
+  <text class="m" x="606" y="86">face plana p/ você</text>
+  <text x="606" y="118">VDD</text>
+  <text x="606" y="238">DQ</text>
+  <text x="606" y="358">GND</text>
+
+  <!-- queimada -->
+  <ellipse class="burn" cx="575" cy="150" rx="44" ry="60" opacity=".55"/>
+  <text class="m" x="520" y="236" style="fill:var(--bad)"></text>
+
+  <!-- suspect circles -->
+  <rect class="sus" x="236" y="196" width="60" height="28" rx="6"/>
+  <rect class="sus" x="324" y="124" width="130" height="62" rx="8"/>
+  <rect class="sus" x="236" y="76" width="60" height="28" rx="6"/>
+  <rect class="sus" x="584" y="80" width="12" height="260" rx="6" style="stroke-dasharray:4 3"/>
+
+  <g class="num"><circle cx="266" cy="190" r="12"/><text x="262" y="195">1</text></g>
+  <g class="num"><circle cx="330" cy="124" r="12"/><text x="326" y="129">2</text></g>
+  <g class="num"><circle cx="266" cy="70" r="12"/><text x="262" y="75">3</text></g>
+  <g class="num"><circle cx="590" cy="76" r="12"/><text x="586" y="81">4</text></g>
+</svg>
+<div class="legend">
+  <span><i class="sw" style="border-color:var(--wire-pwr)"></i> 3,3 V</span>
+  <span><i class="sw" style="border-color:var(--wire-sig)"></i> dados (DQ)</span>
+  <span><i class="sw" style="border-color:var(--wire-gnd)"></i> GND</span>
+  <span><i class="sw" style="border-color:var(--bad);border-top-style:dashed"></i> suspeito</span>
+  <span><i class="sw" style="border-color:var(--ok)"></i> testado, está bem</span>
+</div>
+</div>
+
+<div class="tw"><table class="t">
+<thead><tr><th>#</th><th>Ponto suspeito</th><th>Se estiver com defeito…</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>fio do <b>pino 11</b> até a linha do DQ</td><td>o GPIO17 fica no ar, sem ligação com o resto. Lê lixo e o kernel inventa dispositivos.</td></tr>
+<tr><td>2</td><td><b>resistor de 4,7 kΩ</b> (as duas pernas)</td><td>o DQ nunca é levado ao 3,3 V. O barramento não sobe e não funciona.</td></tr>
+<tr><td>3</td><td>fio do <b>pino 17</b> até a linha do 3,3 V</td><td>o resistor e o sensor ficam sem 3,3 V. Mesmo efeito do 2, e o sensor também não liga.</td></tr>
+<tr><td>4</td><td>o <b>sensor</b> e a área da protoboard <b>queimada</b></td><td>fuga ou curto no DQ por plástico carbonizado, ou um sensor danificado pelo calor.</td></tr>
+</tbody></table></div>
+
+<h2>2 · O que já foi medido</h2>
+<div class="tw"><table class="t">
+<thead><tr><th>Teste</th><th>Resultado</th><th>O que significa</th></tr></thead>
+<tbody>
+<tr><td>Sensor invertido (1ª vez)</td><td>sensor <b>muito quente</b>; 0 sensores, fantasmas <code>00-…</code></td><td>o primeiro sensor foi danificado, e a protoboard queimou naquele ponto</td></tr>
+<tr><td>Sensor trocado</td><td><span class="badge ok">funcionou</span> <code>28-989f…</code>, 26,0 °C, CRC <code>YES</code></td><td>a ligação estava certa. O sensor novo funcionou por &gt; 30 min.</td></tr>
+<tr><td>Depois do reboot e de mexer nos LEDs</td><td><span class="badge bad">sumiu</span> DQ em <code>lo</code> estável, fantasmas</td><td>algo mudou na fiação do 1-Wire nesse intervalo</td></tr>
+<tr><td>Sensor retirado, DQ lido</td><td>oscila <code>hi</code>/<code>lo</code>, fantasmas continuam</td><td>fio <b>flutuando</b>: não é o sensor</td></tr>
+<tr><td>Pull-<b>down</b> interno (50 kΩ)</td><td>8 de 8 em <code>lo</code></td><td>o 4,7 kΩ <b>não</b> está levando o DQ ao 3,3 V (pontos 1, 2 ou 3)</td></tr>
+<tr><td>Pull-<b>up</b> interno</td><td>4 de 4 em <code>hi</code></td><td>o pino do GPIO17 está bom e <b>sem curto ao GND</b></td></tr>
+</tbody></table></div>
+
+<div class="callout">
+  <p><b>Conclusão até aqui.</b> O defeito está no caminho do pull-up até o pino: os pontos <b>1, 2 ou 3</b>. O ponto 4 (sensor) fica em segundo plano, porque o DQ continua errado com o sensor <b>retirado</b>. A área queimada da protoboard pode deixar o contato ruim, mesmo com os fios no lugar.</p>
+</div>
+
+<h2>3 · Como separar os pontos 1, 2 e 3</h2>
+<p>Sem multímetro, o jumper e o <code>pinctrl</code> servem de sonda. A Pi fica ligada e eu leio o GPIO17 a cada passo.</p>
+<div class="step"><div class="n">A</div><div class="cols" style="flex:1">
+  <div class="card"><p><b>Testa o ponto 1</b> (fio do pino 11)</p><p>Encoste um jumper entre o <b>GND</b> e a <b>linha do DQ</b>, com o pull-up interno ligado.</p>
+  <p><span class="badge ok">lê lo</span> o fio do pino 11 chega à linha, o ponto 1 está bom.<br><span class="badge bad">continua hi</span> o fio do pino 11 está solto: <b>achamos</b>.</p></div>
+  <div class="card"><p><b>Testa os pontos 2 e 3</b> (resistor e 3,3 V)</p><p>Com o ponto 1 bom, encoste um jumper do <b>pino 17</b> na perna do resistor que deveria estar no 3,3 V, com o pull-down interno ligado.</p>
+  <p><span class="badge ok">lê hi</span> o resistor funciona, e o defeito é o fio do pino 17 até a linha do 3,3 V.<br><span class="badge bad">continua lo</span> o resistor está aberto: <b>achamos</b>.</p></div>
+</div></div>
+
+<div class="callout warn">
+  <p><b>Alternativa mais rápida.</b> Refaça o pull-up inteiro em furos limpos, longe da área queimada: pino 17 → resistor → DQ, e pino 11 → DQ. Depois me avise para eu reler o GPIO17. Esperado com o resistor certo: <code>hi</code> estável, e <code>lo</code> só nos pulsos curtos do kernel.</p>
+</div>
+
+<h2>4 · Depois de achar o fio</h2>
+<div class="step"><div class="n">1</div><div>Com o pull-up certo e <b>sem o sensor</b>: o GPIO17 lê <code>hi</code> estável, o contador de dispositivos cai para 0 e os fantasmas somem.</div></div>
+<div class="step"><div class="n">2</div><div><b>Desligue a Pi</b> e encaixe o sensor com cuidado: face plana para você, <b>GND, DQ, VDD</b>, longe de qualquer ponto queimado.</div></div>
+<div class="step"><div class="n">3</div><div>Ligue e leia: contador 1, um <code>28-…</code> com <code>YES</code> e <code>t=…</code>. O A5 (termostato) recomeça daí.</div></div>
+<p class="m" style="color:var(--muted);font-size:13.5px;margin-top:22px">Gerado em 05/11/2026 a partir das leituras de <code>pinctrl get 17</code>, do contador do kernel (<code>w1_master_slave_count</code>) e do log do <code>obcd</code>.</p>
+</main>
+</body>
+</html>
