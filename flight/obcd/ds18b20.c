@@ -9,6 +9,26 @@
 #include <string.h>
 #include <unistd.h>
 
+/* The nine registers that open the first line: the fifth, the
+ * configuration, is 0RR11111 in every DS18B20 (RR, the resolution). */
+static ds18b20_result_t registers(const char *line)
+{
+    const char *p = line;
+    unsigned long config = 0;
+    for (int i = 0; i < 9; i++) {
+        char *end;
+        unsigned long v = strtoul(p, &end, 16);
+        if (end == p || v > 0xFFu) {
+            return DS18B20_ERR_FORMAT;
+        }
+        if (i == 4) {
+            config = v;
+        }
+        p = end;
+    }
+    return (config & 0x9Fu) == 0x1Fu ? DS18B20_OK : DS18B20_ERR_SCRATCHPAD;
+}
+
 ds18b20_result_t ds18b20_parse(const char *text, size_t len, int16_t *ccel)
 {
     char buf[160];
@@ -30,6 +50,10 @@ ds18b20_result_t ds18b20_parse(const char *text, size_t len, int16_t *ccel)
     bool yes = strstr(crc, " YES") != NULL;
     if (!yes) {
         return strstr(crc, " NO") != NULL ? DS18B20_ERR_CRC : DS18B20_ERR_FORMAT;
+    }
+    ds18b20_result_t regs = registers(buf);
+    if (regs != DS18B20_OK) {
+        return regs;
     }
 
     const char *t = strstr(nl + 1, "t=");
@@ -111,6 +135,7 @@ const char *ds18b20_result_name(ds18b20_result_t r)
     case DS18B20_ERR_IO:       return "IO";
     case DS18B20_ERR_NOT_FOUND: return "NOT_FOUND";
     case DS18B20_ERR_AMBIGUOUS: return "AMBIGUOUS";
+    case DS18B20_ERR_SCRATCHPAD: return "SCRATCHPAD";
     default:                   return "UNKNOWN";
     }
 }

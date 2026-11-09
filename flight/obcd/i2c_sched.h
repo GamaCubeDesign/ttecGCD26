@@ -11,12 +11,17 @@
  *             lease, or after a failure)
  *   STARTING  START written at t0; STATUS read from t0+20 ms, never at or
  *             after t0+100 ms: ACCEPTED or no clear answer -> LENT;
- *             REFUSED -> POLLING
+ *             REFUSED -> POLLING; a START that did not go through and no
+ *             STATUS read that did either -> nobody there, POLLING
  *   LENT      no transaction at all until lease_until
  *             (t0 + 250 ms + max_task + 2 s)
  *   RESUMING  STATUS read (the task's result), up to 5 tries, then POLLING
  *
- * A START whose write was NACKed (no ESP32) lends nothing.
+ * A START whose write was NACKed (no ESP32) lends nothing. Neither does one
+ * whose write failed otherwise if no STATUS read goes through after it: the
+ * Pi's driver reports an address nobody answers as EIO, not only as a NACK
+ * (bench of 2026-11-05), and an ESP32 that took the START answers STATUS
+ * within 5 ms (ICD §3), long before it may take the bus at t0+250 ms.
  */
 
 #ifndef OBCD_I2C_SCHED_H
@@ -58,7 +63,7 @@ typedef enum {
 /* What the thread reports to the main loop. */
 typedef enum {
     I2C_EV_NONE = 0,
-    I2C_EV_AOCS_ABSENT,      /* START NACKed or failed to go out: no lease */
+    I2C_EV_AOCS_ABSENT,      /* nobody took the START: no lease            */
     I2C_EV_AOCS_REFUSED,     /* the ESP32 said no: no lease                */
     I2C_EV_AOCS_LENT,        /* ACCEPTED, or no clear answer: bus lent     */
     I2C_EV_AOCS_RESULT,      /* the lease ended; status valid or not       */
@@ -86,6 +91,8 @@ typedef struct {
                                    be kept on disk at once                  */
     uint64_t next_try;
     int      tries;
+    bool     start_written;     /* the START write went through             */
+    bool     answered;          /* a STATUS read went through since          */
 } i2c_sched_t;
 
 void i2c_sched_init(i2c_sched_t *s, const i2c_sched_params_t *p, uint64_t now_ms);
@@ -101,7 +108,8 @@ void i2c_sched_request_start(i2c_sched_t *s, const uint8_t *frame, uint8_t seq,
 
 /* What to do now (*op, or I2C_OP_NONE) and when to ask again (*wake). Some
  * steps depend only on time — no clear answer by t0+100 ms means the bus is
- * lent — so this may also return an event for the main loop. */
+ * lent — so this may also return an event for the main loop; then *op is
+ * I2C_OP_NONE and *wake is now: ask again at once. */
 i2c_event_t i2c_sched_next(i2c_sched_t *s, uint64_t now_ms, i2c_op_t *op, uint64_t *wake);
 
 /* The outcome of the operation i2c_sched_next() gave, done at now_ms (its

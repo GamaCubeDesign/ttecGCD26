@@ -419,6 +419,9 @@ static void report(const i2c_sched_t *s, uint64_t now, i2c_event_t ev, bool vali
         m.ok = OBCD_AOCS_REFUSED;
         break;
     case I2C_EV_AOCS_ABSENT:
+        /* After a START that failed but may have gone out, the file was
+         * written already: nobody took it, so nothing is kept. */
+        lease_drop();
         m.ok = OBCD_AOCS_ABSENT;
         break;
     case I2C_EV_AOCS_RESULT:

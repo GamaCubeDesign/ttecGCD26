@@ -47,6 +47,13 @@ static i2c_event_t lend(i2c_sched_t *s)
     return I2C_EV_AOCS_LENT;
 }
 
+static void back_to_polling(i2c_sched_t *s, uint64_t now)
+{
+    s->phase = I2C_PH_POLLING;
+    s->ina219_ready = false;            /* configure it again before reading */
+    s->next_power = now;
+}
+
 i2c_event_t i2c_sched_next(i2c_sched_t *s, uint64_t now, i2c_op_t *op, uint64_t *wake)
 {
     *op = I2C_OP_NONE;
@@ -69,6 +76,13 @@ i2c_event_t i2c_sched_next(i2c_sched_t *s, uint64_t now, i2c_op_t *op, uint64_t 
     case I2C_PH_STARTING:
         if (s->tries >= I2C_SCHED_START_TRIES || s->next_try > last_start_read(s) ||
             now > last_start_read(s)) {
+            *wake = now;                    /* the new phase decides next */
+            if (!s->start_written && !s->answered) {
+                /* Neither the START nor any STATUS went through: nobody on
+                 * the bus took it, whatever errno the driver chose. */
+                back_to_polling(s, now);
+                return I2C_EV_AOCS_ABSENT;
+            }
             /* No clear answer in time: the ESP32 may have accepted, so the
              * Pi assumes the worst and stays silent (ICD §4). */
             return lend(s);
@@ -113,13 +127,6 @@ static bool ours(const i2c_sched_t *s, const uint8_t *bytes, gama_aocs_status_t 
            st->seq == s->start_seq;
 }
 
-static void back_to_polling(i2c_sched_t *s, uint64_t now)
-{
-    s->phase = I2C_PH_POLLING;
-    s->ina219_ready = false;            /* configure it again before reading */
-    s->next_power = now;
-}
-
 i2c_event_t i2c_sched_done(i2c_sched_t *s, uint64_t now, i2c_op_t op, i2c_result_t r,
                            const uint8_t *status, bool *status_valid)
 {
@@ -152,12 +159,15 @@ i2c_event_t i2c_sched_done(i2c_sched_t *s, uint64_t now, i2c_op_t op, i2c_result
         s->phase = I2C_PH_STARTING;
         s->tries = 0;
         s->next_try = s->t0 + GAMA_AOCS_T_READ_MIN_MS;
+        s->start_written = r == I2C_OK;
+        s->answered = false;
         return I2C_EV_NONE;
 
     case I2C_OP_AOCS_STATUS:
         if (s->phase == I2C_PH_STARTING) {
             s->tries++;
             s->next_try = now + I2C_SCHED_START_SPACING;
+            s->answered = s->answered || r == I2C_OK;
             if (r == I2C_OK && ours(s, status, &st)) {
                 if (st.state == GAMA_AOCS_ST_ACCEPTED) {
                     return lend(s);
