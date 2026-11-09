@@ -128,7 +128,7 @@ Objetivo: dois RA-02 trocando frames de verdade, com as medições que o
 ADR-0004 e o ADR-0007 pedem. Os seis passos rodaram em 09/10
 (`docs/vv/bancada/2026-10-09/notas.md`); o roteiro da bancada de novembro,
 com a ESP32, o `obcd` e os pinos da placa nova, é
-`docs/relatorios/2026-11-03-roteiro-bancada.html`.
+`docs/relatorios/2026-11-05-roteiro-bancada.html`.
 
 ### Ligação: dois RA-02 numa só Pi
 

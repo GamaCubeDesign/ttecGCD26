@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — Roteiro da bancada de novembro, revisado (05/11/2026)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+<style>
+/* Acréscimos deste roteiro; o bloco acima é o mesmo dos relatórios. */
+.callout.ok{border-color:var(--ok);background:var(--ok-soft)}
+.step-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13.5px;color:var(--muted);margin:-4px 0 14px}
+.step-meta b{color:var(--fg)}
+.where{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:5px;margin:0 0 6px}
+.where.pc{color:var(--accent);background:var(--accent-soft)}
+.where.pi{color:var(--ok);background:var(--ok-soft)}
+.cmd{position:relative}
+.cmd pre{padding-right:78px}
+.copy{position:absolute;top:8px;right:8px;font:inherit;font-size:12px;padding:3px 9px;border-radius:5px;border:1px solid var(--line-strong);background:var(--surface);color:var(--muted);cursor:pointer}
+.copy:hover{color:var(--accent);border-color:var(--accent)}
+ul.check{list-style:none;padding-left:4px}
+ul.check li{display:flex;gap:10px;align-items:flex-start;margin:6px 0}
+ul.check input{margin-top:5px;width:16px;height:16px;flex:none;accent-color:var(--ok)}
+ul.check label{cursor:pointer}
+.why{font-size:15px}
+.why b:first-child{color:var(--accent)}
+svg.diagram .pin{stroke:var(--line-strong);stroke-width:1.2;fill:var(--node)}
+svg.diagram .pin.a{fill:var(--accent)}
+svg.diagram .pin.b{fill:var(--ok)}
+svg.diagram .pin.s{fill:var(--warn)}
+svg.diagram .pin.e{fill:#8a4fbf}
+svg.diagram .pin.x{fill:var(--bad)}
+svg.diagram .pn{font-size:10px;fill:var(--muted)}
+svg.diagram .lab-a{font-size:12px;fill:var(--accent);font-weight:600}
+svg.diagram .lab-b{font-size:12px;fill:var(--ok);font-weight:600}
+svg.diagram .lab-s{font-size:12px;fill:var(--warn);font-weight:600}
+svg.diagram .lab-e{font-size:12px;fill:#8a4fbf;font-weight:600}
+svg.diagram .lab-x{font-size:12px;fill:var(--bad)}
+svg.diagram .lab-n{font-size:11px;fill:var(--muted)}
+svg.diagram.pins{min-width:600px;max-width:720px;margin:0 auto}
+@media (prefers-color-scheme: dark){svg.diagram .pin.e{fill:#b98be6} svg.diagram .lab-e{fill:#b98be6}}
+.progress{font-size:14px;color:var(--muted);margin:6px 0 0}
+th[colspan]{background:var(--surface-2);font-size:13.5px}
+</style>
+</head>
+<style>
+.item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px 10px;margin:0 0 16px;scroll-margin-top:12px}
+.item h3{margin:0 0 6px;display:block}
+.item textarea{width:100%;min-height:54px;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--surface-2);color:var(--fg);resize:vertical;margin:4px 0 6px}
+.item .notes-l{font-size:12.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin:6px 0 0}
+.check-zone{margin-top:14px;padding-top:10px;border-top:1px solid var(--line)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap;vertical-align:middle}
+.b-ok{color:var(--ok);background:var(--ok-soft)}.b-todo{color:var(--todo);background:var(--todo-soft)}
+pre{overflow-x:auto}
+@media print{.item textarea{border:1px dashed var(--line-strong);background:#fff}}
+</style>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#objetivo">O que a sessão prova</a></li>
+    <li><a href="#material">Material e regras de segurança</a></li>
+    <li><a href="#montagem">Montagem e pinagem</a></li>
+    <li><a href="#pinos">Os pinos da Pi: há conflito?</a></li>
+    <li><a href="#rede">Rede pelo nmcli</a></li>
+    <li><a href="#prep">Preparar a Pi e o PC</a></li>
+    <li><a href="#t0">Bloco 0 · O código na Pi</a></li>
+    <li><a href="#blocoa">Bloco A · OBC isolado, sem rádio</a></li>
+    <li><a href="#blocob">Bloco B · O enlace com a ESP32</a></li>
+    <li><a href="#blococ">Bloco C · Tudo junto, configuração de voo</a></li>
+    <li><a href="#blocod">Bloco D · Extras</a></li>
+    <li><a href="#fim">Trazer e anotar</a></li>
+    <li><a href="#problemas">Se algo der errado</a></li>
+  </ol>
+  <p class="progress" id="progress"></p>
+  <p class="small">Marcações e notas ficam neste navegador.</p>
+  <button class="btn" id="export-notes" type="button">Exportar anotações</button>
+</nav>
+
+<main>
+
+<header class="doc">
+  <p class="eyebrow">Gama Cube Design · CubeDesign 2026 · TT&amp;C, OBC e ground</p>
+  <h1>Roteiro da bancada de novembro, revisado</h1>
+  <p class="lede">A segunda sessão com hardware, agora com a <b>ground separada da Pi</b>: a ESP32 com seu RA-02 fica no PC, o satélite (Pi, RA-02, INA219, DS18B20 e LEDs) fica na outra ponta da mesa. Junta o roteiro de 03/11 com o guia de bancada do OBC e organiza tudo em blocos que não dependem uns dos outros sem necessidade.</p>
+  <div class="meta">
+    <span>Data: <b>05/11/2026</b></span>
+    <span>Branch: <b><code>feat/novo_protocolo</code></b></span>
+    <span>Substitui: <a href="2026-11-03-roteiro-bancada.html">roteiro de 03/11</a></span>
+    <span>Evidência: <b><code>docs/vv/bancada/AAAA-MM-DD/</code></b></span>
+  </div>
+</header>
+
+<div class="callout warn">
+  <p><b>O que mudou desde 03/11.</b></p>
+  <ul>
+    <li>A ground é a ESP32 desde o início. A <code>gs_cli</code> com o rádio B na Pi sai da sessão; as etapas 9 e 11 viram uma só (bloco B).</li>
+    <li>O <b>DIO0 da ESP32 está soldado no GPIO27</b>, não no 26. O firmware precisa ser gravado com <code>CONFIG_GAMA_GS_PIN_DIO0=27</code> (seção 6). O padrão do repositório continua 26, que é o das PCBs.</li>
+    <li>O GND do DS18B20 está no <b>pino 39</b> da Pi, não no 9. Os dois são GND; só a tabela muda.</li>
+    <li>Os resistores dos LEDs são de <b>1 kΩ</b>, não de 330 Ω.</li>
+    <li>Os passos de rádio rodam do PC com <code>SPLIT=1</code>: o <code>ttcd</code> sobe na Pi pelo ssh e a ground (ESP32) fica no PC. O <code>run_step.sh</code> ganhou essa opção; o log do <code>ttcd</code> volta para o PC no fim de cada passo.</li>
+  </ul>
+</div>
+
+<p><b>Como usar.</b> Cada comando diz onde roda: <span class="where pc">no PC</span> ou <span class="where pi">na Pi</span>. Cada teste tem um <b>ID</b> (A3, B2…), o que ele prova, o que esperar e uma caixa para o resultado. As caixas e as notas ficam no navegador; <b>Exportar anotações</b> baixa um JSON que serve de rascunho do <code>notas.md</code>. O modelo do <code>notas.md</code> está em <code>docs/vv/bancada/modelo-notas-2026-11.md</code>.</p>
+
+<h2 id="objetivo"><span class="n">1</span>O que a sessão prova</h2>
+<p>Desde 09/10 entrou muita coisa que nunca rodou em hardware: o protocolo v2, os processos dirigidos pelo modo, 433,92 MHz e 14 dBm, o <code>obcd</code> e a ground na ESP32. A ordem abaixo vai do que depende de menos coisas ao que depende de todas.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Bloco</th><th>Testes</th><th>Prova</th><th>Depende de</th></tr></thead>
+  <tbody>
+    <tr><td><b>0</b> · código</td><td>T0</td><td>compila e passa 39/39 no GCC da Pi</td><td>—</td></tr>
+    <tr><td><b>A</b> · OBC isolado</td><td>A1–A10</td><td>OBC-7 (V, I, T), termostato (D4), burn-wire (D3), <code>aocs_absent</code> (ADR-0017), saídas ao morrer (ADR-0016)</td><td>só a Pi, sensores e LEDs; rádio simulado por UDP</td></tr>
+    <tr><td><b>B</b> · enlace</td><td>B0–B3</td><td>ESP32 como ground (TTC-16, ADR-0018); seis passos em 433,92 MHz (HLR-COMM-01, HLR-COMM-03, ADR-0015)</td><td>rádio A na Pi, ESP32 e rádio B no PC</td></tr>
+    <tr><td><b>C</b> · integrado</td><td>C1–C6</td><td>Figura 44 em hardware, <code>adsbd</code> seguindo o modo (ADR-0014), HK com valores reais, INA219 com o rádio transmitindo</td><td>A e B</td></tr>
+    <tr><td><b>D</b> · extras</td><td>D1–D3</td><td><s>corrente do burn-wire com 4,7 kΩ e 470 Ω (P2)</s> (D1 adiado); corrente do RA-02 a 14 dBm (CDR Tabela 13); serviços systemd</td><td>A, B, C</td></tr>
+  </tbody>
+</table></div>
+<p>Fora do escopo desta sessão: o <b>ESP32 do AOCS</b> (nunca é ligado ao I²C; o AOCS ainda fecha o firmware) e o <b>burn-wire real</b> (D1, adiado). O que esta bancada <b>não</b> valida e fica para o bring-up da placa fabricada: o cobre e o DRC da revisão TF, o caminho de 8 V pelo INA219, as bases dos TIP120 dos aquecedores com corrente de verdade (P3), o estado dos GPIOs no boot com as placas ligadas (P4) e o ESP32 do AOCS real. Se o tempo for curto, <b>nunca</b> corte T0, A1, A8, A10, B0, B2 e C2: são os que validam o firmware para as placas.</p>
+
+<h2 id="material"><span class="n">2</span>Material e regras de segurança</h2>
+<ul>
+  <li><b>Satélite:</b> Pi Zero 2 W (64 bits) com a placa perfurada do rádio A, fonte USB de 5 V / 2,5 A no PWR IN, NESDR Nano 3 com adaptador OTG (bloco C).</li>
+  <li><b>Sensores:</b> INA219 (shunt R100 = 100 mΩ; confira o seu), DS18B20, resistor de 4,7 kΩ, dois LEDs, dois resistores de <b>1 kΩ</b>, protoboard e jumpers.</li>
+  <li><b>Carga do INA219:</b> fonte de bancada com limite de corrente e resistor de <b>100 Ω / 2 W</b>. A 8,4 V ele dissipa ~0,7 W e esquenta: deixe-o longe do DS18B20.</li>
+  <li><b>Ground:</b> ESP32 DevKit V1 com o RA-02 B (perfboard verde), cabo micro-USB <b>de dados</b> para o PC. Antenas de 433 MHz (ou carga de 50 Ω) nos dois rádios.</li>
+  <li><b>Medição:</b> multímetro (dois, se der) e termômetro de referência. Para o D1: TIP120, resistores de 220 Ω, 10 kΩ, 470 Ω e 4,7 kΩ, NiCr com nylon, garras jacaré e fonte de 5 V / 1,5 A.</li>
+  <li><b>PC:</b> repositório atualizado, Docker com <code>espressif/idf:release-v5.3</code>, <b>cabo ethernet</b> ligado (internet da Pi) e o Wi-Fi livre para virar ponto de acesso.</li>
+</ul>
+<div class="callout bad">
+  <p><b>Regras que protegem o hardware.</b></p>
+  <ul>
+    <li>O RA-02 é <b>3,3 V</b>, na Pi e na ESP32. Nunca nos pinos 2 e 4 da Pi, nem no VIN da ESP32.</li>
+    <li>Antena ou carga de 50 Ω antes de qualquer transmissão.</li>
+    <li>Ligue e desligue fios <b>sem energia</b>: Pi sem fonte, ESP32 sem USB, fonte de bancada desligada.</li>
+    <li>Os 6 a 8,4 V da fonte entram <b>só</b> no VIN+ do INA219 e na carga. O VCC do INA219 e o VDD do DS18B20 vêm dos 3,3 V da Pi. O GND da fonte vai ao GND da Pi.</li>
+    <li>VIN− <b>nunca</b> vai direto ao GND: curto-circuita a fonte pelo shunt.</li>
+    <li>Nesta bancada os LEDs fazem o papel dos TIP120. Nada de burn-wire, aquecedor ou motor reais fora do D1.</li>
+  </ul>
+</div>
+
+<h2 id="montagem"><span class="n">3</span>Montagem e pinagem</h2>
+<p class="why"><b>Por quê.</b> O conjunto tem duas montagens independentes. O <b>satélite</b> tem o rádio A, o INA219, o DS18B20 e os LEDs na Pi. A <b>ground</b> tem a ESP32 e o rádio B, ligados só ao USB do PC. Os dois só se falam pelo ar (433,92 MHz).</p>
+
+<h3>3.1 · A Pi: o conector de 40 pinos inteiro</h3>
+<pre>         3V3 · rádio A, INA219 ●  1  2  ● 5V (não usar)
+            GPIO2 · INA219 SDA ●  3  4  ● 5V (não usar)
+            GPIO3 · INA219 SCL ●  5  6  ● GND · rádio A, INA219
+             GPIO4 · (B2) DIO0 ●  7  8  ● 
+                           GND ●  9  10 ● 
+           GPIO17 · DS18B20 DQ ● 11  12 ● 
+                               ● 13  14 ● GND · cátodos dos LEDs
+        GPIO22 · LED burn-wire ● 15  16 ● GPIO23 · LED aquecedor
+             3V3 · DS18B20 VDD ● 17  18 ● 
+         GPIO10 · rádio A MOSI ● 19  20 ● 
+          GPIO9 · rádio A MISO ● 21  22 ● GPIO25 · (B2) RESET
+          GPIO11 · rádio A SCK ● 23  24 ● GPIO8 · rádio A NSS (CE0)
+                           GND ● 25  26 ● 
+                               ● 27  28 ● 
+                               ● 29  30 ● 
+                               ● 31  32 ● 
+                               ● 33  34 ● 
+                               ● 35  36 ● 
+                               ● 37  38 ● GPIO20 · (B1) RESET
+             GND · DS18B20 GND ● 39  40 ● GPIO21 · (B1) DIO0</pre>
+<p class="small">Ímpares à esquerda, pares à direita, pino 1 no canto do cartão SD. "B1" é a fiação de outubro (RESET 38, DIO0 40); "B2" é a da placa nova (RESET 22, DIO0 7). Só um dos dois pares fica ligado de cada vez.</p>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Peça</th><th>Terminal</th><th>Pino da Pi</th><th>GPIO</th><th>Observação</th></tr></thead>
+  <tbody>
+    <tr><td rowspan="6">RA-02 A</td><td>3,3 V · GND</td><td>1 · 6</td><td>—</td><td>compartilhados com o INA219</td></tr>
+    <tr><td>SCK</td><td>23</td><td>GPIO11</td><td></td></tr>
+    <tr><td>MISO · MOSI</td><td>21 · 19</td><td>GPIO9 · GPIO10</td><td></td></tr>
+    <tr><td>NSS</td><td>24</td><td>GPIO8 (CE0)</td><td><code>/dev/spidev0.0</code></td></tr>
+    <tr><td>RESET</td><td>38 → <b>22</b></td><td>GPIO20 → GPIO25</td><td>muda no B2</td></tr>
+    <tr><td>DIO0</td><td>40 → <b>7</b></td><td>GPIO21 → GPIO4</td><td>muda no B2</td></tr>
+    <tr><td rowspan="4">INA219</td><td>VCC · GND</td><td>1 · 6</td><td>—</td><td>3,3 V da Pi</td></tr>
+    <tr><td>SDA · SCL</td><td>3 · 5</td><td>GPIO2 · GPIO3</td><td>endereço 0x40</td></tr>
+    <tr><td>VIN+</td><td colspan="2">+ da fonte de bancada</td><td></td></tr>
+    <tr><td>VIN−</td><td colspan="2">carga de 100 Ω / 2 W, e dela ao − da fonte</td><td>− da fonte também no GND da Pi</td></tr>
+    <tr><td rowspan="3">DS18B20</td><td>VDD</td><td>17</td><td>—</td><td>3,3 V; 4,7 kΩ de DQ a VDD</td></tr>
+    <tr><td>DQ</td><td>11</td><td>GPIO17</td><td></td></tr>
+    <tr><td>GND</td><td><b>39</b></td><td>—</td><td>era o 9; é GND do mesmo jeito</td></tr>
+    <tr><td>LED mecanismo</td><td>ânodo por 1 kΩ</td><td>15</td><td>GPIO22</td><td>cátodo no GND (pino 14); <b>vermelho</b> na bancada de 05/11</td></tr>
+    <tr><td>LED aquecedor</td><td>ânodo por 1 kΩ</td><td>16</td><td>GPIO23</td><td>cátodo no GND (pino 14); <b>azul</b> na bancada de 05/11</td></tr>
+  </tbody>
+</table></div>
+<p>O DS18B20 visto de frente (face plana para você, terminais para baixo): GND, DQ, VDD. O cátodo do LED é a perna curta. Alimentação de três fios, sem modo parasita. O pull-up de 4,7 kΩ vai de <b>DQ a 3,3 V</b>, nunca em série com DQ.</p>
+
+<h3>3.2 · A ground: ESP32 e RA-02 B</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>RA-02 B</th><th>ESP32 DevKit V1</th><th>Observação</th></tr></thead>
+  <tbody>
+    <tr><td>SCK</td><td>GPIO18</td><td></td></tr>
+    <tr><td>MISO</td><td>GPIO19</td><td></td></tr>
+    <tr><td>MOSI</td><td>GPIO23</td><td></td></tr>
+    <tr><td>NSS</td><td>GPIO5</td><td></td></tr>
+    <tr><td>RESET</td><td>GPIO14</td><td></td></tr>
+    <tr><td>DIO0</td><td><b>GPIO27</b></td><td><b>padrão do repositório: GPIO26.</b> Soldado no 27; o firmware desta bancada é compilado para 27.</td></tr>
+    <tr><td>3,3 V · GND</td><td>3V3 · GND</td><td>nunca o VIN</td></tr>
+  </tbody>
+</table></div>
+<p>A ESP32 liga ao USB do <b>PC</b> (energia e dados). A Pi não vê a ESP32.</p>
+
+<h2 id="pinos"><span class="n">4</span>Os pinos da Pi: há conflito?</h2>
+<p class="why"><b>Pergunta.</b> O rádio A está nos pinos de outubro (modelo do <a href="2026-10-05-roteiro-testes-raspberry.html">roteiro de 05/10</a>). Isso atrapalha o resto?</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Item</th><th>Veredito</th><th>Por quê</th></tr></thead>
+  <tbody>
+    <tr><td>GPIO20/21 contra os sensores</td><td>sem conflito</td><td>o INA219 usa GPIO2/3, o DS18B20 o GPIO17 e os LEDs o 22 e o 23. Nenhum pino é usado por duas coisas.</td></tr>
+    <tr><td>GPIO20/21 contra o <code>config.txt</code></td><td>sem conflito</td><td>o <code>config.txt</code> da placa só liga SPI0, I²C1 e o 1-Wire no GPIO17.</td></tr>
+    <tr><td>Pinos 1 e 6 do rádio A e do INA219</td><td>aceitável, a medir</td><td>mesmo trilho de 3,3 V e de GND. O RA-02 transmitindo puxa dezenas de mA e pode sujar a leitura do INA219. O teste <b>C5</b> compara a leitura com o rádio parado e transmitindo.</td></tr>
+    <tr><td>O que o B1 <b>não</b> prova</td><td><b>limitação</b></td><td>com RESET no GPIO20 e DIO0 no GPIO21 o <code>ttcd</code> roda a configuração de bancada, não a da placa (<code>flight/conf/obc-v2/ttcd.conf</code>: GPIO25 e GPIO4). Por isso o B2 muda os dois fios e roda os seis passos de novo. O que vale para as placas é o B2.</td></tr>
+    <tr><td>GPIO4 no B2</td><td>atenção</td><td>o overlay padrão <code>w1-gpio</code> usa o GPIO4. Se sobrar uma linha <code>dtoverlay=w1-gpio</code> sem <code>gpiopin=17</code>, o 1-Wire toma o DIO0 do rádio. A seção 6 confere isso antes.</td></tr>
+    <tr><td>Pino 9 ou 39</td><td>sem diferença</td><td>os dois são GND. O 9 ficou livre porque o rádio B saiu da Pi.</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="rede"><span class="n">5</span>Rede pelo nmcli</h2>
+<div class="step-meta"><span><b>5 min</b></span><span>a cada sessão</span></div>
+<p class="why"><b>Por quê.</b> A Pi não tem porta de rede. O PC fica no <b>cabo ethernet</b> (internet) e o Wi-Fi dele vira o ponto de acesso <code>gama-bancada</code> pelo NetworkManager, repassando a internet à Pi. As conexões <code>bancada-ap</code> (PC) e <code>gama-bancada</code> (Pi) existem desde 07/10; a criação está em <code>docs/vv/bancada/README.md</code>.</p>
+<p><span class="where pc">no PC</span> Cabo ligado e, antes de subir o ponto de acesso, confira o nome da interface Wi-Fi e a conexão:</p>
+<div class="cmd"><pre><code>nmcli device status                 # a ethernet conectada; o wifi (wlp2s0?) desconectado
+nmcli con show bancada-ap | grep -E 'ssid|mode|ipv4.method'   # mode ap, ipv4.method shared
+nmcli con up bancada-ap</code></pre></div>
+<p>Ligue a Pi e espere ~40 s:</p>
+<div class="cmd"><pre><code>iw dev wlp2s0 station dump | grep -E 'Station|signal:'   # a Pi associada, com o sinal
+ssh pi@gamapi.local hostname -I                           # 10.42.0.x
+ssh pi@gamapi.local 'curl -sI https://deb.debian.org | head -1'   # 200: internet pelo cabo</code></pre></div>
+<p><b>Se a Pi não aparecer:</b> ela pode ter ficado na rede do celular. Ligue o hotspot do celular e rode <code>nmcli con down bancada-ap</code>: os dois voltam para o celular. Na Pi, <code>nmcli con show</code> deve listar <code>gama-bancada</code> com prioridade 20. No fim: <code>nmcli con down bancada-ap</code>.</p>
+<ul class="check">
+  <li><input type="checkbox" id="r-ap"><label for="r-ap"><code>bancada-ap</code> no ar e a Pi com endereço <code>10.42.0.x</code></label></li>
+  <li><input type="checkbox" id="r-ssh"><label for="r-ssh"><code>ssh pi@gamapi.local</code> entra sem senha</label></li>
+  <li><input type="checkbox" id="r-net"><label for="r-net">A Pi tem internet pelo cabo do PC</label></li>
+</ul>
+
+<h2 id="prep"><span class="n">6</span>Preparar a Pi e o PC</h2>
+<div class="step-meta"><span><b>20 min</b></span><span>uma vez; termina com um reboot da Pi</span></div>
+
+<h3>6.1 · A Pi</h3>
+<p><span class="where pc">no PC</span> leve a árvore, e depois <span class="where pi">na Pi</span>:</p>
+<div class="cmd"><pre><code>make pi-sync
+ssh pi@gamapi.local</code></pre></div>
+<div class="cmd"><pre><code>sudo apt-get update && sudo apt-get install -y i2c-tools python3-spidev tmux gpiod
+sudo raspi-config nonint do_i2c 0
+grep -v '^#' ~/ttec/flight/conf/obc-v2/config.txt | grep . | while read -r l; do
+    grep -qxF "$l" /boot/firmware/config.txt || echo "$l" | sudo tee -a /boot/firmware/config.txt
+done
+sudo usermod -aG i2c,gpio,spi pi
+sudo reboot</code></pre></div>
+<p>Depois do reboot, <span class="where pi">na Pi</span>:</p>
+<div class="cmd"><pre><code>groups                                       # i2c, gpio e spi
+ls -l /dev/spidev0.0 /dev/i2c-1 /dev/gpiochip0
+grep -E '^dtoverlay|^dtparam' /boot/firmware/config.txt   # uma só linha w1-gpio, com gpiopin=17
+pgrep -a -x 'obcd|ttcd|adsbd' || echo "nenhum daemon rodando"</code></pre></div>
+<p>Se houver serviços da missão instalados, pare-os antes: <code>sudo systemctl stop obcd ttcd adsbd</code>. A bancada manual e os serviços disputam o mesmo hardware.</p>
+
+<h3>6.2 · O PC</h3>
+<div class="cmd"><pre><code>cat local.mk                        # PI_HOST = pi@gamapi.local
+make check                          # opcional, antes de sair: 39 suítes, ASan, citações
+make check-debian                   # opcional: o mesmo no GCC 14 da Pi</code></pre></div>
+<p><b>A ESP32 com DIO0 no GPIO27.</b> O <code>ground/esp32/sdkconfig</code> não é versionado (fica no <code>.gitignore</code>); o padrão do repositório continua 26. Nesta bancada:</p>
+<div class="cmd"><pre><code>grep GAMA_GS_PIN ground/esp32/sdkconfig
+sed -i 's/^CONFIG_GAMA_GS_PIN_DIO0=.*/CONFIG_GAMA_GS_PIN_DIO0=27/' ground/esp32/sdkconfig
+grep DIO0 ground/esp32/sdkconfig    # CONFIG_GAMA_GS_PIN_DIO0=27</code></pre></div>
+<p>Quando as PCBs chegarem, volte para 26 (<code>sed</code> igual, com 26, ou apague o <code>sdkconfig</code> e deixe o <code>Kconfig.projbuild</code> regenerá-lo).</p>
+<ul class="check">
+  <li><input type="checkbox" id="p-grp"><label for="p-grp">Pi com os grupos <code>i2c gpio spi</code> e os três dispositivos existem</label></li>
+  <li><input type="checkbox" id="p-w1"><label for="p-w1">Uma só linha de 1-Wire, a do GPIO17</label></li>
+  <li><input type="checkbox" id="p-dio"><label for="p-dio"><code>sdkconfig</code> com <code>DIO0=27</code></label></li>
+</ul>
+
+<h2 id="t0"><span class="n">7</span>Bloco 0 · O código na Pi</h2>
+<div class="step-meta"><span><b>~40 min</b></span><span>quase todo compilação; dentro do tmux</span></div>
+<section class="item" id="T0">
+<h3>T0 · <code>make check</code> na Pi <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Prova</b> que o código novo compila e passa no compilador da Pi, e deixa prontos os binários de <code>build/</code> para os blocos seguintes.</p>
+<p><span class="where pc">no PC</span></p>
+<div class="cmd"><pre><code>make pi-sync
+ssh -t pi@gamapi.local tmux new -A -s bench</code></pre></div>
+<p><span class="where pi">na Pi, dentro do tmux</span></p>
+<div class="cmd"><pre><code>cd ~/ttec &amp;&amp; git describe --always --dirty; make check</code></pre></div>
+<p><b>Aceite:</b> <code>100% tests passed out of 39</code> nos dois builds (o segundo é só UBSan na Pi), <code>71 of 71 quotations match</code>, nenhum warning. Anote a versão e o tempo de build.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-T0"><label for="c-T0">39/39 e 39/39, citações 71/71, sem warnings</label></li></ul>
+<p class="notes-l">Versão · tempo · observações</p><textarea id="n-T0" placeholder="git describe, minutos de build, avisos..."></textarea></div>
+</section>
+
+<h2 id="blocoa"><span class="n">8</span>Bloco A · OBC isolado, sem rádio</h2>
+<div class="step-meta"><span><b>~90 min</b></span><span>só a Pi, o INA219, o DS18B20 e os LEDs; o rádio é o UDP simulado</span></div>
+<p class="why"><b>Por quê.</b> O <code>obcd</code> lê sensores e aciona saídas; nada disso depende do enlace. Rodá-lo primeiro, com o <code>ttcd</code> no rádio UDP e a ground (<code>gs_cli</code>) na própria Pi, separa os defeitos dos sensores dos defeitos do rádio. O rádio A fica ligado mas parado. Cuidado: <b>não há nenhum daemon de missão</b> usando o SPI neste bloco.</p>
+<p>Monte a protoboard <b>com tudo desligado</b> pela seção 3.1. Fonte de bancada ainda desligada.</p>
+
+<section class="item" id="A1">
+<h3>A1 · Os sensores, sem o <code>obcd</code> <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Prova</b> que a ligação está certa e mostra o erro que o driver da Pi devolve para um endereço sem ninguém (ADR-0017). Nada de ESP32 do AOCS no I²C.</p>
+<p><span class="where pi">na Pi</span></p>
+<div class="cmd"><pre><code>i2cdetect -y 1                                 # 40 = o INA219
+ls /sys/bus/w1/devices/                        # exatamente um 28-…
+cat /sys/bus/w1/devices/28-*/w1_slave          # crc=.. YES e t=25375 (25,375 °C)
+i2ctransfer -y 1 w1@0x2a 0x00                  # sem ESP32: deve falhar</code></pre></div>
+<p><b>Esperado:</b> 0x40 na tabela; um diretório <code>28-…</code> com <code>YES</code>; o último comando com <code>Remote I/O error</code> ou <code>No such device or address</code>. <b>Anote o texto exato</b> do erro: o A8 mostra o efeito. Não avance com CRC falhando, sensor ausente ou dúvida na ligação.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-A1"><label for="c-A1">INA219 em 0x40, um DS18B20 com CRC YES, erro do 0x2A anotado</label></li></ul>
+<p class="notes-l">Temperatura bruta · texto do erro</p><textarea id="n-A1" placeholder="t=..., erro do i2ctransfer: ..."></textarea></div>
+</section>
+
+<section class="item" id="A2">
+<h3>A2 · Os três processos e o <code>hk</code> <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Prova</b> o caminho ground → UDP → <code>ttcd</code> → IPC → <code>obcd</code>, e o formato do HK. Não testa o enlace LoRa.</p>
+<p><span class="where pi">na Pi, no tmux</span> três janelas (<kbd>Ctrl+b</kbd> <kbd>c</kbd> abre outra, <kbd>Ctrl+b</kbd> <kbd>n</kbd> passa à seguinte):</p>
+<div class="cmd"><pre><code># janela 1 · TT&amp;C com o rádio simulado
+cd ~/ttec &amp;&amp; make bench-ttcd RADIO=udp</code></pre></div>
+<div class="cmd"><pre><code># janela 2 · OBC com a configuração de voo; só o socket, o log e o empréstimo mudam
+cd ~/ttec &amp;&amp; mkdir -p docs/vv/bancada/$(date +%F)
+build/flight/obcd -c flight/conf/obc-v2/obcd.conf -o ipc_path=/tmp/ttec-bench.sock -o log_path=- \
+    -o i2c_lease_path=/tmp/obcd-i2c.lease | tee -a docs/vv/bancada/$(date +%F)/obcd-A.jsonl</code></pre></div>
+<div class="cmd"><pre><code># janela 3 · a ground (gs_cli no rádio UDP); digite os comandos dentro dela
+cd ~/ttec &amp;&amp; make bench-gs RADIO=udp</code></pre></div>
+<p>Na janela 3 digite <code>ping 3</code> e <code>hk</code>. <b>Esperado:</b> 3 ACKs; o log do <code>obcd</code> começa em <code>PRE_TEST</code> e mostra o DS18B20 achado, o INA219 respondendo e as saídas nas linhas 22 e 23. Campos do HK:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Campo</th><th>Unidade</th></tr></thead>
+  <tbody>
+    <tr><td><code>battery_mv</code></td><td>mV; nesta bancada é a tensão em <b>VIN−</b>, não a da fonte</td></tr>
+    <tr><td><code>current_ma</code></td><td>mA; positivo no sentido VIN+ → VIN−</td></tr>
+    <tr><td><code>temp_bat_ccel</code></td><td>centésimos de °C (2537 = 25,37 °C); o <code>w1_slave</code> é em milésimos</td></tr>
+    <tr><td><code>temp_ext_ccel</code></td><td>sem sensor: "sem dado"</td></tr>
+    <tr><td><code>temp_soc_ccel</code></td><td>temperatura do processador, coletada pelo <code>ttcd</code></td></tr>
+  </tbody>
+</table></div>
+<p>Valores sentinela, não medições: <b>65535</b> é tensão sem dado; <b>−32768</b> é corrente ou temperatura sem dado.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-A2"><label for="c-A2">Pings respondidos, <code>PRE_TEST</code>, <code>hk</code> com temperatura (a fonte ainda desligada: tensão pode ser pequena)</label></li></ul>
+<p class="notes-l">Primeiro <code>hk</code> · observações</p><textarea id="n-A2" placeholder="Linha do hk, eventos de partida do obcd..."></textarea></div>
+</section>
+
+<section class="item" id="A3">
+<h3>A3 · Tensão e corrente contra o multímetro <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Prova</b> o OBC-7 (tensão e corrente da bateria). O driver calcula a corrente pela tensão no shunt: uma resistência errada dá corrente errada mesmo com o sensor respondendo.</p>
+<p>Fonte desligada, ligada a VIN+ e à carga como na seção 3.1. Ajuste a fonte a <b>6,0 V com limite de 0,12 A</b> e ligue. Em cada ponto, espere alguns segundos, peça <code>hk</code> e meça:</p>
+<ul>
+  <li>a <b>tensão em VIN−</b> com o multímetro (não a da fonte);</li>
+  <li>a <b>corrente</b>: desligue a fonte, ponha o multímetro <b>em série</b> na escala de mA e religue. Nunca o amperímetro entre + e −.</li>
+</ul>
+<div class="table-wrap"><table>
+  <thead><tr><th>Fonte</th><th>Corrente esperada (100 Ω)</th><th>Potência na carga</th></tr></thead>
+  <tbody>
+    <tr><td>6,0 V</td><td>~60 mA</td><td>0,36 W</td></tr>
+    <tr><td>7,4 V</td><td>~74 mA</td><td>0,55 W</td></tr>
+    <tr><td>8,4 V</td><td>~84 mA</td><td>0,71 W</td></tr>
+  </tbody>
+</table></div>
+<p>Compare com o multímetro, não com a tabela (tolerância do resistor, queda no shunt). Registre o erro absoluto e o percentual. Se for <b>proporcional</b> na corrente, suspeite do valor do shunt; se for corrente <b>negativa</b>, VIN+ e VIN− estão trocados. Se o shunt do módulo não for 100 mΩ, suba o <code>obcd</code> com <code>-o ina219_shunt_mohm=…</code>. O limite de aceitação é o da precisão do módulo e do instrumento; combine-o antes, não depois.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Fonte</th><th>V multímetro (VIN−)</th><th><code>battery_mv</code></th><th>I multímetro</th><th><code>current_ma</code></th></tr></thead>
+  <tbody>
+    <tr><td>6,0 V</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>7,4 V</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>8,4 V</td><td></td><td></td><td></td><td></td></tr>
+  </tbody>
+</table></div>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-A3"><label for="c-A3">V e I comparados nas três tensões</label></li></ul>
+<p class="notes-l">Valores medidos · erros</p><textarea id="n-A3" placeholder="Preencha a tabela acima aqui: V mult / mV, I mult / mA, erro %..."></textarea></div>
+</section>
+
+<section class="item" id="A4">
+<h3>A4 · Temperatura <span class="badge b-todo">A registrar</span></h3>
+<p><b>Prova</b> o <code>temp_bat_ccel</code>. Compare-o com um termômetro de referência encostado ao DS18B20, depois de estabilizar, e com o <code>w1_slave</code> (atenção à escala: milésimos contra centésimos).</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-A4"><label for="c-A4">Temperatura comparada com a referência</label></li></ul>
+<p class="notes-l">Referência · <code>w1_slave</code> · <code>hk</code></p><textarea id="n-A4" placeholder="ref ... °C, w1 ... , hk ..."></textarea></div>
+</section>
+
+<section class="item" id="A5">
+<h3>A5 · O termostato e a histerese (D4) <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Prova</b> que o LED dos aquecedores (GPIO23) liga abaixo do limite inferior, desliga acima do superior e mantém o estado entre os dois.</p>
+<p>Pare só o <code>obcd</code> (<kbd>Ctrl+C</kbd> na janela 2) e suba-o com limites de bancada perto da temperatura da sala. Os de voo são 10 e 12 °C; <b>volte a eles depois</b>.</p>
+<div class="cmd"><pre><code>build/flight/obcd -c flight/conf/obc-v2/obcd.conf -o ipc_path=/tmp/ttec-bench.sock -o log_path=- \
+    -o i2c_lease_path=/tmp/obcd-i2c.lease -o heater_on_below_ccel=2600 -o heater_off_above_ccel=2800 \
+    | tee -a docs/vv/bancada/$(date +%F)/obcd-A5.jsonl</code></pre></div>
+<ul>
+  <li>Abaixo de <b>26 °C</b>: LED aceso. Acima de <b>28 °C</b>: apagado. Entre os dois: mantém.</li>
+  <li>Segure o DS18B20 entre os dedos até passar de 28 °C; solte e espere cair abaixo de 26 °C. Se a sala não cruzar os limites, escolha outros perto da temperatura observada.</li>
+  <li>Os comparadores são estritos. As leituras chegam a cada ~2 s, e a conversão roda numa thread à parte.</li>
+</ul>
+<p>Anote a temperatura de cada evento <code>heater</code> do log.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-A5"><label for="c-A5">LED responde aos dois limites e mantém a histerese</label></li></ul>
+<p class="notes-l">Temperatura de cada transição</p><textarea id="n-A5" placeholder="liga a ... °C, desliga a ... °C"></textarea></div>
+</section>
+
+<section class="item" id="A6">
+<h3>A6 · Perda do DS18B20 <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Prova</b> que o OBC falha seguro: sem leitura válida o aquecedor desliga.</p>
+<p>Com o LED aceso, solte o jumper de <b>DQ</b> (um que não possa tocar outros pinos), mantendo VDD e GND. <b>Esperado:</b> em ~10 s (<code>temp_stale_ms</code>) o evento <code>temp_fault</code>, a temperatura "sem dado" e o LED apagado. Meça o tempo real pelo <code>mono_ms</code> do log. Reconecte DQ e confirme a volta das leituras; se o sensor não reaparecer em <code>/sys/bus/w1/devices/</code>, pare o processo, reinicie a Pi e registre a limitação.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-A6"><label for="c-A6"><code>temp_fault</code> registrado e LED apagado</label></li></ul>
+<p class="notes-l">Tempo até o fault · recuperação</p><textarea id="n-A6" placeholder="... s até temp_fault; recuperou? ..."></textarea></div>
+</section>
+
+<section class="item" id="A7">
+<h3>A7 · O pulso do burn-wire, em LED (D3) <span class="badge b-todo">A registrar</span></h3>
+<p>Com o <code>obcd</code> de volta nos limites de voo (sem os <code>-o heater_…</code>), na janela 3 digite <code>mode basic_inter</code>. <b>Esperado:</b> o LED do GPIO22 aceso por ~5 s, os eventos <code>burnwire</code> ligado e desligado, <code>driven: true</code>, e o retorno sozinho a <code>PRE_TEST</code>. A duração sai do <code>mono_ms</code> dos eventos (ou de um vídeo do celular). O pulso se repete a cada entrada aceita no modo; não é uma trava de "disparou uma vez".</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-A7"><label for="c-A7">Pulso de ~5 s medido, volta a <code>PRE_TEST</code></label></li></ul>
+<p class="notes-l">Duração em ms</p><textarea id="n-A7" placeholder="on em mono_ms ..., off em ..., duração ... ms"></textarea></div>
+</section>
+
+<section class="item" id="A8">
+<h3>A8 · <code>ADVANCED_AOCS</code> sem ESP32 (ADR-0017) <span class="badge b-todo">A registrar</span></h3>
+<p>Na janela 3: <code>mode aocs</code>. <b>Esperado:</b> volta a <code>PRE_TEST</code> na hora, com <code>"lent":false,"why":"aocs_absent"</code> no log. Se vier <code>"lent":true</code> e o modo durar ~5 min com V e I "sem dado", o driver deu ao NACK um erro que o <code>obcd</code> não reconhece: anote o texto do erro do A1 e avise (a correção é de uma linha). Não apague o arquivo de empréstimo para contornar isso. O teste vale para a ausência do AOCS, não para o controle de atitude.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-A8"><label for="c-A8"><code>aocs_absent</code> na hora, <code>lent:false</code></label></li></ul>
+<p class="notes-l">Latência · log</p><textarea id="n-A8" placeholder="ficou ... ms em ADVANCED_AOCS; linha do log..."></textarea></div>
+</section>
+
+<section class="item" id="A9">
+<h3>A9 · Sobrevivência <span class="badge b-todo">A registrar</span></h3>
+<p>Na janela 3: <code>mode survival</code>, <code>hk</code>, <code>mode task_done</code>, <code>hk</code>. <b>Esperado:</b> <code>ENV_SURVIVAL</code> e de volta a <code>PRE_TEST</code>; o termostato continua funcionando. Isso não prova corte de cargas de potência.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-A9"><label for="c-A9">Entrada e saída de <code>ENV_SURVIVAL</code></label></li></ul>
+<p class="notes-l">Observações</p><textarea id="n-A9" placeholder="..."></textarea></div>
+</section>
+
+<section class="item" id="A10">
+<h3>A10 · As saídas ao encerrar e depois de um <code>kill -9</code> (ADR-0016) <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Prova</b> o que o kernel faz com a linha do GPIO quando o processo morre. É uma pendência do ADR-0016.</p>
+<ol>
+  <li><b>Encerramento normal.</b> Com o LED dos aquecedores aceso (a sala abaixo do limite, ou com os limites do A5), <kbd>Ctrl+C</kbd> na janela 2. Esperado: o LED apaga no encerramento. Suba o <code>obcd</code> de novo: ele responde.</li>
+  <li><b>Falha abrupta.</b> Com o LED aceso, numa quarta janela:
+<div class="cmd"><pre><code>kill -9 $(pidof obcd); sleep 1; pinctrl get 22,23</code></pre></div>
+  O LED ficou aceso ou apagou? O que o <code>pinctrl</code> mostra? Registre; não presuma que fechar o descritor força nível baixo. Esta execução manual não tem reinício pelo systemd. Suba o <code>obcd</code> de novo: ele comanda as duas saídas apagadas ao começar (D3), mas o termostato pode reacender o LED se a temperatura estiver abaixo do limite.</li>
+</ol>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-A10"><label for="c-A10">Ctrl-C apaga as saídas; <code>kill -9</code> registrado</label></li></ul>
+<p class="notes-l">O que o LED fez · saída do <code>pinctrl</code></p><textarea id="n-A10" placeholder="Ctrl-C: ...; kill -9: LED ficou ...; pinctrl: ..."></textarea></div>
+</section>
+<p>No fim do bloco: <kbd>Ctrl+C</kbd> no <code>obcd</code>, <code>quit</code> na ground, <kbd>Ctrl+C</kbd> no <code>ttcd</code> e <b>fonte da carga desligada</b>.</p>
+
+<h2 id="blocob"><span class="n">9</span>Bloco B · O enlace com a ESP32 de ground</h2>
+<div class="step-meta"><span><b>~110 min</b></span><span>rádio A na Pi, a ESP32 e o rádio B no USB do PC, a ~80 cm, 2 dBm</span></div>
+<p class="why"><b>Por quê.</b> É a evidência do HLR-COMM-01 e do HLR-COMM-03 em 433,92 MHz, com o protocolo v2 e a ground que vai ser usada nas provas. O <code>ttcd</code> roda na Pi (pelo ssh) e a ESP32 fica no PC. Cada passo sobe um <code>ttcd</code> novo e copia o log dele de volta, de modo que o PC guarda os dois lados do passo em <code>docs/vv/bancada/AAAA-MM-DD/</code>.</p>
+
+<section class="item" id="B0">
+<h3>B0 · A ESP32: suítes na placa e firmware da ground <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Prova</b> o TTC-16: os mesmos bytes nas duas pontas. As 11 suítes portáveis rodam na ESP32 de verdade.</p>
+<p>ESP32 no USB do PC, sem o rádio ligado (ou com ele, tanto faz para as suítes). <span class="where pc">no PC</span></p>
+<div class="cmd"><pre><code>ls /dev/ttyUSB*
+make esp32-tests-flash ESP32_PORT=/dev/ttyUSB0    # grava as suítes e lê o resultado
+make esp32-flash ESP32_PORT=/dev/ttyUSB0          # grava a ground, com DIO0=27</code></pre></div>
+<p><b>Aceite:</b> 11 suítes, <code>failed 0</code>, com as mesmas contagens do <code>make test</code>. Depois, com o rádio B ligado pela seção 3.2:</p>
+<div class="cmd"><pre><code>python3 ground/host/gs_serial.py --port /dev/ttyUSB0 --power 2</code></pre></div>
+<p><b>Esperado:</b> a linha <code>boot</code> com o rádio respondendo e <code>"pins":"… dio0=27"</code>. Se disser <code>dio0=26</code>, o firmware é o antigo: confira o <code>sdkconfig</code> e grave de novo. <kbd>Ctrl+D</kbd> sai.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-B0"><label for="c-B0">11 suítes <code>failed 0</code>; <code>boot</code> com rádio ok e <code>dio0=27</code></label></li></ul>
+<p class="notes-l">Contagens · linha <code>boot</code></p><textarea id="n-B0" placeholder="suítes ..., boot: ..."></textarea></div>
+</section>
+
+<section class="item" id="B1">
+<h3>B1 · Os seis passos com a fiação de outubro (RESET 20, DIO0 21) <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Prova</b> que o firmware novo funciona no ar, sem misturar com a pergunta dos pinos novos. Se falhar aqui, o problema é do firmware, do rádio ou da ground, não dos GPIOs da placa.</p>
+<p>O rádio A está como na seção 3.1, RESET no 38 e DIO0 no 40. Antena ou carga de 50 Ω nos dois, a ~80 cm. <span class="where pc">no PC</span></p>
+<div class="cmd"><pre><code>make pi-sync
+make pi-build                                     # compila na Pi, se T0 não deixou pronto
+make -k bench SPLIT=1 GS=esp32 ESP32_PORT=/dev/ttyUSB0</code></pre></div>
+<p>O <code>SPLIT=1</code> faz cada passo subir o <code>ttcd</code> na Pi pelo ssh e a ground (ESP32) aqui. Cada passo imprime a linha <code>bench: pi@…: build/flight/ttcd -c flight/ttcd/ttcd.conf.example …</code>: é o arquivo de bancada, com RESET 20 e DIO0 21. Para só o ping, para ver se o enlace está de pé:</p>
+<div class="cmd"><pre><code>make bench-ping SPLIT=1 GS=esp32 ESP32_PORT=/dev/ttyUSB0</code></pre></div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Passo</th><th>09/10</th><th>Aceite</th></tr></thead>
+  <tbody>
+    <tr><td>1 · ping</td><td>10/10</td><td>10/10</td></tr>
+    <tr><td>2 · tempo no ar</td><td>pior erro 1,9%</td><td>≤ 5% do modelo (o <code>make</code> falha se não)</td></tr>
+    <tr><td>3 · taxa de erro</td><td>0 perdas em ~2,2 mil frames por sentido</td><td>anotar <code>uplink_per</code> e <code>downlink_per</code></td></tr>
+    <tr><td>4 · troca de taxa</td><td>7/7</td><td>7/7</td></tr>
+    <tr><td>5 · ACK perdido</td><td>recuperou em 23 s</td><td>recupera sozinho</td></tr>
+    <tr><td>6 · LBT</td><td>header = preamble</td><td>anotar as tentativas dos dois</td></tr>
+  </tbody>
+</table></div>
+<p>Em 09/10 a ground era a <code>gs_cli</code> na Pi. Uma diferença de PER ou de troca de taxa em relação a 09/10 pode vir do lado da ESP32, que precisa responder ao satélite em ~20 ms (ADR-0007, ADR-0018).</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-B1"><label for="c-B1">Os seis passos dentro dos critérios com a fiação de outubro</label></li></ul>
+<p class="notes-l">Resultado de cada passo · PER · RSSI e SNR</p><textarea id="n-B1" placeholder="1: ./10; 2: pior erro ..%; 3: up .. down ..; 4: ../7; 5: ... s; 6: ..."></textarea></div>
+</section>
+
+<section class="item" id="B2">
+<h3>B2 · Os seis passos nos pinos da placa (RESET 25, DIO0 4) <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Prova</b> o <code>flight/conf/obc-v2/ttcd.conf</code> no ar. É este que vale para as placas.</p>
+<p><b>Com a Pi desligada</b>, mude dois fios do rádio A: o RESET do pino 38 para o <b>22</b> (GPIO25) e o DIO0 do pino 40 para o <b>7</b> (GPIO4). Ligue a Pi. Confira que não sobrou <code>w1-gpio</code> no GPIO4 (<code>grep w1 /boot/firmware/config.txt</code> mostra <code>gpiopin=17</code>). <span class="where pc">no PC</span></p>
+<div class="cmd"><pre><code>make -k bench SPLIT=1 GS=esp32 ESP32_PORT=/dev/ttyUSB0 TTCD_CONF=flight/conf/obc-v2/ttcd.conf</code></pre></div>
+<p>Cada passo mostra <code>… -c flight/conf/obc-v2/ttcd.conf</code>. Os critérios são os da tabela do B1.</p>
+<p><b>Confirmar a frequência no chip.</b> Logo depois do último passo, sem reiniciar nada. <span class="where pi">na Pi</span></p>
+<div class="cmd"><pre><code>python3 -c "import spidev; s = spidev.SpiDev(); s.open(0, 0); s.max_speed_hz = 1000000; print(bytes(s.xfer2([0x06, 0, 0, 0])[1:]).hex())"</code></pre></div>
+<p><b>Esperado:</b> <code>6c7ae1</code> (433,92 MHz). Em 09/10, logo depois do reset, lia <code>6c8000</code> (434,000 MHz).</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-B2"><label for="c-B2">Os seis passos dentro dos critérios com a configuração de voo</label></li><li><input type="checkbox" id="c-B2f"><label for="c-B2f">RegFrf = <code>6c7ae1</code></label></li></ul>
+<p class="notes-l">Resultado de cada passo · RegFrf</p><textarea id="n-B2" placeholder="1: ..; 2: ..; 3: ..; 4: ..; 5: ..; 6: ..; RegFrf ..."></textarea></div>
+</section>
+
+<section class="item" id="B3">
+<h3>B3 · Resposta da ESP32 e "ground surda" <span class="badge b-todo">A registrar</span></h3>
+<p><b>Prova</b> que o DIO0 no GPIO27 funciona e dá a margem do protocolo. Sem a interrupção, a ESP32 transmite e o satélite recebe, mas a ground nunca ouve o ACK: o ping falha. Se o ping do B1 passou, o 27 está certo. Dos logs do B2 (<code>…-ping-ground.jsonl</code>), anote a latência mínima, média e máxima de ACK e o <code>downlink_per</code> do passo 3.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-B3"><label for="c-B3">Latências de ACK anotadas; ESP32 recebe pela interrupção do GPIO27</label></li></ul>
+<p class="notes-l">Latências</p><textarea id="n-B3" placeholder="latência mínima / média / máxima de ACK: ..."></textarea></div>
+</section>
+
+
+<h2 id="blococ"><span class="n">10</span>Bloco C · Tudo junto, com a configuração de voo</h2>
+<div class="step-meta"><span><b>~70 min</b></span><span>sensores e LEDs montados, rádio A em B2, SDR no USB da Pi, ESP32 no PC</span></div>
+<p class="why"><b>Por quê.</b> É o ensaio da placa nova. Os três processos sobem com os arquivos de voo e o enlace é o real. A ground manda <code>SET_MODE</code> e percorre a Figura 44; o <code>adsbd</code> sobe e para o decodificador sozinho (ADR-0014, ADR-0016).</p>
+<p>Plugue o NESDR Nano 3 no OTG da Pi (a ESP32 já não está lá). <span class="where pi">na Pi, no tmux</span> três janelas:</p>
+<div class="cmd"><pre><code># janela 1 · TT&amp;C no rádio real, com a configuração de voo
+cd ~/ttec &amp;&amp; make bench-ttcd TTCD_CONF=flight/conf/obc-v2/ttcd.conf</code></pre></div>
+<div class="cmd"><pre><code># janela 2 · OBC
+cd ~/ttec &amp;&amp; build/flight/obcd -c flight/conf/obc-v2/obcd.conf -o ipc_path=/tmp/ttec-bench.sock -o log_path=- \
+    -o i2c_lease_path=/tmp/obcd-i2c.lease | tee -a docs/vv/bancada/$(date +%F)/obcd-C.jsonl</code></pre></div>
+<div class="cmd"><pre><code># janela 3 · ADS-B
+cd ~/ttec &amp;&amp; build/flight/adsbd -c flight/adsbd/adsbd.conf.example -o ipc_path=/tmp/ttec-bench.sock -o log_path=- \
+    -o ndjson_path=docs/vv/bancada/$(date +%F)/adsb-C.ndjson | tee -a docs/vv/bancada/$(date +%F)/adsbd-C.jsonl</code></pre></div>
+<p><span class="where pc">no PC</span> a ground. O <code>RADIO=sx1278</code> é obrigatório com a ESP32:</p>
+<div class="cmd"><pre><code>make bench-gs GS=esp32 RADIO=sx1278 ESP32_PORT=/dev/ttyUSB0 GS_OPTS='--auto-time on'</code></pre></div>
+<p>Ligue a fonte da carga a 7,4 V (limite 0,12 A) para o HK ter tensão e corrente.</p>
+
+<section class="item" id="C1">
+<h3>C1 · O <code>hk</code> com valores medidos <span class="badge b-todo">A registrar</span></h3>
+<p>Digite <code>ping 3</code> e <code>hk</code>. <b>Esperado:</b> <code>PRE_TEST</code>; tensão, corrente e temperatura com valores (não 65535 nem −32768). Compare com o A3.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-C1"><label for="c-C1">HK pelo ar com V, I e T medidos</label></li></ul>
+<p class="notes-l">Linha do hk</p><textarea id="n-C1" placeholder="..."></textarea></div>
+</section>
+
+<section class="item" id="C2">
+<h3>C2 · A Figura 44 em hardware <span class="badge b-todo">A registrar</span></h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Digite na ground</th><th>Esperado</th></tr></thead>
+  <tbody>
+    <tr><td><code>mode mission_adsb</code></td><td>ACK; o HK mostra <code>MISSION_ADSB</code>; no log do <code>adsbd</code>, <code>dump1090_start</code></td></tr>
+    <tr><td><code>stream 5</code></td><td>retratos a cada 5 s; <code>TM_TRACKS</code> se algum avião mandar posição (perto da janela)</td></tr>
+    <tr><td>esperar os 600 s</td><td><code>MISSION_DOWNLINK</code> sozinho (OBC-6); roster e estatísticas descem; volta a <code>PRE_TEST</code>; o dump1090 para. Cortável: use <code>mode downlink</code> antes</td></tr>
+    <tr><td><code>mode basic_inter</code></td><td>LED do burn-wire aceso 5 s; volta a <code>PRE_TEST</code> (<code>driven: true</code>)</td></tr>
+    <tr><td><code>mode aocs</code></td><td>volta a <code>PRE_TEST</code> na hora: <code>"lent":false,"why":"aocs_absent"</code></td></tr>
+    <tr><td><code>mode survival</code>, depois <code>mode task_done</code></td><td><code>ENV_SURVIVAL</code> e de volta a <code>PRE_TEST</code></td></tr>
+  </tbody>
+</table></div>
+<p>Anote a latência de cada ACK de <code>SET_MODE</code> (OBC-3), os instantes das transições no log do <code>obcd</code> e quanto o dump1090 leva para subir e para parar depois de cada mudança.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-C2"><label for="c-C2">Todos os modos percorridos, cada transição no log</label></li></ul>
+<p class="notes-l">Latências dos ACK · tempo do dump1090</p><textarea id="n-C2" placeholder="..."></textarea></div>
+</section>
+
+<section class="item" id="C3">
+<h3>C3 · O <code>adsbd</code> segue o modo <span class="badge b-todo">A registrar</span></h3>
+<p>O dump1090 sobe em <code>MISSION_ADSB</code> e para ao sair. Anote o tempo de subida e de parada e a CPU (<code>top</code> na Pi). Em 09/10: 22% de um núcleo.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-C3"><label for="c-C3">dump1090 sobe e para com o modo</label></li></ul>
+<p class="notes-l">Tempos · CPU</p><textarea id="n-C3" placeholder="sobe em ... s; para em ... s; CPU ..%"></textarea></div>
+</section>
+
+<section class="item" id="C4">
+<h3>C4 · O termostato e o burn-wire pelo ar <span class="badge b-todo">A registrar</span></h3>
+<p>Repita o A5 e o A7 com a ground no PC, em vez da <code>gs_cli</code> na Pi: o resultado precisa ser o mesmo. Para o A5, suba o <code>obcd</code> com os limites de bancada (<code>-o heater_on_below_ccel=2600 -o heater_off_above_ccel=2800</code>) e volte aos de voo depois.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-C4"><label for="c-C4">Termostato e pulso iguais aos do bloco A</label></li></ul>
+<p class="notes-l">Diferenças</p><textarea id="n-C4" placeholder="..."></textarea></div>
+</section>
+
+<section class="item" id="C5">
+<h3>C5 · O INA219 com o rádio transmitindo <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Prova</b> se o rádio A e o INA219 no mesmo trilho de 3,3 V (pinos 1 e 6) interferem. Compare o <code>current_ma</code> e o <code>battery_mv</code> do <code>hk</code> com o rádio parado e durante um <code>stream 5</code> ou uma sequência de pings. Em 7,4 V com a carga fixa, a variação deve ficar dentro do ruído observado no A3. Se não ficar, anote: na placa o INA219 e o rádio estão em ramos de alimentação diferentes.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-C5"><label for="c-C5">Leitura estável com o rádio transmitindo</label></li></ul>
+<p class="notes-l">Parado × transmitindo</p><textarea id="n-C5" placeholder="parado: ... mV, ... mA; transmitindo: ... mV, ... mA"></textarea></div>
+</section>
+
+<section class="item" id="C6">
+<h3>C6 · O tempo ligado: a temperatura do SoC <span class="badge b-todo">A registrar</span></h3>
+<p>Ao fim do bloco, o <code>hk</code> traz <code>temp_soc_ccel</code> com a Pi rodando <code>ttcd</code>, <code>obcd</code>, <code>adsbd</code> e dump1090. Em 09/10, 46 °C. Anote o valor.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-C6"><label for="c-C6"><code>temp_soc_ccel</code> anotada</label></li></ul>
+<p class="notes-l">Valor</p><textarea id="n-C6" placeholder="..."></textarea></div>
+</section>
+<p>Pare tudo: <kbd>Ctrl+C</kbd> nas três janelas da Pi, <code>quit</code> na ground.</p>
+
+<h2 id="blocod"><span class="n">11</span>Bloco D · Extras</h2>
+<p class="small">Na ordem em que se cortam: D3 primeiro, depois D2. O D1 está adiado.</p>
+
+<section class="item" id="D1">
+<h3>D1 · O burn-wire de verdade, numa réplica (P2) <span class="badge b-todo">Adiado</span></h3>
+<div class="callout warn"><p><b>Adiado (05/11).</b> O burn-wire real ainda não é possível nesta bancada. Fica para depois: não monte a réplica nem rode as duas rodadas. A decisão sobre o R2 do OBC (P2) continua aberta. Os pulsos no LED (A7, C4) seguem valendo.</p></div>
+<p class="why"><b>Por quê.</b> A placa de antenas tem o circuito do ensaio do CDR (220 Ω na base do TIP120, 10 kΩ de pull-down), mas a placa do OBC põe 4,7 kΩ em série antes dele. Pela conta, isso derruba a corrente que o TIP120 garante de ~1 A para ~0,25 A. Esta medida decide se o R2 do OBC passa a 470 Ω.</p>
+<p>Com a Pi desligada, tire o LED do GPIO22 e monte a réplica: GPIO22 (pino 15) → R<sub>OBC</sub> → 220 Ω → base do TIP120; 10 kΩ da base ao emissor; emissor ao GND da Pi (pino 14) e ao − da fonte; a fonte em <b>5,0 V com limite de 1,5 A</b>, o + numa ponta do NiCr, a outra no coletor, com o multímetro em série na escala de 10 A; um pedaço de nylon encostado no NiCr.</p>
+<p>O caminho de 1 A vai por garras jacaré, não pelas trilhas da protoboard. O NiCr passa de 250 °C: longe de fios e da protoboard. Duas rodadas, mudando só o R<sub>OBC</sub>; em cada uma, na ground, <code>mode basic_inter</code>:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>R<sub>OBC</sub></th><th>Representa</th><th>Esperado pela conta</th></tr></thead>
+  <tbody>
+    <tr><td>4,7 kΩ</td><td>a placa do OBC como está</td><td>bem menos de 1 A (o datasheet garante ~0,25 A)</td></tr>
+    <tr><td>470 Ω</td><td>a correção proposta</td><td>~1 A, como no ensaio do CDR; o nylon corta</td></tr>
+  </tbody>
+</table></div>
+<p>Anote a corrente, a tensão coletor–emissor (~1 V é saturado; 3 a 4 V, a base limita), se o nylon cortou e em quanto tempo. Se sobrar tempo, repita os 470 Ω com o pulso do CDR (<code>-o burnwire_ms=2000</code>).</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-D1"><label for="c-D1">Adiado: nada a registrar nesta sessão</label></li></ul>
+<p class="notes-l">4,7 kΩ · 470 Ω</p><textarea id="n-D1" placeholder="4,7k: ... A, VCE ... V, cortou? ...; 470: ... A, VCE ... V, cortou em ... s"></textarea></div>
+</section>
+
+<section class="item" id="D2">
+<h3>D2 · A corrente do RA-02 a 14 dBm <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Por quê.</b> A Tabela 13 do CDR conta 110 mA a 3,3 V para o RA-02. A 14 dBm e 80 cm o receptor fica perto da saturação: afaste a ESP32 para <b>3 m ou mais</b> (o cabo USB longo).</p>
+<div class="callout warn"><p><b>Cuidado com o pino 1.</b> O INA219 e o rádio A dividem o pino 1. Abrir o fio do pino 1 derruba a alimentação do INA219 também. Ponha o multímetro em série <b>só no jumper do 3,3 V do rádio A</b>, entre o trilho e o módulo, e deixe o INA219 no trilho.</p></div>
+<div class="cmd"><pre><code>make bench-per SPLIT=1 GS=esp32 ESP32_PORT=/dev/ttyUSB0 POWER=14 TTCD_CONF=flight/conf/obc-v2/ttcd.conf</code></pre></div>
+<p>Anote a corrente em recepção (parado, entre frames) e o pico em transmissão (função MAX, ou resistor de 1 Ω no osciloscópio: 1 mV = 1 mA). Referências do datasheet, no PA_BOOST: 87 mA a +17 dBm, 120 mA a +20 dBm, ~11 mA em recepção. Se o rádio reiniciar com o multímetro em série, use o resistor de 1 Ω. De quebra sai um ponto de PER a 14 dBm.</p>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-D2"><label for="c-D2">Corrente em RX e pico em TX; PER a 14 dBm</label></li></ul>
+<p class="notes-l">Valores</p><textarea id="n-D2" placeholder="RX ... mA; pico TX ... mA; PER ..."></textarea></div>
+</section>
+
+<section class="item" id="D3">
+<h3>D3 · Os daemons como serviços (opcional) <span class="badge b-todo">A registrar</span></h3>
+<p class="why"><b>Por quê.</b> Os <code>.service</code> nunca rodaram na Pi: usuário <code>gama</code>, <code>DevicePolicy</code>, <code>ProtectSystem</code>, watchdog. Com os rádios a 3 m (o serviço transmite a 14 dBm). <span class="where pc">no PC</span></p>
+<div class="cmd"><pre><code>ssh pi@gamapi.local "sudo rm -f /etc/gama/ttcd.conf /etc/gama/obcd.conf /etc/gama/adsbd.conf"
+make pi-install CONF_DIR=flight/conf/obc-v2
+ssh pi@gamapi.local "cat /etc/gama/ttcd.conf /etc/gama/obcd.conf"
+make pi-service-enable pi-obcd-enable pi-adsbd-enable
+ssh pi@gamapi.local "systemctl status ttcd obcd adsbd --no-pager"
+ssh pi@gamapi.local 'sudo kill -STOP $(pidof obcd)'    # o watchdog: em 10 s o systemd mata e reinicia</code></pre></div>
+<p>Um <code>ping 3</code> da ground confirma o enlace, e o <code>hk</code> traz V, I e T. Confira o reinício com <code>journalctl -u obcd -n 20 --no-pager</code>. No fim, devolva a Pi à bancada:</p>
+<div class="cmd"><pre><code>make pi-service-stop pi-obcd-stop pi-adsbd-stop
+ssh pi@gamapi.local "sudo systemctl disable ttcd obcd adsbd"</code></pre></div>
+<div class="check-zone"><ul class="check"><li><input type="checkbox" id="c-D3"><label for="c-D3">Serviços ativos, watchdog reiniciou o <code>obcd</code>, tudo desabilitado no fim</label></li></ul>
+<p class="notes-l">Observações</p><textarea id="n-D3" placeholder="..."></textarea></div>
+</section>
+
+<h2 id="fim"><span class="n">12</span>Trazer e anotar</h2>
+<p><span class="where pc">no PC</span></p>
+<div class="cmd"><pre><code>make pi-fetch                         # os logs que ficaram só na Pi (blocos A, C e D)
+ls docs/vv/bancada/$(date +%F)/
+cp docs/vv/bancada/modelo-notas-2026-11.md docs/vv/bancada/$(date +%F)/notas.md
+nmcli con down bancada-ap</code></pre></div>
+<p>Os logs dos passos de rádio do bloco B já estão no PC (os dois lados do passo). Preencha o <code>notas.md</code> com o que os logs não contam: a montagem, os números, o que deu errado; o botão <b>Exportar anotações</b> baixa as notas desta página. Depois atualize a tabela de progresso de <code>docs/vv/bancada/README.md</code>. Ou me chame: leio os logs, faço a análise de cada teste e preparamos o commit da evidência.</p>
+<ul class="check">
+  <li><input type="checkbox" id="f-logs"><label for="f-logs">Logs no PC, <code>notas.md</code> escrita</label></li>
+  <li><input type="checkbox" id="f-off"><label for="f-off">Tudo desligado: fonte da carga, Pi (<code>sudo shutdown -h now</code> antes de tirar a energia), ponto de acesso</label></li>
+</ul>
+
+<h2 id="problemas"><span class="n">13</span>Se algo der errado</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Sintoma</th><th>Causa provável</th><th>O que fazer</th></tr></thead>
+  <tbody>
+    <tr><td><code>Could not resolve hostname gamapi.local</code></td><td>a Pi não entrou na <code>gama-bancada</code></td><td>seção 5: <code>iw dev wlp2s0 station dump</code>; se não estiver, o hotspot do celular</td></tr>
+    <tr><td>ssh caiu no meio de uma rodada</td><td>rede</td><td>no tmux nada se perdeu: <code>ssh -t pi@gamapi.local tmux new -A -s bench</code>. Num passo do <code>SPLIT=1</code>, o <code>pkill</code> do <code>ttcd</code> pode não ter rodado: <code>ssh pi@gamapi.local pgrep -a ttcd</code></td></tr>
+    <tr><td><code>a ttcd is already running on pi@…</code></td><td>um <code>ttcd</code> ficou de pé na Pi</td><td><code>ssh pi@gamapi.local pkill -x ttcd</code></td></tr>
+    <tr><td><code>Permission denied: '/dev/ttyUSB0'</code></td><td>sem o grupo da porta serial</td><td>no PC (Arch): <code>sudo usermod -aG uucp $USER</code> e entre de novo</td></tr>
+    <tr><td><code>/dev/ttyUSB0</code> não aparece</td><td>cabo só de carga</td><td>troque o cabo; <code>dmesg | tail</code> deve mostrar CP210x ou CH340</td></tr>
+    <tr><td>a linha <code>boot</code> diz que o rádio não respondeu</td><td>fio solto entre o RA-02 e a DevKit</td><td>desligue; confira 3V3, GND, NSS (GPIO5) e MISO (GPIO19)</td></tr>
+    <tr><td>a ESP32 transmite, o satélite responde, mas a ESP32 não recebe nada</td><td>DIO0 no GPIO27 com firmware de DIO0=26</td><td><code>boot</code> deve dizer <code>dio0=27</code>; se não, seção 6.2 e <code>make esp32-flash</code></td></tr>
+    <tr><td><code>unexpected RegVersion</code> ou <code>radio_open_failed</code> no <code>ttcd</code></td><td>fio solto no rádio A</td><td>desligue a Pi; confira contra a tabela da seção 3.1</td></tr>
+    <tr><td>Depois do B2 o rádio A responde ao <code>RegVersion</code> mas não recebe</td><td>RESET e DIO0 trocados, ou <code>TTCD_CONF</code> esquecido</td><td>DIO0 no pino 7, RESET no 22; o log do passo deve citar <code>flight/conf/obc-v2/ttcd.conf</code></td></tr>
+    <tr><td><code>/dev/i2c-1</code> ausente</td><td>I²C não habilitado</td><td><code>raspi-config nonint do_i2c 0</code> e reinício</td></tr>
+    <tr><td>Endereço 0x40 ausente</td><td>VCC, GND, SDA, SCL; A0/A1</td><td>confira os pinos 1, 6, 3 e 5</td></tr>
+    <tr><td>Tensão certa, corrente proporcionalmente errada</td><td>valor do shunt em mΩ</td><td><code>-o ina219_shunt_mohm=…</code></td></tr>
+    <tr><td>Corrente negativa</td><td>VIN+ e VIN− trocados</td><td>inverta</td></tr>
+    <tr><td>DS18B20 ausente</td><td>pino 11, pull-up DQ–3V3, pinagem do sensor, overlay do 1-Wire</td><td>seção 6.1; <code>ls /sys/bus/w1/devices/</code></td></tr>
+    <tr><td>LED não acende</td><td>polaridade, BCM contra pino físico, <code>driven:false</code></td><td>evento <code>output</code> no log; o ânodo vai ao resistor, o cátodo ao GND</td></tr>
+    <tr><td><code>Device or resource busy</code></td><td>outro daemon, overlay ou programa na linha</td><td><code>pgrep -a -x 'obcd|ttcd|adsbd'</code>; pare os serviços</td></tr>
+    <tr><td>há ACK mas o modo não muda</td><td>o ACK confirma a entrega ao OBC</td><td>procure <code>event_refused</code> e o modo atual no log do <code>obcd</code></td></tr>
+    <tr><td><code>ipc_down</code></td><td>sockets diferentes ou <code>ttcd</code> parado</td><td>o mesmo <code>/tmp/ttec-bench.sock</code> nos dois</td></tr>
+  </tbody>
+</table></div>
+
+<footer>
+  <p>Preparado em 05/11/2026, com apoio do Claude Code, a partir do <a href="2026-11-03-roteiro-bancada.html">roteiro de 03/11</a>, do guia de bancada do OBC e das figuras de ligação da ground e do OBC. Substitui o roteiro de 03/11 para a sessão; o de 03/11 fica como registro.</p>
+  <p>Relacionados: o <a href="2026-10-05-roteiro-testes-raspberry.html">roteiro de outubro</a>, as <a href="2026-11-03-pendencias-placas.html">pendências das placas</a> e o <a href="2026-11-03-status-firmware.html">status do firmware</a>.</p>
+</footer>
+
+</main>
+</div>
+<script>
+(function () {
+  var KEY = 'roteiro-bancada-2026-11-05:';
+  var fields = document.querySelectorAll('ul.check input[type=checkbox], .item textarea');
+  var boxes = document.querySelectorAll('ul.check input[type=checkbox]');
+  function load(id) { try { return localStorage.getItem(KEY + id); } catch (e) { return null; } }
+  function save(id, v) { try { localStorage.setItem(KEY + id, v); } catch (e) {} }
+  function progress() {
+    var done = 0;
+    for (var i = 0; i < boxes.length; i++) { if (boxes[i].checked) { done++; } }
+    var p = document.getElementById('progress');
+    if (p) { p.textContent = done + ' de ' + boxes.length + ' conferências feitas'; }
+    var items = document.querySelectorAll('.item');
+    for (var k = 0; k < items.length; k++) {
+      var cs = items[k].querySelectorAll('input[type=checkbox]'), all = true;
+      for (var m = 0; m < cs.length; m++) { if (!cs[m].checked) { all = false; } }
+      var b = items[k].querySelector('.badge');
+      if (b) { b.textContent = all ? 'Registrado' : 'A registrar'; b.className = 'badge ' + (all ? 'b-ok' : 'b-todo'); }
+    }
+  }
+  for (var i = 0; i < fields.length; i++) {
+    (function (el) {
+      var v = load(el.id);
+      if (v !== null) { if (el.type === 'checkbox') { el.checked = v === '1'; } else { el.value = v; } }
+      el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', function () {
+        save(el.id, el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value); progress();
+      });
+    })(fields[i]);
+  }
+  progress();
+  var blocks = document.querySelectorAll('.cmd');
+  for (var j = 0; j < blocks.length; j++) {
+    (function (block) {
+      var btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'copy'; btn.textContent = 'copiar';
+      btn.addEventListener('click', function () {
+        var text = block.querySelector('code').innerText;
+        function done(ok) { btn.textContent = ok ? 'copiado' : 'selecionado'; setTimeout(function () { btn.textContent = 'copiar'; }, 1500); }
+        function select() {
+          var r = document.createRange(); r.selectNodeContents(block.querySelector('code'));
+          var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done(false);
+        }
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () { done(true); }, select);
+          } else { select(); }
+        } catch (e) { select(); }
+      });
+      block.appendChild(btn);
+    })(blocks[j]);
+  }
+  document.getElementById('export-notes').addEventListener('click', function () {
+    var data = { roteiro: 'Bancada 2026-11 (revisado 05/11)', exportado: new Date().toISOString(), testes: [] };
+    var items = document.querySelectorAll('.item');
+    for (var i = 0; i < items.length; i++) {
+      var t = items[i].querySelector('textarea'), c = items[i].querySelectorAll('input[type=checkbox]'), ok = true;
+      for (var m = 0; m < c.length; m++) { if (!c[m].checked) { ok = false; } }
+      data.testes.push({ id: items[i].id, registrado: ok, notas: t ? t.value : '' });
+    }
+    var url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    var a = document.createElement('a'); a.href = url; a.download = 'bancada-2026-11-anotacoes.json'; a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  });
+})();
+</script>
+</body>
+</html>
