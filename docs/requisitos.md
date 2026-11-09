@@ -31,12 +31,25 @@ falta para garanti-lo.
 | `PENDENTE` | nada feito |
 | `OUTRA EQUIPE` | fora deste repositório — o comentário diz o que o TT&C precisa fornecer |
 
-**Nenhum requisito está `VERIFICADO` hoje** — nada foi medido em RF ainda.
-O que existe: o codec compartilhado e o lado da ground do protocolo
-(`common/`), o `ttcd` completo com driver do SX1278 (`flight/`), a simulação
-de canal e o teste de integração, a ground de bancada (`tools/gs_cli`), o
-protótipo `adsb_capture.c`, os ADRs e os budgets. `flight/adsbd/` e
-`ground/` ainda não começaram.
+**Nenhum requisito está `VERIFICADO` hoje.** A única evidência em hardware é
+a bancada de 07–09/10 (`docs/vv/bancada/`): os rádios a 80 cm, o SDR e o
+`adsbd`, ainda no protocolo v1.
+
+**Atenção, 03/11/2026:** o estado de cada requisito abaixo ainda é o de
+19/09, com acréscimos pontuais (HLR-EPS-04). Desde então o repositório
+ganhou:
+
+- o `adsbd` (fase 3);
+- o protocolo v2 e o TT&C dirigido pelo modo;
+- o `obcd`, o software do OBC, agora deste repositório, e com ele os
+  requisitos do OBC marcados `OUTRA EQUIPE`;
+- a ground station na ESP32;
+- o contrato I²C com o AOCS.
+
+Tudo isso está verificado em software (38 suítes) e não na bancada. A
+revisão requisito a requisito vem depois da bancada de novembro, com a
+evidência dela (PLANO, Fechamento). Para o estado corrente, veja
+`AGENTS.md` e `docs/relatorios/2026-11-03-status-firmware.html`.
 
 ## Sumário
 

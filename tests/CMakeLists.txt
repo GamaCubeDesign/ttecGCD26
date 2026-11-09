@@ -141,6 +141,11 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME budget_matches_adrs
              COMMAND ${Python3_EXECUTABLE}
                      ${CMAKE_SOURCE_DIR}/tools/analysis/lora_budget.py --check)
+    # The flight configuration against the boards' layouts in hardware/:
+    # every wire the firmware counts on, from the Pi's GPIO to the chip.
+    add_test(NAME boards_match_conf
+             COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/analysis/board_check.py
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
     # The ground's ADS-B estimator, with its own tests.
     add_test(NAME ground_aeronaves
              COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests
@@ -152,6 +157,11 @@ if(Python3_Interpreter_FOUND)
     # The ESP32 ground station's serial bridge, against a fake board on a pty.
     add_test(NAME gs_serial
              COMMAND ${Python3_EXECUTABLE} -m unittest test_gs_serial
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
+    # The ground's browser interface: its state, the commands the page may
+    # send, and the server against a fake ground process.
+    add_test(NAME gs_web
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_gs_web
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
     # A real bench step (run_step.sh, ping.txt) with the real ttcd and the
     # real ground on the UDP radio: the ground's JSON as the scripts read it.

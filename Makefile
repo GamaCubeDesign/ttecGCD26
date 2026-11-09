@@ -77,7 +77,7 @@ vectors: build ## Print the golden wire vectors — only on a deliberate version
 
 ##@ Analysis
 
-.PHONY: budget budget-check requirements toa
+.PHONY: budget budget-check requirements toa boards
 
 budget: ## Link and data budget tables (tools/analysis/lora_budget.py)
 	$(PYTHON) tools/analysis/lora_budget.py
@@ -88,6 +88,9 @@ budget-check: ## Check the figures the ADRs quote (make test runs it too)
 requirements: ## Check that docs/requisitos.md quotes the rules verbatim (pdftotext)
 	$(PYTHON) tools/analysis/check_requirements.py
 
+boards: ## Check the flight configuration against the boards' layouts, wire by wire (make test runs it too)
+	$(PYTHON) tools/analysis/board_check.py
+
 toa: ## Time on air, measured against the model, in a ttcd log: LOG=file
 	@test -f '$(LOG)' || { echo "toa: no ttcd log at $(LOG); name one with LOG=<file>" >&2; exit 1; }
 	$(PYTHON) tools/analysis/toa_from_log.py $(LOG)
@@ -96,7 +99,7 @@ toa: ## Time on air, measured against the model, in a ttcd log: LOG=file
 
 # On the Pi the bench drives the radios; anywhere else the UDP radio
 # simulates the link between two processes on the same machine.
-RADIO      ?= $(if $(ON_PI),sx1278,udp)
+RADIO      ?= $(if $(or $(ON_PI),$(SPLIT)),sx1278,udp)
 
 # A run on the radios is test evidence (HLR-COMM-01, HLR-COMM-03), so its
 # logs go where the Design Package collects them, one directory per day. A
@@ -141,7 +144,11 @@ endif
 
 # $(call bench-step,COMMANDS[,NAME[,ttcd options[,gs_cli options]]]): one
 # step, from tools/bench/COMMANDS.txt, logged as $(BENCH_DIR)/TIME-NAME-*.jsonl.
-bench-step  = @TTCD_CMD='$(TTCD_CMD) $(3)' GS_CMD='$(GS_CMD) $(4)' SOCK='$(SOCK)' \
+# SPLIT=1: ttcd runs on the Pi (PI_HOST, tree in PI_DIR, after make pi-sync and
+# a build there) and the ground on this machine's USB: the bench of the ESP32
+# ground station on its own, with GS=esp32. run_step.sh copies ttcd's log back.
+bench-step  = @TTCD_SSH='$(if $(SPLIT),$(PI_HOST))' TTCD_DIR='$(PI_DIR)' \
+              TTCD_CMD='$(TTCD_CMD) $(3)' GS_CMD='$(GS_CMD) $(4)' SOCK='$(SOCK)' \
               tools/bench/run_step.sh tools/bench/$(1).txt $(BENCH_DIR)/$(BENCH_TIME)-$(or $(2),$(1))
 
 .PHONY: bench bench-config bench-ping bench-toa bench-per bench-rates bench-lost-ack \
@@ -181,6 +188,23 @@ bench-ttcd: build radio-a-free ## By hand, terminal 1: ttcd on radio A, its log 
 bench-gs: build ## By hand, terminal 2: gs_cli on radio B, commands typed in; quit leaves
 	@mkdir -p $(BENCH_DIR)
 	$(GS_CMD) | tee -i -a $(BENCH_DIR)/manual-ground.jsonl
+
+# The ground's browser interface (ground/host/gs_web.py), on this machine:
+# the ESP32 on ESP32_PORT by default, gs_cli on the UDP radio with UDP=1, or a
+# recorded ground log with REPLAY=<file.jsonl> (SPEED=10 plays it faster).
+# POWER is the ground's dBm, as in the bench; WEB_HOST=0.0.0.0 opens the page
+# to the network (there is no password).
+WEB_HOST   ?= 127.0.0.1
+WEB_PORT   ?= 8080
+SPEED      ?= 1
+GS_WEB      = $(PYTHON) ground/host/gs_web.py --host $(WEB_HOST) --port $(WEB_PORT) \
+              $(if $(REPLAY),--replay '$(REPLAY)' --speed $(SPEED),$(if $(UDP),--udp,--serial $(ESP32_PORT) --power $(POWER)))
+
+.PHONY: gs-web
+
+gs-web: $(if $(UDP),build) ## The ground's browser page: ESP32_PORT=/dev/ttyUSB0, or UDP=1, or REPLAY=<log>
+	@echo "gs-web: open http://$(WEB_HOST):$(WEB_PORT)"
+	$(GS_WEB)
 
 # One radio, one owner: a ttcd already running — the service, or make
 # bench-ttcd in another terminal — holds radio A (or the UDP port).

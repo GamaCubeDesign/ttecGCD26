@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 · Estação de solo</title>
+<style>
+:root{
+  --bg:#f4f3ee; --surface:#fff; --surface-2:#eceae2; --fg:#1b1c1f; --muted:#5f5e59; --line:#d6d2c7;
+  --accent:#1d5fc4; --accent-soft:#e3ecfa; --ok:#17794a; --ok-soft:#dff1e7;
+  --warn:#8f5a00; --warn-soft:#faefd6; --bad:#b0291f; --bad-soft:#fae4e0;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+  --fs:16px; color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#121316;--surface:#1b1d21;--surface-2:#24272c;--fg:#e8e6e1;--muted:#a3a19b;--line:#363940;
+    --accent:#82b2ff;--accent-soft:#1b2a42;--ok:#6fd49d;--ok-soft:#14301f;--warn:#f1bb5e;--warn-soft:#352a0e;
+    --bad:#ff8c82;--bad-soft:#3b1c1a}
+}
+body.big{--fs:20px}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:var(--fs)/1.5 var(--sans)}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:12px 18px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5}
+header h1{font-size:1.15em;margin:0;flex:1 1 220px}
+header h1 small{display:block;font-weight:400;color:var(--muted);font-size:.72em}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;font-weight:650;font-size:.82em;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.pill i{width:9px;height:9px;border-radius:50%;background:currentColor}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
+.tools{display:flex;gap:8px}
+.tbtn{font:inherit;font-size:.8em;padding:5px 11px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.tbtn:hover{border-color:var(--accent);color:var(--accent)}
+.tbtn[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+main{max-width:1280px;margin:0 auto;padding:16px 16px 60px;display:grid;gap:14px;grid-template-columns:repeat(12,1fr)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.card h2{margin:0 0 10px;font-size:.78em;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:650}
+.c-modes{grid-column:span 7} .c-cmd{grid-column:span 5}
+.c-tel{grid-column:span 12} .c-link{grid-column:span 5} .c-log{grid-column:span 7}
+@media (max-width:980px){.c-modes,.c-cmd,.c-link,.c-log{grid-column:span 12}}
+.banner{grid-column:span 12;padding:10px 14px;border-radius:10px;background:var(--bad-soft);color:var(--bad);font-weight:600;display:none}
+.banner.show{display:block} .banner.demo{background:var(--warn-soft);color:var(--warn)}
+/* telemetry */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface-2)}
+.tile .l{font-size:.74em;color:var(--muted)} .tile .v{font-size:1.75em;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
+.tile .v small{font-size:.5em;font-weight:500;color:var(--muted);margin-left:3px}
+.tile.nodata .v{color:var(--muted)} .tile.stale{opacity:.55}
+.tile .s{font-size:.7em;color:var(--muted);min-height:1.2em}
+/* modes */
+.modes svg{width:100%;height:auto;display:block}
+.modes .node rect{fill:var(--surface-2);stroke:var(--line);stroke-width:1.5;transition:fill .2s}
+.modes .node text{fill:var(--fg);font:600 14px var(--sans)} .modes .node .sub{font:12px var(--sans);fill:var(--muted)}
+.modes .node{cursor:pointer} .modes .node:hover rect{stroke:var(--accent)}
+.modes .node.cur rect{fill:var(--accent);stroke:var(--accent)} .modes .node.cur text,.modes .node.cur .sub{fill:#fff}
+.modes .node.arm rect{stroke-dasharray:5 3} .modes .node.arm.on rect{stroke:var(--bad)}
+.modes .edge{stroke:var(--line);stroke-width:2;fill:none}
+.since{font-size:.85em;color:var(--muted);margin-top:4px}
+/* commands */
+.grp{margin:0 0 12px} .grp>b{display:block;font-size:.74em;color:var(--muted);margin-bottom:5px;font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:7px}
+.btn{font:inherit;font-size:.88em;padding:7px 13px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)} .btn:disabled{opacity:.45;cursor:not-allowed}
+.arm{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;border:1px dashed var(--bad);color:var(--bad);font-size:.88em;margin-bottom:12px}
+.arm.on{background:var(--bad-soft)}
+.toast{font-size:.85em;min-height:1.4em;color:var(--muted)} .toast.bad{color:var(--bad)} .toast.ok{color:var(--ok)}
+/* link */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:.92em} .kv span:nth-child(odd){color:var(--muted)}
+canvas{width:100%;height:96px;display:block;margin:8px 0 2px}
+.leg{font-size:.76em;color:var(--muted);display:flex;gap:14px}
+/* log */
+.logw{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:9px}
+.log{width:100%;border-collapse:collapse;font:.8em/1.35 var(--mono)}
+.log td{padding:4px 9px;border-bottom:1px solid var(--line);vertical-align:top} .log tr:last-child td{border-bottom:0}
+.log td:first-child{color:var(--muted);white-space:nowrap}
+.log .ok td:last-child{color:var(--ok)} .log .bad td:last-child{color:var(--bad);font-weight:600} .log .mode td:last-child{color:var(--accent);font-weight:700} .log .cmd td:last-child{color:var(--warn)}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">GCD26 · Estação de solo<small id="sub"></small></h1>
+  <span class="pill" id="p-contact"><i></i><span>—</span></span>
+  <span class="pill" id="p-radio"></span>
+  <span class="tools">
+    <button class="tbtn" id="b-lang" type="button"></button>
+    <button class="tbtn" id="b-big" type="button" aria-pressed="false"></button>
+  </span>
+</header>
+<main>
+  <div class="banner" id="banner"></div>
+
+  <section class="card c-tel"><h2 data-t="tel"></h2><div class="tiles" id="tiles"></div></section>
+
+  <section class="card c-modes modes"><h2 data-t="modes"></h2>
+    <svg viewBox="0 0 640 330" id="modesvg" role="img"></svg>
+    <div class="since" id="since"></div>
+  </section>
+
+  <section class="card c-cmd"><h2 data-t="cmds"></h2>
+    <label class="arm" id="armbox"><input type="checkbox" id="arm"><span data-t="arm"></span></label>
+    <div class="grp"><b data-t="g_link"></b><div class="row">
+      <button class="btn" data-cmd="ping 3">ping ×3</button>
+      <button class="btn" data-cmd="hk">hk</button>
+      <button class="btn" data-cmd="stat">stat</button>
+      <button class="btn" data-cmd="roster">roster</button>
+      <button class="btn" data-cmd="time" data-t="b_time"></button>
+    </div></div>
+    <div class="grp"><b data-t="g_rate"></b><div class="row">
+      <button class="btn" data-cmd="rate safe">safe</button>
+      <button class="btn" data-cmd="rate nominal">nominal</button>
+      <button class="btn" data-cmd="rate fast">fast</button>
+    </div></div>
+    <div class="grp"><b data-t="g_stream"></b><div class="row">
+      <button class="btn" data-cmd="stream 5" data-t="b_stream"></button>
+      <button class="btn" data-cmd="stop" data-t="b_stop"></button>
+    </div></div>
+    <div class="toast" id="toast"></div>
+  </section>
+
+  <section class="card c-link"><h2 data-t="link"></h2>
+    <div class="kv" id="kv"></div>
+    <canvas id="spark" width="560" height="192"></canvas>
+    <div class="leg"><span style="color:var(--accent)">● RSSI (dBm)</span><span style="color:var(--ok)">● SNR (dB)</span></div>
+  </section>
+
+  <section class="card c-log"><h2 data-t="events"></h2>
+    <div class="logw"><table class="log"><tbody id="log"></tbody></table></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var T = {
+    pt: { tel:'Telemetria do satélite', modes:'Modos do OBC (Figura 44)', cmds:'Comandos', link:'Enlace', events:'Eventos',
+      arm:'Armar comandos que acionam o burn-wire ou emprestam o I²C ao AOCS', g_link:'Enlace e telemetria', g_rate:'Taxa do enlace',
+      g_stream:'Retratos de ADS-B', b_time:'sincronizar hora', b_stream:'stream 5 s', b_stop:'parar',
+      contact:'EM CONTATO', nocontact:'SEM CONTATO', wait:'AGUARDANDO', since:'neste modo há', never:'sem telemetria ainda',
+      battery:'Bateria', current:'Corrente', tbat:'Temp. bateria', tsoc:'Temp. processador', uptime:'Tempo ligado', adsb:'Mensagens ADS-B',
+      nodata:'sem dado', age:'há', rssi:'RSSI', snr:'SNR', lastframe:'último quadro', acks:'ACKs ok / falhos', latency:'latência média',
+      failed:'comandos que falharam', badcrc:'quadros com CRC ruim', stat:'aeronaves / mensagens', tracks:'registros no último retratos',
+      demo:'MODO DEMONSTRAÇÃO: os comandos não chegam a nenhum satélite.', sent:'enviado', big:'projetar', lang:'PT',
+      m_pre:'espera de comandos', m_basic:'burn-wire (5 s)', m_aocs:'empresta o I²C', m_adsb:'decodifica ADS-B', m_down:'envia o resumo', m_surv:'só o termostato' },
+    en: { tel:'Satellite telemetry', modes:'OBC modes (Figure 44)', cmds:'Commands', link:'Link', events:'Events',
+      arm:'Arm commands that fire the burn-wire or lend the I²C bus to the AOCS', g_link:'Link and telemetry', g_rate:'Link rate',
+      g_stream:'ADS-B snapshots', b_time:'sync time', b_stream:'stream 5 s', b_stop:'stop',
+      contact:'IN CONTACT', nocontact:'NO CONTACT', wait:'WAITING', since:'in this mode for', never:'no telemetry yet',
+      battery:'Battery', current:'Current', tbat:'Battery temp.', tsoc:'Processor temp.', uptime:'Uptime', adsb:'ADS-B messages',
+      nodata:'no data', age:'', rssi:'RSSI', snr:'SNR', lastframe:'last frame', acks:'ACKs ok / failed', latency:'mean latency',
+      failed:'commands that failed', badcrc:'frames with a bad CRC', stat:'aircraft / messages', tracks:'records in the last snapshot',
+      demo:'DEMO MODE: commands reach no satellite.', sent:'sent', big:'projector', lang:'EN',
+      m_pre:'waiting for commands', m_basic:'burn-wire (5 s)', m_aocs:'lends the I²C bus', m_adsb:'decodes ADS-B', m_down:'sends the summary', m_surv:'thermostat only' },
+    es: { tel:'Telemetría del satélite', modes:'Modos del OBC (Figura 44)', cmds:'Comandos', link:'Enlace', events:'Eventos',
+      arm:'Armar comandos que activan el burn-wire o prestan el I²C al AOCS', g_link:'Enlace y telemetría', g_rate:'Velocidad del enlace',
+      g_stream:'Instantáneas de ADS-B', b_time:'sincronizar hora', b_stream:'stream 5 s', b_stop:'detener',
+      contact:'EN CONTACTO', nocontact:'SIN CONTACTO', wait:'ESPERANDO', since:'en este modo hace', never:'aún sin telemetría',
+      battery:'Batería', current:'Corriente', tbat:'Temp. batería', tsoc:'Temp. procesador', uptime:'Tiempo encendido', adsb:'Mensajes ADS-B',
+      nodata:'sin dato', age:'hace', rssi:'RSSI', snr:'SNR', lastframe:'último cuadro', acks:'ACKs ok / fallidos', latency:'latencia media',
+      failed:'comandos que fallaron', badcrc:'cuadros con CRC malo', stat:'aeronaves / mensajes', tracks:'registros en la última instantánea',
+      demo:'MODO DEMO: los comandos no llegan a ningún satélite.', sent:'enviado', big:'proyector', lang:'ES',
+      m_pre:'esperando comandos', m_basic:'burn-wire (5 s)', m_aocs:'presta el I²C', m_adsb:'decodifica ADS-B', m_down:'envía el resumen', m_surv:'solo el termostato' }
+  };
+  var LANGS = ['pt', 'en', 'es'];
+  var lang = 'pt';
+  try { lang = localStorage.getItem('gs-lang') || 'pt'; } catch (e) {}
+  var big = false;
+  var st = null, arrivedAt = 0, toastTimer = null;
+
+  function t(k) { return (T[lang] && T[lang][k]) || T.pt[k] || k; }
+  function $(id) { return document.getElementById(id); }
+  function fmtAge(s) {
+    if (s == null) { return '—'; }
+    s = Math.round(s);
+    if (s < 60) { return s + ' s'; }
+    if (s < 3600) { return Math.floor(s / 60) + ' min ' + (s % 60) + ' s'; }
+    return Math.floor(s / 3600) + ' h ' + Math.floor(s % 3600 / 60) + ' min';
+  }
+  function ago(s) { return (t('age') ? t('age') + ' ' : '') + fmtAge(s); }
+  function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+
+  /* ---- the mode diagram: PRE_TEST is the hub (Figure 44) ---- */
+  var MODES = [
+    { name: 'BASIC_INTERMEDIATE', cmd: 'mode basic_inter', arm: true, sub: 'm_basic', y: 30 },
+    { name: 'ADVANCED_AOCS', cmd: 'mode aocs', arm: true, sub: 'm_aocs', y: 90 },
+    { name: 'MISSION_ADSB', cmd: 'mode mission_adsb', sub: 'm_adsb', y: 150 },
+    { name: 'MISSION_DOWNLINK', cmd: 'mode downlink', sub: 'm_down', y: 210 },
+    { name: 'ENV_SURVIVAL', cmd: 'mode survival', sub: 'm_surv', y: 270 }
+  ];
+  function drawModes() {
+    var cur = st && st.mode, armed = $('arm').checked, h = '';
+    MODES.forEach(function (m) { h += '<path class="edge" d="M210 165 C 270 165, 270 ' + (m.y + 22) + ', 330 ' + (m.y + 22) + '"/>'; });
+    h += '<path class="edge" d="M560 172 C 600 172, 600 232, 560 232" stroke-dasharray="4 3"/>';
+    h += node('PRE_TEST', 'mode task_done', false, 'm_pre', 20, 135, 190, 60, cur === 'PRE_TEST', armed, true);
+    MODES.forEach(function (m) { h += node(m.name, m.cmd, m.arm, m.sub, 330, m.y, 230, 44, cur === m.name, armed, false); });
+    $('modesvg').innerHTML = h;
+    Array.prototype.forEach.call($('modesvg').querySelectorAll('.node'), function (g) {
+      g.addEventListener('click', function () { send(g.getAttribute('data-cmd')); });
+    });
+  }
+  function node(name, cmd, arm, sub, x, y, w, hgt, cur, armed, hub) {
+    var cls = 'node' + (cur ? ' cur' : '') + (arm ? ' arm' : '') + (arm && armed ? ' on' : '');
+    return '<g class="' + cls + '" data-cmd="' + cmd + '"><rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + hgt + '" rx="10"/>' +
+      '<text x="' + (x + 14) + '" y="' + (y + (hub ? 26 : 19)) + '">' + name + (arm ? ' ▲' : '') + '</text>' +
+      '<text class="sub" x="' + (x + 14) + '" y="' + (y + (hub ? 46 : 36)) + '">' + esc(t(sub)) + '</text><title>' + esc(cmd) + '</title></g>';
+  }
+
+  /* ---- telemetry tiles ---- */
+  function tile(label, value, unit, stale) {
+    var nd = value == null;
+    return '<div class="tile' + (nd ? ' nodata' : '') + (stale ? ' stale' : '') + '"><div class="l">' + esc(label) + '</div><div class="v">' +
+      (nd ? '—' : esc(value) + '<small>' + esc(unit) + '</small>') + '</div><div class="s">' + (nd ? esc(t('nodata')) : '') + '</div></div>';
+  }
+  function drawTiles() {
+    var hk = st && st.hk, stale = !!(st && st.hk_age != null && st.hk_age + elapsed() > 35);
+    var f = function (v, d) { return v == null ? null : (v / d).toFixed(d === 1000 ? 2 : 1); };
+    var up = hk && hk.uptime_s != null ? fmtAge(hk.uptime_s) : null;
+    $('tiles').innerHTML =
+      tile(t('battery'), hk && f(hk.battery_mv, 1000), 'V', stale) +
+      tile(t('current'), hk && hk.current_ma, 'mA', stale) +
+      tile(t('tbat'), hk && f(hk.temp_bat_ccel, 100), '°C', stale) +
+      tile(t('tsoc'), hk && f(hk.temp_soc_ccel, 100), '°C', stale) +
+      tile(t('uptime'), up, '', stale) +
+      tile(t('adsb'), hk && hk.adsb_msgs, '', stale);
+  }
+
+  /* ---- link ---- */
+  function elapsed() { return (Date.now() - arrivedAt) / 1000; }
+  function drawLink() {
+    var a = st ? st.acks : { ok: 0, bad: 0, tc_failed: 0, rx_bad: 0 };
+    var last = st && st.rssi.length ? st.rssi[st.rssi.length - 1] : null;
+    var lsnr = st && st.snr.length ? st.snr[st.snr.length - 1] : null;
+    var rows = [
+      [t('lastframe'), st && st.frame_age != null ? ago(st.frame_age + elapsed()) : '—'],
+      [t('rssi') + ' / ' + t('snr'), last == null ? '—' : last + ' dBm / ' + lsnr + ' dB'],
+      [t('acks'), a.ok + ' / ' + a.bad],
+      [t('latency'), a.latency_ms == null ? '—' : a.latency_ms + ' ms'],
+      [t('failed'), a.tc_failed], [t('badcrc'), a.rx_bad]
+    ];
+    if (st && st.stat) { rows.push([t('stat'), st.stat.aircraft + ' / ' + st.stat.msgs_received]); }
+    $('kv').innerHTML = rows.map(function (r) { return '<span>' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span>'; }).join('');
+    spark();
+  }
+  function spark() {
+    var c = $('spark'), g = c.getContext('2d'), W = c.width, H = c.height;
+    var css = getComputedStyle(document.body);
+    g.clearRect(0, 0, W, H);
+    g.strokeStyle = css.getPropertyValue('--line'); g.lineWidth = 1;
+    for (var i = 1; i < 4; i++) { g.beginPath(); g.moveTo(0, H * i / 4); g.lineTo(W, H * i / 4); g.stroke(); }
+    function line(arr, lo, hi, color) {
+      if (!arr || arr.length < 2) { return; }
+      g.strokeStyle = color; g.lineWidth = 3; g.beginPath();
+      arr.forEach(function (v, i) {
+        var x = W * i / (arr.length - 1), y = H - (Math.min(Math.max(v, lo), hi) - lo) / (hi - lo) * (H - 8) - 4;
+        if (i === 0) { g.moveTo(x, y); } else { g.lineTo(x, y); }
+      });
+      g.stroke();
+    }
+    if (st) { line(st.rssi, -120, 0, css.getPropertyValue('--accent')); line(st.snr, -20, 20, css.getPropertyValue('--ok')); }
+  }
+
+  /* ---- log and header ---- */
+  function drawLog() {
+    var rows = (st ? st.log : []).slice().reverse().map(function (e) {
+      var d = new Date(e.t * 1000), tm = d.toLocaleTimeString([], { hour12: false });
+      return '<tr class="' + e.kind + '"><td>' + tm + '</td><td>' + esc(e.text) + '</td></tr>';
+    });
+    $('log').innerHTML = rows.join('');
+  }
+  function drawHeader() {
+    var p = $('p-contact'), cls = 'pill', txt = t('wait');
+    if (st && st.contact === true) { cls += ' ok'; txt = t('contact'); }
+    else if (st && st.contact === false) { cls += ' bad'; txt = t('nocontact'); }
+    p.className = cls; p.lastChild.textContent = txt;
+    var g = st && st.ground && st.ground.radio ? st.ground.radio + ' · ' + (st.ground.profile || '') : (st ? st.source : '');
+    $('p-radio').textContent = g;
+    $('sub').textContent = st ? st.source : '';
+    var b = $('banner');
+    if (st && st.source === 'replay') { b.className = 'banner show demo'; b.textContent = t('demo'); }
+    else if (st && st.error) { b.className = 'banner show'; b.textContent = st.error; }
+    else { b.className = 'banner'; }
+    $('since').textContent = st && st.mode ? t('since') + ' ' + fmtAge(st.mode_age + elapsed()) : t('never');
+  }
+  function labels() {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-t]'), function (el) { el.textContent = t(el.getAttribute('data-t')); });
+    $('b-lang').textContent = t('lang'); $('b-big').textContent = t('big');
+    document.documentElement.lang = lang === 'pt' ? 'pt-BR' : lang;
+  }
+  function render() { drawHeader(); drawTiles(); drawModes(); drawLink(); drawLog(); }
+
+  /* ---- commands ---- */
+  function toast(msg, kind) {
+    var el = $('toast'); el.textContent = msg; el.className = 'toast ' + (kind || '');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.textContent = ''; }, 4000);
+  }
+  function send(cmd) {
+    var armed = $('arm').checked;
+    fetch('/api/cmd', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cmd: cmd, armed: armed }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { toast(j.ok ? '› ' + cmd + ' · ' + t('sent') : cmd + ': ' + j.why, j.ok ? 'ok' : 'bad'); if (j.ok && /basic_inter|aocs/.test(cmd)) { $('arm').checked = false; armChanged(); } })
+      .catch(function () { toast('no connection', 'bad'); });
+  }
+  var armTimer = null;
+  function armChanged() {
+    $('armbox').className = 'arm' + ($('arm').checked ? ' on' : '');
+    clearTimeout(armTimer);
+    if ($('arm').checked) { armTimer = setTimeout(function () { $('arm').checked = false; armChanged(); }, 15000); }
+    drawModes();
+  }
+
+  /* ---- wiring ---- */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-cmd]'), function (b) { if (b.tagName === 'BUTTON') { b.addEventListener('click', function () { send(b.getAttribute('data-cmd')); }); } });
+  $('arm').addEventListener('change', armChanged);
+  $('b-lang').addEventListener('click', function () {
+    lang = LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length];
+    try { localStorage.setItem('gs-lang', lang); } catch (e) {}
+    labels(); render();
+  });
+  $('b-big').addEventListener('click', function () {
+    big = !big; document.body.className = big ? 'big' : ''; $('b-big').setAttribute('aria-pressed', String(big)); render();
+  });
+  function connect() {
+    var es = new EventSource('/events');
+    es.onmessage = function (e) { st = JSON.parse(e.data); arrivedAt = Date.now(); render(); };
+    es.onerror = function () { es.close(); setTimeout(connect, 2000); };
+  }
+  labels(); render(); connect();
+  setInterval(function () { drawHeader(); drawTiles(); drawLink(); }, 1000);
+})();
+</script>
+</body>
+</html>

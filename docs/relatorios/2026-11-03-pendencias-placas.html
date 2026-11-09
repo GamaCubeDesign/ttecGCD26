@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — Pendências das placas (03/11/2026)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+<style>
+/* Acréscimos deste relatório; o bloco acima é o mesmo dos relatórios. */
+.callout.ok{border-color:var(--ok);background:var(--ok-soft)}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px 8px;margin:0 0 18px;scroll-margin-top:12px}
+.item h3{margin:0 0 4px;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.item h3 .id{font-family:var(--mono);font-size:15px;color:var(--muted);font-weight:600}
+.item .sub{font-size:13.5px;color:var(--muted);margin:0 0 12px}
+.item h4{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 4px}
+.item h4:first-of-type{margin-top:6px}
+td.mis{color:var(--bad);font-weight:600}
+nav.toc ol ol{margin:2px 0 4px;padding-left:18px}
+svg.diagram .box.bad{stroke:var(--bad);stroke-width:2}
+svg.diagram .dot{fill:var(--line-strong)}
+svg.diagram .t-r{font-size:12.5px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#reuniao">A reunião de 03/11 e a placa de antenas</a></li>
+    <li><a href="#contexto">O que chegou antes e o que já foi resolvido</a></li>
+    <li><a href="#pendencias">As pendências</a>
+      <ol>
+        <li><a href="#p1">P1 · Folgas abaixo da regra caseira</a></li>
+        <li><a href="#p2">P2 · Burn-wire: dois resistores de base</a></li>
+        <li><a href="#p3">P3 · Aquecedores sem corrente</a></li>
+        <li><a href="#p4">P4 · Bases dos aquecedores no boot</a></li>
+        <li><a href="#p5">P5 · OBC e AOCS sem enlace próprio</a></li>
+        <li><a href="#p6">P6 · O INA219 não vê a bateria</a></li>
+        <li><a href="#p7">P7 · O satélite só liga com a placa do OBC</a></li>
+        <li><a href="#p8">P8 · Esquemáticos e arquivos de fabricação</a></li>
+        <li><a href="#p9">P9 · O que só se sabe medindo</a></li>
+      </ol>
+    </li>
+    <li><a href="#decisoes">O que falta decidir</a></li>
+    <li><a href="#fontes">Como foi conferido</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="doc">
+  <p class="eyebrow">Gama Cube Design · CubeDesign 2026 · reunião geral</p>
+  <h1>Pendências das placas</h1>
+  <p class="lede">O que ainda está errado ou indefinido nas placas do Cubetschek depois da revisão TF de 01–02/11 e da reunião geral de 03/11: o que acontece em cada caso, por que é um problema para a missão e o que precisa ser decidido ou medido.</p>
+  <div class="meta">
+    <span>Data: <b>03/11/2026</b>, revisado depois da reunião</span>
+    <span>Placas: <b>OBC, EPS e AOCS (TF), antenas (19/10), TT&amp;C e baterias (fabricadas)</b></span>
+    <span>Testes da equipe: <b>até 20/11</b></span>
+    <span>Prova: <b>24/11/2026</b></span>
+  </div>
+</header>
+
+<div class="callout" style="margin-top:18px">
+  <p><b>Depois da reunião:</b> a placa do mecanismo é a placa de antenas (<code>PCB_mec.7z</code>, KiCad de 19/10). Ela tem o circuito do burn-wire do CDR: 220 Ω na base do TIP120 e um pull-down de 10 kΩ. Com ela e com os pontos da reunião:</p>
+  <ul>
+    <li><b>P2 continua</b>, mas a causa agora é exata e a correção custa um resistor. O R2 de 4,7 kΩ da placa do OBC fica em série com o 220 Ω e corta a corrente de base de ~8,5 mA (o ensaio do CDR) para ~0,25 mA. A correção é trocar o R2 do OBC por 470 Ω.</li>
+    <li><b>P1 continua.</b> As violações do OBC são da regra caseira (transferência térmica), que é justamente a do processo interno; as regras da Circuibras passam. Falta confirmar que o processo separa 0,86 mm ou afastar três pontos.</li>
+    <li><b>P4 se resolve no burn-wire</b>, pelo pull-down da placa de antenas. Nos aquecedores continua, com risco menor, porque ali o erro não é irreversível.</li>
+    <li>P3, P5, P6 e P7 não mudam.</li>
+  </ul>
+</div>
+
+<h2 id="resumo"><span class="n">1</span>Resumo</h2>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>#</th><th>Pendência</th><th>Efeito se ficar como está</th><th>Quem</th><th>Gravidade</th></tr></thead>
+  <tbody>
+    <tr><td>P1</td><td>Folgas de cobre abaixo da regra caseira no OBC TF; no AOCS TF, abaixo da classe padrão</td><td>curto na fabricação: rádio mudo, sensor de sol X+ morto</td><td>PCB</td><td><span class="badge b-warn">confirmar o processo</span></td></tr>
+    <tr><td>P2</td><td>Burn-wire: o R2 de 4,7 kΩ do OBC em série com o 220 Ω da placa de antenas</td><td>~0,25 A no fio de NiCr, que precisa de ~1 A: a antena não abre (REG-07). Corrige trocando um resistor</td><td>PCB</td><td><span class="badge b-bad">impede uma prova</span></td></tr>
+    <tr><td>P3</td><td>Um resistor de 4,7 kΩ para as bases dos dois TIP120 dos aquecedores</td><td>~0,2 A por placa de bateria; a bateria pode esfriar abaixo de 0 °C (REG-26, HLR-EPS-04)</td><td>PCB / EPS</td><td><span class="badge b-bad">impede uma prova</span></td></tr>
+    <tr><td>P4</td><td>Nenhum pull-down nas bases dos TIP120 dos aquecedores (o burn-wire já tem)</td><td>os aquecedores podem ligar por alguns segundos no boot; não é irreversível</td><td>PCB / EPS</td><td><span class="badge b-todo">baixa</span></td></tr>
+    <tr><td>P5</td><td>OBC e AOCS sem enlace próprio: um I²C só, com dois mestres</td><td>sem tensão e corrente por até ~5 min no modo AOCS; um ESP32 travado não se recupera</td><td>AOCS / PCB</td><td><span class="badge b-warn">decidir e declarar</span></td></tr>
+    <tr><td>P6</td><td>O INA219 mede o consumo, não a bateria</td><td>a corrente de recarga solar não aparece na telemetria (REG-09)</td><td>EPS</td><td><span class="badge b-warn">decidir e declarar</span></td></tr>
+    <tr><td>P7</td><td>O 8 V de todo o satélite passa pela placa do OBC</td><td>sem a placa do OBC no stack, nada liga (HLR-EPS-05)</td><td>EPS</td><td><span class="badge b-todo">aceitar ou mudar</span></td></tr>
+    <tr><td>P8</td><td>EPS e AOCS TF sem esquemático; os gerbers e o BOM da placa de antenas são de antes do burn-wire</td><td>ninguém revisa as ligações antes de fabricar; uma placa de antenas feita com os gerbers do zip sai sem o burn-wire</td><td>EPS / AOCS / antenas</td><td><span class="badge b-todo">documentação</span></td></tr>
+    <tr><td>P9</td><td>NiCr, 5 V no pulso, shunt, pull-ups do I²C, aquecedores, GPIOs no boot</td><td>números que só a bancada dá</td><td>todos</td><td><span class="badge b-todo">medir</span></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="reuniao"><span class="n">2</span>A reunião de 03/11 e a placa de antenas</h2>
+
+<p>A reunião respondeu a duas pendências:</p>
+<ul>
+  <li><b>P1:</b> a placa do OBC não vai para a Circuibras, é feita pela equipe; por isso o DRC poderia ser ignorado.</li>
+  <li><b>P2:</b> o burn-wire puxa do 5 V que a EPS tira das baterias, com o GND comum a todo o satélite, e a GPIO da Pi habilita a corrente pelo NiCr. A resistência do NiCr não foi medida, mas numa fonte de bancada sem limite de corrente o circuito puxou 1 A, e a fonte daria mais.</li>
+</ul>
+<p>Depois dela chegou a placa do mecanismo, <code>PCB_mec.7z</code>. É a placa de antenas da equipe de antenas (projeto <code>PCB_antenas</code>, KiCad de 19/10). Além do dipolo de fitas do LoRa, do dipolo impresso do ADS-B e dos dois baluns, desde 19/10 ela tem o circuito do burn-wire ("Sistema para a abertura da antena Lora"). É o mesmo circuito da Figura 15 do CDR, e ela não estava no repositório. Agora está em <code>hardware/antenas/</code>.</p>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Pino do cabo</th><th>J4 da TT&amp;C (JST XH)</th><th>JST1 da placa de antenas (JST EH)</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>GND</td><td>emissor do TIP120 e o R1 de 10 kΩ</td></tr>
+    <tr><td>2</td><td>+5V, do pino 15 do barramento (o 5 V da EPS)</td><td>furo H14: uma ponta do NiCr. A outra, no furo H15, é o coletor</td></tr>
+    <tr><td>3</td><td>o sinal do pino 13 do barramento (GPIO22, depois do R2 do OBC)</td><td>R2 de 220 Ω até a base do TIP120</td></tr>
+  </tbody>
+</table></div>
+
+<p>Os pinos casam um a um, e o <code>board_check.py</code> agora segue o burn-wire até a base do TIP120, pelo cabo (seção 6). As análises estão em P1, P2, P4 e P8.</p>
+
+<h2 id="contexto"><span class="n">3</span>O que chegou antes e o que já foi resolvido</h2>
+
+<p>Em 22/10, os arquivos KiCad das placas fabricadas mostraram que o stack não funcionaria como foi desenhado (<a href="2026-10-22-validacao-obc.html">relatório de 22/10</a>). A placa nova do OBC, de 23/10, e a revisão TF de 01–02/11 do OBC, da EPS e do AOCS mudaram isto:</p>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Achado de 22/10</th><th>Estado em 03/11</th></tr></thead>
+  <tbody>
+    <tr><td>A1 · o 8 V passava pelo INA219 por pinos que a EPS não usa</td><td><span class="badge b-ok">resolvido</span> no OBC novo: entra pelo pino 38, sai pelo 33</td></tr>
+    <tr><td>A2 · o barramento do LoRa estava trocado entre o OBC e a TT&amp;C</td><td><span class="badge b-ok">resolvido</span>: os pinos 21 a 31 casam</td></tr>
+    <tr><td>A3 · SDA e SCL trocados no layout do OBC</td><td><span class="badge b-ok">resolvido</span>: 10 = SDA, 12 = SCL nas duas placas</td></tr>
+    <tr><td>A7 · DS18B20 sem pull-up</td><td><span class="badge b-ok">resolvido</span>: R1 de 4,7 kΩ ao 3,3 V</td></tr>
+    <tr><td>A8 · nenhum pull-down nas bases dos TIP120</td><td><span class="badge b-ok">resolvido no burn-wire</span> (R1 de 10 kΩ na placa de antenas); aberto nos aquecedores (P4)</td></tr>
+    <tr><td>A5 · base do burn-wire</td><td><span class="badge b-warn">aberto</span>: P2. O 4,7 kΩ do OBC fica em série com o 220 Ω da placa de antenas</td></tr>
+    <tr><td>A4, A6, A9</td><td><span class="badge b-warn">abertos</span>: são P5, P3 e P6 abaixo</td></tr>
+  </tbody>
+</table></div>
+
+<p><b>A revisão TF não mudou nenhuma ligação.</b> Cada pad das três placas novas foi comparado com a versão anterior, e todos estão ligados às mesmas coisas. O que mudou foi o cobre: trilhas de 1 mm, quase todas as vias de costura removidas e o OBC re-roteado. O software de voo foi conferido fio a fio contra essas placas e contra a placa de antenas (seção 6), e já está configurado para elas. Nenhuma das pendências abaixo é de software; o software só pode contornar algumas.</p>
+
+<h2 id="pendencias"><span class="n">4</span>As pendências</h2>
+
+<div class="item" id="p1">
+<h3><span class="id">P1</span>Folgas de cobre abaixo da regra caseira <span class="badge b-warn">confirmar o processo antes de fabricar</span></h3>
+<p class="sub">OBC TF e AOCS TF · DRC do KiCad · a EPS TF está limpa · reunião de 03/11: o OBC é feito pela equipe</p>
+<h4>O que está acontecendo</h4>
+<p>O DRC (a verificação de regras do KiCad) não acha nenhuma ligação faltando nem nenhum curto: o cobre liga exatamente o que deveria. Mas a revisão TF colocou cobre de sinais diferentes mais perto do que as regras permitem:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Placa</th><th>O que fica perto demais</th><th class="r">Folga</th><th class="r">Regra</th></tr></thead>
+  <tbody>
+    <tr><td>OBC</td><td>via do DIO0 do LoRa × via do NSS do LoRa</td><td class="r">0,86 mm</td><td class="r">1,0 mm (caseira)</td></tr>
+    <tr><td>OBC</td><td>trilha do MOSI do LoRa × via do MISO do LoRa</td><td class="r">0,88 mm</td><td class="r">1,0 mm (caseira)</td></tr>
+    <tr><td>OBC</td><td>via da base dos aquecedores (TIP120 CT) × via do DS18B20</td><td class="r">0,99 mm</td><td class="r">1,0 mm (caseira)</td></tr>
+    <tr><td>AOCS</td><td>trilha do pino D34 do ESP32 (sensor X+) × pad de GND do conector X+</td><td class="r">0,24 mm</td><td class="r">0,5 mm (classe padrão)</td></tr>
+  </tbody>
+</table></div>
+<p>O DRC conta 5 violações no OBC porque as vias aparecem uma vez por face. Há também restos sem efeito elétrico, mas que valem limpar: 2 pontas de trilha soltas no OBC; no AOCS, 6 trilhas com uma ponta solta (três de ~22 mm nas entradas do driver do motor) e duas vias empilhadas no mesmo ponto.</p>
+<h4>A decisão da reunião e o arquivo de regras</h4>
+<p>A reunião decidiu que o OBC é feito pela equipe, e por isso o DRC poderia ser ignorado. O arquivo de regras do OBC (<code>PCB_OBC.kicad_dru</code>) diz o contrário. Ele tem dois conjuntos de regras:</p>
+<ul>
+  <li><b>as da Circuibras</b> (manual MA-1.2.00.03, rev. 21): folga mínima de 0,127 mm. No cobre, o OBC TF passa em todas, com folga de sobra;</li>
+  <li><b>as "da versão caseira (transferência térmica)"</b>, no fim do arquivo, valendo por cima das outras: folga e trilha de 1 mm, 0,5 mm entre furo e trilha.</li>
+</ul>
+<p>As cinco violações são todas da regra <code>caseira_isolacao_1mm</code>. Feita pela Circuibras, a placa passaria; feita pela equipe, ela falha justamente na regra que a equipe escreveu para o próprio processo. <b>A fabricação interna é o caso em que essas violações importam.</b></p>
+<h4>Por que é um problema</h4>
+<p>Na transferência térmica, folga estreita é onde o toner borra e o cobre fica: curto. Na placa caseira, as vias em geral também não são metalizadas: cada uma vira um fio soldado nas duas faces, e nos pares de vias a 0,86 e 0,99 mm a solda de uma pode encostar na outra. Cada ponto, se fechar, derruba uma função inteira:</p>
+<ul>
+  <li><b>DIO0 com NSS, ou MOSI com MISO:</b> o rádio LoRa não funciona. Sem rádio não há telecomando, telemetria nem missão.</li>
+  <li><b>Base dos aquecedores com o DS18B20:</b> o tráfego do 1-Wire liga e desliga os aquecedores, e a leitura de temperatura vira lixo. O termostato perde a única medida que tem.</li>
+  <li><b>D34 com GND no AOCS:</b> o sensor X+ lê sempre zero, e o AOCS perde um eixo de referência.</li>
+</ul>
+<h4>O que fazer</h4>
+<ul>
+  <li><b>Se o processo da equipe separa 0,86 mm com segurança:</b> baixar a regra caseira para esse valor no <code>.kicad_dru</code> (por exemplo, 0,8 mm) e rodar o DRC de novo (<code>kicad-cli pcb drc</code>). Ele fica limpo e a decisão fica escrita no arquivo. Ignorar o DRC deixaria uma lista de erros "conhecidos" que esconde o próximo erro de verdade.</li>
+  <li><b>Se não separa,</b> afastar os três pontos (duas vias e um trecho de trilha) até passar.</li>
+  <li><b>O AOCS</b> ficou fora da decisão. Se for para a Circuibras, 0,24 mm está dentro do que ela faz; se for feito pela equipe, vale o mesmo raciocínio, com uma folga bem menor.</li>
+</ul>
+</div>
+
+<div class="item" id="p2">
+<h3><span class="id">P2</span>Burn-wire: dois resistores de base em série <span class="badge b-bad">impede a prova de implantação</span></h3>
+<p class="sub">achado A5 · GPIO22 → R2 4,7 kΩ (OBC) → pino 13 → J4 da TT&amp;C → cabo → R2 220 Ω (antenas) → base do TIP120, R1 10 kΩ ao emissor · REG-07</p>
+<h4>O que está acontecendo</h4>
+<p>O burn-wire é um fio de NiCr que aquece e corta o nylon que segura dobradas as fitas da antena LoRa. O desenho do quadro da reunião está certo: o 5 V da EPS passa pelo NiCr até o coletor do TIP120, o emissor vai ao GND comum e a GPIO da Pi comanda a base. O que ele não mostra são os resistores no caminho da base, um em cada placa:</p>
+
+<figure>
+  <div class="frame">
+<svg class="diagram" viewBox="0 0 900 300" role="img" aria-labelledby="f1t f1d">
+  <title id="f1t">O burn-wire de ponta a ponta</title>
+  <desc id="f1d">A GPIO22 da Raspberry Pi, a 3,3 V, passa pelo R2 de 4,7 kΩ da placa do OBC e pelo pino 13 do barramento até o pino 3 do J4 da TT&amp;C. Um cabo leva os três pinos do J4 ao JST1 da placa de antenas. Ali, o pino 3 passa pelo R2 de 220 Ω até a base do TIP120, com o R1 de 10 kΩ da base ao GND. O pino 2, com o 5 V da EPS, vai a uma ponta do NiCr, no furo H14; a outra ponta, no H15, é o coletor. O emissor vai ao pino 1, o GND.</desc>
+  <rect class="zone" x="10" y="12" width="226" height="276" rx="14"/>
+  <text class="zone-label" x="26" y="36">PLACA DO OBC</text>
+  <rect class="zone" x="256" y="12" width="184" height="276" rx="14"/>
+  <text class="zone-label" x="272" y="36">TT&amp;C</text>
+  <rect class="zone" x="500" y="12" width="390" height="276" rx="14"/>
+  <text class="zone-label" x="516" y="36">PLACA DE ANTENAS</text>
+  <text class="t-e" x="874" y="36" text-anchor="end">= Figura 15 do CDR</text>
+  <line class="edge" x1="24" y1="76" x2="346" y2="76"/>
+  <text class="t-e" x="26" y="68">5 V da EPS (MP1584)</text>
+  <text class="t-e" x="300" y="68" text-anchor="middle">pino 15</text>
+  <line class="edge" x1="24" y1="252" x2="346" y2="252"/>
+  <text class="t-e" x="26" y="244">GND comum</text>
+  <rect class="box" x="24" y="136" width="104" height="48" rx="8"/>
+  <text class="t-b" x="76" y="156" text-anchor="middle">Raspberry Pi</text>
+  <text class="t-s" x="76" y="174" text-anchor="middle">GPIO22 · 3,3 V</text>
+  <line class="edge" x1="128" y1="160" x2="146" y2="160"/>
+  <rect class="box bad" x="146" y="146" width="76" height="28" rx="6"/>
+  <text class="t-r" x="184" y="165" text-anchor="middle">R2 4,7 kΩ</text>
+  <text class="t-e" x="184" y="196" text-anchor="middle">fora do CDR</text>
+  <line class="edge" x1="222" y1="160" x2="346" y2="160"/>
+  <text class="t-e" x="300" y="152" text-anchor="middle">pino 13</text>
+  <rect class="box hw" x="346" y="52" width="80" height="224" rx="8"/>
+  <text class="t-s" x="386" y="80" text-anchor="middle">2 · +5V</text>
+  <text class="t-b" x="386" y="116" text-anchor="middle">J4</text>
+  <text class="t-s" x="386" y="132" text-anchor="middle">JST XH</text>
+  <text class="t-s" x="386" y="164" text-anchor="middle">3 · sinal</text>
+  <text class="t-s" x="386" y="256" text-anchor="middle">1 · GND</text>
+  <line class="edge" x1="426" y1="76" x2="520" y2="76"/>
+  <line class="edge" x1="426" y1="160" x2="520" y2="160"/>
+  <line class="edge" x1="426" y1="252" x2="520" y2="252"/>
+  <text class="t-e" x="470" y="112" text-anchor="middle">cabo,</text>
+  <text class="t-e" x="470" y="128" text-anchor="middle">pino a pino</text>
+  <rect class="box hw" x="520" y="52" width="80" height="224" rx="8"/>
+  <text class="t-s" x="560" y="80" text-anchor="middle">2</text>
+  <text class="t-b" x="560" y="116" text-anchor="middle">JST1</text>
+  <text class="t-s" x="560" y="132" text-anchor="middle">JST EH</text>
+  <text class="t-s" x="560" y="164" text-anchor="middle">3</text>
+  <text class="t-s" x="560" y="256" text-anchor="middle">1</text>
+  <line class="edge" x1="600" y1="160" x2="628" y2="160"/>
+  <rect class="box done" x="628" y="146" width="76" height="28" rx="6"/>
+  <text class="t-r" x="666" y="165" text-anchor="middle">R2 220 Ω</text>
+  <line class="edge" x1="704" y1="160" x2="752" y2="160"/>
+  <circle class="dot" cx="728" cy="160" r="3"/>
+  <text class="t-e" x="748" y="152" text-anchor="end">B</text>
+  <line class="edge" x1="728" y1="160" x2="728" y2="190"/>
+  <rect class="box done" x="714" y="190" width="28" height="40" rx="4"/>
+  <text class="t-r" x="706" y="214" text-anchor="end">R1 10 kΩ</text>
+  <line class="edge" x1="728" y1="230" x2="728" y2="252"/>
+  <line class="edge" x1="600" y1="76" x2="804" y2="76"/>
+  <line class="edge" x1="804" y1="76" x2="804" y2="86"/>
+  <rect class="box hw" x="784" y="86" width="40" height="30" rx="4"/>
+  <text class="t-s" x="804" y="106" text-anchor="middle">NiCr</text>
+  <text class="t-e" x="830" y="92">H14</text>
+  <text class="t-e" x="830" y="120">H15</text>
+  <line class="edge" x1="804" y1="116" x2="804" y2="128"/>
+  <rect class="box" x="752" y="128" width="104" height="64" rx="8"/>
+  <text class="t-e" x="804" y="142" text-anchor="middle">C</text>
+  <text class="t-b" x="804" y="166" text-anchor="middle">TIP120</text>
+  <text class="t-e" x="804" y="187" text-anchor="middle">E</text>
+  <line class="edge" x1="804" y1="192" x2="804" y2="252"/>
+  <line class="edge" x1="600" y1="252" x2="804" y2="252"/>
+</svg>
+  </div>
+  <figcaption>Figura 1 — O burn-wire de ponta a ponta: o desenho do quadro, com o que as placas têm de fato. Em verde, o circuito da Figura 15 do CDR e do ensaio do §6.4, que a placa de antenas reproduz; em vermelho, o R2 da placa do OBC, que não está em nenhum dos dois.</figcaption>
+</figure>
+
+<p>A placa de antenas é o circuito do ensaio do CDR (§6.4): TIP120, 220 Ω na base, 10 kΩ de pull-down e uma ESP32 dando o comando. Ali, a 5 V, o circuito puxou 1 A, e o pulso adotado foi de 2 s. O R2 de 4,7 kΩ da placa do OBC não estava no ensaio. Com ele em série, a corrente de base cai 34 vezes:</p>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Circuito</th><th class="r">Até a base</th><th class="r">Corrente de base</th><th>O TIP120 garante</th><th class="r">Na GPIO</th></tr></thead>
+  <tbody>
+    <tr><td>Ensaio do CDR (ESP32, 220 Ω, 10 kΩ)</td><td class="r">220 Ω</td><td class="r">~8,5 mA</td><td>satura: quem limita é o NiCr, ~1 A</td><td class="r">~8,6 mA</td></tr>
+    <tr><td><b>Voo, como está</b> (4,7 kΩ + 220 Ω, 10 kΩ)</td><td class="r">4,92 kΩ</td><td class="r mis">~0,25 mA</td><td class="mis">~0,25 A</td><td class="r">~0,4 mA</td></tr>
+    <tr><td>Voo com o R2 do OBC em 470 Ω</td><td class="r">690 Ω</td><td class="r">~2,6 mA</td><td>satura, com 2,6 vezes o mínimo</td><td class="r">~2,8 mA</td></tr>
+    <tr><td>Voo com o R2 do OBC em 0 Ω</td><td class="r">220 Ω</td><td class="r">~8,5 mA</td><td>satura, como no ensaio</td><td class="r">~8,6 mA</td></tr>
+  </tbody>
+</table></div>
+<p class="small">Corrente de base pela GPIO de 3,3 V, os resistores em série e o pull-down de 10 kΩ, que leva ~0,14 mA, com a queda base-emissor do TIP120 entre 1,3 e 1,5 V. "Garante" usa o ganho mínimo de 1000 do datasheet. Pela mesma conta, o NiCr do ensaio tem ~4 Ω: 5 V, menos ~1 V do TIP120 saturado, a 1 A.</p>
+
+<h4>Os pontos da reunião</h4>
+<ul>
+  <li><b>"O sinal que chega para a queima é de 5 V."</b> O NiCr está no 5 V, sim. Mas a corrente só chega ao ~1 A que o 5 V e o NiCr permitem se o TIP120 conduzir o bastante, e o quanto ele conduz é a corrente de base vezes o ganho. A base é comandada pelos 3,3 V da GPIO através de 4,92 kΩ.</li>
+  <li><b>"Puxou 1 A na fonte de bancada, sem limite."</b> É o ensaio do CDR, e ele confirma que o NiCr pede ~1 A, o número que P2 já usava. Mas o ensaio não tinha o 4,7 kΩ do OBC, então não diz nada sobre o circuito de voo.</li>
+</ul>
+<h4>Por que é um problema</h4>
+<p>Com ~0,25 mA de base, o datasheet garante só ~0,25 A. O calor no fio é I²R: a 0,25 A, o NiCr recebe ~1/16 do calor do ensaio. Um TIP120 de ganho alto conduziria mais, mas aí a prova (REG-07) passaria a depender de qual transistor foi soldado. O software não compensa: a GPIO já está no máximo.</p>
+<p>Há um segundo risco: o burn-wire puxa do mesmo 5 V da Pi e do SDR. A Tabela 13 do CDR soma 2,0 A nas cargas de 5 V (Pi 0,7 A, SDR 0,3 A e o NiCr 1,0 A), contra 3 A do MP1584 da EPS. Quando o burn-wire funcionar, um degrau de 1 A pode derrubar a tensão e reiniciar a Pi no meio da prova.</p>
+<h4>O que fazer</h4>
+<ul>
+  <li><b>Trocar o R2 da placa do OBC de 4,7 kΩ por 470 Ω.</b> É o mesmo footprint: com a placa feita pela equipe, é só outro componente na montagem, sem mudar o layout. A base fica com ~2,6 mA, 2,6 vezes o que o ganho mínimo pede para 1 A. O TIP120 satura como no ensaio, e a GPIO fornece ~2,8 mA, longe dos 16 mA que aguenta.</li>
+  <li><b>Por que não 0 Ω</b>, que reproduz o ensaio exatamente: o sinal fica ao lado do 5 V nos dois conectores (pinos 13 e 15 do barramento, 3 e 2 do cabo). Num curto ali, com 0 Ω, o 5 V entra direto na GPIO e pode queimá-la, ou a Pi. Com 470 Ω, entram poucos mA.</li>
+  <li><b>Medir nesta semana</b>, numa protoboard com o circuito da placa de antenas: a corrente no NiCr com 4,7 kΩ e com 470 Ω, e se o nylon corta (<a href="2026-11-03-roteiro-bancada.html">roteiro da bancada</a>, etapa 13f).</li>
+  <li><b>O tempo do pulso:</b> o CDR diz que 2 s foi o mais seguro e que esse valor entrou no código de ativação. O <code>obcd</code> usa 5 s (D3), configurável em <code>burnwire_ms</code>. O valor deve ser fixado depois da medida com o 5 V da EPS.</li>
+  <li><b>No stack,</b> medir a queda do 5 V durante o pulso, com a Pi e o SDR ligados.</li>
+</ul>
+</div>
+
+<div class="item" id="p3">
+<h3><span class="id">P3</span>Aquecedores: um resistor para duas bases <span class="badge b-bad">impede a prova térmica</span></h3>
+<p class="sub">achado A6 · OBC: GPIO23 → R3 4,7 kΩ → pino 11 → bases dos TIP120 das duas placas de bateria · HLR-EPS-04, REG-26</p>
+<h4>O que está acontecendo</h4>
+<p>Pelo R3 de 4,7 kΩ passam ~0,43 mA, que se dividem entre as bases dos dois TIP120, um em cada placa de bateria: ~0,2 mA cada, logo ~0,2 A no máximo por placa. Aqui não há outro resistor nas baterias: o R3 do OBC é o único. Os quatro aquecedores de cada placa estão em série a partir do 8 V, e o esquemático não diz quanto eles valem ("Heater"), então não dá para saber quanta corrente eles pediriam.</p>
+<h4>Por que é um problema</h4>
+<p>O controle térmico é todo do OBC: o software liga os aquecedores abaixo de 10 °C e desliga acima de 12 °C, porque não há termostato nas placas. Se o transistor não satura, aquece menos do que deveria, e no teste térmico a bateria pode cair abaixo de 0 °C (REG-26). Além disso, o transistor que não satura dissipa a diferença como calor nele mesmo. O software já está pronto; o que falta é corrente.</p>
+<h4>O que fazer</h4>
+<p>Medir a resistência dos aquecedores (P9) e calcular a corrente de que precisam. Um resistor de base por placa, dimensionado a partir dessa corrente, resolve; com o valor atual, medir a corrente e a tensão no transistor com a GPIO ligada.</p>
+</div>
+
+<div class="item" id="p4">
+<h3><span class="id">P4</span>As bases dos aquecedores ficam soltas no boot <span class="badge b-todo">resolvido no burn-wire</span></h3>
+<p class="sub">achado A8 · GPIO23 (aquecedores): nenhum pull-down nas baterias · GPIO22 (burn-wire): R1 de 10 kΩ na placa de antenas</p>
+<h4>O que está acontecendo</h4>
+<p>Entre ligar a energia e o software do OBC assumir as saídas há alguns segundos de boot. Nesse tempo, quem segura uma base sem pull-down em nível baixo é só o pull-down interno da Pi (~50 kΩ, ligado por padrão nos GPIO 9 a 27).</p>
+<ul>
+  <li><b>Burn-wire: resolvido.</b> A placa de antenas tem o R1, de 10 kΩ, da base ao emissor do TIP120. A base fica em 0 V durante o boot, faça a GPIO22 o que fizer, que é o que esta pendência pedia. Era o caso grave: um disparo antes da hora corta o nylon, e a prova de implantação estaria perdida antes de começar.</li>
+  <li><b>Aquecedores: continua.</b> As bases dos TIP120 das duas baterias não têm pull-down.</li>
+</ul>
+<h4>Por que é um problema</h4>
+<p>Se algo puxar a linha dos aquecedores para cima no boot (ruído, um cabo), eles ligam por alguns segundos, até o OBC desligá-los. Não é irreversível, como seria no burn-wire, mas é consumo e calor que ninguém mandou. O software desliga as duas saídas assim que sobe, e de novo a cada reinício.</p>
+<h4>O que fazer</h4>
+<p>Um resistor de 10 kΩ da base ao terra em cada bateria, como na placa de antenas. Na bancada, medir as bases desde a energização até o OBC subir (<code>pinctrl get 22,23</code> logo após o boot).</p>
+</div>
+
+<div class="item" id="p5">
+<h3><span class="id">P5</span>OBC e AOCS sem enlace próprio <span class="badge b-warn">decidir e declarar</span></h3>
+<p class="sub">achado A4 · ADR-0017 · contrato em <code>docs/icd/obc-aocs-i2c.md</code> (rascunho, à espera da equipe do AOCS)</p>
+<h4>O que está acontecendo</h4>
+<p>O único fio comum entre o OBC e o AOCS é o I²C dos pinos 10 e 12. Nesse mesmo par de fios estão o INA219 (que a Pi lê) e o BMI088 (que o ESP32 lê). Para ler o seu sensor, o ESP32 precisa ser mestre do barramento, mas a Pi também é mestre, e o controlador I²C da Pi não sabe dividir o barramento com outro mestre.</p>
+
+<figure>
+  <div class="frame">
+<svg class="diagram" viewBox="0 0 900 250" role="img" aria-labelledby="f2t f2d">
+  <title id="f2t">O barramento I²C dividido</title>
+  <desc id="f2d">Um único par de fios, SDA e SCL nos pinos 10 e 12 do barramento, liga a Raspberry Pi e o INA219, na placa do OBC, ao ESP32 e ao BMI088, na placa do AOCS. A Pi e o ESP32 são mestres; o INA219 e o BMI088 são escravos. A UART da Pi e a UART2 do ESP32 estão livres, sem ligação.</desc>
+  <rect class="zone" x="10" y="12" width="390" height="226" rx="14"/>
+  <text class="zone-label" x="26" y="36">PLACA DO OBC</text>
+  <rect class="zone" x="500" y="12" width="390" height="226" rx="14"/>
+  <text class="zone-label" x="516" y="36">PLACA DO AOCS</text>
+  <rect class="box done" x="30" y="56" width="160" height="56" rx="8"/>
+  <text class="t-b" x="110" y="80" text-anchor="middle">Raspberry Pi</text>
+  <text class="t-s" x="110" y="98" text-anchor="middle">mestre · GPIO2/3</text>
+  <rect class="box hw" x="220" y="56" width="160" height="56" rx="8"/>
+  <text class="t-b" x="300" y="80" text-anchor="middle">INA219</text>
+  <text class="t-s" x="300" y="98" text-anchor="middle">escravo · 0x40</text>
+  <rect class="box ext" x="520" y="56" width="160" height="56" rx="8"/>
+  <text class="t-b" x="600" y="80" text-anchor="middle">ESP32</text>
+  <text class="t-s" x="600" y="98" text-anchor="middle">mestre · GPIO21/22</text>
+  <rect class="box hw" x="710" y="56" width="160" height="56" rx="8"/>
+  <text class="t-b" x="790" y="80" text-anchor="middle">BMI088</text>
+  <text class="t-s" x="790" y="98" text-anchor="middle">escravo</text>
+  <line class="edge" x1="20" y1="160" x2="880" y2="160"/>
+  <line class="edge" x1="20" y1="178" x2="880" y2="178"/>
+  <text class="t-e" x="450" y="152" text-anchor="middle">SDA · pino 10</text>
+  <text class="t-e" x="450" y="196" text-anchor="middle">SCL · pino 12</text>
+  <line class="edge" x1="110" y1="112" x2="110" y2="160"/>
+  <line class="edge" x1="300" y1="112" x2="300" y2="160"/>
+  <line class="edge" x1="600" y1="112" x2="600" y2="160"/>
+  <line class="edge" x1="790" y1="112" x2="790" y2="160"/>
+  <text class="t-e" x="26" y="226">UART da Pi (GPIO14/15): livre</text>
+  <text class="t-e" x="516" y="226">UART2 do ESP32 (GPIO16/17): livre</text>
+</svg>
+  </div>
+  <figcaption>Figura 2 — Dois mestres e dois escravos no mesmo par de fios. As duas UARTs livres seriam um enlace dedicado com dois fios.</figcaption>
+</figure>
+
+<p>O software resolve isso por tempo: ao entrar no modo <code>ADVANCED_AOCS</code>, a Pi manda um comando ao ESP32 e <b>deixa o barramento com ele</b> pelo tempo da tarefa. Durante esse tempo a Pi não fala, depois lê o resultado. Os dois lados contam o mesmo prazo a partir do mesmo instante, então não há mensagem que possa se perder e deixar dois mestres falando juntos.</p>
+<h4>Por que é um problema</h4>
+<ul>
+  <li><b>Sem tensão e corrente no modo AOCS.</b> Enquanto o barramento é do ESP32, a Pi não lê o INA219: tensão e corrente vão como "sem dado" na telemetria por até ~300 s. O CDR (OBC-7) promete as duas em todos os modos, então é um desvio que precisa ser declarado na documentação final.</li>
+  <li><b>O modo não termina antes.</b> Sem outro fio, a Pi não tem como saber que a tarefa acabou cedo: o modo dura o prazo inteiro.</li>
+  <li><b>Um ESP32 travado como mestre não se recupera.</b> O pino EN do ESP32 não está ligado a nada, então a Pi não consegue reiniciá-lo. Só o watchdog do próprio ESP32 resolve, e o contrato exige que ele exista.</li>
+  <li><b>Depende de outra equipe.</b> O firmware do AOCS precisa seguir o contrato: endereço 0x2A, respostas prontas em 5 ms e devolver o barramento no prazo. O rascunho foi entregue, e a resposta ainda não veio.</li>
+</ul>
+<h4>O que fazer</h4>
+<p>Duas saídas, e a equipe precisa escolher uma:</p>
+<ul>
+  <li><b>Manter o barramento dividido</b> (o que está implementado): aceitar e declarar o desvio do OBC-7, e a equipe do AOCS responder ao contrato (§6 do ICD).</li>
+  <li><b>Dois fios a mais</b>, da UART da Pi (GPIO14/15) para a UART2 do ESP32 (GPIO16/17), as duas livres. O I²C ficaria só com a Pi, o ESP32 leria o BMI088 a qualquer hora, e o desvio sumiria. Custa uma mudança nas placas do OBC e do AOCS.</li>
+</ul>
+</div>
+
+<div class="item" id="p6">
+<h3><span class="id">P6</span>O INA219 mede o consumo, não a bateria <span class="badge b-warn">decidir e declarar</span></h3>
+<p class="sub">achado A9 · EPS: BMS → diodo D1 → chave → 8 V Bruto → INA219 → 8 V Líquido; carga solar: boost → D3 → direto no BMS · REG-09</p>
+<h4>O que está acontecendo</h4>
+<p>O INA219 está em série depois da bateria, do diodo e da chave: mede a tensão e a corrente que <b>o satélite consome</b>. A carga dos painéis solares entra direto no BMS, sem passar por ele.</p>
+<h4>Por que é um problema</h4>
+<p>A corrente medida é sempre de consumo, então a recarga nunca aparece na telemetria. A prova de recarga (REG-09) só poderia ser acompanhada pela subida da tensão, e mesmo essa vem depois do diodo, não nos terminais da bateria. A telemetria do projeto foi escrita como se "corrente negativa = carregando", o que nunca vai acontecer. Precisa ficar claro, na documentação e para os juízes, o que esses números significam.</p>
+<h4>O que fazer</h4>
+<p>Decidir: aceitar e documentar ("corrente da carga do satélite; tensão depois do diodo"), ou mover o INA219 para os terminais da bateria, o que muda a EPS. Perguntar à organização como avaliam a recarga.</p>
+</div>
+
+<div class="item" id="p7">
+<h3><span class="id">P7</span>O 8 V de todo o satélite passa pela placa do OBC <span class="badge b-todo">aceitar ou mudar</span></h3>
+<p class="sub">consequência da correção de A1 · HLR-EPS-05</p>
+<h4>O que está acontecendo</h4>
+<p>O INA219 da placa do OBC está em série no caminho principal: o 8 V sai da EPS pelo pino 38, atravessa o INA219 e volta pelo pino 33 para os conversores de 5, 3,3 e 12 V e para os aquecedores.</p>
+<h4>Por que é um problema</h4>
+<p>Sem a placa do OBC no stack, nenhuma outra placa recebe energia: não dá para testar a EPS sozinha nem o satélite com o OBC fora, e o HLR-EPS-05 pede operar com fonte externa. Além disso, toda a corrente do satélite passa por uma trilha da placa do OBC e pelo shunt do módulo, que satura em 3,2 A (P9).</p>
+<h4>O que fazer</h4>
+<p>Aceitar e documentar, ou pôr na EPS um jumper que una os pinos 38 e 33 quando a placa do OBC estiver fora.</p>
+</div>
+
+<div class="item" id="p8">
+<h3><span class="id">P8</span>Esquemáticos e arquivos de fabricação <span class="badge b-todo">documentação</span></h3>
+<p class="sub">EPS TF e AOCS TF · placa de antenas · o cabo do burn-wire</p>
+<h4>O que está acontecendo</h4>
+<ul>
+  <li><b>EPS TF:</b> o esquemático veio vazio. Ficou fora do repositório de propósito: um "Update PCB from Schematic" com ele apagaria todos os componentes da placa.</li>
+  <li><b>AOCS TF:</b> veio sem esquemático.</li>
+  <li><b>Placa de antenas</b> (o mecanismo, agora em <code>hardware/antenas/</code>): o esquemático de 19/10 existe e bate com o layout. Mas os arquivos de fabricação, o BOM, as imagens e o README que vieram com ela são de 14/10, de antes do burn-wire: a furação só tem os 4 furos das fitas, e o BOM só os componentes de RF. Os scripts que geram a placa a partir do modelo do HFSS também não têm o burn-wire, e rodar o <code>gera_tudo.sh</code> de novo apaga o circuito.</li>
+  <li><b>O cabo da TT&amp;C à placa de antenas:</b> o J4 da TT&amp;C é JST XH, e o JST1 da placa de antenas é JST EH. Os pinos casam um a um (GND, 5 V, sinal), mas são duas séries da JST com o mesmo passo de 2,5 mm que não são intercambiáveis: o cabo precisa de um alojamento de cada série.</li>
+</ul>
+<h4>Por que é um problema</h4>
+<p>Sem esquemático, ninguém revisa as ligações antes de fabricar; a revisão TF só pôde ser conferida comparando pad a pad com as versões anteriores. E uma placa de antenas fabricada com os gerbers do zip sai sem o burn-wire. Se alguma já foi feita com eles, ela não tem o circuito.</p>
+<h4>O que fazer</h4>
+<p>Atualizar os esquemáticos da EPS e do AOCS a partir dos layouts TF. Gerar de novo os arquivos de fabricação da placa de antenas a partir do <code>.kicad_pcb</code> de 19/10, e não rodar mais os scripts (ou passar o burn-wire para eles). Montar o cabo XH–EH pino a pino.</p>
+</div>
+
+<div class="item" id="p9">
+<h3><span class="id">P9</span>O que só se sabe medindo <span class="badge b-todo">medir</span></h3>
+<p class="sub">bancada da semana de 02/11 · <a href="2026-11-03-roteiro-bancada.html">roteiro da bancada</a></p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Medida</th><th>Por que importa</th></tr></thead>
+  <tbody>
+    <tr><td>Corrente no NiCr com 4,7 kΩ e com 470 Ω no lugar do R2 do OBC, e se o nylon corta (protoboard, etapa 13f)</td><td>decide P2 nesta semana</td></tr>
+    <tr><td>Resistência do NiCr, no comprimento de voo</td><td>a conta do ensaio dá ~4 Ω; o fio montado pode ter outro comprimento</td></tr>
+    <tr><td>O tempo até o nylon cortar com o 5 V da EPS</td><td>2 s no CDR, 5 s no <code>obcd</code> (D3)</td></tr>
+    <tr><td>Queda do 5 V no pulso, com a Pi e o SDR ligados</td><td>o risco de reiniciar a Pi (P2)</td></tr>
+    <tr><td>Resistência dos aquecedores</td><td>sem ela não dá para dimensionar o resistor de base (P3)</td></tr>
+    <tr><td>Pico de corrente do satélite contra o shunt do INA219 (0,1 Ω: máximo 3,2 A)</td><td>acima disso a leitura satura justamente no pior momento</td></tr>
+    <tr><td>Tensão nas bases dos aquecedores do boot até o OBC subir</td><td>confirma ou afasta P4</td></tr>
+    <tr><td>Pull-ups do I²C: quantos e de que valor, somando os módulos e a Pi</td><td>pull-ups demais ou de menos corrompem o barramento dividido (P5)</td></tr>
+    <tr><td>Endereços I²C do BMI088 no módulo usado (<code>i2cdetect</code>)</td><td>o contrato reserva 0x2A para o ESP32; precisa não colidir</td></tr>
+    <tr><td>A antena LoRa no VNA, com o circuito do burn-wire montado</td><td>o circuito entrou na placa depois da simulação no HFSS</td></tr>
+  </tbody>
+</table></div>
+</div>
+
+<h2 id="decisoes"><span class="n">5</span>O que falta decidir</h2>
+<ol>
+  <li><b>P1:</b> quem fabrica o OBC confirma que a transferência térmica separa 0,86 mm (e a regra caseira desce para esse valor), ou os três pontos são afastados? E quem fabrica o AOCS?</li>
+  <li><b>P2:</b> o R2 do OBC passa a 470 Ω? E o pulso do burn-wire: 2 s, como no CDR, ou 5 s, como está no <code>obcd</code>?</li>
+  <li><b>P3 e P4:</b> o resistor de base dos aquecedores, depois de medir a resistência deles, e os pull-downs nas baterias, na mesma revisão?</li>
+  <li><b>P5:</b> barramento I²C dividido (desvio declarado) ou dois fios de UART entre o OBC e o AOCS?</li>
+  <li><b>P6 e P7:</b> aceitar e documentar, ou mudar a EPS?</li>
+  <li><b>P8:</b> quem atualiza os esquemáticos da EPS e do AOCS, e quem gera de novo os arquivos de fabricação da placa de antenas?</li>
+  <li><b>AOCS:</b> quando a equipe responde ao contrato I²C?</li>
+</ol>
+
+<h2 id="fontes"><span class="n">6</span>Como foi conferido</h2>
+<ul>
+  <li><b>Ligações:</b> as nets de cada pad nos <code>.kicad_pcb</code> de <code>hardware/</code>, que é o que o fabricante produz, comparadas pad a pad entre revisões.</li>
+  <li><b>Cobre:</b> o DRC do KiCad 10.0.7 (<code>kicad-cli pcb drc</code>) nas três placas TF, nas anteriores e na placa de antenas. O DRC dá o nome da regra violada: as cinco do OBC são da <code>caseira_isolacao_1mm</code>. Na placa de antenas, 0 violações das regras dela (folga de 0,15 mm) e 1 aviso de serigrafia. Os 3 itens "desconectados" que ela mostra são os fios soldados à mão, de propósito: o H10, que liga o GND das duas faces, e o H14 e o H15, as pontas do NiCr.</li>
+  <li><b>Software contra as placas:</b> <code>tools/analysis/board_check.py</code> segue cada fio que o software usa, do GPIO da Pi até o pino do chip na outra placa. Agora inclui o burn-wire até a base do TIP120, pelo J4 da TT&amp;C e pelo cabo. Passa nas 20 conferências, e roda a cada <code>make test</code>. Falha se os pinos do cabo forem trocados ou se faltar o resistor de base. Contra o OBC fabricado de 08/10, ele reencontra sozinho os defeitos A1, A2, A3 e A7.</li>
+  <li><b>O ensaio do burn-wire:</b> CDR §6.4 e Figura 15; o consumo de 5 V, na Tabela 13.</li>
+  <li><b>Os cálculos de corrente</b> usam a queda base-emissor de 1,3 a 1,5 V e o ganho mínimo de 1000 do datasheet do TIP120, com o pull-down de 10 kΩ. São estimativas a confirmar na bancada.</li>
+  <li><b>Os detalhes</b> de cada placa estão em <code>hardware/README.md</code>; os achados originais, no <a href="2026-10-22-validacao-obc.html">relatório de 22/10</a>; a decisão do barramento, no ADR-0017.</li>
+</ul>
+
+<footer>
+  <p>Gerado em 03/11/2026 a partir do commit <code>7e267b4</code> e revisado no mesmo dia, depois da reunião geral, com a placa de antenas (<code>PCB_mec.7z</code>), com apoio do Claude Code.</p>
+  <p>Relatórios anteriores: <a href="2026-11-03-status-firmware.html">status do firmware (03/11)</a>, <a href="2026-10-31-estado-do-projeto.html">estado em 31/10</a>, <a href="2026-10-24-proposta-i2c-ina219-obc.html">proposta do I²C (24/10)</a> e <a href="2026-10-22-validacao-obc.html">validação do OBC (22/10)</a>.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

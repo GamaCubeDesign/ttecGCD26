@@ -23,7 +23,7 @@ e cada alvo imprime os comandos que roda por baixo.
 
 ```bash
 make                  # configura e compila em build/
-make test             # os 15 testes; make test T=link_sim roda só os que casam
+make test             # as 38 suítes; make test T=link_sim roda só as que casam
 ```
 
 Na Pi Zero 2 W a compilação leva alguns minutos; lá o `make` usa `-j2`
@@ -75,9 +75,9 @@ então **edite só no PC**. Ficam intocados na Pi: `build*/`, `docs/vv/bancada/`
 Uma vez, no PC:
 
 ```bash
-ssh-copy-id pi@raspberrypi.local                   # entra sem senha (sem chave ainda? ssh-keygen -t ed25519)
-echo 'PI_HOST = pi@raspberrypi.local' > local.mk   # o usuário@host do seu ssh; o git ignora este arquivo
-make pi-provision                                  # na Pi: ferramentas de build, tmux, SPI0, usuário gama
+ssh-copy-id pi@gamapi.local                        # entra sem senha (sem chave ainda? ssh-keygen -t ed25519)
+echo 'PI_HOST = pi@gamapi.local' > local.mk        # o usuário@host do seu ssh; o git ignora este arquivo
+make pi-provision                                  # na Pi: ferramentas de build, tmux, SPI0, I²C1, usuário gama
 ```
 
 Cada `make pi-…` abre duas conexões ssh, a cópia e o comando; sem a chave,
@@ -99,7 +99,7 @@ de um `tmux` na Pi, que continua sem você:
 
 ```bash
 make pi-sync
-ssh -t pi@raspberrypi.local tmux new -A -s bench   # abre a sessão, ou volta para ela se o ssh caiu
+ssh -t pi@gamapi.local tmux new -A -s bench        # abre a sessão, ou volta para ela se o ssh caiu
 make -C ttec bench                                 # dentro da sessão
 make pi-fetch                                      # no fim, de volta no PC: traz os logs
 ```
@@ -107,30 +107,42 @@ make pi-fetch                                      # no fim, de volta no PC: tra
 ## Instalar na Pi
 
 ```bash
-make pi-install           # ttcd, a unidade systemd e, se ainda não existir, /etc/gama/ttcd.conf
+make pi-install           # ttcd, adsbd e obcd, as unidades e, se ainda não existirem, /etc/gama/*.conf
+make pi-install CONF_DIR=flight/conf/obc-v2   # o mesmo, com os arquivos da placa nova do OBC
 make pi-service-enable    # sobe agora e em todo boot
 make pi-service-status    # o que o systemd diz, e o fim do log
 make pi-service-logs      # acompanha o log de operação, /var/lib/gama/ttcd.jsonl
 ```
 
 Num terminal dentro da Pi, os mesmos alvos sem o `pi-`. O `make install`
-nunca sobrescreve um `/etc/gama/ttcd.conf` existente — compare-o com
-`flight/ttcd/ttcd.conf.example` quando este mudar — e reinicia o serviço se
-ele estiver rodando. O `ttcd` **não roda como root**: o usuário `gama`,
-criado pelo `provision`, só está nos grupos `spi` e `gpio`. Se
-`/dev/spidev0.0` não aparecer depois do `provision`, reinicie a Pi.
+nunca sobrescreve um `/etc/gama/*.conf` existente — compare-o com o exemplo,
+ou com o arquivo da placa, quando este mudar; para trocar, apague-o antes — e
+reinicia os serviços que estiverem rodando. Os daemons **não rodam como
+root**: o usuário `gama`, criado pelo `provision`, está nos grupos `spi`,
+`gpio` e `i2c`. Se `/dev/spidev0.0` não aparecer depois do `provision`,
+reinicie a Pi.
 
-## Teste de bancada — PLANO fase 2.7
+## Teste de bancada
 
 Objetivo: dois RA-02 trocando frames de verdade, com as medições que o
-ADR-0004 e o ADR-0007 pedem.
+ADR-0004 e o ADR-0007 pedem. Os seis passos rodaram em 09/10
+(`docs/vv/bancada/2026-10-09/notas.md`); o roteiro da bancada de novembro,
+com a ESP32, o `obcd` e os pinos da placa nova, é
+`docs/relatorios/2026-11-05-roteiro-bancada.html`.
 
 ### Ligação: dois RA-02 numa só Pi
 
 O barramento SPI0 tem dois chip-selects. O rádio A (satélite, `ttcd`) usa a
 ligação da missão anterior; o rádio B (ground, `gs_cli`) usa o segundo
-chip-select e dois GPIOs livres — nenhum dos dois conflita com I²C, 1-Wire
-(GPIO4) nem com o fio de queima da antena (GPIO19) do OBC.
+chip-select e dois GPIOs livres. Nenhum dos dois conflita com o que o OBC usa
+na Pi (I²C1 nos GPIO2/3, 1-Wire no GPIO17, burn-wire e aquecedores nos GPIO22
+e 23).
+
+**Nos pinos da placa nova.** Na placa nova do OBC o RA-02 tem o RESET no
+GPIO25 (pino 22) e o DIO0 no GPIO4 (pino 7), em vez dos GPIO20 e 21 desta
+tabela. Para a bancada usar esses pinos, mude os dois fios do rádio A e rode
+qualquer alvo com `TTCD_CONF=flight/conf/obc-v2/ttcd.conf` (ou ponha essa
+linha no `local.mk` da Pi).
 
 | RA-02 | Rádio A — satélite | Rádio B — ground |
 |---|---|---|

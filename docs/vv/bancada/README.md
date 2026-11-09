@@ -4,7 +4,8 @@ Evidência dos testes do TT&C no hardware de verdade: a Raspberry Pi Zero 2 W,
 os dois RA-02, o NESDR Nano 3 e a ESP32 da ground. O procedimento das
 etapas 1 a 7 é o
 [roteiro de testes na Raspberry Pi](../../relatorios/2026-10-05-roteiro-testes-raspberry.html);
-o das etapas 8 a 15, o [roteiro de novembro](roteiro-2026-11.md). Os passos
+o das etapas 8 a 15, o [roteiro de novembro em HTML](../../relatorios/2026-11-05-roteiro-bancada.html) (revisado em 05/11, com a ground separada da Pi)
+(resumo em [`roteiro-2026-11.md`](roteiro-2026-11.md)). Os passos
 da bancada dos rádios estão em `flight/ttcd/README.md`.
 
 ## Como a pasta se organiza
@@ -36,14 +37,14 @@ Etapas do roteiro. ✅ feito · ⏳ em andamento · — não começado.
 | 5 · O SDR e o dump1090 | o receptor funciona; ganho; CPU do `dump1090` (risco do PLANO 3.4) | ✅ 09/10 — dump1090-fa 11.1, 0 amostras perdidas, **CPU 22% de um núcleo**, 46 °C; ganho inconclusivo (0–3 aeronaves), fica `-10` | [notas](2026-10-09/notas.md#etapa-5--o-sdr-e-o-dump1090) |
 | 6 · O `adsbd` com o SDR | o daemon com o hardware de verdade | ✅ 09/10 — sobe o dump1090-fa real, `sbs_up` em 1 s, 24 mensagens de 2 aeronaves gravadas, parada limpa | [notas](2026-10-09/notas.md#etapa-6--o-adsbd-com-o-sdr-1120-a-1125-) |
 | 7 · ADS-B real pelo LoRa real | a cadeia da missão, em hardware (bônus) | ✅ 09/10 — SDR → `adsbd` → `ttcd` → LoRa → ground, `SET_TIME` e âncora de ponta a ponta, 0 perdas; ⚠️ sem `TM_TRACKS`: o único avião não mandou posição | [notas](2026-10-09/notas.md#etapa-7--ads-b-real-pelo-lora-real-1130-a-1134--a-cadeia--sem-tracks) |
-| 8 · O código novo na Pi | protocolo v2, `obcd`, ground na ESP32: compila e passa no compilador da Pi | — | [roteiro](roteiro-2026-11.md#etapa-8--o-código-novo-na-pi) |
-| 9 · Os rádios em 433,92 MHz | os seis passos na frequência nova (ADR-0015) | — | [roteiro](roteiro-2026-11.md#etapa-9--a-bancada-dos-rádios-em-43392-mhz) |
-| 10 · A ESP32 | as suítes portáveis na placa (TTC-16); o firmware da ground | — | [roteiro](roteiro-2026-11.md#etapa-10--a-esp32-as-suítes-na-placa-e-o-firmware-da-ground) |
-| 11 · Os rádios com a ESP32 de ground | os seis passos com a ground das provas (ADR-0018) | — | [roteiro](roteiro-2026-11.md#etapa-11--a-bancada-dos-rádios-com-a-esp32-de-ground) |
-| 12 · Os três daemons pelo modo | a Figura 44 em hardware; o `adsbd` seguindo o modo (ADR-0014, ADR-0016) | — | [roteiro](roteiro-2026-11.md#etapa-12--os-três-daemons-pelo-modo-com-o-sdr) |
-| 13 · O `obcd` com sensores e LEDs | V, I e temperatura (OBC-7), termostato, burn-wire, saídas após `kill -9`, NACK do I²C (ADR-0017) | — | [roteiro](roteiro-2026-11.md#etapa-13--o-obcd-com-sensores-avulsos-e-leds) |
-| 14 · A corrente do RA-02 a 14 dBm | o orçamento de potência (CDR, Tabela 13: 110 mA) | — | [roteiro](roteiro-2026-11.md#etapa-14--a-corrente-do-ra-02-a-14-dbm) |
-| 15 · Os serviços (opcional) | as unidades do systemd e o watchdog na Pi | — | [roteiro](roteiro-2026-11.md#etapa-15--opcional-os-daemons-como-serviços) |
+| 8 · O código novo na Pi | protocolo v2, `obcd`, ground na ESP32: compila e passa no compilador da Pi | ✅ 05/11 — 38/38 nos dois builds (normal e UBSan), citações 71/71, sem warnings; 3 min 54 s | [notas](2026-11-05/notas.md) |
+| 9 · Os rádios em 433,92 MHz | os seis passos na frequência nova (ADR-0015) | — | [roteiro](roteiro-2026-11.md) |
+| 10 · A ESP32 | as suítes portáveis na placa (TTC-16); o firmware da ground | ⏳ 05/11 — as 11 suítes passam na ESP32 com as contagens do PC (TTC-16); o rádio B responde (`reset=14 dio0=27`), depois de um defeito de firmware corrigido (`polling_start`) e de um contato intermitente sem causa identificada | [notas](2026-11-05/notas.md) |
+| 11 · Os rádios com a ESP32 de ground | os seis passos com a ground das provas (ADR-0018) | — | [roteiro](roteiro-2026-11.md) |
+| 12 · Os três daemons pelo modo | a Figura 44 em hardware; o `adsbd` seguindo o modo (ADR-0014, ADR-0016) | — | [roteiro](roteiro-2026-11.md) |
+| 13 · O `obcd` com sensores e LEDs | V, I e temperatura (OBC-7), termostato, burn-wire, saídas após `kill -9`, NACK do I²C (ADR-0017); a corrente do burn-wire numa réplica (P2) | ⏳ 05/11 — INA219 e DS18B20 detectados; pulso de 5000 ms; entra e sai de `ENV_SURVIVAL`; EIO no I²C vazio (o `obcd` só reconhece `EREMOTEIO`/`ENXIO`); o DS18B20 deixou de responder (DQ sem pull-up), A3–A6, A8 e A10 pendentes | [notas](2026-11-05/notas.md) |
+| 14 · A corrente do RA-02 a 14 dBm | o orçamento de potência (CDR, Tabela 13: 110 mA) | — | [roteiro](roteiro-2026-11.md) |
+| 15 · Os serviços (opcional) | as unidades do systemd e o watchdog na Pi | — | [roteiro](roteiro-2026-11.md) |
 
 ## A Pi da bancada
 

@@ -1,8 +1,11 @@
-# Ground ADS-B
+# Ground station no PC
 
-Este diretório contém o projeto ADS-B da ground, trazido da branch `ADSB-ground` (onde ficava em `ground- adsb/`).
+O que roda no computador da ground station, em Python:
 
-- `ground-aeronaves/`: recepção de NDJSON, estimador por aeroportos/pistas, memória temporal, painel web, simulador e testes.
+- `gs_serial.py`: a ponte com a ESP32 da ground (ADR-0018). Reseta a placa, dá a ela o relógio do PC (a ESP32 não tem), manda os comandos e grava as linhas JSON. Para os roteiros da bancada, a ESP32 fica igual à `gs_cli`. Uso em `ground/esp32/README.md`; testado contra uma ESP32 falsa num pseudo-terminal (`test_gs_serial.py`, CTest `gs_serial`).
+- `gs_web.py` (e `gs_web_ui.html`): a interface da ground no navegador. Segue o satélite ao vivo (modo do OBC, tensão, corrente, temperaturas, enlace, linha do tempo de eventos) e manda os comandos pelos botões. Veja "A interface no navegador" abaixo.
+- `tracks_to_ndjson.py`: do log da ground ao formato do estimador (abaixo).
+- `ground-aeronaves/`: o projeto ADS-B da ground, trazido da branch `ADSB-ground` (onde ficava em `ground- adsb/`): recepção de NDJSON, estimador por aeroportos/pistas, memória temporal, painel web, simulador e testes.
 - `banco-aeronaves/`: importador do cadastro OurAirports. O banco de rotas foi removido.
 
 ## Executar
@@ -32,12 +35,34 @@ python -m ground.visualize --serve
 
 O simulador e o painel usam por padrão `~/adsb/eventos.ndjson`. Para processar um arquivo até o fim: `python -m ground --input /caminho/eventos.ndjson`.
 
+## A interface no navegador
+
+`gs_web.py` lê as mesmas linhas JSON da ground e serve uma página com o estado do satélite. Só biblioteca padrão; escuta em `127.0.0.1:8080`.
+
+Pela raiz do repositório, `make gs-web` escolhe a fonte por variável: `ESP32_PORT=/dev/ttyUSB0` (padrão), `UDP=1` ou `REPLAY=<log.jsonl>` (com `SPEED=10`). `POWER`, `WEB_HOST` e `WEB_PORT` ajustam a potência da ground, o endereço e a porta. Equivale a:
+
+```bash
+python3 gs_web.py --serial /dev/ttyUSB0 --power 2        # a ESP32 da ground
+python3 gs_web.py --udp                                   # gs_cli no rádio UDP (build/ primeiro)
+python3 gs_web.py --replay ../../docs/vv/bancada/AAAA-MM-DD/x-ground.jsonl --speed 10   # sem hardware
+```
+
+Abra `http://127.0.0.1:8080`. A página mostra o modo atual no diagrama da Figura 44 (clicar num modo manda o `SET_MODE`), a telemetria com "sem dado" no lugar dos valores sentinela, o enlace (RSSI, SNR, ACKs, latência) e a linha do tempo. Português, inglês e espanhol; o botão "projetar" aumenta as letras.
+
+- **Só os comandos de operação passam:** `ping`, `hk`, `stat`, `roster`, `time`, `stream`, `stop`, `rate` e `mode`. `shutdown`, `deafen` e o resto do console são recusados no servidor.
+- **`mode basic_inter` e `mode aocs` pedem para armar** (o burn-wire e o empréstimo do I²C ao AOCS). A chave de armar na página desliga sozinha em 15 s e depois de cada disparo, e o servidor confere de novo.
+- Com `--replay` a página avisa que é demonstração e que os comandos não chegam a lugar nenhum: serve para ensaiar a apresentação.
+- `--host 0.0.0.0` abre a página para a rede; não há senha, então só numa rede da equipe.
+
+Os testes (`make test T=gs_web`) cobrem o estado, a lista de comandos e o servidor contra uma ground falsa.
+
 ## Do downlink ao estimador
 
-`tracks_to_ndjson.py` converte o log da ground station (um JSON por evento, como o `tools/gs_cli` escreve e como o ESP32 vai mandar pela UART) no NDJSON que o estimador lê: um objeto por registro de aeronave recebido, com o horário refeito no relógio desta máquina — chegada menos tempo no ar menos idade, ADR-0007 — e só os campos que o registro marca como válidos. O teste dele passa cada linha pelo `parser.py` do estimador.
+`tracks_to_ndjson.py` converte o log da ground station (um JSON por evento, como o `tools/gs_cli` escreve e como a ESP32 manda pela USB, pelo `gs_serial.py`) no NDJSON que o estimador lê: um objeto por registro de aeronave recebido, com o horário refeito no relógio desta máquina — chegada menos tempo no ar menos idade, ADR-0007 — e só os campos que o registro marca como válidos. O teste dele passa cada linha pelo `parser.py` do estimador.
 
 ```bash
 gs_cli --radio udp ... | python3 tracks_to_ndjson.py | (cd ground-aeronaves && python -m ground --input -)
+python3 gs_serial.py --port /dev/ttyUSB0 --auto-time on | python3 tracks_to_ndjson.py | (cd ground-aeronaves && python -m ground --input -)
 ```
 
 A cadeia inteira sem hardware — captura ou simulação, `adsbd`, `ttcd`, rádio UDP, ground e estimador — é o `make adsb-chain INPUT=...`, descrito em `flight/adsbd/README.md`.

@@ -21,6 +21,9 @@ Os pinos ficam no menuconfig ("Gama ground station"); para mudar sem o
 menuconfig, edite os `default` em `main/Kconfig.projbuild` e apague
 `ground/esp32/sdkconfig`.
 
+Na bancada de novembro de 2026 o DIO0 está soldado no GPIO27: o `sdkconfig`
+(não versionado) leva `CONFIG_GAMA_GS_PIN_DIO0=27`. O padrão, 26, é o das PCBs.
+
 ## Compilar e gravar
 
 Só precisa do Docker, com a imagem `espressif/idf:release-v5.3`

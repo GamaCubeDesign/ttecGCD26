@@ -28,8 +28,8 @@ proposing anything that moves bytes over the radio, check it against
 | `flight/conf/` | Flight configuration per board: `obc-v2/` holds the new OBC board's `ttcd.conf`, `obcd.conf` and `config.txt` lines; `make install CONF_DIR=flight/conf/obc-v2` | Pi |
 | `ground/console/` | The ground station's console: the link's ground side, the text commands and the JSON lines; portable, shared by `gs_cli` and the ESP32 (ADR-0018) | Pi / PC / ESP32 |
 | `ground/esp32/` | Ground station firmware (ESP-IDF, built in Docker by `tools/esp32/idf.sh`); sends the remote commands of the on-site tests (ADR-0018). `ground/esp32-tests/` runs the portable suites on the ESP32 or in QEMU | ESP32 |
-| `ground/host/` | Serial bridge to the ESP32 ground, also the operator CLI (`gs_serial.py`); downlink → estimator adapter (`tracks_to_ndjson.py`); origin/destination estimator and dashboard (`ground-aeronaves/`, a teammate's project, merged 2026-09-28); airport DB importer | PC, Python |
-| `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check, downlink emulation over full captures (`downlink_emulation.py`) | PC |
+| `ground/host/` | Serial bridge to the ESP32 ground, also the operator CLI (`gs_serial.py`); downlink → estimator adapter (`tracks_to_ndjson.py`); origin/destination estimator and dashboard (`ground-aeronaves/`, a teammate's project, merged 2026-09-28); airport DB importer; the browser interface that follows the satellite and sends the operator's commands (`gs_web.py`, `make gs-web`) | PC, Python |
+| `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check, downlink emulation over full captures (`downlink_emulation.py`), the flight configuration checked wire by wire against the boards' layouts (`board_check.py`, also in CTest) | PC |
 | `tools/gs_cli/` | Bench ground station: the ground console on a second RA-02 or the UDP radio | Pi / PC |
 | `tools/bench/` | Bench procedure: one `gs_cli` command script per step, and `run_step.sh`, which starts `ttcd` afresh for each; `adsb_chain.sh` | Pi / PC |
 | `tools/ci/` | `check_debian.sh`: `make check` on Debian 13 with the Pi's GCC 14, run by the CI (`.github/workflows/check.yml`) and by `make check-debian` | PC / CI |
@@ -41,7 +41,7 @@ proposing anything that moves bytes over the radio, check it against
 | `docs/cdr/` | The delivered CDR (Design Package, v4, 2026-10-11): what the project promised. Its LaTeX source is a local, gitignored copy | — |
 | `docs/relatorios/` | Dated status reports for the team, in Portuguese (HTML, self-contained) | — |
 | `docs/vv/bancada/` | Hardware bench evidence: progress per roadmap stage and the Pi's setup (`README.md`), the November bench script (`roteiro-2026-11.md`), one folder per day with `notas.md` and the logs `make pi-fetch` brings back | — |
-| `hardware/` | KiCad sources of the boards as fabricated (panels of 2026-10-08), one folder per board, and `obc-v2/`, the new OBC board (KiCad of 2026-10-23, not fabricated yet); `hardware/README.md` | — |
+| `hardware/` | KiCad sources of the boards as fabricated (panels of 2026-10-08), one folder per board, and the `-v2` folders, not fabricated yet: `obc-v2/`, the new OBC board (schematic of 2026-10-23, layout of the TF revision of 2026-11-02), and `eps-potencia-v2/` and `aocs-v2/` (TF layouts, the same connections as fabricated, no schematic); `antenas/`, the antenna board, which carries the burn-wire's TIP120 (KiCad of 2026-10-19); `hardware/README.md` | — |
 | `ultima_missao/` | Previous competition's code, **frozen**, reference only | — |
 
 **The OBC software is ours since 2026-10-20** and is written here, in
@@ -49,17 +49,20 @@ proposing anything that moves bytes over the radio, check it against
 `adsbd`. The other team's repository (`../obc`) is **frozen, reference
 only**, like `ultima_missao/`: keep its mode and event enums (already pinned
 in `common/gama_tc.h`) and the transitions of the CDR's Figure 44; do not
-port its main loop, wiringPi calls or fixed paths. `docs/icd/obc-ttec-icd.md`
-documents the interface between two of our own processes.
+port its main loop, wiringPi calls or fixed paths. The interface between
+`obcd` and `ttcd` is defined by `common/gama_ipc.h` and ADR-0013/0014; its
+ICD (`docs/icd/obc-ttec-icd.md`) is not written yet.
 
 **The flight stack has known wiring defects.** The boards as fabricated
 (`hardware/`) cannot run together: the 8 V path through the OBC's INA219, the
 LoRa bus between the OBC and TT&C boards, the OBC's I²C and its TIP120 and
-DS18B20 resistors. The new OBC board (`hardware/obc-v2`, KiCad of
-2026-10-23; not fabricated, no date) fixes all of them but the TIP120 base
-resistors (findings A5, A6), and keeps the INA219 on the I²C bus shared with
-the AOCS (ADR-0017). Pins come only from configuration files: the new
-board's are in `flight/conf/obc-v2/`; the example `ttcd.conf` pins
+DS18B20 resistors. The new OBC board (`hardware/obc-v2`: schematic of
+2026-10-23, layout re-routed on 2026-11-02 with the same connections; not
+fabricated, no date) fixes all of them but the TIP120 base resistors
+(findings A5, A6), and keeps the INA219 on the I²C bus shared with the AOCS
+(ADR-0017). Pins come only from configuration files: the new board's are in
+`flight/conf/obc-v2/`, and `tools/analysis/board_check.py` (in CTest) checks
+them wire by wire against the stack's layouts; the example `ttcd.conf` pins
 (GPIO 20/21) are the bench wiring, not the flight stack. Details:
 `docs/relatorios/2026-10-22-validacao-obc.html` and `hardware/README.md`.
 
@@ -194,7 +197,7 @@ built from those.
 
 See `PLANO.md`: the decisions of 22–24/10 (D1–D12), the priority order with
 dates, what is cut first if time runs short, the open questions and the
-risks. As of 2026-10-31:
+risks. As of 2026-11-05:
 
 - **Done in software**: shared codec, IPC, `ttcd`, the ground side of the
   protocol, the SX1278 driver, the channel simulation, the bench tooling,
@@ -206,31 +209,51 @@ risks. As of 2026-10-31:
   the bus lent to the ESP32 for its task, voltage and current "no data"
   meanwhile); since 2026-10-31 etapa 3, the ESP32 ground station (ADR-0018),
   its portable suites passing in QEMU; and the new OBC board's sources and
-  flight configuration. 37 CTest suites, zero warnings, clean under ASan and
-  UBSan, and under ThreadSanitizer for `obcd`'s integration test. **None of
-  this has been run on the bench yet**: the script for the week of
-  2026-11-02 is `docs/vv/bancada/roteiro-2026-11.md`.
+  flight configuration, checked wire by wire against the boards' layouts
+  (`tools/analysis/board_check.py`, 2026-11-03); since 2026-11-05 the
+  ground's browser interface (`ground/host/gs_web.py`, `make gs-web`) and
+  the radio bench split between the Pi and the PC (`make bench SPLIT=1`).
+  39 CTest suites, zero warnings, clean under ASan and UBSan, and under
+  ThreadSanitizer for `obcd`'s integration test. **Most of this has not run
+  on the bench yet**: the script is
+  `docs/relatorios/2026-11-05-roteiro-bancada.html` (summary in
+  `docs/vv/bancada/roteiro-2026-11.md`); it wires the bench Pi on the new OBC
+  board's GPIOs and runs the flight configuration, so that the bench
+  validates the firmware for the boards.
 - **Validated on the bench** (2026-10-07/09, `docs/vv/bancada/`, in
   Portuguese — **update it as each stage closes**): `make check` on the Pi
   (`pi@gamapi.local`, 64-bit Debian 13, reached through `local.mk`); the
   radio bench, all six steps at 0.8 m; dump1090-fa at 21.9% of one core;
   `adsbd` with the real SDR; the chain SDR → `adsbd` → `ttcd` → LoRa →
-  ground, without track records (no aircraft position in view).
+  ground, without track records (no aircraft position in view). On
+  2026-11-05 (`docs/vv/bancada/2026-11-05/notas.md`): `make check` of the
+  new code on the Pi; the ESP32 ground's portable suites, with the PC's
+  counts, and its radio, after a firmware fix (`polling_start`); the OBC's
+  sensors found, the burn-wire pulse (5000 ms, on a LED) and
+  `ENV_SURVIVAL`. Open from that day: the DS18B20's wiring, the radio
+  steps, the thermostat, and `obcd` taking the Pi's EIO for an absent I²C
+  device as an error rather than a NACK.
 - **Priority now: the bench, then the hardware.** (1) ~~protocol version 2,
   mode-driven `ttcd`/`adsbd`, 433.92 MHz and 14 dBm~~ — done in software
   2026-10-24; (2) ~~`flight/obcd/`~~ — done in software, the Pi's side of the
   AOCS contract included; the contract waits for the AOCS team's answer
   (ICD §6); (3) ~~the ESP32 ground station, which sends the remote commands
   of the tests, and a minimal operator CLI~~ — done in software 2026-10-31;
-  **now the bench** (`docs/vv/bancada/roteiro-2026-11.md`); (4) ~~CI~~ —
+  **now the bench** (`docs/relatorios/2026-11-05-roteiro-bancada.html`); (4) ~~CI~~ —
   `.github/workflows/check.yml`, `make check` on Debian 13 with the Pi's
   GCC 14 (locally: `make check-debian`), live once pushed; the flight image
   (`make provision`); then the new OBC board's bring-up and the validation
   of CDR Table 67.
 - **Pending answers**: the AOCS team's answer to the draft I²C contract
   (another team writes that firmware; we have no access to it yet); the date
-  of the new OBC board. Answered 2026-10-31: the INA219 stays on the shared
-  bus (ADR-0017); the organisers' test order cannot be known in advance.
+  of the new boards, and the fixes they need first
+  (`docs/relatorios/2026-11-03-pendencias-placas.html`, revised after the
+  meeting of 2026-11-03): the OBC board is made in-house, so its DRC errors
+  against the in-house rule stand; the OBC's R2 (4.7 kΩ) in series with the
+  antenna board's 220 Ω starves the burn-wire's base (proposed: 470 Ω, bench
+  stage 13f); the heaters' base resistor and pull-downs. Answered 2026-10-31:
+  the INA219 stays on the shared bus (ADR-0017); the organisers' test order
+  cannot be known in advance.
 - **ADRs**: 0007 and 0012 *Proposed*, with the bench results in their
   verification sections; 0013 to 0018 *Proposed*, tested without hardware,
   bench pending; 0010 (onboard storage) still to write.
@@ -239,7 +262,8 @@ risks. As of 2026-10-31:
   TTC-01..16 (Table 65), traceability (Table 66), remaining validation
   (Table 67).
 - Requirement status and open gaps: `docs/requisitos.md` (§7 lists the
-  actions) — its status is still that of 2026-09-19.
+  actions) — its per-requirement status is still that of 2026-09-19 (a
+  header note says so); the full revision comes with the bench evidence.
 
 ## Working style for this repo
 

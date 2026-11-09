@@ -1,8 +1,13 @@
 # Configuração da placa nova do OBC (`hardware/obc-v2`)
 
-Para quando a placa chegar: ela ainda não foi fabricada. Os pinos foram
-conferidos contra o netlist e os pads (`hardware/README.md`), mas nada daqui
-rodou numa placa.
+Para quando a placa chegar: ela ainda não foi fabricada. Os pinos são
+conferidos, fio a fio, contra os layouts das placas (o da revisão TF de
+02/11, que tem as mesmas ligações da de 23/10, e o da placa de antenas, onde
+fica o TIP120 do burn-wire) por
+`tools/analysis/board_check.py`, que roda em todo `make test`
+(`boards_match_conf`). Nada daqui rodou numa placa; a bancada de novembro roda
+estes arquivos numa Pi com os mesmos GPIOs e periféricos
+(`docs/relatorios/2026-11-03-roteiro-bancada.html`).
 
 | Arquivo | O que leva |
 |---|---|

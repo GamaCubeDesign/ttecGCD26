@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — Status do firmware e próximas etapas (03/11/2026)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+<style>
+/* Acréscimos deste relatório; o bloco acima é o mesmo dos relatórios. */
+.callout.ok{border-color:var(--ok);background:var(--ok-soft)}
+th[colspan]{background:var(--surface-2);font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#status">Status por parte do firmware</a></li>
+    <li><a href="#evidencia">O que está provado, e como</a></li>
+    <li><a href="#falta-sw">O que falta no software</a></li>
+    <li><a href="#proximas">Próximas etapas</a></li>
+    <li><a href="#calendario">Calendário até a prova</a></li>
+    <li><a href="#depende">O que depende de outras equipes</a></li>
+    <li><a href="#decisoes">O que as decisões da reunião mudam no firmware</a></li>
+    <li><a href="#riscos">Riscos</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="doc">
+  <p class="eyebrow">Gama Cube Design · CubeDesign 2026 · TT&amp;C, OBC e ground</p>
+  <h1>Status do firmware e próximas etapas</h1>
+  <p class="lede">Onde está o software de voo e da ground station em 3 de novembro, o que já está provado e o que só a bancada prova, e o caminho até a prova de 24/11.</p>
+  <div class="meta">
+    <span>Data: <b>03/11/2026</b></span>
+    <span>Commit: <b><code>7e267b4</code></b></span>
+    <span>Testes da equipe: <b>até 20/11</b> (17 dias)</span>
+    <span>Prova: <b>24/11/2026</b> (21 dias)</span>
+  </div>
+</header>
+
+<div class="callout ok" style="margin-top:18px">
+  <p><b>O firmware está completo em software e verificado sem hardware.</b> Estão prontos:</p>
+  <ul>
+    <li>os três processos de bordo (rádio, payload e OBC), configurados para a placa nova;</li>
+    <li>a ground station na ESP32;</li>
+    <li>o contrato com o AOCS, do lado do OBC.</li>
+  </ul>
+  <p><b>O que falta é a bancada.</b> Nada do que foi escrito depois de 09/10 rodou num rádio, numa Pi com sensores ou numa ESP32 de verdade. Isso é o trabalho desta semana, e não precisa esperar a placa nova.</p>
+</div>
+
+<h2 id="resumo"><span class="n">1</span>Resumo</h2>
+
+<div class="tiles">
+  <div class="tile"><div class="v">38</div><div class="l">suítes de teste passando, sem nenhum aviso de compilação, também sob ASan e UBSan e com o GCC 14 da Pi</div></div>
+  <div class="tile"><div class="v">17 de 17</div><div class="l">fios do firmware conferidos contra os layouts das placas TF, do GPIO da Pi ao pino do chip</div></div>
+  <div class="tile"><div class="v">11 de 11</div><div class="l">suítes portáveis passando numa ESP32 emulada, com os mesmos bytes do PC</div></div>
+  <div class="tile"><div class="v">09/10</div><div class="l">última vez que o firmware rodou em hardware; tudo o que veio depois está só em simulação</div></div>
+  <div class="tile"><div class="v">8</div><div class="l">etapas de bancada com os comandos prontos para esta semana (<code>roteiro-2026-11.md</code>)</div></div>
+  <div class="tile"><div class="v">2</div><div class="l">dependências externas no caminho crítico: o firmware do AOCS e a fabricação das placas</div></div>
+</div>
+
+<h2 id="status"><span class="n">2</span>Status por parte do firmware</h2>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Parte</th><th>O que faz</th><th>Software</th><th>Hardware</th></tr></thead>
+  <tbody>
+    <tr><th colspan="4">No satélite (Raspberry Pi Zero 2 W)</th></tr>
+    <tr><td><b><code>ttcd</code></b> · rádio</td><td>o enlace LoRa: telecomandos, telemetria, troca de taxa, retransmissão, a hora da ground; o centro da comunicação entre os processos</td><td><span class="badge b-ok">pronto</span></td><td><span class="badge b-ok">bancada 09/10</span> <span class="badge b-warn">433,92 MHz e protocolo v2 não testados</span></td></tr>
+    <tr><td><b><code>adsbd</code></b> · payload</td><td>sobe o decodificador de ADS-B, grava toda mensagem a bordo e manda ao rádio um retrato das aeronaves por segundo; só roda na missão</td><td><span class="badge b-ok">pronto</span></td><td><span class="badge b-ok">com o SDR em 09/10</span> <span class="badge b-warn">ligado pelo modo, não testado</span></td></tr>
+    <tr><td><b><code>obcd</code></b> · OBC</td><td>os modos da missão (Figura 44 do CDR), burn-wire, termostato da bateria, tensão, corrente e temperatura, e o empréstimo do I²C ao AOCS</td><td><span class="badge b-ok">pronto</span></td><td><span class="badge b-bad">nunca rodou</span></td></tr>
+    <tr><td>Configuração de voo</td><td>os pinos da placa nova do OBC, conferidos contra os layouts a cada <code>make test</code></td><td><span class="badge b-ok">pronta</span></td><td><span class="badge b-bad">placa não fabricada</span></td></tr>
+    <tr><td>Imagem do cartão de voo</td><td>instalar tudo na Pi com um comando: decodificador, serviços, <code>config.txt</code></td><td><span class="badge b-warn">parcial</span></td><td><span class="badge b-todo">—</span></td></tr>
+    <tr><th colspan="4">Na ground station</th></tr>
+    <tr><td><b>Firmware da ESP32</b></td><td>a ground das provas: manda os comandos remotos e recebe a telemetria pelo RA-02</td><td><span class="badge b-ok">pronto</span></td><td><span class="badge b-bad">nunca rodou na placa</span></td></tr>
+    <tr><td><code>gs_serial.py</code></td><td>liga a ESP32 ao computador: dá a hora a ela, envia os comandos, grava tudo</td><td><span class="badge b-ok">pronto</span></td><td><span class="badge b-bad">nunca rodou</span></td></tr>
+    <tr><td><code>gs_cli</code></td><td>a mesma ground na Pi da bancada, com um segundo RA-02; é a reserva da ESP32</td><td><span class="badge b-ok">pronta</span></td><td><span class="badge b-ok">bancada 09/10</span></td></tr>
+    <tr><td>Estimador de origem e destino</td><td>reconstrói as trajetórias a partir dos retratos que descem</td><td><span class="badge b-ok">pronto</span></td><td><span class="badge b-todo">sem tracks reais ainda</span></td></tr>
+    <tr><th colspan="4">Entre equipes</th></tr>
+    <tr><td>Contrato I²C com o AOCS</td><td>como o OBC manda o AOCS trabalhar e lê o resultado, num barramento dividido</td><td><span class="badge b-warn">rascunho; lado do OBC pronto</span></td><td><span class="badge b-bad">sem o firmware do AOCS</span></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="evidencia"><span class="n">3</span>O que está provado, e como</h2>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Afirmação</th><th>Como se sabe</th><th>O que ainda não se sabe</th></tr></thead>
+  <tbody>
+    <tr><td>O protocolo do enlace funciona: perda, colisão, troca de taxa, ACK perdido</td><td>canal simulado (uma hora de enlace em milissegundos) e os seis passos na bancada de 09/10</td><td>o mesmo em 433,92 MHz, com a ESP32 de ground e na distância da prova</td></tr>
+    <tr><td>Os bytes são idênticos nas duas pontas (TTC-16)</td><td>vetores fixados, que passam no PC, na Pi e numa ESP32 emulada</td><td>na ESP32 de verdade</td></tr>
+    <tr><td>Os modos seguem a Figura 44</td><td>cada transição testada no núcleo do <code>obcd</code>; o <code>SET_MODE</code> da ground atravessa os três processos reais no rádio simulado</td><td>em hardware, com o tempo de resposta medido em todos os modos</td></tr>
+    <tr><td>Durante o empréstimo do I²C, a Pi não fala no barramento</td><td>teste em tempo virtual contra um ESP32 simulado, em todos os desfechos</td><td>com um ESP32 real, e se o driver da Pi reporta o NACK como o software espera</td></tr>
+    <tr><td>O rádio sobrevive à queda do payload</td><td>teste da cadeia: o <code>adsbd</code> é derrubado e o <code>ttcd</code> segue mandando telemetria</td><td>—</td></tr>
+    <tr><td>O firmware bate com as placas</td><td>fio a fio, contra os layouts (20 conferências, a cada <code>make test</code>)</td><td>se as placas fabricadas seguem os layouts; medir na chegada</td></tr>
+    <tr><td>Sensores e atuadores funcionam</td><td>drivers testados contra chips emulados</td><td>V e I contra multímetro, termostato real, pulso do burn-wire, GPIO após queda do processo</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="falta-sw"><span class="n">4</span>O que falta no software</h2>
+<p>Pouco, e quase nada no caminho crítico:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Item</th><th>Por quê</th><th>Esforço</th><th>Se apertar</th></tr></thead>
+  <tbody>
+    <tr><td><b>Imagem do cartão de voo</b> (<code>make provision</code> completo): decodificador, serviços, <code>config.txt</code>, módulo do SDR bloqueado</td><td>o cartão de voo precisa sair pronto de um comando, sem passos à mão no dia</td><td>½ dia</td><td><b>não corta</b></td></tr>
+    <tr><td>Tempo de resposta do <code>SET_MODE</code> medido em todos os modos (OBC-3)</td><td>hoje só o caminho da missão ADS-B está medido</td><td>½ dia</td><td>não corta</td></tr>
+    <tr><td>Build da ESP32 na CI; UBSan reprovando o teste</td><td>pega na hora um erro que hoje só aparece rodando à mão</td><td>2 h</td><td>corta</td></tr>
+    <tr><td>ICDs OBC↔TT&amp;C e do enlace; ADR-0010 (armazenamento a bordo)</td><td>documentação do Design Package; o código já está pronto</td><td>1 dia</td><td>corta</td></tr>
+    <tr><td><code>docs/requisitos.md</code>: o estado de cada requisito</td><td>ainda é o de 19/09; precisa refletir o que foi feito e o que a bancada provar</td><td>½ dia</td><td>não corta (vem depois da bancada)</td></tr>
+    <tr><td>Painel do estimador ao vivo; banco de aeroportos da região da UNSAM</td><td>melhoram a apresentação, não a missão</td><td>1–2 dias</td><td>corta primeiro</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="proximas"><span class="n">5</span>Próximas etapas</h2>
+
+<h3>5.1 Esta semana: a bancada, sem a placa nova</h3>
+<p>Na Pi da bancada, com os dois RA-02, a ESP32, o SDR e sensores avulsos. O roteiro completo está em <code>docs/vv/bancada/roteiro-2026-11.md</code>:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Etapa</th><th>O que prova</th></tr></thead>
+  <tbody>
+    <tr><td>8 · o código novo na Pi</td><td>compila e passa nos testes no compilador da Pi</td></tr>
+    <tr><td>9 · os rádios em 433,92 MHz</td><td>os seis passos de 09/10 na frequência do CDR; a frequência lida no chip</td></tr>
+    <tr><td>10 · a ESP32</td><td>as suítes na placa (TTC-16); o firmware da ground</td></tr>
+    <tr><td>11 · os rádios com a ESP32 de ground</td><td>a ground das provas responde no tempo do protocolo</td></tr>
+    <tr><td>12 · os três processos pelo modo</td><td>a Figura 44 em hardware; o decodificador ligando e desligando com o modo</td></tr>
+    <tr><td>13 · o OBC com sensores e LEDs</td><td>tensão e corrente contra o multímetro, termostato, pulso de 5 s, GPIO após queda do processo, o NACK do I²C</td></tr>
+    <tr><td>14 · a corrente do RA-02 a 14 dBm</td><td>o orçamento de potência do CDR (110 mA)</td></tr>
+    <tr><td>15 · os serviços do sistema (opcional)</td><td>o watchdog e o reinício automático</td></tr>
+  </tbody>
+</table></div>
+
+<h3>5.2 Em seguida</h3>
+<ol>
+  <li><b>Corrigir o que a bancada achar</b> e registrar em <code>docs/vv/bancada/</code>.</li>
+  <li><b>Fechar a imagem do cartão de voo</b> e testá-la na Pi da bancada.</li>
+  <li><b>Integrar o AOCS</b> quando o firmware dele existir. Antes disso, qualquer ESP32 de desenvolvimento fazendo o papel de escravo exercita o contrato.</li>
+  <li><b>Bring-up da placa nova do OBC</b> quando chegar: energia, GPIOs no boot, rádio, I²C, sensores e atuadores, boot até <code>PRE_TEST</code>.</li>
+  <li><b>Validação</b>, na ordem da Tabela 67 do CDR:
+    <ul>
+      <li>o enlace na distância com as antenas da equipe;</li>
+      <li>a convivência entre o LoRa e o ADS-B;</li>
+      <li>o SDR com tráfego real;</li>
+      <li>tracks descendo pelo rádio;</li>
+      <li>o OBC no stack;</li>
+      <li>o ensaio de 10 min com as métricas do HLR-ADS-08;</li>
+      <li>o ambiental.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="calendario"><span class="n">6</span>Calendário até a prova</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Quando</th><th>O quê</th><th>Pronto quando</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">03–07/11</td><td>bancada, etapas 8 a 15</td><td>cada etapa registrada em <code>notas.md</code>, com os números</td></tr>
+    <tr><td class="nw">10–14/11</td><td>correções da bancada, imagem de voo, AOCS (se houver firmware), bring-up (se houver placa)</td><td>o cartão de voo sai pronto de um comando</td></tr>
+    <tr><td class="nw">até 20/11</td><td>validação no stack: enlace na distância, convivência LoRa × ADS-B, ensaio de 10 min, ambiental</td><td>as métricas do HLR-ADS-08 medidas</td></tr>
+    <tr><td class="nw">17–23/11</td><td>folga; documentação final e requisitos</td><td>desvios declarados (I²C dividido, corrente do INA219)</td></tr>
+    <tr><td class="nw">24/11</td><td>prova na UNSAM; medir o ruído em 433,92 MHz ao chegar</td><td>—</td></tr>
+  </tbody>
+</table></div>
+<p class="small">As etapas de 10/11 em diante dependem de duas datas que ainda não existem: a da fabricação das placas novas e a do firmware do AOCS (seção 7).</p>
+
+<h2 id="depende"><span class="n">7</span>O que depende de outras equipes</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>De quem</th><th>O quê</th><th>O que trava</th></tr></thead>
+  <tbody>
+    <tr><td>Equipe do AOCS</td><td>resposta ao contrato I²C (endereço, duração da tarefa, o que o resultado leva) e o firmware</td><td>o modo <code>ADVANCED_AOCS</code> de ponta a ponta</td></tr>
+    <tr><td>Equipe de PCB</td><td>corrigir o DRC das placas TF, os resistores de base e os pull-downs; a data da fabricação</td><td>o bring-up e toda a validação no stack</td></tr>
+    <tr><td>Mecanismo</td><td>o projeto da placa e a corrente real do burn-wire</td><td>a duração do pulso (hoje 5 s)</td></tr>
+    <tr><td>EPS</td><td>o valor dos aquecedores; a decisão sobre o que o INA219 mede</td><td>o termostato no frio; a prova de recarga</td></tr>
+    <tr><td>Organização</td><td>a ordem das provas; como avaliam a recarga</td><td>o roteiro do dia</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="decisoes"><span class="n">8</span>O que as decisões da reunião mudam no firmware</h2>
+<p>As pendências das placas estão no <a href="2026-11-03-pendencias-placas.html">relatório de pendências</a>. Para cada decisão possível, o impacto no software:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Se decidirem</th><th>No firmware</th><th>Custo</th></tr></thead>
+  <tbody>
+    <tr><td>Trocar os resistores de base (burn-wire, aquecedores) e pôr pull-downs</td><td>nada; talvez só a duração do pulso, que é configuração (<code>burnwire_ms</code>)</td><td>—</td></tr>
+    <tr><td>Manter o I²C dividido com o AOCS</td><td>nada; já está implementado. Falta só declarar o desvio</td><td>—</td></tr>
+    <tr><td>Dois fios de UART entre o OBC e o AOCS</td><td>o enlace do AOCS no <code>obcd</code> muda de I²C para UART, com um ADR novo. Tensão e corrente voltam a ser lidas em todos os modos, e o modo pode terminar quando a tarefa acaba</td><td>1–2 dias, mais o lado do AOCS</td></tr>
+    <tr><td>Mover o INA219 para os terminais da bateria</td><td>nada, se continuar no mesmo I²C e no mesmo endereço; senão, configuração</td><td>—</td></tr>
+    <tr><td>Mudar qualquer pino</td><td>só configuração; o <code>make test</code> confere de novo contra os layouts novos</td><td>minutos</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="riscos"><span class="n">9</span>Riscos</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Risco</th><th>Efeito</th><th>O que reduz</th></tr></thead>
+  <tbody>
+    <tr><td>As placas novas chegam tarde</td><td>sem tempo para o bring-up e a validação no stack</td><td>a bancada desta semana valida o firmware com sensores avulsos; o firmware já confere contra os layouts</td></tr>
+    <tr><td>O firmware do AOCS não chega ou não segue o contrato</td><td>o <code>ADVANCED_AOCS</code> não acontece na prova</td><td>contrato entregue; o modo termina sozinho sem ESP32; um ESP32 de bancada pode simular o AOCS</td></tr>
+    <tr><td>Uma pessoa para OBC, TT&amp;C e ground</td><td>algo fica sem validar</td><td>roteiros prontos e repetíveis; ordem de corte combinada</td></tr>
+    <tr><td>A ESP32 não responde no tempo do protocolo</td><td>a ground das provas falha</td><td>etapa 11 da bancada; a <code>gs_cli</code> na Pi como reserva</td></tr>
+    <tr><td>LoRa a 14 dBm atrapalha o ADS-B</td><td>menos de 95% das mensagens decodificadas</td><td>medir na validação; bloquear o rádio durante a recepção, ou filtro</td></tr>
+    <tr><td>Enlace na distância real não medido</td><td>margem menor que a modelada</td><td>medir com as antenas da equipe; o perfil SAFE como reserva</td></tr>
+  </tbody>
+</table></div>
+
+<footer>
+  <p>Gerado em 03/11/2026 a partir do commit <code>7e267b4</code>, com apoio do Claude Code. Os números de testes são os do <code>make check</code> desta data; o plano e a ordem de corte vêm do <code>PLANO.md</code>.</p>
+  <p>Relatórios relacionados: <a href="2026-11-03-pendencias-placas.html">pendências das placas (03/11)</a>, <a href="2026-10-31-estado-do-projeto.html">estado em 31/10</a> e <a href="2026-10-31-guia-de-estudo.html">guia de estudo</a>.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

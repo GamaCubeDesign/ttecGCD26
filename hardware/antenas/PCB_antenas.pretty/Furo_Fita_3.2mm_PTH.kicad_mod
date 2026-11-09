@@ -1,0 +1,12 @@
+(footprint "Furo_Fita_3.2mm_PTH"
+	(version 20241229)
+	(generator "gama_cube")
+	(layer "F.Cu")
+	(descr "Furo metalizado para parafuso de fixacao da fita do dipolo LoRa (M3), anel 5,0 mm, sem mascara")
+	(tags "furo fita LoRa PTH M3")
+	(attr exclude_from_pos_files exclude_from_bom)
+	(property "Reference" "H**" (at 0 -3.2 0) (layer "F.SilkS") (hide yes) (effects (font (size 0.8 0.8) (thickness 0.12))))
+	(property "Value" "Furo_Fita_3.2_PTH" (at 0 3.2 0) (layer "F.Fab") (effects (font (size 0.8 0.8) (thickness 0.12))))
+	(fp_circle (center 0 0) (end 2.75 0) (stroke (width 0.05) (type solid)) (fill no) (layer "F.CrtYd"))
+	(pad "1" thru_hole circle (at 0 0) (size 5.0 5.0) (drill 3.2) (layers "*.Cu" "*.Mask"))
+)
