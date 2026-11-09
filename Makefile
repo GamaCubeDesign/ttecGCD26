@@ -99,7 +99,7 @@ toa: ## Time on air, measured against the model, in a ttcd log: LOG=file
 
 # On the Pi the bench drives the radios; anywhere else the UDP radio
 # simulates the link between two processes on the same machine.
-RADIO      ?= $(if $(ON_PI),sx1278,udp)
+RADIO      ?= $(if $(or $(ON_PI),$(SPLIT)),sx1278,udp)
 
 # A run on the radios is test evidence (HLR-COMM-01, HLR-COMM-03), so its
 # logs go where the Design Package collects them, one directory per day. A
@@ -144,7 +144,11 @@ endif
 
 # $(call bench-step,COMMANDS[,NAME[,ttcd options[,gs_cli options]]]): one
 # step, from tools/bench/COMMANDS.txt, logged as $(BENCH_DIR)/TIME-NAME-*.jsonl.
-bench-step  = @TTCD_CMD='$(TTCD_CMD) $(3)' GS_CMD='$(GS_CMD) $(4)' SOCK='$(SOCK)' \
+# SPLIT=1: ttcd runs on the Pi (PI_HOST, tree in PI_DIR, after make pi-sync and
+# a build there) and the ground on this machine's USB: the bench of the ESP32
+# ground station on its own, with GS=esp32. run_step.sh copies ttcd's log back.
+bench-step  = @TTCD_SSH='$(if $(SPLIT),$(PI_HOST))' TTCD_DIR='$(PI_DIR)' \
+              TTCD_CMD='$(TTCD_CMD) $(3)' GS_CMD='$(GS_CMD) $(4)' SOCK='$(SOCK)' \
               tools/bench/run_step.sh tools/bench/$(1).txt $(BENCH_DIR)/$(BENCH_TIME)-$(or $(2),$(1))
 
 .PHONY: bench bench-config bench-ping bench-toa bench-per bench-rates bench-lost-ack \

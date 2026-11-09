@@ -17,6 +17,10 @@
 #   TTCD_CMD  ttcd and its options, without log_path
 #   GS_CMD    gs_cli and its options
 #   SOCK      the ipc_path given in TTCD_CMD
+#   TTCD_SSH  optional: user@host. ttcd then runs there, in TTCD_DIR (default
+#             ttec, relative to the home), while the ground stays on this
+#             machine — the ground on the PC, ttcd on the Pi (make bench
+#             SPLIT=1). Its log is copied back to PREFIX-ttcd.jsonl at the end.
 
 set -euo pipefail
 
@@ -28,37 +32,65 @@ read -r -a ttcd <<< "$TTCD_CMD"
 read -r -a gs <<< "$GS_CMD"
 mkdir -p "$(dirname "$prefix")"
 
+remote=${TTCD_SSH:-}
+rdir=${TTCD_DIR:-ttec}
+rsh() {
+    ssh -o BatchMode=yes -o ControlMaster=auto -o ControlPath="/tmp/ttec-bench-%C" \
+        -o ControlPersist=60 "$remote" "$@"
+}
+sock_ready() {
+    if [[ -n $remote ]]; then rsh "test -S '$SOCK'"; else [[ -S $SOCK ]]; fi
+}
+stop_ttcd() {
+    if [[ -n $remote ]]; then rsh 'pkill -TERM -x ttcd' || true
+    else kill -TERM "$pid" 2>/dev/null || true; fi
+}
+
 # A socket left by a ttcd that did not exit cleanly would pass for readiness.
-if [[ -S $SOCK ]]; then
+if [[ -n $remote ]]; then
+    if rsh 'pgrep -x ttcd' >/dev/null; then
+        echo "bench: a ttcd is already running on $remote and holds radio A" >&2
+        exit 1
+    fi
+    rsh "rm -f -- '$SOCK'"
+elif [[ -S $SOCK ]]; then
     rm -f -- "$SOCK"
 fi
 
-"${ttcd[@]}" -o log_path="$sat" &
+if [[ -n $remote ]]; then
+    printf -v rcmd '%q ' "${ttcd[@]}" -o "log_path=$sat"
+    rsh "cd '$rdir' && mkdir -p '$(dirname "$sat")' && exec $rcmd" &
+else
+    "${ttcd[@]}" -o log_path="$sat" &
+fi
 pid=$!
-trap 'kill "$pid" 2>/dev/null; wait "$pid" 2>/dev/null || true' EXIT
+trap 'stop_ttcd; wait "$pid" 2>/dev/null || true' EXIT
 
 # ttcd opens its socket once the radio has answered and is receiving.
 for _ in {1..100}; do
-    [[ -S $SOCK ]] && break
+    sock_ready && break
     if ! kill -0 "$pid" 2>/dev/null; then
         echo "bench: ttcd did not start — see $sat" >&2
         exit 1
     fi
     sleep 0.1
 done
-if [[ ! -S $SOCK ]]; then
-    echo "bench: ttcd did not open $SOCK within 10 s — see $sat" >&2
+if ! sock_ready; then
+    echo "bench: ttcd did not open $SOCK in time — see $sat" >&2
     exit 1
 fi
 
-echo "bench: ${ttcd[*]} -o log_path=$sat"
+echo "bench: ${remote:+$remote: }${ttcd[*]} -o log_path=$sat"
 echo "bench: ${gs[*]} < $commands | tee -a $gnd"
 "${gs[@]}" < "$commands" | tee -a "$gnd"
 
-kill -TERM "$pid" 2>/dev/null || true
+stop_ttcd
 status=0
 wait "$pid" || status=$?
 trap - EXIT
+if [[ -n $remote ]]; then
+    rsh "cd '$rdir' && cat '$sat'" > "$sat" || echo "bench: could not copy $sat from $remote" >&2
+fi
 
 # What decides the step: the ground's results and every rate, contact or
 # failure event on either side; then how strong the link was, and a count of
