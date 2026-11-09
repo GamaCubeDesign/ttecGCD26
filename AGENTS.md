@@ -28,7 +28,7 @@ proposing anything that moves bytes over the radio, check it against
 | `flight/conf/` | Flight configuration per board: `obc-v2/` holds the new OBC board's `ttcd.conf`, `obcd.conf` and `config.txt` lines; `make install CONF_DIR=flight/conf/obc-v2` | Pi |
 | `ground/console/` | The ground station's console: the link's ground side, the text commands and the JSON lines; portable, shared by `gs_cli` and the ESP32 (ADR-0018) | Pi / PC / ESP32 |
 | `ground/esp32/` | Ground station firmware (ESP-IDF, built in Docker by `tools/esp32/idf.sh`); sends the remote commands of the on-site tests (ADR-0018). `ground/esp32-tests/` runs the portable suites on the ESP32 or in QEMU | ESP32 |
-| `ground/host/` | Serial bridge to the ESP32 ground, also the operator CLI (`gs_serial.py`); downlink → estimator adapter (`tracks_to_ndjson.py`); origin/destination estimator and dashboard (`ground-aeronaves/`, a teammate's project, merged 2026-09-28); airport DB importer | PC, Python |
+| `ground/host/` | Serial bridge to the ESP32 ground, also the operator CLI (`gs_serial.py`); downlink → estimator adapter (`tracks_to_ndjson.py`); origin/destination estimator and dashboard (`ground-aeronaves/`, a teammate's project, merged 2026-09-28); airport DB importer; the browser interface that follows the satellite and sends the operator's commands (`gs_web.py`, `make gs-web`) | PC, Python |
 | `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check, downlink emulation over full captures (`downlink_emulation.py`), the flight configuration checked wire by wire against the boards' layouts (`board_check.py`, also in CTest) | PC |
 | `tools/gs_cli/` | Bench ground station: the ground console on a second RA-02 or the UDP radio | Pi / PC |
 | `tools/bench/` | Bench procedure: one `gs_cli` command script per step, and `run_step.sh`, which starts `ttcd` afresh for each; `adsb_chain.sh` | Pi / PC |
@@ -197,7 +197,7 @@ built from those.
 
 See `PLANO.md`: the decisions of 22–24/10 (D1–D12), the priority order with
 dates, what is cut first if time runs short, the open questions and the
-risks. As of 2026-11-03:
+risks. As of 2026-11-05:
 
 - **Done in software**: shared codec, IPC, `ttcd`, the ground side of the
   protocol, the SX1278 driver, the channel simulation, the bench tooling,
@@ -210,10 +210,13 @@ risks. As of 2026-11-03:
   meanwhile); since 2026-10-31 etapa 3, the ESP32 ground station (ADR-0018),
   its portable suites passing in QEMU; and the new OBC board's sources and
   flight configuration, checked wire by wire against the boards' layouts
-  (`tools/analysis/board_check.py`, 2026-11-03). 38 CTest suites, zero
-  warnings, clean under ASan and UBSan, and under ThreadSanitizer for
-  `obcd`'s integration test. **None of this has been run on the bench yet**:
-  the script is `docs/relatorios/2026-11-03-roteiro-bancada.html` (summary in
+  (`tools/analysis/board_check.py`, 2026-11-03); since 2026-11-05 the
+  ground's browser interface (`ground/host/gs_web.py`, `make gs-web`) and
+  the radio bench split between the Pi and the PC (`make bench SPLIT=1`).
+  39 CTest suites, zero warnings, clean under ASan and UBSan, and under
+  ThreadSanitizer for `obcd`'s integration test. **Most of this has not run
+  on the bench yet**: the script is
+  `docs/relatorios/2026-11-05-roteiro-bancada.html` (summary in
   `docs/vv/bancada/roteiro-2026-11.md`); it wires the bench Pi on the new OBC
   board's GPIOs and runs the flight configuration, so that the bench
   validates the firmware for the boards.
@@ -222,14 +225,21 @@ risks. As of 2026-11-03:
   (`pi@gamapi.local`, 64-bit Debian 13, reached through `local.mk`); the
   radio bench, all six steps at 0.8 m; dump1090-fa at 21.9% of one core;
   `adsbd` with the real SDR; the chain SDR → `adsbd` → `ttcd` → LoRa →
-  ground, without track records (no aircraft position in view).
+  ground, without track records (no aircraft position in view). On
+  2026-11-05 (`docs/vv/bancada/2026-11-05/notas.md`): `make check` of the
+  new code on the Pi; the ESP32 ground's portable suites, with the PC's
+  counts, and its radio, after a firmware fix (`polling_start`); the OBC's
+  sensors found, the burn-wire pulse (5000 ms, on a LED) and
+  `ENV_SURVIVAL`. Open from that day: the DS18B20's wiring, the radio
+  steps, the thermostat, and `obcd` taking the Pi's EIO for an absent I²C
+  device as an error rather than a NACK.
 - **Priority now: the bench, then the hardware.** (1) ~~protocol version 2,
   mode-driven `ttcd`/`adsbd`, 433.92 MHz and 14 dBm~~ — done in software
   2026-10-24; (2) ~~`flight/obcd/`~~ — done in software, the Pi's side of the
   AOCS contract included; the contract waits for the AOCS team's answer
   (ICD §6); (3) ~~the ESP32 ground station, which sends the remote commands
   of the tests, and a minimal operator CLI~~ — done in software 2026-10-31;
-  **now the bench** (`docs/relatorios/2026-11-03-roteiro-bancada.html`); (4) ~~CI~~ —
+  **now the bench** (`docs/relatorios/2026-11-05-roteiro-bancada.html`); (4) ~~CI~~ —
   `.github/workflows/check.yml`, `make check` on Debian 13 with the Pi's
   GCC 14 (locally: `make check-debian`), live once pushed; the flight image
   (`make provision`); then the new OBC board's bring-up and the validation
