@@ -117,10 +117,15 @@ What the Pi concludes from the first STATUS read:
 
 | Outcome | Meaning | Bus lent? |
 |---|---|---|
-| NACK on the START write | no ESP32 on the bus | no; the mode ends at once |
+| NACK on the START write, or a START write that fails and no STATUS read that goes through by 100 ms | no ESP32 on the bus | no; the mode ends at once |
 | STATUS = REFUSED | the ESP32 said no | no; the mode ends at once |
 | STATUS = ACCEPTED | the task runs | yes, until 250 ms + max_task_s + 2 s |
-| START acknowledged, but no valid STATUS by 100 ms | unknown | **yes** — the Pi assumes the worst and stays silent |
+| START acknowledged, or a STATUS read that went through, but no valid STATUS by 100 ms | unknown | **yes** — the Pi assumes the worst and stays silent |
+
+The Pi's I²C driver may report an address nobody acknowledges as a generic
+I/O error rather than a NACK (measured on the bench Pi, 2026-11-05), so a
+START that fails is not taken for "nobody there" on its own: the STATUS reads
+decide. An ESP32 that took the START answers them, by rule 1 of §3.
 
 **The mode lasts the whole lease.** Without another wire the Pi cannot learn
 that the task finished early: polling during the lease would put two masters

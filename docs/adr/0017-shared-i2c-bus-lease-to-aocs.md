@@ -43,7 +43,12 @@ Three facts constrain what can be done:
 - **The mode lasts the whole lease.** The Pi cannot learn of an early finish
   without becoming a second master, so `ADVANCED_AOCS` lasts
   250 ms + max_task_s + 2 s and the result is read at the end. With no
-  ESP32 answering, or a refused START, the mode ends at once.
+  ESP32 answering, or a refused START, the mode ends at once. No ESP32
+  answering means the START write is NACKed, or it fails otherwise and none
+  of the STATUS reads after it goes through either: the Pi's driver reports
+  an address nobody acknowledges as EIO, not only as ENXIO or EREMOTEIO
+  (bench of 2026-11-05, kernel 6.18), and an ESP32 that took the START
+  answers STATUS within 5 ms (ICD §3), long before it may take the bus.
 - **During the lease the INA219 is not read**, and battery voltage and
   current go as "no data" (ADR-0013) from the START until the lease ends.
   This is a **recorded deviation** from the CDR's OBC-7, which promises them
@@ -135,6 +140,8 @@ the AOCS team insists, with a STOP and ≥ 5 ms between pointer and read.
 | Frame bytes against an independent CRC (Python `binascii.crc_hqx`) | `tests/test_aocs_codec.c` | pass |
 | The Pi makes no transaction during the lease, in every outcome | `test_obcd_i2c_sched`, virtual time | pass |
 | No ESP32, or a refused START: `ADVANCED_AOCS` ends at once; a lease: V and I "no data", re-entry refused as busy, the result's attitude in telemetry | `test_obcd_core` | pass |
+| No ESP32 while the driver says EIO, not NACK: nothing lent; a START reported failed that reached the ESP32 is lent on its STATUS; a START written with no STATUS going through is lent | `test_obcd_i2c_sched` | pass |
+| The Pi's driver on an address nobody acknowledges | bench 2026-11-05, `i2ctransfer`, kernel 6.18.34 | EIO, for 0x2A, 0x30 and 0x50, write or read |
 | The real binary: a lease left on disk is kept, then its result read and the file removed; no ESP32 on the bus ends the mode at once | `test_obcd_integration` | pass |
 | No data race between the I²C thread and the loop | `test_obcd_integration` under ThreadSanitizer | pass |
 | A real ESP32 slave against the Pi | bench | to do |

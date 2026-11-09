@@ -15,7 +15,14 @@
 
 #define MAX_TX 4096
 
-typedef enum { ESP_ACCEPTS, ESP_REFUSES, ESP_ABSENT, ESP_GARBLED, ESP_STALE } esp_mode_t;
+/* ESP_ABSENT_EIO: no ESP32, and the Pi's driver says EIO rather than NACK
+ * (bench of 2026-11-05). ESP_START_ERROR: the START reached the ESP32 but
+ * the driver reported it failed. ESP_SILENT: the START went through and no
+ * STATUS read does. */
+typedef enum {
+    ESP_ACCEPTS, ESP_REFUSES, ESP_ABSENT, ESP_GARBLED, ESP_STALE,
+    ESP_ABSENT_EIO, ESP_START_ERROR, ESP_SILENT
+} esp_mode_t;
 
 static struct {
     /* the simulated ESP32 */
@@ -49,10 +56,16 @@ static i2c_result_t perform(i2c_op_t op, uint64_t end, uint8_t *status)
     if (B.mode == ESP_ABSENT) {
         return I2C_NACK;
     }
+    if (B.mode == ESP_ABSENT_EIO) {
+        return I2C_ERROR;
+    }
     if (op == I2C_OP_AOCS_START) {
         B.started = true;
         B.start_at = end;
-        return I2C_OK;
+        return B.mode == ESP_START_ERROR ? I2C_ERROR : I2C_OK;
+    }
+    if (B.mode == ESP_SILENT) {
+        return I2C_ERROR;
     }
     /* STATUS: before the task ends the ESP32 answers its decision; after,
      * the result. */
@@ -212,6 +225,43 @@ int main(void)
         CHECK_EQ_INT(B.ev[0], I2C_EV_AOCS_ABSENT);
         CHECK_EQ_INT(count_op(I2C_OP_AOCS_STATUS), 0);
         CHECK(count_op(I2C_OP_INA219_READ) >= 2);
+    }
+
+    TEST_GROUP("i2c: no ESP32, and the driver says EIO instead of NACK: nothing lent either");
+    {
+        fresh(ESP_ABSENT_EIO);
+        request_start(120);
+        run(0, 3000);
+        CHECK_EQ_INT(B.n_ev, 1);
+        CHECK_EQ_INT(B.ev[0], I2C_EV_AOCS_ABSENT);
+        CHECK_EQ_INT(S.phase, I2C_PH_POLLING);
+        /* The STATUS window was tried, then the INA219 configured again at
+         * once: no lease. */
+        CHECK_EQ_INT(count_op(I2C_OP_AOCS_STATUS), I2C_SCHED_START_TRIES);
+        int i = 0;
+        while (i < B.n_tx && B.tx_op[i] != I2C_OP_AOCS_STATUS) { i++; }
+        while (i < B.n_tx && B.tx_op[i] == I2C_OP_AOCS_STATUS) { i++; }
+        CHECK(i < B.n_tx && B.tx_op[i] == I2C_OP_INA219_INIT &&
+              B.tx_begin[i] < S.t0 + GAMA_AOCS_T_RELEASE_MS);
+        CHECK(count_op(I2C_OP_INA219_READ) >= 2);
+    }
+
+    TEST_GROUP("i2c: a START the driver called failed but the ESP32 took is lent on its STATUS");
+    {
+        fresh(ESP_START_ERROR);
+        request_start(120);
+        run(0, 130000);
+        CHECK_EQ_INT(B.ev[0], I2C_EV_AOCS_LENT);
+        CHECK_EQ_INT(on_bus_during(S.t0 + GAMA_AOCS_T_RELEASE_MS, S.t0 + 250u + 120000u + 2000u), 0);
+    }
+
+    TEST_GROUP("i2c: a START written with no STATUS read going through is still lent");
+    {
+        fresh(ESP_SILENT);
+        request_start(30);
+        run(0, 40000);
+        CHECK_EQ_INT(B.ev[0], I2C_EV_AOCS_LENT);
+        CHECK_EQ_INT(on_bus_during(S.t0 + GAMA_AOCS_T_RELEASE_MS, S.t0 + 250u + 30000u + 2000u), 0);
     }
 
     TEST_GROUP("i2c: no clear answer by t0+100 ms counts as lent — never two masters");
