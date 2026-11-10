@@ -219,7 +219,7 @@ td.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 <div class="app">
 
 <header class="bar">
-  <div class="brand"><b>A máquina de estados do satélite</b><span>GCD26 · modos do <code>obcd</code>, rádio do <code>ttcd</code> e a arquitetura · commit <code>47de39d</code></span></div>
+  <div class="brand"><b>A máquina de estados do satélite</b><span>GCD26 · modos do <code>obcd</code>, rádio do <code>ttcd</code> e a arquitetura · commit <code>fbe09f0</code></span></div>
   <div class="transport">
     <span class="clock" id="clock">00:00,0</span>
     <button class="btn primary" id="play">▶ Rodar</button>
@@ -352,7 +352,7 @@ td.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
         </tbody></table></div>
       </div>
     </details>
-    <p class="foot">Gerado em 10/11/2026 a partir do commit <code>47de39d</code>, com apoio do Claude Code, por <code>build-relatorio/gen-maquina/fill.py</code>. As 11 transições são lidas de <code>obcd_transition()</code>, e o gerador falha se a figura divergir do código. Os tempos vêm dos <code>.conf.example</code>, de <code>gama_gs_link.c</code> e de <code>gama_aocs.h</code>; os tempos de ar, do <code>lora_budget.py</code>. Veja também o <a href="2026-11-10-guia-de-estudo.html">guia de estudo</a>.</p>
+    <p class="foot">Gerado em 10/11/2026 a partir do commit <code>fbe09f0</code>, com apoio do Claude Code, por <code>build-relatorio/gen-maquina/fill.py</code>. As 11 transições são lidas de <code>obcd_transition()</code>, e o gerador falha se a figura divergir do código. Os tempos vêm dos <code>.conf.example</code>, de <code>gama_gs_link.c</code> e de <code>gama_aocs.h</code>; os tempos de ar, do <code>lora_budget.py</code>. Veja também o <a href="2026-11-10-guia-de-estudo.html">guia de estudo</a>.</p>
   </section>
 </main>
 
@@ -401,7 +401,7 @@ td.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 
 <script>
 "use strict";
-const D = {"ttcd":{"hk_period":10000,"stat_period":30000,"stream_period":5000,"safe_beacon_period":30000,"safe_hk_period":60000,"contact_timeout":120000,"rate_revert":20000},"obcd":{"adsb_timeout":600000,"burnwire":5000,"telemetry":1000,"aocs_timeout":300000,"aocs_hold":60000,"temp_stale":10000,"heat_on_ccel":1000,"heat_off_ccel":1200,"power_period":1000,"temp_period":2000},"adsbd":{"restart_max":1000,"snapshot_period":1000,"snapshot_max":24},"gs":{"keepalive":30000,"contact_timeout":150000,"rate_revert":30000,"give_up":60000},"aocs":{"preload":5,"read_min":20,"release":100,"takeover":250,"resume_margin":2000,"task_s":297},"prof":{"SAFE":{"sf":12,"cr":"4:8","sens":-137.0,"downlink_s":15.22,"snapshot_s":23.35},"NOMINAL":{"sf":9,"cr":"4:5","sens":-129.0,"downlink_s":1.37,"snapshot_s":2.09},"FAST":{"sf":7,"cr":"4:5","sens":-123.0,"downlink_s":0.43,"snapshot_s":0.66}},"edges":[["PRE_TEST","TC_BASIC_INTER","BASIC_INTERMEDIATE"],["PRE_TEST","TC_AOCS","ADVANCED_AOCS"],["PRE_TEST","TC_SURVIVAL","ENV_SURVIVAL"],["PRE_TEST","TC_MISSION_ADSB","MISSION_ADSB"],["PRE_TEST","TC_DOWNLINK","MISSION_DOWNLINK"],["MISSION_ADSB","ADSB_TIMEOUT","MISSION_DOWNLINK"],["MISSION_ADSB","TC_DOWNLINK","MISSION_DOWNLINK"],["BASIC_INTERMEDIATE","TASK_DONE","PRE_TEST"],["ADVANCED_AOCS","TASK_DONE","PRE_TEST"],["ENV_SURVIVAL","TASK_DONE","PRE_TEST"],["MISSION_DOWNLINK","TASK_DONE","PRE_TEST"]],"event_values":{"NONE":0,"TC_BASIC_INTER":1,"TC_AOCS":2,"TC_MISSION_ADSB":3,"TC_DOWNLINK":4,"TC_SURVIVAL":5,"TASK_DONE":6,"ADSB_TIMEOUT":7},"state_values":{"PRE_TEST":0,"BASIC_INTERMEDIATE":1,"ADVANCED_AOCS":2,"MISSION_ADSB":3,"MISSION_DOWNLINK":4,"ENV_SURVIVAL":5,"UNKNOWN":255},"ln":{"transition":"flight/obcd/core.c:127","post_event":"flight/obcd/core.c:278","enter":"flight/obcd/core.c:259","start_aocs":"flight/obcd/core.c:167","thermostat":"flight/obcd/core.c:310","burnwire_on":"flight/obcd/core.c:265","modes_doc":"flight/obcd/core.h:13","enums":"common/gama_tc.h:83","tm_on_mode":"flight/ttcd/tm_sched.c:385","tm_pick":"flight/ttcd/tm_sched.c:140","on_profile":"flight/ttcd/tm_sched.c:80","downlink_done":"flight/ttcd/tm_sched.c:425","rate_change":"flight/ttcd/link.c:96","revert":"flight/ttcd/link.c:254","contact_lost":"flight/ttcd/link.c:260","rate_commit":"flight/ttcd/link.c:295","gs_defaults":"common/gama_gs_link.c:19","decoder":"flight/adsbd/core.c:384","i2c_absent":"flight/obcd/i2c_sched.h:20","aocs_timing":"common/gama_aocs.h:81"},"head":"47de39d"};
+const D = {"ttcd":{"hk_period":10000,"stat_period":30000,"stream_period":5000,"safe_beacon_period":30000,"safe_hk_period":60000,"contact_timeout":120000,"rate_revert":20000},"obcd":{"adsb_timeout":600000,"burnwire":5000,"telemetry":1000,"aocs_timeout":300000,"aocs_hold":60000,"temp_stale":10000,"heat_on_ccel":1000,"heat_off_ccel":1200,"power_period":1000,"temp_period":2000},"adsbd":{"restart_max":1000,"snapshot_period":1000,"snapshot_max":24},"gs":{"keepalive":30000,"contact_timeout":150000,"rate_revert":30000,"give_up":60000},"aocs":{"preload":5,"read_min":20,"release":100,"takeover":250,"resume_margin":2000,"task_s":297},"prof":{"SAFE":{"sf":12,"cr":"4:8","sens":-137.0,"downlink_s":15.22,"snapshot_s":23.35},"NOMINAL":{"sf":9,"cr":"4:5","sens":-129.0,"downlink_s":1.37,"snapshot_s":2.09},"FAST":{"sf":7,"cr":"4:5","sens":-123.0,"downlink_s":0.43,"snapshot_s":0.66}},"edges":[["PRE_TEST","TC_BASIC_INTER","BASIC_INTERMEDIATE"],["PRE_TEST","TC_AOCS","ADVANCED_AOCS"],["PRE_TEST","TC_SURVIVAL","ENV_SURVIVAL"],["PRE_TEST","TC_MISSION_ADSB","MISSION_ADSB"],["PRE_TEST","TC_DOWNLINK","MISSION_DOWNLINK"],["MISSION_ADSB","ADSB_TIMEOUT","MISSION_DOWNLINK"],["MISSION_ADSB","TC_DOWNLINK","MISSION_DOWNLINK"],["BASIC_INTERMEDIATE","TASK_DONE","PRE_TEST"],["ADVANCED_AOCS","TASK_DONE","PRE_TEST"],["ENV_SURVIVAL","TASK_DONE","PRE_TEST"],["MISSION_DOWNLINK","TASK_DONE","PRE_TEST"]],"event_values":{"NONE":0,"TC_BASIC_INTER":1,"TC_AOCS":2,"TC_MISSION_ADSB":3,"TC_DOWNLINK":4,"TC_SURVIVAL":5,"TASK_DONE":6,"ADSB_TIMEOUT":7},"state_values":{"PRE_TEST":0,"BASIC_INTERMEDIATE":1,"ADVANCED_AOCS":2,"MISSION_ADSB":3,"MISSION_DOWNLINK":4,"ENV_SURVIVAL":5,"UNKNOWN":255},"ln":{"transition":"flight/obcd/core.c:127","post_event":"flight/obcd/core.c:278","enter":"flight/obcd/core.c:259","start_aocs":"flight/obcd/core.c:167","thermostat":"flight/obcd/core.c:310","burnwire_on":"flight/obcd/core.c:265","modes_doc":"flight/obcd/core.h:13","enums":"common/gama_tc.h:83","tm_on_mode":"flight/ttcd/tm_sched.c:385","tm_pick":"flight/ttcd/tm_sched.c:140","on_profile":"flight/ttcd/tm_sched.c:80","downlink_done":"flight/ttcd/tm_sched.c:425","rate_change":"flight/ttcd/link.c:96","revert":"flight/ttcd/link.c:254","contact_lost":"flight/ttcd/link.c:260","rate_commit":"flight/ttcd/link.c:295","gs_defaults":"common/gama_gs_link.c:19","decoder":"flight/adsbd/core.c:384","i2c_absent":"flight/obcd/i2c_sched.h:20","aocs_timing":"common/gama_aocs.h:81"},"head":"fbe09f0"};
 const $ = id => document.getElementById(id);
 const s = v => (v / 1000).toLocaleString("pt-BR") + " s";
 const nf = (x, d = 2) => x.toLocaleString("pt-BR", {maximumFractionDigits: d});
@@ -720,6 +720,7 @@ function command(cmd, auto) {
     log("ground", "rate", {from: gold, to: p});
     return;
   }
+  if (!S.obcUp) { log("ttcd", "tc_ack", {cmd: "SET_MODE", status: "FAILED", why: "obc not connected"}); return; }
   postEvent(TC[cmd], "ttcd");
 }
 function step(t) {
@@ -917,7 +918,7 @@ function render() {
     const ev = TC[b.dataset.tc], to = S.obcUp ? transition(S.mode, ev) : null;
     let cls, txt;
     if (!hears()) { cls = "na"; txt = S.link ? "sem ACK: perfis diferentes" : "sem ACK: enlace cortado"; }
-    else if (!S.obcUp) { cls = "na"; txt = "obcd fora: não chega"; }
+    else if (!S.obcUp) { cls = "na"; txt = "ACK FAILED: obcd fora"; }
     else if (to) { cls = "go"; txt = "→ " + to; }
     else { cls = "no"; txt = "recusado em " + S.mode; }
     b.className = "cmd " + cls; b.querySelector(".c3").textContent = txt;
