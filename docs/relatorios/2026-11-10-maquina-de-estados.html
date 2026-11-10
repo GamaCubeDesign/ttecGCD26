@@ -2,488 +2,438 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TT&amp;C GCD26 — A máquina de estados do satélite (10/11/2026)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Máquina de estados — GCD26</title>
 <style>
 :root{
-  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
-  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
-  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
-  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
-  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
-  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --bg:#f4f3ef; --panel:#ffffff; --panel-2:#f0eee8; --fg:#1c1c1e; --muted:#62615c; --faint:#9a988f;
+  --line:#dcd9d1; --line-strong:#8c897f;
+  --accent:#1d5fc4; --accent-soft:#e3ecfb; --accent-fg:#ffffff;
+  --ok:#1b7443; --ok-soft:#dff1e6; --warn:#8f5a00; --warn-soft:#faefd9; --bad:#ae2a20; --bad-soft:#fae4e1;
+  --off:#f1f0ec; --off-line:#c9c6bd;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,monospace;
+  --side:380px; --bar:56px; --dock:58px;
   color-scheme:light dark;
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
-    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
-    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
-    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
-    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+    --bg:#121316; --panel:#1b1d21; --panel-2:#24272c; --fg:#e8e6e1; --muted:#a3a19b; --faint:#6f6d68;
+    --line:#32353b; --line-strong:#7b7973;
+    --accent:#80b1ff; --accent-soft:#1a2a44; --accent-fg:#0e1420;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --off:#1f2125; --off-line:#3c3f45;
   }
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--sans);-webkit-text-size-adjust:100%}
+code{font-family:var(--mono);font-size:.9em}
+button{font:inherit;color:inherit}
 a{color:var(--accent)}
-.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
-@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
-nav.toc{font-size:14px;padding:28px 0 0}
-@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
-nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
-nav.toc ol{margin:0;padding-left:22px}
-nav.toc li{margin:4px 0}
-nav.toc a{color:var(--fg);text-decoration:none}
-nav.toc a:hover{color:var(--accent);text-decoration:underline}
-main{min-width:0;max-width:880px;padding-top:28px}
-header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
-.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
-h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
-.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
-.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
-.meta b{color:var(--fg);font-weight:600}
-h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
-h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
-h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
-h4{font-size:16px;margin:22px 0 6px}
-p{margin:0 0 12px}
-ul,ol{margin:0 0 12px;padding-left:24px}
-li{margin:3px 0}
-code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
-pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
-pre code{background:none;padding:0;font-size:inherit}
-.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
-table{border-collapse:collapse;width:100%;font-size:14.5px}
-th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
-th{background:var(--surface-2);font-weight:600}
+
+/* ---- the frame: bar on top; stage and side below ---------------------- */
+.app{display:grid;grid-template-rows:var(--bar) minmax(0,1fr);grid-template-columns:minmax(0,1fr) var(--side);height:100dvh}
+.bar{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 14px;background:var(--panel);border-bottom:1px solid var(--line);min-width:0}
+.brand{display:flex;flex-direction:column;line-height:1.15;min-width:0;margin-right:auto}
+.brand b{font-size:16px;white-space:nowrap}
+.brand span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.transport{display:flex;align-items:center;gap:6px}
+.clock{font:600 22px/1 var(--mono);font-variant-numeric:tabular-nums;min-width:96px;text-align:right;margin-right:4px}
+.btn{border:1px solid var(--line-strong);background:var(--panel-2);border-radius:8px;min-height:38px;padding:0 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,.cmd:focus-visible,.tog:focus-visible,.sc:focus-visible,.dock button:focus-visible,.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:600;min-width:92px}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--panel-2);min-height:36px;padding:0 10px;cursor:pointer;font-family:var(--mono);font-size:13px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:var(--accent-fg)}
+
+.stage{overflow-y:auto;padding:12px 14px 24px;min-width:0;position:relative}
+.side{border-left:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;min-height:0}
+.side-scroll{overflow-y:auto;padding:12px 14px;flex:0 1 auto}
+.side .log-wrap{flex:1 1 200px;min-height:160px;display:flex;flex-direction:column;border-top:1px solid var(--line);padding:10px 14px 12px}
+.sec-t{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:14px 0 8px}
+[data-pane]:first-child>.sec-t:first-child{margin-top:2px}
+
+/* ---- the narration banner --------------------------------------------- */
+.narr{position:sticky;top:0;z-index:5;display:flex;gap:10px;align-items:flex-start;background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:10px 12px;margin:0 0 12px;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.narr[hidden]{display:none}
+.narr .nt{flex:1;min-width:0}
+.narr .nt b{display:block;font-size:13px;color:var(--accent)}
+.narr .nt span{font-size:14.5px}
+.narr .x{border:0;background:none;cursor:pointer;font-size:20px;line-height:1;padding:4px 6px;color:var(--muted)}
+
+/* ---- panels with the figures ------------------------------------------- */
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@media (min-width:1500px){.grid{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}.grid .p-modes{grid-row:span 2}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px 8px;min-width:0}
+.ph{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;margin:0 0 4px}
+.ph h2{font-size:15px;margin:0}
+.ph span{font-size:12.5px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px}
+.chip{font-size:12.5px;border-radius:999px;padding:2px 9px;background:var(--panel-2);border:1px solid var(--line);white-space:nowrap}
+.chip b{font-family:var(--mono);font-weight:600}
+.chip.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.chip.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.chip.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+svg.fig{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none}
+svg.fig text{font-family:var(--sans);fill:var(--fg)}
+.fig .t-b{font-size:14px;font-weight:600}
+.fig .t-s{font-size:11.5px;fill:var(--muted)}
+.fig .t-e{font-size:11px;fill:var(--muted)}
+.fig .st{fill:var(--panel);stroke:var(--line-strong);stroke-width:1.4;transition:fill .25s,stroke .25s}
+.fig g.node{cursor:pointer;outline:none}
+.fig g.node:hover .st,.fig g.node:focus-visible .st{stroke:var(--accent);stroke-width:2}
+.fig g.node.cur .st{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
+.fig g.node.known .st{stroke:var(--warn);stroke-width:2.5;stroke-dasharray:6 4}
+.fig .tr{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+.fig .tr.hot{stroke:var(--accent);stroke-width:3}
+.fig .ah{fill:var(--line-strong)} .fig .ah-hot{fill:var(--accent)}
+.fig .lbl{font-size:11px;fill:var(--muted)}
+.fig .lbl.hot{fill:var(--accent);font-weight:600}
+.fig .lbl-bg{fill:var(--panel);opacity:.94}
+.fig .boot{fill:var(--fg)}
+.fig .pill{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1.2}
+.fig .pill-t{font-size:11px;font-weight:600;fill:var(--warn)}
+.fig .sat-t{font-size:11px;font-weight:600;fill:var(--accent)}
+/* architecture */
+.fig .an.on .st{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2}
+.fig .an.off .st{fill:var(--off);stroke:var(--off-line)}
+.fig .an.off .t-b{fill:var(--muted)}
+.fig .an.warn .st{fill:var(--warn-soft);stroke:var(--warn);stroke-width:2}
+.fig .an.bad .st{fill:var(--bad-soft);stroke:var(--bad);stroke-width:2}
+.fig .ln{fill:none;stroke:var(--off-line);stroke-width:1.6}
+.fig .ln.flow{stroke:var(--ok);stroke-width:2.4;stroke-dasharray:7 6;animation:flow 1s linear infinite}
+.fig .ln.broken{stroke:var(--bad);stroke-width:2;stroke-dasharray:3 5}
+.fig .ln.warnl{stroke:var(--warn);stroke-width:2;stroke-dasharray:3 5}
+.fig .ln-t{font-size:11px;fill:var(--muted)}
+.fig .zone{fill:none;stroke:var(--line);stroke-width:1.2;stroke-dasharray:4 4}
+.fig .zone-t{font-size:11px;letter-spacing:.07em;fill:var(--faint)}
+@keyframes flow{to{stroke-dashoffset:-13}}
+@media (prefers-reduced-motion: reduce){.fig .ln.flow{animation:none}}
+
+/* ---- controls in the side ---------------------------------------------- */
+.cmds{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.cmd{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;border:1px solid var(--line-strong);background:var(--panel-2);border-radius:9px;padding:7px 9px;cursor:pointer;min-height:58px;min-width:0}
+.cmd:hover{border-color:var(--accent)}
+.cmd .c1{font-size:13.5px;font-weight:600;line-height:1.25}
+.cmd .c2{font:11.5px var(--mono);color:var(--muted)}
+.cmd .c3{font-size:11.5px;font-weight:600;overflow-wrap:anywhere}
+.cmd.go .c3{color:var(--ok)}
+.cmd.no{opacity:.75}
+.cmd.no .c3{color:var(--bad)}
+.cmd.na .c3{color:var(--warn)}
+.cmd.now{border-color:var(--accent);background:var(--accent-soft)}
+.rate{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.toggles{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tog{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line-strong);background:var(--panel-2);border-radius:9px;padding:8px 10px;cursor:pointer;min-height:46px;text-align:left;font-size:13.5px}
+.tog .sw{flex:none;width:34px;height:20px;border-radius:999px;background:var(--off-line);position:relative;transition:background .2s}
+.tog .sw::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s}
+.tog[aria-pressed="true"] .sw{background:var(--ok)}
+.tog[aria-pressed="true"] .sw::after{left:17px}
+.tog.inv[aria-pressed="true"] .sw{background:var(--bad)}
+.temp{display:flex;align-items:center;gap:10px;font-size:13.5px;margin-top:8px}
+.temp input{flex:1;min-width:0;accent-color:var(--accent);height:28px}
+.temp output{font-family:var(--mono);min-width:62px;text-align:right}
+.scs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.chips-s{display:none}
+.sc{display:flex;gap:8px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:7px 8px;cursor:pointer;min-height:48px}
+.sc:hover{border-color:var(--accent);background:var(--accent-soft)}
+.sc .i{flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-size:12px}
+.sc b{display:block;font-size:13px;line-height:1.25}
+.sc span span{display:none}
+.log{flex:1;min-height:0;overflow-y:auto;font:12px/1.5 var(--mono);background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.log div{white-space:pre-wrap;word-break:break-word;padding:1px 0}
+.log .tm{color:var(--faint)}
+.log .src{font-weight:700}
+.s-obcd{color:var(--ok)} .s-ttcd{color:var(--accent)} .s-adsbd{color:var(--warn)} .s-ground{color:var(--bad)} .s-sim{color:var(--muted)}
+.log-h{display:flex;align-items:center;justify-content:space-between;margin:0 0 6px}
+.log-h .sec-t{margin:0}
+.log-h button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:12.5px;padding:4px}
+.timers{list-style:none;padding:0;margin:0;font-size:13px}
+.timers li{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.timers li:last-child{border-bottom:0}
+.timers li span:last-child{font-family:var(--mono);white-space:nowrap}
+
+/* ---- the detail popover ------------------------------------------------ */
+.pop{position:fixed;z-index:20;left:14px;bottom:14px;width:min(440px,calc(100vw - var(--side) - 28px));max-height:min(70vh,520px);overflow-y:auto;background:var(--panel);border:1px solid var(--line-strong);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);padding:12px 14px}
+.pop[hidden]{display:none}
+.pop h3{margin:0 30px 6px 0;font-size:16px}
+.pop .close{position:absolute;top:4px;right:6px;border:0;background:none;font-size:24px;line-height:1;cursor:pointer;color:var(--muted);padding:6px 8px}
+.pop .who{display:grid;grid-template-columns:62px minmax(0,1fr);gap:4px 10px;font-size:14px;margin:4px 0 8px}
+.pop .who b{font-family:var(--mono);font-size:12.5px;padding-top:2px}
+.pop p{margin:0 0 8px;font-size:14px}
+.pop .refs{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+
+/* ---- the reference, folded -------------------------------------------- */
+.ref{margin-top:16px}
+.ref>h2{font-size:13px;margin:0 0 8px;color:var(--muted);font-weight:600;letter-spacing:.07em;text-transform:uppercase}
+.ref details{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin:0 0 8px}
+.ref summary{cursor:pointer;padding:11px 14px;font-weight:600}
+.ref .body{padding:0 14px 12px;font-size:14.5px}
+.ref .body p{margin:0 0 10px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:8px;margin:0 0 10px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--line)}
+th{background:var(--panel-2);font-weight:600}
 tr:last-child td{border-bottom:0}
-td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-td.nw{white-space:nowrap}
-tr.total td{font-weight:600;background:var(--surface-2)}
-.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
-.b-ok{color:var(--ok);background:var(--ok-soft)}
-.b-warn{color:var(--warn);background:var(--warn-soft)}
-.b-todo{color:var(--todo);background:var(--todo-soft)}
-.b-bad{color:var(--bad);background:var(--bad-soft)}
-.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
-.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
-.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
-.callout>:last-child{margin-bottom:0}
-.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
-@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
-.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
-figure{margin:0 0 22px}
-figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
-figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
-figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
-.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
-.legend span{display:inline-flex;align-items:center;gap:6px}
-.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
-.sw.done{border:2px solid var(--ok)}
-.sw.plan{border-style:dashed}
-.sw.ext{background:var(--node-ext)}
-.sw.hw{background:var(--node-hw)}
-svg.diagram{display:block;width:100%;min-width:720px;height:auto}
-svg.diagram text{font-family:var(--sans);fill:var(--fg)}
-svg.diagram .t-b{font-size:14px;font-weight:600}
-svg.diagram .t-s{font-size:12px;fill:var(--muted)}
-svg.diagram .t-e{font-size:12px;fill:var(--muted)}
-svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
-svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
-svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
-svg.diagram .box.hw{fill:var(--node-hw)}
-svg.diagram .box.ext{fill:var(--node-ext)}
-svg.diagram .box.plan{stroke-dasharray:5 4}
-svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
-svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
-svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
-svg.diagram .ah{fill:var(--line-strong)}
-svg.diagram .ah-rf{fill:var(--accent)}
-.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
-.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
-.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
-.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
-.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
-.adr h3{margin:0 0 6px}
-.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
-.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
-.adr dt{font-weight:600;font-size:14px}
-.adr dd{margin:0;font-size:15px}
-@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
-.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
-.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
-.btn:hover{border-color:var(--accent);color:var(--accent)}
-details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
-details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
-details.qa>summary::-webkit-details-marker{display:none}
-details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
-details.qa[open]>summary::before{transform:rotate(90deg)}
-details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
-details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
-details.qa .body h4:first-child{margin-top:4px}
-dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
-dl.gloss dt{font-weight:600}
-dl.gloss dd{margin:0}
-@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
-.small{font-size:14px;color:var(--muted)}
-footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
-@media print{
-  :root{--bg:#fff;--surface:#fff;--fg:#000}
-  body{font-size:10.5pt}
-  nav.toc,.qa-tools{display:none}
-  .layout{display:block;max-width:none;padding:0}
-  main{max-width:none;padding-top:0}
-  h2,h3,h4{break-after:avoid}
-  figure,.tile,.adr,pre,tr{break-inside:avoid}
-  .table-wrap,figure .frame{overflow:visible}
-  pre{white-space:pre-wrap;overflow-wrap:anywhere}
-  a{color:inherit;text-decoration:none}
+td.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.foot{font-size:12.5px;color:var(--muted);margin:14px 2px 0}
+
+/* ---- the dock and the sheet, on narrow screens -------------------------- */
+.dock{display:none}
+.sheet-h{display:none}
+@media (max-width:899px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .bar{flex-wrap:wrap;padding:8px 10px;gap:6px}
+  .brand{width:100%;margin:0}
+  .transport{width:100%;flex-wrap:wrap}
+  .clock{font-size:20px;min-width:0;text-align:left;margin-right:auto}
+  .btn.primary{min-width:78px}
+  .hide-n{display:none}
+  .stage{padding:10px 10px calc(var(--dock) + 16px + env(safe-area-inset-bottom))}
+  .side{position:fixed;z-index:15;left:0;right:0;bottom:calc(var(--dock) + env(safe-area-inset-bottom));height:min(54vh,520px);border-left:0;border-top:1px solid var(--line-strong);border-radius:14px 14px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.18);transform:translateY(110%);transition:transform .22s ease;visibility:hidden}
+  .side.open{transform:none;visibility:visible}
+  .sheet-h{display:flex;align-items:center;justify-content:space-between;padding:6px 14px 0}
+  .sheet-h b{font-size:14px}
+  .chips-s{display:flex;padding:6px 14px 0;margin:0}
+  .scs{grid-template-columns:minmax(0,1fr)}
+  .sc span span{display:block;font-size:12.5px;color:var(--muted)}
+  .sheet-h button{border:0;background:none;font-size:24px;cursor:pointer;color:var(--muted);padding:4px 8px}
+  .side [data-pane]{display:none}
+  .side[data-tab="cmd"] [data-pane~="cmd"],.side[data-tab="cen"] [data-pane~="cen"]{display:block}
+  .side[data-tab="log"] .side-scroll{display:none}
+  .side[data-tab="log"] .log-wrap{display:flex;border-top:0}
+  .side[data-tab="cmd"] .log-wrap,.side[data-tab="cen"] .log-wrap{display:none}
+  .side .side-scroll{flex:1 1 auto}
+  .dock{display:grid;grid-template-columns:repeat(3,1fr);position:fixed;z-index:16;left:0;right:0;bottom:0;height:calc(var(--dock) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:var(--panel);border-top:1px solid var(--line)}
+  .dock button{border:0;background:none;cursor:pointer;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--muted)}
+  .dock button i{font-style:normal;font-size:17px}
+  .dock button.on{color:var(--accent);font-weight:600}
+  .pop{left:8px;right:8px;width:auto;bottom:calc(var(--dock) + 8px + env(safe-area-inset-bottom))}
 }
-</style>
-<style>
-.sim{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;margin:0 0 10px}
-.sim svg{display:block;width:100%;min-width:720px;height:auto}
-.sim-scroll{overflow-x:auto}
-.sim svg text{font-family:var(--sans);fill:var(--fg)}
-.sim .t-b{font-size:14px;font-weight:600}
-.sim .t-s{font-size:11.5px;fill:var(--muted)}
-.sim .t-e{font-size:11px;fill:var(--muted)}
-.sim .t-z{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
-.sim .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
-.sim .st{fill:var(--node);stroke:var(--line-strong);stroke-width:1.4;transition:fill .2s,stroke .2s}
-.sim g.node{cursor:pointer;outline:none}
-.sim g.node:hover .st,.sim g.node:focus-visible .st{stroke:var(--accent)}
-.sim g.node.cur .st{fill:var(--accent-soft);stroke:var(--accent);stroke-width:3}
-.sim g.node.known .st{stroke:var(--warn);stroke-width:2.5;stroke-dasharray:6 4}
-.sim g.node.sel .st{stroke-width:3}
-.sim .tr{fill:none;stroke:var(--line-strong);stroke-width:1.4}
-.sim .tr.hot{stroke:var(--accent);stroke-width:3}
-.sim .ah{fill:var(--line-strong)}
-.sim .ah-hot{fill:var(--accent)}
-.sim .lbl{font-size:11px;fill:var(--muted)}
-.sim .lbl.hot{fill:var(--accent);font-weight:600}
-.sim .lbl-bg{fill:var(--surface);opacity:.92}
-.sim .pill{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1.2}
-.sim .pill-t{font-size:11px;font-weight:600;fill:var(--warn)}
-.sim .sat-t{font-size:11px;font-weight:600;fill:var(--accent)}
-.sim .boot{fill:var(--fg)}
-.panel-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin:0 0 10px}
-@media (min-width:760px){.panel-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
-.card h4{margin:0 0 8px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.btns{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
-.btns:last-child{margin-bottom:0}
-button.b{font:13px/1.2 var(--mono);padding:6px 9px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--fg);cursor:pointer}
-button.b:hover{border-color:var(--accent);color:var(--accent)}
-button.b.on{background:var(--accent);border-color:var(--accent);color:var(--surface)}
-button.b.sc{font-family:var(--sans)}
-.ctl-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:13.5px;margin:0 0 8px}
-.ctl-row label{display:inline-flex;align-items:center;gap:6px}
-.clock{font:600 26px/1 var(--mono);font-variant-numeric:tabular-nums}
-.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;font-size:13.5px;margin:0}
-.kv dt{color:var(--muted)}
-.kv dd{margin:0;font-variant-numeric:tabular-nums}
-.kv dd code{font-size:.9em}
-.timers{list-style:none;padding:0;margin:6px 0 0;font-size:13px}
-.timers li{display:flex;justify-content:space-between;gap:8px;border-top:1px dashed var(--line);padding:3px 0}
-.timers li span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
-.log{font:12.5px/1.5 var(--mono);background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;height:230px;overflow-y:auto;margin:0}
-.log div{white-space:pre-wrap;word-break:break-word}
-.log .src{font-weight:600}
-.log .s-obcd{color:var(--ok)}
-.log .s-ttcd{color:var(--accent)}
-.log .s-adsbd{color:var(--warn)}
-.log .s-ground{color:var(--bad)}
-.log .s-sim{color:var(--muted)}
-.det h3{margin:0 0 6px;font-size:17px}
-.det p,.det li{font-size:14px}
-.det .who{display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 10px;font-size:14px;margin:6px 0 8px}
-.det .who b{font-family:var(--mono);font-size:13px}
-.det .refs{font-size:12.5px;color:var(--muted)}
-.tag{display:inline-block;font-size:12px;padding:2px 7px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);margin-right:4px}
-.sc-list{list-style:none;padding:0;margin:0 0 12px}
-.sc-list li{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:0 0 8px;background:var(--surface)}
-.sc-list li p{margin:4px 0 0;font-size:14.5px}
 </style>
 </head>
 <body>
-<div class="layout">
-<nav class="toc" aria-label="Sumário">
-  <p class="toc-title">Sumário</p>
-  <ol>
-    <li><a href="#duas">Duas máquinas, não uma</a></li>
-    <li><a href="#figura">A figura interativa</a></li>
-    <li><a href="#modos">Os modos da missão</a></li>
-    <li><a href="#eventos">Os eventos e quem os gera</a></li>
-    <li><a href="#radio">O perfil do rádio</a></li>
-    <li><a href="#menores">As máquinas menores</a></li>
-    <li><a href="#cenarios">Cenários comentados</a></li>
-    <li><a href="#obs">Observações e limites</a></li>
-    <li><a href="#codigo">Onde está no código</a></li>
-  </ol>
-</nav>
+<div class="app">
 
-<main>
-<header class="doc">
-  <p class="eyebrow">Gama Cube Design · CubeDesign 2026 · OBC e TT&amp;C</p>
-  <h1>A máquina de estados do satélite</h1>
-  <p class="lede">Como o satélite decide o que fazer: os modos da missão no <code>obcd</code>, o perfil do rádio no <code>ttcd</code>, o que cada daemon faz em cada combinação, e os tempos que movem tudo. A figura é interativa: mande telecomandos, corte o enlace, derrube o OBC e veja o satélite reagir.</p>
-  <div class="meta">
-    <span>Data: <b>10/11/2026</b></span>
-    <span>Commit: <b><code>b4fac20</code></b></span>
-    <span>Transições lidas do código: <b>11</b></span>
+<header class="bar">
+  <div class="brand"><b>A máquina de estados do satélite</b><span>GCD26 · modos do <code>obcd</code>, rádio do <code>ttcd</code> e a arquitetura · commit <code>47de39d</code></span></div>
+  <div class="transport">
+    <span class="clock" id="clock">00:00,0</span>
+    <button class="btn primary" id="play">▶ Rodar</button>
+    <button class="btn" id="next" title="Avança o relógio até o próximo prazo">⏭<span class="hide-n"> Próximo prazo</span></button>
+    <div class="seg" id="speeds" role="group" aria-label="Velocidade"><button data-sp="1">1×</button><button data-sp="10" class="on">10×</button><button data-sp="60">60×</button></div>
+    <button class="btn" id="reset" title="Volta ao boot">↺<span class="hide-n"> Reiniciar</span></button>
   </div>
 </header>
 
-<h2 id="duas"><span class="n">1</span>Duas máquinas, não uma</h2>
-<p>O satélite não tem uma máquina de estados só. Tem duas, independentes, em processos diferentes:</p>
-<ol>
-  <li><b>Os modos da missão</b>, no <code>obcd</code>: a Figura 44 do CDR. Dizem <i>que tarefa</i> o satélite está fazendo: esperar, implantar as antenas, apontar, sobreviver, capturar ADS-B, descer o resumo. São mudados por telecomando do solo e terminam sozinhos quando a tarefa acaba.</li>
-  <li><b>O perfil do rádio</b>, no <code>ttcd</code>: <code>NOMINAL</code>, <code>FAST</code> ou <code>SAFE</code> (ADR-0004, ADR-0007). Diz <i>como</i> o satélite fala com o solo. Muda por telecomando, e cai sozinho para o <code>SAFE</code> se o solo some.</li>
-</ol>
-<p>As duas são <b>ortogonais</b>: o modo não muda o perfil, e o perfil não muda o modo. O satélite pode estar em <code>MISSION_ADSB</code> com o rádio em <code>SAFE</code>. Elas se cruzam em um ponto só: no <code>SAFE</code> não cabem retratos, então o <code>ttcd</code> para de mandá-los, mas o <code>adsbd</code> continua decodificando e gravando no SD.</p>
-<div class="callout">
-  <p><b>Quem manda em quem.</b> O <code>obcd</code> é o dono do modo. Ele o anuncia ao <code>ttcd</code> por IPC (<code>IPC_MODE</code>), e o <code>ttcd</code> o repassa ao <code>adsbd</code>. Os dois seguem o modo (ADR-0014): o <code>ttcd</code> liga os retratos em <code>MISSION_ADSB</code>, e o <code>adsbd</code> só roda o <code>dump1090</code> nesse modo. O perfil do rádio é só do <code>ttcd</code>; ninguém mais o vê.</p>
-</div>
-
-<h2 id="figura"><span class="n">2</span>A figura interativa</h2>
-<p>Clique num estado para ver o que cada daemon faz nele. Use os botões para mandar telecomandos como o operador (são os comandos do console da ground) ou para mudar o mundo (cortar o enlace, derrubar o <code>obcd</code>). O relógio é virtual: rode em 60× para ver uma missão de 10 min em 10 s, ou pule direto para o próximo prazo. O registro embaixo usa os nomes de evento dos logs reais (<code>mode</code>, <code>event_refused</code>, <code>rate</code>, <code>contact_lost</code>…).</p>
-
-<div class="sim">
-  <div class="sim-scroll"><svg id="fig" viewBox="0 0 1000 664" role="img" aria-labelledby="figt figd">
-    <title id="figt">Os modos da missão e o perfil do rádio</title>
-    <desc id="figd">Em cima, os seis modos do obcd: PRE_TEST no centro; à esquerda BASIC_INTERMEDIATE, ADVANCED_AOCS e ENV_SURVIVAL, que voltam a PRE_TEST com TASK_DONE; à direita MISSION_ADSB, que vai a MISSION_DOWNLINK pelo timeout de 600 s ou por telecomando, e MISSION_DOWNLINK, que volta a PRE_TEST quando o ttcd termina. Embaixo, os três perfis do rádio: SAFE, NOMINAL e FAST, com as trocas por telecomando, a volta automática em 20 s sem confirmação e a queda para SAFE após 120 s sem ouvir o solo.</desc>
-  </svg></div>
-  <div class="legend">
-    <span><i class="sw" style="border:3px solid var(--accent);background:var(--accent-soft)"></i>o estado atual</span>
-    <span><i class="sw" style="border:2.5px dashed var(--warn)"></i>o modo que o <code>ttcd</code> e o <code>adsbd</code> ainda seguem, quando difere</span>
-    <span><i class="sw" style="background:var(--warn-soft);border-color:var(--warn)"></i>onde está o solo</span>
-    <span>seta grossa: a última transição</span>
+<main class="stage" id="stage">
+  <div class="narr" id="narr" hidden>
+    <div class="nt"><b id="narr-t"></b><span id="narr-s"></span></div>
+    <button class="x" id="narr-x" aria-label="Parar o cenário">×</button>
   </div>
-</div>
 
-<div class="panel-grid">
-  <div class="card">
-    <h4>Relógio</h4>
-    <div class="ctl-row">
-      <span class="clock" id="clock">00:00,0</span>
-      <button class="b" id="play">▶ rodar</button>
-      <button class="b" id="next" title="Avança o relógio até o próximo prazo">⏭ próximo prazo</button>
-      <button class="b" id="reset">↺ reiniciar</button>
+  <div class="grid">
+    <section class="panel p-modes">
+      <div class="ph"><h2>Modos da missão</h2><span><code>obcd</code> · CDR Figura 44 · toque num estado para ver o que cada daemon faz</span></div>
+      <div class="chips" id="chips"></div>
+      <svg class="fig" id="f-modes" role="img" aria-label="Os seis modos da missão e as transições entre eles"></svg>
+    </section>
+    <section class="panel p-arch">
+      <div class="ph"><h2>A arquitetura agora</h2><span>o que está ligado e o que flui · verde é ativo · toque num bloco</span></div>
+      <svg class="fig" id="f-arch" role="img" aria-label="Os processos e o hardware, com o estado de cada um"></svg>
+    </section>
+    <section class="panel p-radio">
+      <div class="ph"><h2>Perfil do rádio</h2><span><code>ttcd</code> e o solo · ADR-0004, ADR-0007 · independente do modo</span></div>
+      <svg class="fig" id="f-radio" role="img" aria-label="Os três perfis do rádio e as trocas entre eles"></svg>
+    </section>
+  </div>
+
+  <section class="ref" id="ref">
+    <h2>Referência</h2>
+    <details open>
+      <summary>Duas máquinas, não uma</summary>
+      <div class="body">
+        <p><b>Os modos da missão</b>, no <code>obcd</code>, dizem <i>que tarefa</i> o satélite está fazendo. Mudam por telecomando do solo e terminam sozinhos quando a tarefa acaba. <b>O perfil do rádio</b>, no <code>ttcd</code>, diz <i>como</i> ele fala com o solo. Muda por telecomando, e cai sozinho para o <code>SAFE</code> se o solo some.</p>
+        <p>As duas máquinas são <b>ortogonais</b>: o modo não muda o perfil, e o perfil não muda o modo. Elas se cruzam num ponto só: em <code>MISSION_ADSB</code> no <code>SAFE</code>, os retratos param, mas o <code>adsbd</code> continua gravando no SD. O <code>obcd</code> é o dono do modo e o anuncia ao <code>ttcd</code> (<code>IPC_MODE</code>), que o repassa ao <code>adsbd</code>; os dois o seguem (ADR-0014). O perfil do rádio só o <code>ttcd</code> conhece.</p>
+        <p><b>Como usar:</b> rode um cenário (na barra lateral, ou em "Cenários" no celular), ou mande os telecomandos você mesmo. Cada botão diz antes o que vai acontecer. O relógio é virtual: em 60×, os 10 minutos da missão passam em 10 s; "Próximo prazo" pula direto ao próximo evento com hora marcada. O simulador reproduz as regras dos núcleos com os tempos lidos do código, mas não roda o código. Ficam de fora o tempo de cada frame no ar, o ACK, o LBT e as retransmissões.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Os modos: o que cada daemon faz</summary>
+      <div class="body">
+        <p>A Figura 44 inteira é uma função: <code>flight/obcd/core.c:127</code>. <code>PRE_TEST</code> é o centro (D1): todo modo sai dele e volta para ele. Um evento que não vale no modo atual é recusado e registrado (<code>event_refused</code>), e o modo não muda.</p>
+        <div class="tw"><table>
+          <thead><tr><th>Modo</th><th><code>obcd</code></th><th><code>ttcd</code></th><th><code>adsbd</code></th><th>Sai por</th></tr></thead>
+          <tbody>
+            <tr><td><code>PRE_TEST</code></td><td>termostato e telemetria</td><td>HK a cada 10 s</td><td>parado</td><td>telecomando</td></tr>
+            <tr><td><code>BASIC_INTERMEDIATE</code></td><td>burn-wire por 5 s (D3)</td><td>HK</td><td>parado</td><td><code>TASK_DONE</code> do <code>obcd</code></td></tr>
+            <tr><td><code>ADVANCED_AOCS</code></td><td>I²C emprestado ao ESP32; V e I "sem dado"</td><td>HK; atitude por 60 s</td><td>parado</td><td><code>TASK_DONE</code> do <code>obcd</code> (até 300 s; na hora sem ESP32)</td></tr>
+            <tr><td><code>MISSION_ADSB</code></td><td>conta 600 s</td><td>retratos a cada 5 s, estatísticas a cada 30 s</td><td><code>dump1090</code>; tudo no SD</td><td><code>ADSB_TIMEOUT</code> ou <code>downlink</code></td></tr>
+            <tr><td><code>MISSION_DOWNLINK</code></td><td>nada</td><td>estatísticas e roster (1,37 s)</td><td>parado</td><td><code>TASK_DONE</code> do <code>ttcd</code></td></tr>
+            <tr><td><code>ENV_SURVIVAL</code></td><td>termostato e telemetria</td><td>HK</td><td>parado</td><td><code>task_done</code> do solo</td></tr>
+          </tbody>
+        </table></div>
+        <p>Boot e todo reinício começam em <code>PRE_TEST</code>, com as saídas desligadas (D5). O ACK de um <code>SET_MODE</code> só diz que o <code>ttcd</code> entregou o evento. Se o <code>obcd</code> o recusou, a pista no solo é o HK seguinte, com o mesmo modo.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Os eventos e quem os gera</summary>
+      <div class="body">
+        <div class="tw"><table>
+          <thead><tr><th>Evento</th><th>Valor</th><th>Quem gera</th></tr></thead>
+          <tbody>
+            <tr><td><code>TC_BASIC_INTER</code></td><td class="r">1</td><td>o solo, <code>mode basic_inter</code></td></tr>
+            <tr><td><code>TC_AOCS</code></td><td class="r">2</td><td>o solo, <code>mode aocs</code></td></tr>
+            <tr><td><code>TC_MISSION_ADSB</code></td><td class="r">3</td><td>o solo, <code>mode mission_adsb</code></td></tr>
+            <tr><td><code>TC_DOWNLINK</code></td><td class="r">4</td><td>o solo, <code>mode downlink</code></td></tr>
+            <tr><td><code>TC_SURVIVAL</code></td><td class="r">5</td><td>o solo, <code>mode survival</code></td></tr>
+            <tr><td><code>TASK_DONE</code></td><td class="r">6</td><td>o <code>obcd</code> (pulso, AOCS), o <code>ttcd</code> (downlink), o solo (<code>mode task_done</code>)</td></tr>
+            <tr><td><code>ADSB_TIMEOUT</code></td><td class="r">7</td><td>o <code>obcd</code>, aos 600 s</td></tr>
+          </tbody>
+        </table></div>
+        <p>Os valores estão em <code>common/gama_tc.h:83</code>.</p>
+      </div>
+    </details>
+    <details>
+      <summary>O rádio: perfis e temporizadores</summary>
+      <div class="body">
+        <div class="tw"><table>
+          <thead><tr><th>Perfil</th><th>SF · CR</th><th>Sensibilidade</th><th>Retrato de 20</th><th>Downlink final</th></tr></thead>
+          <tbody>
+            <tr><td><code>SAFE</code></td><td>12 · 4:8</td><td class="r">−137 dBm</td><td>não desce (23,35 s); beacon 30 s, HK 60 s</td><td class="r">15,22 s</td></tr>
+            <tr><td><code>NOMINAL</code></td><td>9 · 4:5</td><td class="r">−129 dBm</td><td class="r">2,09 s</td><td class="r">1,37 s</td></tr>
+            <tr><td><code>FAST</code></td><td>7 · 4:5</td><td class="r">−123 dBm</td><td class="r">0,66 s</td><td class="r">0,43 s</td></tr>
+          </tbody>
+        </table></div>
+        <div class="tw"><table>
+          <thead><tr><th>Regra</th><th>Satélite</th><th>Solo</th></tr></thead>
+          <tbody>
+            <tr><td>Troca sem confirmação volta ao perfil anterior</td><td class="r">20 s</td><td class="r">30 s</td></tr>
+            <tr><td>Sem ouvir o outro lado, cai para o <code>SAFE</code></td><td class="r">120 s</td><td class="r">150 s</td></tr>
+            <tr><td>Keepalive do solo</td><td class="r">—</td><td class="r">30 s</td></tr>
+            <tr><td>Telecomando sem ACK: o solo desiste</td><td class="r">—</td><td class="r">60 s</td></tr>
+          </tbody>
+        </table></div>
+        <p>O <code>SET_RATE</code> é confirmado no perfil antigo e aplicado depois que o ACK sai. A troca só fica se um frame do solo for ouvido no perfil novo (<code>flight/ttcd/link.c:295</code>); senão, ela volta (<code>flight/ttcd/link.c:254</code>). Os temporizadores do solo são mais longos de propósito: assim os dois lados acabam no mesmo perfil sem combinar nada. Quando o solo ouve o beacon no <code>SAFE</code>, ele re-comanda o perfil que queria (<code>flight/ttcd/link.c:260</code>; <code>common/gama_gs_link.c:19</code>).</p>
+      </div>
+    </details>
+    <details>
+      <summary>As máquinas menores: termostato, I²C, <code>dump1090</code>, OBC ausente</summary>
+      <div class="body">
+        <p><b>Termostato (D4).</b> Liga os aquecedores abaixo de 10 °C e desliga acima de 12 °C, em todos os modos. Sem leitura válida há 10 s, ou com o sensor falhando, desliga (<code>flight/obcd/core.c:310</code>).</p>
+        <p><b>Empréstimo do I²C (ADR-0017).</b> Contado do fim do START: STATUS pronto em +5 ms, a Pi lê a partir de +20 ms, para de falar em +100 ms, o ESP32 assume em +250 ms, e a Pi volta depois da tarefa (297 s) mais 2000 ms. Sem ESP32 (NACK, ou EIO sem STATUS), nada é emprestado (<code>flight/obcd/i2c_sched.h:20</code>).</p>
+        <p><b><code>dump1090</code> (ADR-0014).</b> Só roda em <code>MISSION_ADSB</code>. Se morre durante a missão, volta em 1 s. O <code>adsbd</code> manda ao <code>ttcd</code> um retrato de até 24 aviões a cada 1 s (<code>flight/adsbd/core.c:384</code>).</p>
+        <p><b>OBC ausente.</b> O HK leva <code>UNKNOWN</code>, e o <code>ttcd</code> e o <code>adsbd</code> mantêm o último modo conhecido (<code>flight/ttcd/tm_sched.c:385</code>).</p>
+      </div>
+    </details>
+    <details>
+      <summary>Observação: um reinício do OBC encerra a captura</summary>
+      <div class="body">
+        <p>O ADR-0014 diz que uma queda do OBC não para o payload. Isso vale <b>enquanto o <code>obcd</code> está fora</b>. O systemd o reinicia em ~1 s, e pela D5 ele volta em <code>PRE_TEST</code>, sem retomar os 600 s. Ao reconectar, ele anuncia esse modo, e o <code>ttcd</code> e o <code>adsbd</code> param retratos e decoder. Na prática, um reinício do OBC no meio da missão a encerra, e o operador precisa de um novo <code>mode mission_adsb</code>. Vale decidir se é isso que vocês querem antes das provas. Veja o cenário "O OBC reinicia".</p>
+      </div>
+    </details>
+    <details>
+      <summary>Onde está no código</summary>
+      <div class="body">
+        <div class="tw"><table><tbody>
+          <tr><td>Os modos em texto</td><td><code>flight/obcd/core.h:13</code></td></tr>
+          <tr><td>As transições</td><td><code>flight/obcd/core.c:127</code></td></tr>
+          <tr><td>Um evento: aceito ou recusado</td><td><code>flight/obcd/core.c:278</code></td></tr>
+          <tr><td>A entrada em cada modo</td><td><code>flight/obcd/core.c:259</code>; <code>flight/obcd/core.c:265</code>; <code>flight/obcd/core.c:167</code></td></tr>
+          <tr><td>O <code>ttcd</code> seguindo o modo</td><td><code>flight/ttcd/tm_sched.c:385</code>; <code>flight/ttcd/tm_sched.c:425</code></td></tr>
+          <tr><td>O que o <code>ttcd</code> transmite</td><td><code>flight/ttcd/tm_sched.c:140</code>; <code>flight/ttcd/tm_sched.c:80</code></td></tr>
+          <tr><td>Troca de perfil e perda de contato</td><td><code>flight/ttcd/link.c:96</code>; <code>flight/ttcd/link.c:295</code>; <code>flight/ttcd/link.c:254</code>; <code>flight/ttcd/link.c:260</code></td></tr>
+          <tr><td>O solo</td><td><code>common/gama_gs_link.c:19</code></td></tr>
+          <tr><td>O <code>adsbd</code></td><td><code>flight/adsbd/core.c:384</code></td></tr>
+          <tr><td>O I²C</td><td><code>common/gama_aocs.h:81</code>; <code>flight/obcd/i2c_sched.h:20</code></td></tr>
+        </tbody></table></div>
+      </div>
+    </details>
+    <p class="foot">Gerado em 10/11/2026 a partir do commit <code>47de39d</code>, com apoio do Claude Code, por <code>build-relatorio/gen-maquina/fill.py</code>. As 11 transições são lidas de <code>obcd_transition()</code>, e o gerador falha se a figura divergir do código. Os tempos vêm dos <code>.conf.example</code>, de <code>gama_gs_link.c</code> e de <code>gama_aocs.h</code>; os tempos de ar, do <code>lora_budget.py</code>. Veja também o <a href="2026-11-10-guia-de-estudo.html">guia de estudo</a>.</p>
+  </section>
+</main>
+
+<aside class="side" id="side" data-tab="cmd" aria-label="Controles">
+  <div class="sheet-h"><b id="sheet-t">Comandos</b><button id="sheet-x" aria-label="Fechar">×</button></div>
+  <div class="chips chips-s" id="chips2"></div>
+  <div class="side-scroll">
+    <div data-pane="cen">
+      <p class="sec-t">Cenários</p>
+      <div class="scs" id="scs"></div>
     </div>
-    <div class="ctl-row" id="speeds">velocidade:
-      <button class="b" data-sp="1">1×</button><button class="b on" data-sp="10">10×</button><button class="b" data-sp="60">60×</button>
-    </div>
-    <h4>Telecomandos do solo (console)</h4>
-    <div class="btns" id="tcs">
-      <button class="b" data-tc="mode mission_adsb">mode mission_adsb</button>
-      <button class="b" data-tc="mode downlink">mode downlink</button>
-      <button class="b" data-tc="mode basic_inter">mode basic_inter</button>
-      <button class="b" data-tc="mode aocs">mode aocs</button>
-      <button class="b" data-tc="mode survival">mode survival</button>
-      <button class="b" data-tc="mode task_done">mode task_done</button>
-    </div>
-    <div class="btns">
-      <button class="b" data-tc="rate safe">rate safe</button>
-      <button class="b" data-tc="rate nominal">rate nominal</button>
-      <button class="b" data-tc="rate fast">rate fast</button>
-    </div>
-    <h4>O mundo</h4>
-    <div class="btns">
-      <button class="b" id="link">✂ cortar o enlace</button>
-      <button class="b" id="obc">💥 o obcd cai</button>
-    </div>
-    <div class="ctl-row">
-      <label><input type="checkbox" id="esp"> ESP32 do AOCS presente</label>
-      <label><input type="checkbox" id="tfail"> DS18B20 falhou</label>
-    </div>
-    <div class="ctl-row">
-      <label>bateria: <input type="range" id="temp" min="0" max="20" step="0.5" value="15"> <span id="tempv">15,0 °C</span></label>
+    <div data-pane="cmd">
+      <p class="sec-t">Telecomandos do solo</p>
+      <div class="cmds" id="cmds"></div>
+      <p class="sec-t">Perfil do rádio</p>
+      <div class="rate" id="rates"></div>
+      <p class="sec-t">O mundo</p>
+      <div class="toggles">
+        <button class="tog" id="t-link" aria-pressed="true">Enlace<span class="sw"></span></button>
+        <button class="tog" id="t-obc" aria-pressed="true">obcd no ar<span class="sw"></span></button>
+        <button class="tog" id="t-esp" aria-pressed="false">ESP32 do AOCS<span class="sw"></span></button>
+        <button class="tog inv" id="t-tfail" aria-pressed="false">DS18B20 falhou<span class="sw"></span></button>
+      </div>
+      <label class="temp">Bateria <input type="range" id="temp" min="0" max="20" step="0.5" value="15"><output id="tempv">15,0 °C</output></label>
+      <p class="sec-t">Prazos correndo</p>
+      <ul class="timers" id="timers"></ul>
     </div>
   </div>
-  <div class="card">
-    <h4>O estado agora</h4>
-    <dl class="kv" id="state"></dl>
-    <h4 style="margin-top:12px">Prazos correndo</h4>
-    <ul class="timers" id="timers"></ul>
-  </div>
-</div>
-
-<div class="panel-grid">
-  <div class="card det" id="det" aria-live="polite"></div>
-  <div class="card">
-    <h4>Registro</h4>
+  <div class="log-wrap">
+    <div class="log-h"><p class="sec-t">Registro</p><button id="log-clear">limpar</button></div>
     <div class="log" id="log" role="log" aria-live="polite"></div>
   </div>
+</aside>
+
+<nav class="dock" id="dock" aria-label="Painéis">
+  <button data-open="cen"><i>▶</i>Cenários</button>
+  <button data-open="cmd"><i>⌘</i>Comandos</button>
+  <button data-open="log"><i>≡</i>Registro</button>
+</nav>
+
+<div class="pop" id="pop" hidden role="dialog" aria-labelledby="pop-h">
+  <button class="close" id="pop-x" aria-label="Fechar">×</button>
+  <div id="pop-b"></div>
 </div>
-
-<p class="small" style="font-size:13.5px;color:var(--muted)">O simulador reproduz as regras dos núcleos, com os tempos lidos dos <code>.conf.example</code> e do código; ele não roda o código. Ficam de fora o tempo de cada frame no ar, o ACK, o LBT e as retransmissões: aqui um telecomando chega na hora se o enlace está de pé e os dois lados estão no mesmo perfil. As regras completas estão nas seções seguintes e nos ADRs.</p>
-
-<h2 id="modos"><span class="n">3</span>Os modos da missão</h2>
-<p>Os seis modos são os da Figura 44 do CDR, e a figura inteira é uma função de 24 linhas: <code>flight/obcd/core.c:127</code>. Duas regras governam tudo (PLANO D1, D2):</p>
-<ul>
-  <li><b><code>PRE_TEST</code> é o centro.</b> Todo modo é alcançado a partir dele e volta a ele. Do <code>BASIC_INTERMEDIATE</code> não se vai direto ao <code>MISSION_ADSB</code>: o pedido é recusado, contado e registrado (<code>event_refused</code>), e o modo não muda.</li>
-  <li><b>Cada tarefa gera o seu próprio fim</b> (<code>EV_TASK_DONE</code>), e quem o gera muda de modo para modo.</li>
-</ul>
-<div class="table-wrap"><table>
-  <thead><tr><th>Modo</th><th><code>obcd</code></th><th><code>ttcd</code></th><th><code>adsbd</code></th><th>Sai por</th></tr></thead>
-  <tbody>
-    <tr><td><code>PRE_TEST</code></td><td>termostato e telemetria</td><td>HK a cada 10 s; responde telecomandos</td><td>decoder parado, SDR ocioso</td><td>telecomando para qualquer outro modo</td></tr>
-    <tr><td><code>BASIC_INTERMEDIATE</code></td><td>burn-wire ligado por 5 s, uma vez por entrada (D3)</td><td>HK</td><td>parado</td><td><code>TASK_DONE</code> do próprio <code>obcd</code>, no fim do pulso</td></tr>
-    <tr><td><code>ADVANCED_AOCS</code></td><td>START ao ESP32 do AOCS e o I²C emprestado; tensão e corrente "sem dado" durante o empréstimo (ADR-0017)</td><td>HK; a atitude do resultado vai no HK por 60 s</td><td>parado</td><td><code>TASK_DONE</code> do <code>obcd</code> ao ler o resultado (até 300 s); na hora, se nenhum ESP32 atende</td></tr>
-    <tr><td><code>MISSION_ADSB</code></td><td>conta 600 s (OBC-6)</td><td>retratos a cada 5 s, estatísticas a cada 30 s, sem comando do solo (TTC-07)</td><td><code>dump1090</code> rodando; grava tudo no SD</td><td><code>ADSB_TIMEOUT</code> do <code>obcd</code> aos 600 s, ou telecomando <code>downlink</code></td></tr>
-    <tr><td><code>MISSION_DOWNLINK</code></td><td>nada</td><td>estatísticas finais e o roster (33 + 227 B: 1,37 s no NOMINAL)</td><td>parado</td><td><code>TASK_DONE</code> do <code>ttcd</code>, quando os frames saíram</td></tr>
-    <tr><td><code>ENV_SURVIVAL</code></td><td>termostato e telemetria</td><td>HK</td><td>parado</td><td>telecomando <code>task_done</code> do solo</td></tr>
-  </tbody>
-</table></div>
-<p>Em todos os modos, o <code>obcd</code> manda ao <code>ttcd</code> a telemetria a cada 1 s e roda o termostato. O boot e todo reinício começam em <code>PRE_TEST</code>, com o burn-wire e os aquecedores desligados (D3, D5). Sair de <code>BASIC_INTERMEDIATE</code> por qualquer caminho desliga o burn-wire.</p>
-
-<h2 id="eventos"><span class="n">4</span>Os eventos e quem os gera</h2>
-<p>Os valores são os de <code>gama_obc_event_t</code> (<code>common/gama_tc.h:83</code>), fixados pelo OBC da outra equipe e mantidos. O telecomando <code>SET_MODE</code> leva um desses números; o <code>ttcd</code> o entrega ao <code>obcd</code> como <code>IPC_TC_EVENT</code>.</p>
-<div class="table-wrap"><table>
-  <thead><tr><th>Evento</th><th class="r">Valor</th><th>Quem gera</th><th>Comando no console</th></tr></thead>
-  <tbody>
-    <tr><td><code>TC_BASIC_INTER</code></td><td class="r">1</td><td>o solo</td><td><code>mode basic_inter</code> (exige "armar" na página da ground)</td></tr>
-    <tr><td><code>TC_AOCS</code></td><td class="r">2</td><td>o solo</td><td><code>mode aocs</code> (idem)</td></tr>
-    <tr><td><code>TC_MISSION_ADSB</code></td><td class="r">3</td><td>o solo</td><td><code>mode mission_adsb</code></td></tr>
-    <tr><td><code>TC_DOWNLINK</code></td><td class="r">4</td><td>o solo</td><td><code>mode downlink</code></td></tr>
-    <tr><td><code>TC_SURVIVAL</code></td><td class="r">5</td><td>o solo</td><td><code>mode survival</code></td></tr>
-    <tr><td><code>TASK_DONE</code></td><td class="r">6</td><td>o <code>obcd</code> (fim do pulso, fim do AOCS); o <code>ttcd</code> (fim do downlink); o solo (saída do <code>ENV_SURVIVAL</code>)</td><td><code>mode task_done</code></td></tr>
-    <tr><td><code>ADSB_TIMEOUT</code></td><td class="r">7</td><td>o <code>obcd</code>, aos 600 s de <code>MISSION_ADSB</code></td><td>—</td></tr>
-  </tbody>
-</table></div>
-<div class="callout warn">
-  <p><b>O ACK não diz que o modo mudou.</b> O <code>TC_ACK</code> do <code>SET_MODE</code> só confirma que o <code>ttcd</code> entregou o evento ao <code>obcd</code>. Se o evento não vale no modo atual, o <code>obcd</code> o recusa, e a única pista no solo é o HK seguinte, com o mesmo modo. O motivo fica no log do <code>obcd</code> (<code>event_refused</code>).</p>
-</div>
-
-<h2 id="radio"><span class="n">5</span>O perfil do rádio</h2>
-<p>Três perfis fixos, a 125 kHz de banda. Só esses três são alcançáveis: o <code>SET_RATE</code> leva o índice do perfil, e não os parâmetros, para que um comando mal recebido não deixe os dois lados em configurações que não se ouvem (ADR-0004).</p>
-<div class="table-wrap"><table>
-  <thead><tr><th>Perfil</th><th>SF · CR</th><th>Sensibilidade</th><th>O que desce</th><th>Retrato de 20 aviões</th><th>Fim do downlink</th></tr></thead>
-  <tbody>
-    <tr><td><code>SAFE</code></td><td>12 · 4:8</td><td class="r">−137 dBm</td><td>beacon a cada 30 s, HK a cada 60 s; <b>sem retratos</b></td><td>não cabe (23,35 s de ar)</td><td class="r">15,22 s</td></tr>
-    <tr><td><code>NOMINAL</code></td><td>9 · 4:5</td><td class="r">−129 dBm</td><td>HK a cada 10 s; em <code>MISSION_ADSB</code>, retratos e estatísticas</td><td class="r">2,09 s</td><td class="r">1,37 s</td></tr>
-    <tr><td><code>FAST</code></td><td>7 · 4:5</td><td class="r">−123 dBm</td><td>o mesmo que o NOMINAL, mais rápido</td><td class="r">0,66 s</td><td class="r">0,43 s</td></tr>
-  </tbody>
-</table></div>
-<p>Os tempos de ar vêm do <code>lora_budget.py</code>. Os dois lados têm temporizadores, e os do solo são de propósito mais longos que os do satélite (ADR-0007 §4):</p>
-<div class="table-wrap"><table>
-  <thead><tr><th>Regra</th><th>Satélite (<code>ttcd</code>)</th><th>Solo (<code>gama_gs_link</code>)</th></tr></thead>
-  <tbody>
-    <tr><td>Troca de perfil sem confirmação volta ao anterior</td><td class="r">20 s</td><td class="r">30 s</td></tr>
-    <tr><td>Sem ouvir o outro lado, cai para o <code>SAFE</code></td><td class="r">120 s</td><td class="r">150 s</td></tr>
-    <tr><td>Keepalive (PING) se o operador ficar quieto</td><td>—</td><td class="r">30 s</td></tr>
-    <tr><td>Telecomando sem ACK: o solo desiste</td><td>—</td><td class="r">60 s</td></tr>
-  </tbody>
-</table></div>
-<p><b>A troca.</b> O satélite confirma o <code>SET_RATE</code> <b>no perfil antigo</b> e só troca quando o ACK saiu. O solo, ao ouvir o ACK, troca também e manda um PING no perfil novo. O satélite <b>confirma</b> a troca ao ouvir qualquer frame do solo no perfil novo (<code>flight/ttcd/link.c:295</code>); sem isso, volta sozinho (<code>flight/ttcd/link.c:254</code>).</p>
-<p><b>A perda de contato.</b> Sem ouvir o solo por 120 s, o satélite cai para o <code>SAFE</code> (<code>flight/ttcd/link.c:260</code>). O solo cai depois de 150 s. Assim os dois acabam no mesmo perfil sem combinar nada. Quando o solo ouve o satélite no <code>SAFE</code>, ele mesmo manda de novo o perfil que queria, e o enlace se recupera sem operador. O keepalive de 30 s garante que um operador quieto não derruba o enlace.</p>
-
-<h2 id="menores"><span class="n">6</span>As máquinas menores</h2>
-<p>Dentro de cada modo, rodam máquinas pequenas que não aparecem na Figura 44, mas mudam o que se vê na telemetria.</p>
-<h3>6.1 O termostato (D4)</h3>
-<p>Em todos os modos: liga os aquecedores abaixo de 10 °C e desliga acima de 12 °C. Entre os dois limites, fica como estava (histerese). Sem leitura válida do DS18B20 há mais de 10 s, ou com o sensor falhando, os aquecedores desligam: um sensor quebrado não pode deixar uma bateria esquentando sem ninguém medir (<code>flight/obcd/core.c:310</code>). O DS18B20 é lido a cada 2 s, numa thread própria, porque a conversão leva ~750 ms.</p>
-<h3>6.2 O empréstimo do I²C (ADR-0017)</h3>
-<p>O INA219 e o ESP32 do AOCS dividem o mesmo barramento I²C. Ao entrar em <code>ADVANCED_AOCS</code>, o <code>obcd</code> escreve um START e segue esta linha do tempo, contada a partir do fim do START (<code>common/gama_aocs.h:81</code>):</p>
-<div class="table-wrap"><table>
-  <thead><tr><th>Instante</th><th>O que acontece</th></tr></thead>
-  <tbody>
-    <tr><td class="r">+5 ms</td><td>o ESP32 já tem o STATUS pronto</td></tr>
-    <tr><td class="r">+20 ms</td><td>a Pi pode ler o STATUS: o ESP32 aceitou?</td></tr>
-    <tr><td class="r">+100 ms</td><td>a Pi não faz mais nenhuma transação</td></tr>
-    <tr><td class="r">+250 ms</td><td>o ESP32 pode virar mestre do barramento</td></tr>
-    <tr><td>+250 ms + tarefa (297 s) + 2000 ms</td><td>a Pi volta ao barramento, lê o resultado e o <code>obcd</code> gera <code>TASK_DONE</code></td></tr>
-  </tbody>
-</table></div>
-<p>Durante o empréstimo, o INA219 não é lido, e tensão e corrente vão "sem dado". Se ninguém atende o START (sem ESP32), nada é emprestado e o modo termina na hora. A Pi trata como ausência também o EIO do driver, e não só o NACK, desde a bancada de 05/11 (<code>flight/obcd/i2c_sched.h:20</code>). O fim do empréstimo fica gravado no SD, e um <code>obcd</code> reiniciado fica fora do barramento até ele acabar.</p>
-<h3>6.3 O <code>dump1090</code> sob o <code>adsbd</code> (ADR-0014)</h3>
-<p>Em <code>MISSION_ADSB</code>, o <code>adsbd</code> sobe o <code>dump1090-fa</code>. Ao sair do modo, manda SIGTERM, SIGKILL depois de 3 s, e fecha a conexão SBS, para que nada seja decodificado ou gravado fora da missão. Se o <code>dump1090</code> morre durante a missão (sem SDR, ele sai na hora), o <code>adsbd</code> o reinicia a cada 1 s. A cada 1 s, o <code>adsbd</code> manda ao <code>ttcd</code> um retrato de até 24 aviões; o <code>ttcd</code> guarda só o mais recente.</p>
-<h3>6.4 O OBC ausente: <code>UNKNOWN</code></h3>
-<p>Enquanto o <code>obcd</code> não está conectado, o HK leva <code>obc_mode = UNKNOWN</code> (<code>0xFF</code>). O <code>ttcd</code> e o <code>adsbd</code> <b>mantêm o último modo conhecido</b>: um <code>UNKNOWN</code> não muda nada (<code>flight/ttcd/tm_sched.c:385</code>). No boot, isso quer dizer tudo parado; no meio da missão, o decoder e os retratos continuam. Veja a observação 8.1 sobre o que acontece quando o <code>obcd</code> volta.</p>
-
-<h2 id="cenarios"><span class="n">7</span>Cenários comentados</h2>
-<p>Cada botão reinicia o simulador e roda um roteiro. Acompanhe na figura e no registro.</p>
-<ul class="sc-list">
-  <li><button class="b sc" data-sc="mission">▶ A missão de 10 minutos</button>
-    <p>Um <code>mode mission_adsb</code> e mais nada. O <code>adsbd</code> sobe o <code>dump1090</code>, o <code>ttcd</code> começa os retratos, o <code>obcd</code> encerra a missão aos 600 s, o <code>ttcd</code> desce estatísticas e roster (1,37 s) e devolve o OBC ao <code>PRE_TEST</code>. Nenhum operador precisa estar atento no fim (TTC-07).</p></li>
-  <li><button class="b sc" data-sc="contact">▶ O enlace cai no meio da missão</button>
-    <p>O enlace cai aos 60 s. Aos 120 s de silêncio, o satélite cai para o <code>SAFE</code>, e os retratos param, mas a missão e a gravação no SD continuam. O solo cai 150 s depois do último frame que ouviu. O enlace volta aos 300 s, o solo ouve o beacon no <code>SAFE</code> e re-comanda o <code>NOMINAL</code>, e os retratos recomeçam com o estado atual dos aviões.</p></li>
-  <li><button class="b sc" data-sc="obc">▶ O OBC reinicia no meio da missão</button>
-    <p>O <code>obcd</code> cai aos 120 s. Enquanto ele está fora, o <code>ttcd</code> e o <code>adsbd</code> seguem em <code>MISSION_ADSB</code>. O systemd o reinicia 1 s depois, em <code>PRE_TEST</code> (D5), e ao reconectar ele anuncia esse modo: a captura para. Veja a observação 8.1.</p></li>
-  <li><button class="b sc" data-sc="rate">▶ Troca para FAST sem confirmação</button>
-    <p>O solo manda <code>rate fast</code> e o enlace cai logo depois do ACK, antes da confirmação. O satélite volta ao <code>NOMINAL</code> em 20 s, e o solo, em 30 s. Quando o enlace volta, os dois já estão no mesmo perfil.</p></li>
-  <li><button class="b sc" data-sc="deploy">▶ Implantação, um pedido recusado e a sobrevivência</button>
-    <p><code>mode basic_inter</code>: o burn-wire liga por 5 s. Um <code>mode mission_adsb</code> no meio do pulso é recusado, porque não vale fora do <code>PRE_TEST</code>. O pulso termina e o OBC volta sozinho. Depois, <code>mode survival</code>, de onde só se sai com <code>mode task_done</code>.</p></li>
-  <li><button class="b sc" data-sc="aocs">▶ AOCS sem o ESP32 (a bancada de 05/11)</button>
-    <p>Sem ESP32 no barramento, ninguém atende o START: nada é emprestado, e <code>ADVANCED_AOCS</code> termina no mesmo instante. Marque "ESP32 do AOCS presente" e repita para ver o empréstimo de 300 s, com tensão e corrente "sem dado".</p></li>
-</ul>
-
-<h2 id="obs"><span class="n">8</span>Observações e limites</h2>
-<h3>8.1 Um reinício do OBC encerra a captura</h3>
-<p>O ADR-0014 diz que "uma queda do OBC no meio da missão não para o payload". Isso vale <b>enquanto o <code>obcd</code> está fora</b>: com <code>UNKNOWN</code>, o <code>ttcd</code> e o <code>adsbd</code> mantêm <code>MISSION_ADSB</code>. Mas o systemd reinicia o <code>obcd</code> em cerca de 1 s, e pela D5 ele volta em <code>PRE_TEST</code>, sem retomar os 600 s. Ao reconectar, ele anuncia <code>PRE_TEST</code>, um modo conhecido, e o <code>ttcd</code> e o <code>adsbd</code> param retratos e decoder (<code>flight/ttcd/tm_sched.c:385</code>). O próprio ADR registra o raciocínio ("by D5 it comes back in PRE_TEST, so the rest of the mission would be lost"). Na prática, então, um reinício do OBC termina a captura, e o operador precisa de um novo <code>mode mission_adsb</code>, com uma contagem de 600 s nova. Vale decidir se isso é o desejado antes das provas.</p>
-<h3>8.2 O estado das evidências</h3>
-<p>Tudo o que a figura mostra está implementado e coberto por testes sem hardware: cada aresta da Figura 44 em <code>test_obcd_core</code>, a troca de perfil e a perda de contato em <code>test_ttcd_core</code> e <code>test_link_sim</code>, e a cadeia com os binários reais em <code>test_adsb_chain</code>. Na bancada de 05/11 rodaram o pulso do burn-wire (num LED) e o <code>ENV_SURVIVAL</code>. O termostato e os passos de rádio ficaram para a próxima bancada (<code>docs/vv/bancada/2026-11-05/notas.md</code>). Os ADRs 0013 a 0018 estão <i>Proposed</i>.</p>
-<h3>8.3 O que o simulador simplifica</h3>
-<ul>
-  <li>Não modela o tempo de cada frame no ar, o ACK, o LBT nem as retransmissões. Um telecomando chega na hora se o enlace está de pé e os dois lados estão no mesmo perfil; senão, é perdido. O solo real tenta de novo por até 60 s.</li>
-  <li>O fim do downlink é a soma do tempo no ar dos dois frames, sem as lacunas entre eles.</li>
-  <li>Com o ESP32 presente, o AOCS usa o empréstimo inteiro: o simulador não modela uma recusa do ESP32 nem uma tarefa mais curta.</li>
-</ul>
-
-<h2 id="codigo"><span class="n">9</span>Onde está no código</h2>
-<div class="table-wrap"><table>
-  <thead><tr><th>O quê</th><th>Onde</th></tr></thead>
-  <tbody>
-    <tr><td>Os modos, em texto (a Figura 44)</td><td><code>flight/obcd/core.h:13</code></td></tr>
-    <tr><td>As transições: a figura inteira numa função</td><td><code>flight/obcd/core.c:127</code></td></tr>
-    <tr><td>Um evento: aceito ou recusado, registrado, anunciado</td><td><code>flight/obcd/core.c:278</code></td></tr>
-    <tr><td>O que cada modo faz ao entrar</td><td><code>flight/obcd/core.c:259</code>; o burn-wire em <code>flight/obcd/core.c:265</code>; o AOCS em <code>flight/obcd/core.c:167</code></td></tr>
-    <tr><td>O termostato</td><td><code>flight/obcd/core.c:310</code></td></tr>
-    <tr><td>Os enums de modos e eventos</td><td><code>common/gama_tc.h:83</code></td></tr>
-    <tr><td>O <code>ttcd</code> seguindo o modo</td><td><code>flight/ttcd/tm_sched.c:385</code>; o fim do downlink em <code>flight/ttcd/tm_sched.c:425</code></td></tr>
-    <tr><td>O que o <code>ttcd</code> transmite, e em que ordem</td><td><code>flight/ttcd/tm_sched.c:140</code>; o <code>SAFE</code> em <code>flight/ttcd/tm_sched.c:80</code></td></tr>
-    <tr><td>A troca de perfil, a confirmação, a volta e a perda de contato</td><td><code>flight/ttcd/link.c:96</code>; <code>flight/ttcd/link.c:295</code>; <code>flight/ttcd/link.c:254</code>; <code>flight/ttcd/link.c:260</code></td></tr>
-    <tr><td>Os temporizadores do solo</td><td><code>common/gama_gs_link.c:19</code></td></tr>
-    <tr><td>O <code>adsbd</code> seguindo o modo</td><td><code>flight/adsbd/core.c:384</code></td></tr>
-    <tr><td>O empréstimo do I²C</td><td><code>common/gama_aocs.h:81</code>; <code>flight/obcd/i2c_sched.h:20</code></td></tr>
-    <tr><td>As decisões</td><td>CDR Figura 44; <code>PLANO.md</code> D1–D5; ADR-0004, 0007, 0014, 0016, 0017</td></tr>
-  </tbody>
-</table></div>
-
-<footer>
-  <p>Gerado em 10/11/2026 a partir do commit <code>b4fac20</code>, com apoio do Claude Code, por <code>build-relatorio/gen-maquina/fill.py</code>. As transições são lidas de <code>obcd_transition()</code>, e o gerador falha se a figura desenhar uma aresta que o código não tem, ou deixar de desenhar uma que ele tem. Os tempos vêm dos <code>.conf.example</code>, de <code>gama_gs_link.c</code> e de <code>gama_aocs.h</code>; os tempos de ar, do <code>lora_budget.py</code>; as referências <code>arquivo:linha</code>, de uma busca no código na hora de gerar.</p>
-  <p>Relacionados: o <a href="2026-11-10-guia-de-estudo.html">guia de estudo de 10/11</a>, o <a href="2026-11-05-roteiro-bancada.html">roteiro da bancada de 05/11</a>, o <a href="2026-10-22-validacao-obc.html">relatório de validação do OBC</a>.</p>
-</footer>
-</main>
 </div>
 
 <script>
 "use strict";
-const D = {"ttcd":{"hk_period":10000,"stat_period":30000,"stream_period":5000,"safe_beacon_period":30000,"safe_hk_period":60000,"contact_timeout":120000,"rate_revert":20000},"obcd":{"adsb_timeout":600000,"burnwire":5000,"telemetry":1000,"aocs_timeout":300000,"aocs_hold":60000,"temp_stale":10000,"heat_on_ccel":1000,"heat_off_ccel":1200,"power_period":1000,"temp_period":2000},"adsbd":{"restart_max":1000,"snapshot_period":1000,"snapshot_max":24},"gs":{"keepalive":30000,"contact_timeout":150000,"rate_revert":30000,"give_up":60000},"aocs":{"preload":5,"read_min":20,"release":100,"takeover":250,"resume_margin":2000,"task_s":297},"prof":{"SAFE":{"sf":12,"cr":"4:8","sens":-137.0,"downlink_s":15.22,"snapshot_s":23.35},"NOMINAL":{"sf":9,"cr":"4:5","sens":-129.0,"downlink_s":1.37,"snapshot_s":2.09},"FAST":{"sf":7,"cr":"4:5","sens":-123.0,"downlink_s":0.43,"snapshot_s":0.66}},"edges":[["PRE_TEST","TC_BASIC_INTER","BASIC_INTERMEDIATE"],["PRE_TEST","TC_AOCS","ADVANCED_AOCS"],["PRE_TEST","TC_SURVIVAL","ENV_SURVIVAL"],["PRE_TEST","TC_MISSION_ADSB","MISSION_ADSB"],["PRE_TEST","TC_DOWNLINK","MISSION_DOWNLINK"],["MISSION_ADSB","ADSB_TIMEOUT","MISSION_DOWNLINK"],["MISSION_ADSB","TC_DOWNLINK","MISSION_DOWNLINK"],["BASIC_INTERMEDIATE","TASK_DONE","PRE_TEST"],["ADVANCED_AOCS","TASK_DONE","PRE_TEST"],["ENV_SURVIVAL","TASK_DONE","PRE_TEST"],["MISSION_DOWNLINK","TASK_DONE","PRE_TEST"]],"event_values":{"NONE":0,"TC_BASIC_INTER":1,"TC_AOCS":2,"TC_MISSION_ADSB":3,"TC_DOWNLINK":4,"TC_SURVIVAL":5,"TASK_DONE":6,"ADSB_TIMEOUT":7},"state_values":{"PRE_TEST":0,"BASIC_INTERMEDIATE":1,"ADVANCED_AOCS":2,"MISSION_ADSB":3,"MISSION_DOWNLINK":4,"ENV_SURVIVAL":5,"UNKNOWN":255},"ln":{"transition":"flight/obcd/core.c:127","post_event":"flight/obcd/core.c:278","enter":"flight/obcd/core.c:259","start_aocs":"flight/obcd/core.c:167","thermostat":"flight/obcd/core.c:310","burnwire_on":"flight/obcd/core.c:265","modes_doc":"flight/obcd/core.h:13","enums":"common/gama_tc.h:83","tm_on_mode":"flight/ttcd/tm_sched.c:385","tm_pick":"flight/ttcd/tm_sched.c:140","on_profile":"flight/ttcd/tm_sched.c:80","downlink_done":"flight/ttcd/tm_sched.c:425","rate_change":"flight/ttcd/link.c:96","revert":"flight/ttcd/link.c:254","contact_lost":"flight/ttcd/link.c:260","rate_commit":"flight/ttcd/link.c:295","gs_defaults":"common/gama_gs_link.c:19","decoder":"flight/adsbd/core.c:384","i2c_absent":"flight/obcd/i2c_sched.h:20","aocs_timing":"common/gama_aocs.h:81"},"head":"b4fac20"};
-
-/* ---------------------------------------------------------------- figure */
+const D = {"ttcd":{"hk_period":10000,"stat_period":30000,"stream_period":5000,"safe_beacon_period":30000,"safe_hk_period":60000,"contact_timeout":120000,"rate_revert":20000},"obcd":{"adsb_timeout":600000,"burnwire":5000,"telemetry":1000,"aocs_timeout":300000,"aocs_hold":60000,"temp_stale":10000,"heat_on_ccel":1000,"heat_off_ccel":1200,"power_period":1000,"temp_period":2000},"adsbd":{"restart_max":1000,"snapshot_period":1000,"snapshot_max":24},"gs":{"keepalive":30000,"contact_timeout":150000,"rate_revert":30000,"give_up":60000},"aocs":{"preload":5,"read_min":20,"release":100,"takeover":250,"resume_margin":2000,"task_s":297},"prof":{"SAFE":{"sf":12,"cr":"4:8","sens":-137.0,"downlink_s":15.22,"snapshot_s":23.35},"NOMINAL":{"sf":9,"cr":"4:5","sens":-129.0,"downlink_s":1.37,"snapshot_s":2.09},"FAST":{"sf":7,"cr":"4:5","sens":-123.0,"downlink_s":0.43,"snapshot_s":0.66}},"edges":[["PRE_TEST","TC_BASIC_INTER","BASIC_INTERMEDIATE"],["PRE_TEST","TC_AOCS","ADVANCED_AOCS"],["PRE_TEST","TC_SURVIVAL","ENV_SURVIVAL"],["PRE_TEST","TC_MISSION_ADSB","MISSION_ADSB"],["PRE_TEST","TC_DOWNLINK","MISSION_DOWNLINK"],["MISSION_ADSB","ADSB_TIMEOUT","MISSION_DOWNLINK"],["MISSION_ADSB","TC_DOWNLINK","MISSION_DOWNLINK"],["BASIC_INTERMEDIATE","TASK_DONE","PRE_TEST"],["ADVANCED_AOCS","TASK_DONE","PRE_TEST"],["ENV_SURVIVAL","TASK_DONE","PRE_TEST"],["MISSION_DOWNLINK","TASK_DONE","PRE_TEST"]],"event_values":{"NONE":0,"TC_BASIC_INTER":1,"TC_AOCS":2,"TC_MISSION_ADSB":3,"TC_DOWNLINK":4,"TC_SURVIVAL":5,"TASK_DONE":6,"ADSB_TIMEOUT":7},"state_values":{"PRE_TEST":0,"BASIC_INTERMEDIATE":1,"ADVANCED_AOCS":2,"MISSION_ADSB":3,"MISSION_DOWNLINK":4,"ENV_SURVIVAL":5,"UNKNOWN":255},"ln":{"transition":"flight/obcd/core.c:127","post_event":"flight/obcd/core.c:278","enter":"flight/obcd/core.c:259","start_aocs":"flight/obcd/core.c:167","thermostat":"flight/obcd/core.c:310","burnwire_on":"flight/obcd/core.c:265","modes_doc":"flight/obcd/core.h:13","enums":"common/gama_tc.h:83","tm_on_mode":"flight/ttcd/tm_sched.c:385","tm_pick":"flight/ttcd/tm_sched.c:140","on_profile":"flight/ttcd/tm_sched.c:80","downlink_done":"flight/ttcd/tm_sched.c:425","rate_change":"flight/ttcd/link.c:96","revert":"flight/ttcd/link.c:254","contact_lost":"flight/ttcd/link.c:260","rate_commit":"flight/ttcd/link.c:295","gs_defaults":"common/gama_gs_link.c:19","decoder":"flight/adsbd/core.c:384","i2c_absent":"flight/obcd/i2c_sched.h:20","aocs_timing":"common/gama_aocs.h:81"},"head":"47de39d"};
+const $ = id => document.getElementById(id);
+const s = v => (v / 1000).toLocaleString("pt-BR") + " s";
+const nf = (x, d = 2) => x.toLocaleString("pt-BR", {maximumFractionDigits: d});
 const NS = "http://www.w3.org/2000/svg";
-const W = 190, H = 66;
-const MODES = {
-  PRE_TEST:           {x: 405, y: 185, sub: "o centro (D1)"},
-  BASIC_INTERMEDIATE: {x: 26,  y: 36,  sub: "implantação · burn-wire"},
-  ADVANCED_AOCS:      {x: 26,  y: 185, sub: "o I²C emprestado ao AOCS"},
-  ENV_SURVIVAL:       {x: 26,  y: 334, sub: "sobrevivência"},
-  MISSION_ADSB:       {x: 784, y: 36,  sub: "a captura · " + D.obcd.adsb_timeout / 1000 + " s"},
-  MISSION_DOWNLINK:   {x: 784, y: 334, sub: "o resumo final"},
-};
-const PH = 62;
-const PROFS = {
-  SAFE:    {x: 26,  y: 532, sub: "SF" + D.prof.SAFE.sf + " · beacon e HK"},
-  NOMINAL: {x: 405, y: 532, sub: "SF" + D.prof.NOMINAL.sf + " · a missão"},
-  FAST:    {x: 784, y: 532, sub: "SF" + D.prof.FAST.sf + " · descarga"},
-};
-/* The notes beside the events on each edge. The events themselves come from
- * obcd_transition() (D.edges); fill.py checks that this block draws exactly
+function el(name, attrs, parent, text) {
+  const e = document.createElementNS(NS, name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function markers(svg) {
+  const defs = el("defs", {}, svg);
+  for (const [id, cls] of [["ah", "ah"], ["ahh", "ah-hot"]]) {
+    const m = el("marker", {id: svg.id + id, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse"}, defs);
+    el("path", {class: cls, d: "M0,0 L10,5 L0,10 z"}, m);
+  }
+}
+function label(parent, x, y, text, anchor) {
+  const lines = text.split("\n");
+  const g = el("g", {}, parent);
+  const bg = el("rect", {class: "lbl-bg", rx: 3}, g);
+  const t = el("text", {class: "lbl", x, y: y - (lines.length - 1) * 6.5, "text-anchor": anchor || "middle"}, g);
+  lines.forEach((ln, i) => el("tspan", {x, dy: i ? 13 : 0}, t, ln));
+  try { const bb = t.getBBox(); bg.setAttribute("x", bb.x - 3); bg.setAttribute("y", bb.y - 1);
+        bg.setAttribute("width", bb.width + 6); bg.setAttribute("height", bb.height + 2); } catch (e) {}
+  return t;
+}
+
+/* ================================================================ the data */
+/* The notes beside the events on each mode edge. The events come from
+ * obcd_transition() (D.edges); fill.py checks that this block covers exactly
  * the code's edges. */
 /*EDGES*/
 const NOTE = {
@@ -499,237 +449,253 @@ const NOTE = {
   'MISSION_DOWNLINK>PRE_TEST': "do ttcd",
 };
 /*END*/
-const s = v => (v / 1000).toLocaleString("pt-BR") + " s";
-const RLINKS = [
-  {k: "NOMINAL>FAST", t: "rate fast"},
-  {k: "FAST>NOMINAL", t: "rate nominal, ou\nsem confirmação em " + s(D.ttcd.rate_revert)},
-  {k: "NOMINAL>SAFE", t: s(D.ttcd.contact_timeout) + " sem ouvir o solo,\nou rate safe"},
-  {k: "SAFE>NOMINAL", t: "o solo ouve o beacon\ne re-comanda"},
-  {k: "FAST>SAFE", t: s(D.ttcd.contact_timeout) + " sem ouvir o solo", curve: 70},
-];
+const SUB = {
+  PRE_TEST: "o centro (D1)", BASIC_INTERMEDIATE: "implantação · burn-wire",
+  ADVANCED_AOCS: "o I²C emprestado ao AOCS", ENV_SURVIVAL: "sobrevivência",
+  MISSION_ADSB: "a captura · " + s(D.obcd.adsb_timeout), MISSION_DOWNLINK: "o resumo final",
+  SAFE: "SF" + D.prof.SAFE.sf + " · beacon e HK", NOMINAL: "SF" + D.prof.NOMINAL.sf + " · a missão", FAST: "SF" + D.prof.FAST.sf + " · descarga",
+};
+const byPair = {};
+for (const [a, ev, b] of D.edges) (byPair[a + ">" + b] = byPair[a + ">" + b] || []).push(ev);
+const edgeText = (key, sep) => {
+  const evs = byPair[key].map(e => e === "ADSB_TIMEOUT" ? e + " " + s(D.obcd.adsb_timeout) : e);
+  return evs.join(sep) + (NOTE[key] ? sep + NOTE[key] : "");
+};
 
-function el(name, attrs, parent, text) {
-  const e = document.createElementNS(NS, name);
-  for (const k in attrs) e.setAttribute(k, attrs[k]);
-  if (text !== undefined) e.textContent = text;
-  if (parent) parent.appendChild(e);
-  return e;
+/* ================================================================ figures */
+const NODE = {}, EDGE = {};
+function forget(svg) {
+  for (const k in EDGE) EDGE[k] = EDGE[k].filter(e => e.svg !== svg);
+  for (const k in NODE) NODE[k] = NODE[k].filter(n => n.svg !== svg);
 }
-const svg = document.getElementById("fig");
-const defs = el("defs", {}, svg);
-for (const [id, cls] of [["ah", "ah"], ["ahh", "ah-hot"]]) {
-  const m = el("marker", {id, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse"}, defs);
-  el("path", {class: cls, d: "M0,0 L10,5 L0,10 z"}, m);
+function addNode(svg, layer, id, x, y, w, h, title, sub, kind) {
+  const g = el("g", {class: "node" + (kind ? " " + kind : ""), tabindex: 0, role: "button", "aria-label": title}, layer);
+  el("rect", {class: "st", x, y, width: w, height: h, rx: 10}, g);
+  const t1 = el("text", {class: "t-b", x: x + w / 2, y: y + h / 2 - (sub === null ? -5 : 3), "text-anchor": "middle"}, g, title);
+  const t2 = sub === null ? null : el("text", {class: "t-s", x: x + w / 2, y: y + h / 2 + 14, "text-anchor": "middle"}, g, sub);
+  g.addEventListener("click", () => openDetail(id));
+  g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDetail(id); } });
+  const n = {g, t1, t2, svg, kind};
+  (NODE[id] = NODE[id] || []).push(n);
+  return n;
 }
-el("rect", {class: "zone", x: 10, y: 12, width: 980, height: 396, rx: 14}, svg);
-el("text", {class: "t-z", x: 410, y: 30}, svg, "MODOS DA MISSÃO · obcd · CDR FIGURA 44");
-el("rect", {class: "zone", x: 10, y: 452, width: 980, height: 200, rx: 14}, svg);
-el("text", {class: "t-z", x: 26, y: 476}, svg, "PERFIL DO RÁDIO · ttcd e o solo · ADR-0004, ADR-0007");
-el("text", {class: "t-e", x: 500, y: 426, "text-anchor": "middle"}, svg,
-   "ortogonais: o modo não muda o perfil, nem o perfil muda o modo.");
-el("text", {class: "t-e", x: 500, y: 442, "text-anchor": "middle"}, svg,
-   "onde se cruzam: em MISSION_ADSB no SAFE, os retratos param e a gravação no SD continua.");
-
-const edgeLayer = el("g", {}, svg);
-const nodeLayer = el("g", {}, svg);
-
-function clip(c, o, w, h) {           /* where the segment c->o leaves the box at c */
+function addEdge(key, svg, layer, d, lx, ly, text, anchor) {
+  const path = el("path", {class: "tr", d, "marker-end": `url(#${svg.id}ah)`}, layer);
+  const t = text ? label(layer, lx, ly, text, anchor) : null;
+  (EDGE[key] = EDGE[key] || []).push({path, t, svg});
+}
+function clip(c, o, w, h) {
   const dx = o.x - c.x, dy = o.y - c.y;
   const tx = dx ? (w / 2) / Math.abs(dx) : Infinity, ty = dy ? (h / 2) / Math.abs(dy) : Infinity;
   const t = Math.min(tx, ty);
   return {x: c.x + dx * t, y: c.y + dy * t};
 }
-const EDGE = {};                      /* "A>B" -> {path, label, bg} */
-function drawEdge(key, boxes, w, h, label, curve) {
+/* A straight edge between two boxes, offset to its left so that a pair A>B,
+ * B>A runs side by side; its label on the same side. */
+function straight(key, svg, layer, boxes, text) {
   const [a, b] = key.split(">");
-  const A = {x: boxes[a].x + w / 2, y: boxes[a].y + h / 2};
-  const B = {x: boxes[b].x + w / 2, y: boxes[b].y + h / 2};
-  const len = Math.hypot(B.x - A.x, B.y - A.y);
-  const nx = -(B.y - A.y) / len, ny = (B.x - A.x) / len;   /* left normal */
-  let d, lx, ly, anchor = "middle";
-  if (curve) {
-    const p = {x: A.x, y: A.y + h / 2}, q = {x: B.x, y: B.y + h / 2};
-    const cy = Math.max(p.y, q.y) + curve;
-    d = `M${p.x},${p.y} C${p.x},${cy} ${q.x},${cy} ${q.x + 4},${q.y + 2}`;
-    lx = (p.x + q.x) / 2; ly = cy - 18;
-  } else {
-    const off = 9;
-    const A2 = {x: A.x + nx * off, y: A.y + ny * off}, B2 = {x: B.x + nx * off, y: B.y + ny * off};
-    const p = clip(A2, B2, w + 6, h + 6), q = clip(B2, A2, w + 10, h + 10);
-    d = `M${p.x.toFixed(1)},${p.y.toFixed(1)} L${q.x.toFixed(1)},${q.y.toFixed(1)}`;
-    const mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
-    lx = mx + nx * 14; ly = my + ny * 14 + 4;
-    if (Math.abs(B.x - A.x) < 5) { lx = mx - 12; anchor = "end"; }
+  const A = {x: boxes[a].x + boxes[a].w / 2, y: boxes[a].y + boxes[a].h / 2};
+  const B = {x: boxes[b].x + boxes[b].w / 2, y: boxes[b].y + boxes[b].h / 2};
+  const len = Math.hypot(B.x - A.x, B.y - A.y), nx = -(B.y - A.y) / len, ny = (B.x - A.x) / len, off = 9;
+  const A2 = {x: A.x + nx * off, y: A.y + ny * off}, B2 = {x: B.x + nx * off, y: B.y + ny * off};
+  const p = clip(A2, B2, boxes[a].w + 6, boxes[a].h + 6), q = clip(B2, A2, boxes[b].w + 10, boxes[b].h + 10);
+  const mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2;
+  let lx = mx + nx * 15, ly = my + ny * 15 + 4, anchor = "middle";
+  if (Math.abs(B.x - A.x) < 5) { lx = mx + nx * 12; anchor = nx < 0 ? "end" : "start"; ly = my + 4; }
+  addEdge(key, svg, layer, `M${p.x.toFixed(1)},${p.y.toFixed(1)} L${q.x.toFixed(1)},${q.y.toFixed(1)}`, lx, ly, text, anchor);
+}
+
+/* ---- the modes: wide (a hub) and narrow (a spine) ----------------------- */
+function drawModes(svg, narrow) {
+  svg.textContent = ""; forget(svg); markers(svg);
+  const E = el("g", {}, svg), N = el("g", {}, svg);
+  if (!narrow) {
+    svg.setAttribute("viewBox", "0 0 1000 380");
+    const w = 190, h = 62, B = {
+      PRE_TEST: {x: 405, y: 159}, BASIC_INTERMEDIATE: {x: 14, y: 10}, ADVANCED_AOCS: {x: 14, y: 159},
+      ENV_SURVIVAL: {x: 14, y: 308}, MISSION_ADSB: {x: 796, y: 10}, MISSION_DOWNLINK: {x: 796, y: 308}};
+    for (const k in B) Object.assign(B[k], {w, h});
+    for (const key in byPair) straight(key, svg, E, B, edgeText(key, "\n"));
+    el("circle", {class: "boot", cx: 500, cy: 60, r: 6}, svg);
+    el("path", {class: "tr", d: "M500,66 L500,155", "marker-end": `url(#${svg.id}ah)`}, svg);
+    el("text", {class: "t-e", x: 510, y: 104}, svg, "boot e todo reinício (D5)");
+    for (const id in B) addNode(svg, N, id, B[id].x, B[id].y, w, h, id, SUB[id]);
+    return;
   }
-  const path = el("path", {class: "tr", d, "marker-end": "url(#ah)"}, edgeLayer);
-  const lines = label.split("\n");
-  const g = el("g", {}, edgeLayer);
-  const bg = el("rect", {class: "lbl-bg", rx: 3}, g);
-  const t = el("text", {class: "lbl", x: lx, y: ly - (lines.length - 1) * 6.5, "text-anchor": anchor}, g);
-  lines.forEach((ln, i) => el("tspan", {x: lx, dy: i ? 13 : 0}, t, ln));
-  try { const bb = t.getBBox(); bg.setAttribute("x", bb.x - 3); bg.setAttribute("y", bb.y - 1);
-        bg.setAttribute("width", bb.width + 6); bg.setAttribute("height", bb.height + 2); } catch (e) {}
-  EDGE[key] = {path, t};
-}
-/* mode edges: the events from the code, then the note */
-const byPair = {};
-for (const [a, ev, b] of D.edges) (byPair[a + ">" + b] = byPair[a + ">" + b] || []).push(ev);
-for (const key in byPair) {
-  const evs = byPair[key].map(e => e === "ADSB_TIMEOUT" ? e + " " + s(D.obcd.adsb_timeout) : e);
-  const note = NOTE[key] || "";
-  drawEdge(key, MODES, W, H, evs.join("\n") + (note ? "\n" + note : ""));
-}
-for (const r of RLINKS) drawEdge(r.k, PROFS, W, PH, r.t, r.curve);
-/* boot */
-el("circle", {class: "boot", cx: 500, cy: 100, r: 6}, svg);
-el("path", {class: "tr", d: "M500,106 L500,181", "marker-end": "url(#ah)"}, svg);
-el("text", {class: "t-e", x: 510, y: 140}, svg, "boot e todo reinício (D5)");
-
-const NODE = {};
-function drawNode(id, n, w, h, title) {
-  const g = el("g", {class: "node", tabindex: 0, role: "button", "aria-label": id}, nodeLayer);
-  el("rect", {class: "st", x: n.x, y: n.y, width: w, height: h, rx: 10}, g);
-  el("text", {class: "t-b", x: n.x + w / 2, y: n.y + h / 2 - 3, "text-anchor": "middle"}, g, title);
-  el("text", {class: "t-s", x: n.x + w / 2, y: n.y + h / 2 + 15, "text-anchor": "middle"}, g, n.sub);
-  g.addEventListener("click", () => show(id));
-  g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(id); } });
-  NODE[id] = g;
-}
-for (const id in MODES) drawNode(id, MODES[id], W, H, id);
-for (const id in PROFS) drawNode(id, PROFS[id], W, PH, id);
-const pill = el("g", {}, svg);
-el("rect", {class: "pill", width: 44, height: 18, rx: 9}, pill);
-el("text", {class: "pill-t", x: 22, y: 13, "text-anchor": "middle"}, pill, "solo");
-const satTag = el("text", {class: "sat-t", "text-anchor": "middle"}, svg, "satélite");
-
-/* ---------------------------------------------------------------- details */
-const F = k => `<code>${D.ln[k]}</code>`;
-const DET = {
-  PRE_TEST: {
-    h: "PRE_TEST — o centro",
-    obcd: "termostato e telemetria a cada " + s(D.obcd.telemetry) + "; nada mais",
-    ttcd: "HK a cada " + s(D.ttcd.hk_period) + "; responde telecomandos",
-    adsbd: "decoder parado, SDR ocioso",
-    out: "telecomando para qualquer outro modo. É o modo do boot e de todo reinício (D5).",
-    refs: [F("transition"), F("enter")]},
-  BASIC_INTERMEDIATE: {
-    h: "BASIC_INTERMEDIATE — a implantação das antenas",
-    obcd: "liga o burn-wire por " + s(D.obcd.burnwire) + ", uma vez por entrada (D3); ao sair por qualquer caminho, desliga",
-    ttcd: "HK", adsbd: "parado",
-    out: "TASK_DONE do próprio obcd no fim do pulso, ou do solo antes disso.",
-    refs: [F("burnwire_on")]},
-  ADVANCED_AOCS: {
-    h: "ADVANCED_AOCS — o I²C emprestado ao AOCS",
-    obcd: "manda o START ao ESP32 (0x2A) e não toca o barramento até o fim do empréstimo: " + D.aocs.takeover + " ms + " + D.aocs.task_s + " s de tarefa + " + D.aocs.resume_margin / 1000 + " s; tensão e corrente vão \"sem dado\"",
-    ttcd: "HK; a atitude do resultado fica no HK por " + s(D.obcd.aocs_hold), adsbd: "parado",
-    out: "TASK_DONE do obcd ao ler o resultado; na hora, se ninguém atende o START (sem ESP32, NACK ou EIO).",
-    refs: [F("start_aocs"), F("aocs_timing"), F("i2c_absent")]},
-  ENV_SURVIVAL: {
-    h: "ENV_SURVIVAL — sobrevivência",
-    obcd: "termostato e telemetria; nada mais", ttcd: "HK", adsbd: "parado",
-    out: "só o telecomando task_done do solo (D2): o satélite fica aqui o tempo que for preciso.",
-    refs: [F("transition")]},
-  MISSION_ADSB: {
-    h: "MISSION_ADSB — a captura",
-    obcd: "conta " + s(D.obcd.adsb_timeout) + " (OBC-6) e então gera ADSB_TIMEOUT",
-    ttcd: "retratos a cada " + s(D.ttcd.stream_period) + " (" + D.prof.NOMINAL.snapshot_s.toLocaleString("pt-BR") + " s de ar no NOMINAL) e estatísticas a cada " + s(D.ttcd.stat_period) + "; no SAFE, nada de retratos",
-    adsbd: "dump1090 rodando; cada mensagem no SD; um retrato de até " + D.adsbd.snapshot_max + " aviões ao ttcd a cada " + s(D.adsbd.snapshot_period),
-    out: "ADSB_TIMEOUT aos " + s(D.obcd.adsb_timeout) + ", ou o telecomando downlink. Vai sempre para MISSION_DOWNLINK.",
-    refs: [F("tm_on_mode"), F("decoder")]},
-  MISSION_DOWNLINK: {
-    h: "MISSION_DOWNLINK — o resumo final",
-    obcd: "nada; espera o ttcd", ttcd: "estatísticas finais e o roster: 33 + 227 B, " + D.prof.NOMINAL.downlink_s.toLocaleString("pt-BR") + " s no NOMINAL; quando saíram, TASK_DONE ao obcd",
-    adsbd: "decoder parado",
-    out: "TASK_DONE do ttcd. Sair antes (task_done do solo) abandona o downlink (downlink_abandoned).",
-    refs: [F("downlink_done")]},
-  SAFE: {
-    h: "SAFE — o perfil de recuperação",
-    obcd: "não sabe do perfil", ttcd: "beacon a cada " + s(D.ttcd.safe_beacon_period) + " e HK a cada " + s(D.ttcd.safe_hk_period) + "; nenhum retrato (um de 20 aviões levaria " + D.prof.SAFE.snapshot_s.toLocaleString("pt-BR") + " s de ar)",
-    adsbd: "não sabe do perfil: em MISSION_ADSB continua gravando",
-    out: "o solo, ao ouvir o satélite aqui, re-comanda o perfil que queria; confirmado por um frame do solo no perfil novo, senão volta em " + s(D.ttcd.rate_revert) + ".",
-    refs: [F("contact_lost"), F("on_profile")]},
-  NOMINAL: {
-    h: "NOMINAL — a missão",
-    obcd: "—", ttcd: "SF" + D.prof.NOMINAL.sf + ", " + D.prof.NOMINAL.sens + " dBm; HK a cada " + s(D.ttcd.hk_period) + ", e em MISSION_ADSB os retratos", adsbd: "—",
-    out: "rate fast/safe por telecomando; SAFE sozinho após " + s(D.ttcd.contact_timeout) + " sem ouvir o solo.",
-    refs: [F("rate_change"), F("rate_commit")]},
-  FAST: {
-    h: "FAST — a descarga",
-    obcd: "—", ttcd: "SF" + D.prof.FAST.sf + ", " + D.prof.FAST.sens + " dBm; o mesmo que o NOMINAL, mais rápido (retrato em " + D.prof.FAST.snapshot_s.toLocaleString("pt-BR") + " s)", adsbd: "—",
-    out: "sem confirmação, volta em " + s(D.ttcd.rate_revert) + "; SAFE após " + s(D.ttcd.contact_timeout) + " sem o solo.",
-    refs: [F("revert"), F("contact_lost")]},
-};
-let selected = null;
-function show(id) {
-  selected = id;
-  const d = DET[id];
-  document.getElementById("det").innerHTML =
-    `<h4>Detalhe</h4><h3>${d.h}</h3><div class="who"><b>obcd</b><span>${d.obcd}</span><b>ttcd</b><span>${d.ttcd}</span><b>adsbd</b><span>${d.adsbd}</span></div>` +
-    `<p><b>Sai por:</b> ${d.out}</p><p class="refs">${d.refs.join(" · ")}</p>`;
-  render();
+  /* PRE_TEST on top, a spine on the left, one row per mode */
+  const rows = ["MISSION_ADSB", "MISSION_DOWNLINK", "BASIC_INTERMEDIATE", "ADVANCED_AOCS", "ENV_SURVIVAL"];
+  const X = 10, Wd = 360, top = 12, ph = 52, rh = 84, rg = 18, bx = 64, bw = X + Wd - bx, sx = 30;
+  const y0 = top + ph + 30, H = y0 + rows.length * (rh + rg);
+  svg.setAttribute("viewBox", `0 0 380 ${H}`);
+  addNode(svg, N, "PRE_TEST", X, top, Wd, ph, "PRE_TEST", "o centro · boot e todo reinício (D5)");
+  const rowY = {};
+  rows.forEach((id, i) => { rowY[id] = y0 + i * (rh + rg); });
+  el("path", {class: "tr", d: `M${sx},${top + ph} L${sx},${rowY[rows[rows.length - 1]] + rh / 2 + 7}`}, E);
+  rows.forEach(id => {
+    const y = rowY[id], c = y + rh / 2;
+    const n = addNode(svg, N, id, bx, y, bw, rh, id, null);
+    n.t1.setAttribute("y", y + 21);
+    const into = "PRE_TEST>" + id, back = id + ">PRE_TEST";
+    el("text", {class: "t-s", x: bx + 12, y: y + 41}, n.g, byPair[into] ? "entra: " + edgeText(into, " · ") : "");
+    el("text", {class: "t-s", x: bx + 12, y: y + 58}, n.g,
+       byPair[back] ? "volta: " + edgeText(back, " · ") : id === "MISSION_ADSB" ? "sai para MISSION_DOWNLINK ↓" : "");
+    el("text", {class: "t-s", x: bx + 12, y: y + 75, "font-style": "italic"}, n.g, SUB[id]);
+    if (byPair[into]) addEdge(into, svg, E, `M${sx},${c - 7} L${bx - 3},${c - 7}`);
+    if (byPair[back]) addEdge(back, svg, E, `M${bx - 1},${c + 7} L${sx + 3},${c + 7}`);
+  });
+  const a = rowY.MISSION_ADSB + rh, b = rowY.MISSION_DOWNLINK, x = bx + bw - 34;
+  addEdge("MISSION_ADSB>MISSION_DOWNLINK", svg, E, `M${x},${a} L${x},${b - 2}`, x - 8, (a + b) / 2 + 4, "ADSB_TIMEOUT · TC_DOWNLINK", "end");
 }
 
-/* ---------------------------------------------------------------- the model */
+/* ---- the radio: wide (a row) and narrow (a column) ----------------------- */
+const RL = [
+  ["NOMINAL>FAST", "rate fast"],
+  ["FAST>NOMINAL", "rate nominal, ou\nsem confirmação em " + s(D.ttcd.rate_revert)],
+  ["NOMINAL>SAFE", s(D.ttcd.contact_timeout) + " sem ouvir o solo,\nou rate safe"],
+  ["SAFE>NOMINAL", "o solo ouve o beacon\ne re-comanda"],
+];
+let pill = null, satTag = null, RB = null;
+function drawRadio(svg, narrow) {
+  svg.textContent = ""; forget(svg); markers(svg);
+  const E = el("g", {}, svg), N = el("g", {}, svg);
+  let w, h;
+  if (!narrow) {
+    svg.setAttribute("viewBox", "0 0 1000 196"); w = 190; h = 62;
+    RB = {SAFE: {x: 14, y: 26}, NOMINAL: {x: 405, y: 26}, FAST: {x: 796, y: 26}};
+  } else {
+    svg.setAttribute("viewBox", "0 0 380 470"); w = 180; h = 58;
+    RB = {SAFE: {x: 96, y: 24}, NOMINAL: {x: 96, y: 200}, FAST: {x: 96, y: 376}};
+  }
+  for (const k in RB) Object.assign(RB[k], {w, h});
+  for (const [k, t] of RL) straight(k, svg, E, RB, narrow ? t.replace(",\n", "\n") : t);
+  const F = RB.FAST, Sf = RB.SAFE;
+  if (!narrow) {
+    const y = F.y + h, cy = y + 76;
+    addEdge("FAST>SAFE", svg, E, `M${F.x + w / 2},${y} C${F.x + w / 2},${cy} ${Sf.x + w / 2},${cy} ${Sf.x + w / 2 + 3},${y + 4}`,
+            500, y + 52, s(D.ttcd.contact_timeout) + " sem ouvir o solo");
+  } else {
+    const x = F.x + w, cx = x + 76;
+    addEdge("FAST>SAFE", svg, E, `M${x},${F.y + h / 2} C${cx},${F.y + h / 2} ${cx},${Sf.y + h / 2} ${x + 4},${Sf.y + h / 2}`,
+            x + 58, 236, s(D.ttcd.contact_timeout) + "\nsem o\nsolo");
+  }
+  for (const id in RB) addNode(svg, N, id, RB[id].x, RB[id].y, w, h, id, SUB[id]);
+  pill = el("g", {}, svg);
+  el("rect", {class: "pill", width: 44, height: 18, rx: 9}, pill);
+  el("text", {class: "pill-t", x: 22, y: 13, "text-anchor": "middle"}, pill, "solo");
+  satTag = el("text", {class: "sat-t", "text-anchor": "middle"}, svg, "satélite");
+}
+
+/* ---- the architecture: wide and narrow ----------------------------------- */
+const AN = {sdr: "SDR", d1090: "dump1090-fa", adsbd: "adsbd", sd: "SD · adsb.ndjson", ttcd: "ttcd", radio: "RA-02",
+            ground: "solo · ESP32", obcd: "obcd", ina: "INA219", aocs: "ESP32 do AOCS", ds: "DS18B20", burn: "burn-wire", heat: "aquecedores"};
+const PERI = ["ina", "aocs", "ds", "burn", "heat"];
+const AL = [["sdr>d1090", "USB"], ["d1090>adsbd", "SBS"], ["adsbd>sd", "NDJSON"], ["adsbd>ttcd", "retratos"],
+            ["obcd>ttcd", "modo · telemetria"], ["ttcd>radio", "SPI"], ["radio>ground", ""],
+            ["obcd>ina", "I²C"], ["obcd>aocs", "I²C"], ["obcd>ds", "1-Wire"], ["obcd>burn", "GPIO"], ["obcd>heat", "GPIO"]];
+const ARCH = {n: {}, l: {}};
+function drawArch(svg, narrow) {
+  svg.textContent = ""; forget(svg);
+  const Z = el("g", {}, svg), Lg = el("g", {}, svg), Ng = el("g", {}, svg);
+  let B;
+  if (!narrow) {
+    svg.setAttribute("viewBox", "0 0 1000 296");
+    const w = 124, h = 52, y1 = 30, y2 = 122, y3 = 228, pw = 112;
+    B = {sdr: [12, y1], d1090: [162, y1], adsbd: [318, y1], ttcd: [498, y1], radio: [648, y1], ground: [868, y1],
+         sd: [318, y2], obcd: [498, y2], ina: [164, y3], aocs: [288, y3], ds: [412, y3], burn: [536, y3], heat: [660, y3]};
+    for (const k in B) B[k] = {x: B[k][0], y: B[k][1], w: PERI.includes(k) ? pw : w, h};
+    el("rect", {class: "zone", x: 4, y: 8, width: 784, height: 282, rx: 12}, Z);
+    el("text", {class: "zone-t", x: 14, y: 24}, Z, "CUBESAT · RASPBERRY PI ZERO 2 W");
+    el("text", {class: "zone-t", x: 868, y: 24}, Z, "GROUND");
+  } else {
+    svg.setAttribute("viewBox", "0 0 380 640");
+    const w = 172, h = 56, A = 8, Bc = 200, ph = 50;
+    B = {sdr: [A, 30], d1090: [A, 112], adsbd: [A, 194], sd: [Bc, 194], ttcd: [A, 290], obcd: [Bc, 290],
+         radio: [A, 386], ground: [A, 560], ina: [Bc, 376], aocs: [Bc, 428], ds: [Bc, 480], burn: [Bc, 532], heat: [Bc, 584]};
+    for (const k in B) B[k] = {x: B[k][0], y: B[k][1], w, h: PERI.includes(k) ? ph - 4 : h};
+    el("text", {class: "zone-t", x: A, y: 20}, Z, "CUBESAT");
+    el("text", {class: "zone-t", x: Bc, y: 368}, Z, "PERIFÉRICOS DO obcd");
+    el("line", {class: "zone", x1: 2, y1: 510, x2: 190, y2: 510}, Z);
+    el("text", {class: "zone-t", x: A, y: 550}, Z, "GROUND");
+  }
+  ARCH.n = {}; ARCH.l = {};
+  for (const [key, txt] of AL) {
+    const [a, b] = key.split(">");
+    if (narrow && PERI.includes(b)) continue;
+    const A = B[a], C = B[b];
+    const acx = A.x + A.w / 2, acy = A.y + A.h / 2, bcx = C.x + C.w / 2, bcy = C.y + C.h / 2;
+    let d, lx, ly, anchor = "middle";
+    if (Math.abs(acy - bcy) < 4) {
+      const x1 = acx < bcx ? A.x + A.w : A.x, x2 = acx < bcx ? C.x : C.x + C.w;
+      d = `M${x1},${acy} L${x2},${bcy}`; lx = (x1 + x2) / 2; ly = acy - 8;
+    } else if (Math.abs(acx - bcx) < 4) {
+      const y1 = acy < bcy ? A.y + A.h : A.y, y2 = acy < bcy ? C.y : C.y + C.h;
+      d = `M${acx},${y1} L${bcx},${y2}`; lx = acx + 8; ly = (y1 + y2) / 2 + 4; anchor = "start";
+    } else {
+      const y1 = A.y + A.h, y2 = C.y, ym = y1 + 16;
+      d = `M${acx},${y1} L${acx},${ym} L${bcx},${ym} L${bcx},${y2}`; lx = bcx + 6; ly = (ym + y2) / 2 + 8; anchor = "start";
+    }
+    const p = el("path", {class: "ln", d}, Lg);
+    const t = el("text", {class: "ln-t", x: lx, y: ly, "text-anchor": anchor}, Lg, txt);
+    ARCH.l[key] = {p, t};
+  }
+  for (const id in B) ARCH.n[id] = addNode(svg, Ng, id, B[id].x, B[id].y, B[id].w, B[id].h, AN[id], "", "an");
+}
+
+/* ---- responsive: each figure picks its layout from its own width ---------- */
+const FIGS = [["f-modes", drawModes, 640], ["f-radio", drawRadio, 560], ["f-arch", drawArch, 640]];
+const layoutOf = {};
+function layout(force) {
+  let changed = false;
+  for (const [id, fn, bp] of FIGS) {
+    const w = $(id).getBoundingClientRect().width, narrow = w > 0 && w < bp;
+    if (force || layoutOf[id] !== narrow) { layoutOf[id] = narrow; fn($(id), narrow); changed = true; }
+  }
+  if (changed && S) render();
+}
+
+/* ================================================================ the model */
 const TC = {"mode basic_inter": "TC_BASIC_INTER", "mode aocs": "TC_AOCS", "mode mission_adsb": "TC_MISSION_ADSB",
             "mode downlink": "TC_DOWNLINK", "mode survival": "TC_SURVIVAL", "mode task_done": "TASK_DONE"};
-let S;
-function fresh() {
-  return {t: 0, obcUp: true, mode: "PRE_TEST", known: "PRE_TEST", hot: null,
+let S = null;
+function fresh(esp) {
+  return {t: 0, obcUp: true, mode: "PRE_TEST", known: "PRE_TEST", hot: null, esp: !!esp,
           burnUntil: null, aocsUntil: null, adsbUntil: null, dlUntil: null, burn: false, lent: false,
           prof: "NOMINAL", pend: null, gsProf: "NOMINAL", gsPend: null, gsWant: "NOMINAL",
           link: true, satHeard: 0, gsHeard: 0, nextSnap: null, sent: 0, lost: 0,
-          temp: +document.getElementById("temp").value, tfail: document.getElementById("tfail").checked,
-          heater: false, tfault: false, script: [], scriptName: null};
+          temp: +$("temp").value, tfail: false, heater: false, tfault: false, script: [], stopAt: undefined, sc: null};
 }
-const logEl = document.getElementById("log");
-function clk(t) {
-  const m = Math.floor(t / 60000), sec = (t % 60000) / 1000;
-  return String(m).padStart(2, "0") + ":" + sec.toFixed(1).padStart(4, "0").replace(".", ",");
-}
+const clk = t => String(Math.floor(t / 60000)).padStart(2, "0") + ":" + ((t % 60000) / 1000).toFixed(1).padStart(4, "0").replace(".", ",");
 function log(src, ev, obj) {
   const d = document.createElement("div");
   const body = obj === undefined ? "" : (typeof obj === "string" ? " " + obj : " " + JSON.stringify(obj));
-  d.innerHTML = `<span class="s-sim">${clk(S.t)}</span> <span class="src s-${src}">${src}</span> <b>${ev}</b>`;
+  d.innerHTML = `<span class="tm">${clk(S.t)}</span> <span class="src s-${src}">${src}</span> <b>${ev}</b>`;
   d.appendChild(document.createTextNode(body));
-  logEl.appendChild(d);
-  logEl.scrollTop = logEl.scrollHeight;
+  const L = $("log"); L.appendChild(d); L.scrollTop = L.scrollHeight;
 }
-function transition(mode, ev) {
-  for (const [a, e, b] of D.edges) if (a === mode && e === ev) return b;
-  return null;
-}
+function transition(mode, ev) { for (const [a, e, b] of D.edges) if (a === mode && e === ev) return b; return null; }
 function postEvent(ev, by) {
   if (!S.obcUp) { log("ttcd", "ipc_drop", {what: ev, why: "obcd desconectado"}); return; }
   const to = transition(S.mode, ev);
   if (!to) { log("obcd", "event_refused", {event: ev, mode: S.mode, by}); return; }
-  const from = S.mode;
-  leave(from);
+  const from = S.mode; leave(from);
   S.mode = to; S.hot = from + ">" + to;
   log("obcd", "mode", {from, to, event: ev, by});
-  announce(to);
-  enter(to);
+  announce(to); enter(to);
 }
 function leave(m) {
-  if (m === "BASIC_INTERMEDIATE" && S.burn) { S.burn = false; log("obcd", "burnwire", {on: false}); }
-  if (m === "BASIC_INTERMEDIATE") S.burnUntil = null;
+  if (m === "BASIC_INTERMEDIATE") { if (S.burn) { S.burn = false; log("obcd", "burnwire", {on: false}); } S.burnUntil = null; }
   if (m === "ADVANCED_AOCS") S.aocsUntil = null;
   if (m === "MISSION_ADSB") S.adsbUntil = null;
 }
 function enter(m) {
   if (m === "BASIC_INTERMEDIATE") { S.burn = true; S.burnUntil = S.t + D.obcd.burnwire; log("obcd", "burnwire", {on: true, ms: D.obcd.burnwire}); }
   if (m === "ADVANCED_AOCS") {
-    if (!document.getElementById("esp").checked) {
-      log("obcd", "aocs", {start: false, why: "ninguém atendeu o START"});
-      S.aocsUntil = S.t;                                    /* end_aocs(): TASK_DONE on the next tick */
-    } else {
-      S.lent = true; S.aocsUntil = S.t + D.obcd.aocs_timeout;
-      log("obcd", "aocs", {start: true, task_s: D.aocs.task_s});
-    }
+    if (!S.esp) { log("obcd", "aocs", {start: false, why: "ninguém atendeu o START"}); S.aocsUntil = S.t; }
+    else { S.lent = true; S.aocsUntil = S.t + D.obcd.aocs_timeout; log("obcd", "aocs", {start: true, task_s: D.aocs.task_s}); }
   }
   if (m === "MISSION_ADSB") S.adsbUntil = S.t + D.obcd.adsb_timeout;
 }
-/* ttcd and adsbd: tm_on_mode() and adsbd's decoder; UNKNOWN changes nothing */
-function announce(mode) {
+function announce(mode) {                 /* tm_on_mode() and adsbd: UNKNOWN changes nothing */
   if (mode === "UNKNOWN" || mode === S.known) return;
   const from = S.known; S.known = mode;
   log("ttcd", "obc_mode", {mode});
@@ -741,20 +707,16 @@ function announce(mode) {
 const hears = () => S.link && S.prof === S.gsProf;
 function applyRate(p, why) { const from = S.prof; S.prof = p; log("ttcd", "rate", {from, to: p, reason: why}); }
 function command(cmd, auto) {
-  if (!hears()) {
-    log("ground", "tc", `"${cmd}" sem ACK: ${S.link ? "perfis diferentes" : "enlace cortado"}; o solo desiste em ${s(D.gs.give_up)}`);
-    return;
-  }
+  if (!hears()) { log("ground", "tc", `"${cmd}" sem ACK: ${S.link ? "perfis diferentes" : "enlace cortado"}; o solo desiste em ${s(D.gs.give_up)}`); return; }
   log("ground", "tc", `"${cmd}"` + (auto ? " (automático)" : ""));
   if (cmd.startsWith("rate ")) {
     const p = cmd.slice(5).toUpperCase();
     if (!auto) S.gsWant = p;
     const old = S.prof;
     if (p === old) { log("ttcd", "tc", {cmd: "SET_RATE", to: p, note: "já está"}); return; }
-    applyRate(p, "commanded");                         /* after its ACK, at the old profile */
+    applyRate(p, "commanded");
     S.pend = {prev: old, until: S.t + D.ttcd.rate_revert};
-    const gold = S.gsProf; S.gsProf = p;                /* the ground heard the ACK and follows */
-    S.gsPend = {prev: gold, until: S.t + D.gs.rate_revert};
+    const gold = S.gsProf; S.gsProf = p; S.gsPend = {prev: gold, until: S.t + D.gs.rate_revert};
     log("ground", "rate", {from: gold, to: p});
     return;
   }
@@ -762,8 +724,7 @@ function command(cmd, auto) {
 }
 function step(t) {
   S.t = t;
-  while (S.script.length && S.script[0][0] <= t) { const a = S.script.shift(); a[1](); }
-  /* contact, both ways */
+  while (S.script.length && S.script[0][0] <= t) S.script.shift()[1]();
   if (hears()) {
     S.satHeard = t; S.gsHeard = t;
     if (S.pend) { S.pend = null; log("ttcd", "rate_commit", {profile: S.prof}); }
@@ -771,24 +732,14 @@ function step(t) {
     if (S.prof === "SAFE" && S.gsWant !== "SAFE") command("rate " + S.gsWant.toLowerCase(), true);
   }
   if (S.pend && t >= S.pend.until) { const p = S.pend.prev; S.pend = null; applyRate(p, "revert"); }
-  if (S.gsPend && t >= S.gsPend.until) { const p = S.gsPend.prev; S.gsPend = null; log("ground", "rate", {to: p, reason: "revert"}); S.gsProf = p; }
-  if (S.prof !== "SAFE" && t - S.satHeard >= D.ttcd.contact_timeout) {
-    S.pend = null; log("ttcd", "contact_lost", {silent_ms: t - S.satHeard}); applyRate("SAFE", "contact_lost");
-  }
-  if (S.gsProf !== "SAFE" && t - S.gsHeard >= D.gs.contact_timeout) {
-    S.gsPend = null; log("ground", "contact_lost", {silent_ms: t - S.gsHeard}); S.gsProf = "SAFE";
-  }
-  /* obcd's deadlines */
+  if (S.gsPend && t >= S.gsPend.until) { const p = S.gsPend.prev; S.gsPend = null; S.gsProf = p; log("ground", "rate", {to: p, reason: "revert"}); }
+  if (S.prof !== "SAFE" && t - S.satHeard >= D.ttcd.contact_timeout) { S.pend = null; log("ttcd", "contact_lost", {silent_ms: t - S.satHeard}); applyRate("SAFE", "contact_lost"); }
+  if (S.gsProf !== "SAFE" && t - S.gsHeard >= D.gs.contact_timeout) { S.gsPend = null; S.gsProf = "SAFE"; log("ground", "contact_lost", {silent_ms: t - S.gsHeard}); }
   if (S.obcUp) {
     if (S.burnUntil !== null && t >= S.burnUntil) { S.burnUntil = null; S.burn = false; log("obcd", "burnwire", {on: false}); postEvent("TASK_DONE", "obcd"); }
-    if (S.aocsUntil !== null && t >= S.aocsUntil) {
-      S.aocsUntil = null;
-      if (S.lent) { S.lent = false; log("obcd", "aocs_result", {}); }
-      postEvent("TASK_DONE", "obcd");
-    }
+    if (S.aocsUntil !== null && t >= S.aocsUntil) { S.aocsUntil = null; if (S.lent) { S.lent = false; log("obcd", "aocs_result", {}); } postEvent("TASK_DONE", "obcd"); }
     if (S.adsbUntil !== null && t >= S.adsbUntil) { S.adsbUntil = null; postEvent("ADSB_TIMEOUT", "obcd"); }
   }
-  /* ttcd */
   if (S.dlUntil !== null && t >= S.dlUntil) {
     S.dlUntil = null; log("ttcd", "downlink_done", {});
     if (S.obcUp) postEvent("TASK_DONE", "ttcd"); else log("ttcd", "ipc_drop", {what: "TASK_DONE"});
@@ -797,10 +748,8 @@ function step(t) {
     if (S.prof !== "SAFE") { if (hears()) S.sent++; else S.lost++; }
     S.nextSnap += D.ttcd.stream_period;
   }
-  /* the thermostat (D4) */
-  const valid = S.obcUp && !S.tfail;
   if (S.obcUp) {
-    if (!valid) {
+    if (S.tfail) {
       if (!S.tfault) { S.tfault = true; log("obcd", "temp_fault", {}); }
       if (S.heater) { S.heater = false; log("obcd", "heater", {on: false, why: "sensor fault"}); }
     } else {
@@ -811,183 +760,308 @@ function step(t) {
   }
 }
 function deadlines() {
-  const L = [];
-  const add = (t, what) => { if (t !== null && t !== undefined) L.push([t, what]); };
-  if (S.obcUp) {
-    add(S.burnUntil, "fim do pulso do burn-wire");
-    add(S.aocsUntil, S.lent ? "fim do empréstimo do I²C" : "fim do AOCS");
-    add(S.adsbUntil, "ADSB_TIMEOUT");
-  }
+  const L = [], add = (t, w) => { if (t !== null && t !== undefined) L.push([t, w]); };
+  if (S.obcUp) { add(S.burnUntil, "fim do pulso do burn-wire"); add(S.aocsUntil, S.lent ? "fim do empréstimo do I²C" : "fim do AOCS"); add(S.adsbUntil, "ADSB_TIMEOUT: fim da captura"); }
   add(S.dlUntil, "fim do downlink");
-  if (S.pend) add(S.pend.until, "o satélite volta a " + S.pend.prev);
-  if (S.gsPend) add(S.gsPend.until, "o solo volta a " + S.gsPend.prev);
-  if (S.prof !== "SAFE" && !hears()) add(S.satHeard + D.ttcd.contact_timeout, "o satélite cai para SAFE");
-  if (S.gsProf !== "SAFE" && !hears()) add(S.gsHeard + D.gs.contact_timeout, "o solo cai para SAFE");
+  if (S.pend) add(S.pend.until, "satélite volta a " + S.pend.prev);
+  if (S.gsPend) add(S.gsPend.until, "solo volta a " + S.gsPend.prev);
+  if (S.prof !== "SAFE" && !hears()) add(S.satHeard + D.ttcd.contact_timeout, "satélite cai para SAFE");
+  if (S.gsProf !== "SAFE" && !hears()) add(S.gsHeard + D.gs.contact_timeout, "solo cai para SAFE");
   if (S.script.length) add(S.script[0][0], "próximo passo do cenário");
   return L.sort((a, b) => a[0] - b[0]);
 }
-
-/* ---------------------------------------------------------------- render */
-function render() {
-  document.getElementById("clock").textContent = clk(S.t);
-  for (const id in NODE) {
-    const cur = id === S.mode && S.obcUp || id === S.prof;
-    NODE[id].classList.toggle("cur", cur);
-    NODE[id].classList.toggle("known", id === S.known && (id !== S.mode || !S.obcUp));
-    NODE[id].classList.toggle("sel", id === selected);
-  }
-  for (const k in EDGE) {
-    const hot = k === S.hot;
-    EDGE[k].path.classList.toggle("hot", hot);
-    EDGE[k].path.setAttribute("marker-end", hot ? "url(#ahh)" : "url(#ah)");
-    EDGE[k].t.classList.toggle("lbl", true);
-    EDGE[k].t.classList.toggle("hot", hot);
-  }
-  const g = PROFS[S.gsProf];
-  pill.setAttribute("transform", `translate(${g.x + W / 2 - 22},${g.y + PH + 6})`);
-  const sp = PROFS[S.prof];
-  satTag.setAttribute("x", sp.x + W / 2); satTag.setAttribute("y", sp.y - 8);
-  const streaming = S.known === "MISSION_ADSB";
-  const rows = [
-    ["obcd", S.obcUp ? `<code>${S.mode}</code>` : "<b>fora do ar</b> (o HK diz <code>UNKNOWN</code>)"],
-    ["ttcd e adsbd seguem", `<code>${S.known}</code>`],
-    ["perfil", `satélite <code>${S.prof}</code>${S.pend ? " (a confirmar)" : ""} · solo <code>${S.gsProf}</code>${S.gsPend ? " (a confirmar)" : ""}`],
-    ["enlace", S.link ? (hears() ? "de pé" : "de pé, mas em perfis diferentes") : "<b>cortado</b>"],
-    ["dump1090", streaming ? "rodando; gravando no SD" : "parado"],
-    ["retratos", streaming ? (S.prof === "SAFE" ? "<b>parados</b> (SAFE)" : `a cada ${s(D.ttcd.stream_period)}`) : "—"],
-    ["enviados · perdidos", `${S.sent} · ${S.lost}`],
-    ["burn-wire", S.burn ? "<b>ligado</b>" : "desligado"],
-    ["I²C", S.lent ? "<b>emprestado ao AOCS</b>; V e I sem dado" : "da Pi; INA219 lido"],
-    ["aquecedores", (S.heater ? "<b>ligados</b>" : "desligados") + (S.tfault ? " (sensor falhou)" : "")],
-  ];
-  document.getElementById("state").innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
-  const dl = deadlines();
-  document.getElementById("timers").innerHTML = dl.length
-    ? dl.map(([t, w]) => `<li><span>${w}</span><span>em ${((t - S.t) / 1000).toFixed(1).replace(".", ",")} s</span></li>`).join("")
-    : "<li><span>nenhum: o satélite espera um telecomando</span><span></span></li>";
-  document.getElementById("link").textContent = S.link ? "✂ cortar o enlace" : "🔗 restabelecer o enlace";
-  document.getElementById("obc").textContent = S.obcUp ? "💥 o obcd cai" : "↻ o systemd reinicia o obcd";
-}
-
-/* ---------------------------------------------------------------- clock */
-let playing = false, speed = 10, last = null;
-const STEP = 100;
-function advanceTo(t) {
-  let x = S.t;
-  while (x + STEP <= t) { x += STEP; step(x); }
-  if (x < t) step(t);
-}
-function frame(now) {
-  if (!playing) { last = null; return; }
-  if (last !== null) {
-    const target = S.t + Math.min(now - last, 200) * speed;
-    advanceTo(Math.round(target));
-    if (S.stopAt !== undefined && S.t >= S.stopAt) { S.stopAt = undefined; setPlay(false); }
-    render();
-  }
-  last = now;
-  requestAnimationFrame(frame);
-}
-function setPlay(p) {
-  playing = p;
-  document.getElementById("play").textContent = p ? "⏸ pausar" : "▶ rodar";
-  if (p) requestAnimationFrame(frame);
-}
-function setSpeed(v) {
-  speed = v;
-  document.querySelectorAll("#speeds button").forEach(b => b.classList.toggle("on", +b.dataset.sp === v));
-}
-function reset(silent) {
-  S = fresh(); logEl.textContent = "";
-  log("sim", "boot", "os três daemons sobem; o obcd em PRE_TEST, o rádio em NOMINAL");
-  if (!silent) render();
-}
-
-/* ---------------------------------------------------------------- scenarios */
-const at = (t, f) => S.script.push([t, f]);
-const SC = {
-  mission() {
-    setSpeed(60);
-    at(2000, () => command("mode mission_adsb"));
-    S.stopAt = 2000 + D.obcd.adsb_timeout + 10000;
-  },
-  contact() {
-    setSpeed(60);
-    at(2000, () => command("mode mission_adsb"));
-    at(60000, () => { S.link = false; log("sim", "enlace", "cortado"); });
-    at(300000, () => { S.link = true; log("sim", "enlace", "restabelecido"); });
-    S.stopAt = 330000;
-  },
-  obc() {
-    setSpeed(10);
-    at(2000, () => command("mode mission_adsb"));
-    at(120000, () => crash());
-    at(121000, () => restart());
-    S.stopAt = 130000;
-  },
-  rate() {
-    setSpeed(10);
-    at(2000, () => { command("rate fast"); S.link = false; log("sim", "enlace", "cortado logo depois do ACK"); });
-    at(45000, () => { S.link = true; log("sim", "enlace", "restabelecido"); });
-    S.stopAt = 50000;
-  },
-  deploy() {
-    setSpeed(1);
-    at(1000, () => command("mode basic_inter"));
-    at(3000, () => command("mode mission_adsb"));
-    at(9000, () => command("mode survival"));
-    at(14000, () => command("mode task_done"));
-    S.stopAt = 16000;
-  },
-  aocs() {
-    setSpeed(document.getElementById("esp").checked ? 60 : 1);
-    at(1000, () => command("mode aocs"));
-    S.stopAt = document.getElementById("esp").checked ? 1000 + D.obcd.aocs_timeout + 5000 : 4000;
-  },
-};
 function crash() {
-  S.obcUp = false; S.burn = false; S.lent = S.lent;  /* the lease outlives obcd: kept on the SD card */
-  S.burnUntil = S.aocsUntil = S.adsbUntil = null;
+  S.obcUp = false; S.burn = false; S.burnUntil = S.aocsUntil = S.adsbUntil = null;
   log("obcd", "exit", "o processo morre; os GPIO desligam");
   log("ttcd", "ipc_peer", {role: "obc", up: false});
   log("ttcd", "hk", {obc_mode: "UNKNOWN", note: "ttcd e adsbd mantêm " + S.known});
 }
 function restart() {
-  S.obcUp = true; S.mode = "PRE_TEST"; S.hot = null;
+  S.obcUp = true; S.mode = "PRE_TEST"; S.hot = null; S.lent = false;
   log("obcd", "boot", {mode: "PRE_TEST", note: "D5: sem retomar os 600 s"});
   log("ttcd", "ipc_peer", {role: "obc", up: true});
   announce("PRE_TEST");
 }
 
-/* ---------------------------------------------------------------- wiring */
-document.getElementById("play").onclick = () => setPlay(!playing);
-document.getElementById("reset").onclick = () => { setPlay(false); reset(); };
-document.getElementById("next").onclick = () => {
-  const dl = deadlines();
-  if (dl.length) { advanceTo(Math.max(dl[0][0], S.t)); render(); }
+/* ================================================================ details */
+const F = k => `<code>${D.ln[k]}</code>`;
+const DET = {
+  PRE_TEST: ["PRE_TEST — o centro", "termostato e telemetria a cada " + s(D.obcd.telemetry), "HK a cada " + s(D.ttcd.hk_period) + "; responde telecomandos", "decoder parado, SDR ocioso",
+    "telecomando para qualquer outro modo. É o modo do boot e de todo reinício (D5).", [F("transition"), F("enter")]],
+  BASIC_INTERMEDIATE: ["BASIC_INTERMEDIATE — implantação", "burn-wire ligado por " + s(D.obcd.burnwire) + ", uma vez por entrada (D3); sair por qualquer caminho desliga", "HK", "parado",
+    "TASK_DONE do obcd no fim do pulso, ou do solo antes.", [F("burnwire_on")]],
+  ADVANCED_AOCS: ["ADVANCED_AOCS — o I²C emprestado", "START ao ESP32 (0x2A) e não toca o barramento: " + D.aocs.takeover + " ms + " + D.aocs.task_s + " s + " + s(D.aocs.resume_margin) + "; V e I \"sem dado\"",
+    "HK; a atitude fica no HK por " + s(D.obcd.aocs_hold), "parado",
+    "TASK_DONE do obcd ao ler o resultado; na hora, se ninguém atende o START (sem ESP32: NACK ou EIO).", [F("start_aocs"), F("aocs_timing"), F("i2c_absent")]],
+  ENV_SURVIVAL: ["ENV_SURVIVAL — sobrevivência", "termostato e telemetria", "HK", "parado", "só o telecomando task_done do solo (D2).", [F("transition")]],
+  MISSION_ADSB: ["MISSION_ADSB — a captura", "conta " + s(D.obcd.adsb_timeout) + " (OBC-6) e gera ADSB_TIMEOUT",
+    "retratos a cada " + s(D.ttcd.stream_period) + " (" + nf(D.prof.NOMINAL.snapshot_s) + " s de ar no NOMINAL) e estatísticas a cada " + s(D.ttcd.stat_period) + "; no SAFE, nada de retratos",
+    "dump1090 rodando; cada mensagem no SD; até " + D.adsbd.snapshot_max + " aviões por retrato ao ttcd a cada " + s(D.adsbd.snapshot_period),
+    "ADSB_TIMEOUT aos " + s(D.obcd.adsb_timeout) + " ou o telecomando downlink: sempre para MISSION_DOWNLINK.", [F("tm_on_mode"), F("decoder")]],
+  MISSION_DOWNLINK: ["MISSION_DOWNLINK — o resumo", "nada; espera o ttcd", "estatísticas e roster: 33 + 227 B, " + nf(D.prof.NOMINAL.downlink_s) + " s no NOMINAL; depois, TASK_DONE ao obcd", "parado",
+    "TASK_DONE do ttcd. Sair antes abandona o downlink (downlink_abandoned).", [F("downlink_done")]],
+  SAFE: ["SAFE — recuperação", "não vê o perfil", "beacon a cada " + s(D.ttcd.safe_beacon_period) + ", HK a cada " + s(D.ttcd.safe_hk_period) + "; nenhum retrato (um de 20 levaria " + nf(D.prof.SAFE.snapshot_s) + " s)", "não vê o perfil: em MISSION_ADSB continua gravando",
+    "o solo, ao ouvir o beacon, re-comanda o perfil que queria; sem confirmação, volta em " + s(D.ttcd.rate_revert) + ".", [F("contact_lost"), F("on_profile")]],
+  NOMINAL: ["NOMINAL — a missão", "—", "SF" + D.prof.NOMINAL.sf + ", " + D.prof.NOMINAL.sens + " dBm; HK, e em MISSION_ADSB os retratos", "—",
+    "rate fast/safe; SAFE sozinho após " + s(D.ttcd.contact_timeout) + " sem o solo.", [F("rate_change"), F("rate_commit")]],
+  FAST: ["FAST — descarga", "—", "SF" + D.prof.FAST.sf + ", " + D.prof.FAST.sens + " dBm; retrato em " + nf(D.prof.FAST.snapshot_s) + " s", "—",
+    "sem confirmação, volta em " + s(D.ttcd.rate_revert) + "; SAFE após " + s(D.ttcd.contact_timeout) + " sem o solo.", [F("revert"), F("contact_lost")]],
 };
-document.querySelectorAll("#speeds button").forEach(b => b.onclick = () => setSpeed(+b.dataset.sp));
-document.querySelectorAll("button[data-tc]").forEach(b => b.onclick = () => { command(b.dataset.tc); render(); });
-document.getElementById("link").onclick = () => { S.link = !S.link; log("sim", "enlace", S.link ? "restabelecido" : "cortado"); render(); };
-document.getElementById("obc").onclick = () => { S.obcUp ? crash() : restart(); render(); };
-document.getElementById("temp").oninput = e => {
-  S.temp = +e.target.value;
-  document.getElementById("tempv").textContent = S.temp.toFixed(1).replace(".", ",") + " °C";
-  step(S.t); render();
+const ADET = {
+  sdr: ["SDR (NESDR Nano 3)", "Digitaliza 1090 MHz a 2,4 MS/s. Só tem consumidor em MISSION_ADSB.", []],
+  d1090: ["dump1090-fa", "Demodula e decodifica o ADS-B; publica SBS-1 na porta 30003. O adsbd o sobe em MISSION_ADSB e o derruba ao sair (SIGTERM, SIGKILL em 3 s); se morre na missão, volta em " + s(D.adsbd.restart_max) + ".", [F("decoder")]],
+  adsbd: ["adsbd — o payload", "Lê o SBS, grava cada mensagem no SD e manda ao ttcd um retrato de até " + D.adsbd.snapshot_max + " aviões a cada " + s(D.adsbd.snapshot_period) + ". Segue o modo que o ttcd repassa.", [F("decoder")]],
+  sd: ["O registro de bordo", "adsb.ndjson: cada mensagem decodificada, haja enlace ou não. Recuperado por USB/SSH depois da missão (ADR-0003).", []],
+  ttcd: ["ttcd — o hub", "Dono do rádio e do servidor IPC. Escolhe o que transmitir (ACK, HK, estatísticas, roster, retratos, beacon), executa telecomandos e segue o modo do obcd.", [F("tm_pick"), F("tm_on_mode")]],
+  radio: ["RA-02 (SX1278)", "433,92 MHz, 14 dBm, half-duplex: transmitindo, não ouve.", [F("rate_change")]],
+  ground: ["O solo", "ESP32 com o console da ground; o operador manda os comandos pelo gs_serial.py ou pelo gs_web.py. Tem seus próprios temporizadores: SAFE após " + s(D.gs.contact_timeout) + ", revert em " + s(D.gs.rate_revert) + ", keepalive a cada " + s(D.gs.keepalive) + ".", [F("gs_defaults")]],
+  obcd: ["obcd — o OBC", "Dono dos modos; roda o termostato; lê V, I e temperatura e as manda ao ttcd a cada " + s(D.obcd.telemetry) + ". Duas threads esperam pelos dispositivos; o laço principal nunca espera.", [F("transition"), F("post_event")]],
+  ina: ["INA219", "Tensão e corrente, no I²C dividido com o ESP32 do AOCS; lido a cada " + s(D.obcd.power_period) + ", exceto durante o empréstimo.", [F("aocs_timing")]],
+  aocs: ["ESP32 do AOCS", "De outra equipe. Recebe o START e assume o barramento de +" + D.aocs.takeover + " ms até o fim da tarefa.", [F("i2c_absent")]],
+  ds: ["DS18B20", "Temperatura da bateria, por 1-Wire, numa thread própria (a conversão leva ~750 ms), a cada " + s(D.obcd.temp_period) + ".", [F("thermostat")]],
+  burn: ["Burn-wire", "GPIO ligado por " + s(D.obcd.burnwire) + " ao entrar em BASIC_INTERMEDIATE; desliga ao sair ou se o obcd morrer.", [F("burnwire_on")]],
+  heat: ["Aquecedores", "Termostato: liga abaixo de " + nf(D.obcd.heat_on_ccel / 100) + " °C, desliga acima de " + nf(D.obcd.heat_off_ccel / 100) + " °C; desliga se o sensor falhar.", [F("thermostat")]],
 };
-document.getElementById("tfail").onchange = e => { S.tfail = e.target.checked; step(S.t); render(); };
-document.querySelectorAll("button[data-sc]").forEach(b => b.onclick = () => {
-  setPlay(false); reset(true); S.scriptName = b.dataset.sc;
-  log("sim", "cenário", b.textContent.replace("▶ ", ""));
-  SC[b.dataset.sc]();
-  render();
-  document.getElementById("figura").scrollIntoView({behavior: "smooth"});
-  setPlay(true);
-});
+function openDetail(id) {
+  let h;
+  if (DET[id]) {
+    const [t, ob, tt, ad, out, refs] = DET[id];
+    h = `<h3 id="pop-h">${t}</h3><div class="who"><b>obcd</b><span>${ob}</span><b>ttcd</b><span>${tt}</span><b>adsbd</b><span>${ad}</span></div><p><b>Sai por:</b> ${out}</p><p class="refs">${refs.join(" · ")}</p>`;
+  } else {
+    const [t, txt, refs] = ADET[id];
+    h = `<h3 id="pop-h">${t}</h3><p>${txt}</p><p class="refs">${refs.join(" · ")}</p>`;
+  }
+  closeSheet();
+  $("pop-b").innerHTML = h; $("pop").hidden = false;
+}
+$("pop-x").onclick = () => { $("pop").hidden = true; };
+document.addEventListener("keydown", e => { if (e.key === "Escape") { $("pop").hidden = true; closeSheet(); } });
 
-reset(true);
-step(0);
-show("PRE_TEST");
+/* ================================================================ controls */
+const CMDS = [
+  ["mode mission_adsb", "Iniciar a captura"], ["mode downlink", "Encerrar e descer o resumo"],
+  ["mode basic_inter", "Implantar as antenas"], ["mode aocs", "Tarefa do AOCS"],
+  ["mode survival", "Sobrevivência"], ["mode task_done", "Encerrar a tarefa"]];
+$("cmds").innerHTML = CMDS.map(([c, t]) => `<button class="cmd" data-tc="${c}"><span class="c1">${t}</span><span class="c2">${c}</span><span class="c3"></span></button>`).join("");
+$("rates").innerHTML = ["safe", "nominal", "fast"].map(p => `<button class="cmd" data-tc="rate ${p}"><span class="c1">${p.toUpperCase()}</span><span class="c2">rate ${p}</span><span class="c3"></span></button>`).join("");
+document.querySelectorAll("[data-tc]").forEach(b => b.onclick = () => { command(b.dataset.tc); render(); });
+
+/* ================================================================ render */
+function setA(id, cls, sub) {
+  const n = ARCH.n[id]; if (!n) return;
+  n.g.setAttribute("class", "node an " + cls);
+  if (n.t2) n.t2.textContent = sub;
+}
+function setL(key, cls, txt) {
+  const l = ARCH.l[key]; if (!l) return;
+  l.p.setAttribute("class", "ln " + cls);
+  if (txt !== undefined) l.t.textContent = txt;
+}
+function txDesc() {
+  if (S.dlUntil !== null) return "estatísticas + roster";
+  if (S.prof === "SAFE") return "beacon " + s(D.ttcd.safe_beacon_period) + " · HK " + s(D.ttcd.safe_hk_period);
+  if (S.known === "MISSION_ADSB") return "retratos " + s(D.ttcd.stream_period) + " + HK";
+  return "HK a cada " + s(D.ttcd.hk_period);
+}
+const chip = (cls, k, v) => `<span class="chip ${cls}">${k} <b>${v}</b></span>`;
+function render() {
+  $("clock").textContent = clk(S.t);
+  for (const id in NODE) for (const n of NODE[id]) {
+    if (n.kind === "an") continue;
+    n.g.classList.toggle("cur", (id === S.mode && S.obcUp) || id === S.prof);
+    n.g.classList.toggle("known", id === S.known && (id !== S.mode || !S.obcUp));
+  }
+  for (const k in EDGE) for (const e of EDGE[k]) {
+    const hot = k === S.hot;
+    e.path.classList.toggle("hot", hot);
+    e.path.setAttribute("marker-end", `url(#${e.svg.id}${hot ? "ahh" : "ah"})`);
+    if (e.t) e.t.classList.toggle("hot", hot);
+  }
+  if (RB && pill) {
+    const g = RB[S.gsProf], sp = RB[S.prof];
+    pill.setAttribute("transform", `translate(${g.x + g.w / 2 - 22},${g.y + g.h + 5})`);
+    satTag.setAttribute("x", sp.x + sp.w / 2); satTag.setAttribute("y", sp.y - 7);
+  }
+  const dec = S.known === "MISSION_ADSB";
+  $("chips").innerHTML = $("chips2").innerHTML =
+    (S.obcUp ? chip("ok", "obcd", S.mode) : chip("bad", "obcd", "fora do ar")) +
+    (S.known !== S.mode || !S.obcUp ? chip("warn", "ttcd e adsbd seguem", S.known) : "") +
+    chip(S.prof === "SAFE" ? "warn" : "", "rádio", S.prof + (S.pend ? " (a confirmar)" : "")) +
+    chip(S.link ? (hears() ? "ok" : "warn") : "bad", "enlace", S.link ? (hears() ? "de pé" : "perfis diferentes") : "cortado") +
+    (dec || S.sent || S.lost ? chip("", "retratos", S.sent + " recebidos · " + S.lost + " perdidos") : "");
+  setA("sdr", dec ? "on" : "off", dec ? "amostrando" : "ocioso");
+  setA("d1090", dec ? "on" : "off", dec ? "decodificando" : "parado");
+  setA("adsbd", "on", "segue " + S.known);
+  setA("sd", dec ? "on" : "off", dec ? "gravando tudo" : "parado");
+  setA("ttcd", S.prof === "SAFE" ? "warn" : "on", "perfil " + S.prof + (S.pend ? "?" : ""));
+  setA("radio", S.prof === "SAFE" ? "warn" : "on", txDesc());
+  setA("ground", S.link ? (hears() ? "on" : "warn") : "bad", "perfil " + S.gsProf);
+  setA("obcd", S.obcUp ? "on" : "bad", S.obcUp ? S.mode : "fora do ar");
+  setA("ina", !S.obcUp ? "off" : S.lent ? "warn" : "on", S.lent ? "sem dado" : "lido a cada " + s(D.obcd.power_period));
+  setA("aocs", !S.esp ? "off" : S.lent ? "on" : "off", !S.esp ? "ausente" : S.lent ? "com o barramento" : "esperando START");
+  setA("ds", S.tfail ? "bad" : S.obcUp ? "on" : "off", S.tfail ? "falhou" : nf(S.temp, 1) + " °C");
+  setA("burn", S.burn ? "warn" : "off", S.burn ? "LIGADO" : "desligado");
+  setA("heat", S.heater ? "warn" : "off", S.heater ? "ligados" : "desligados");
+  setL("sdr>d1090", dec ? "flow" : "");
+  setL("d1090>adsbd", dec ? "flow" : "");
+  setL("adsbd>sd", dec ? "flow" : "");
+  setL("adsbd>ttcd", dec ? "flow" : "");
+  setL("obcd>ttcd", S.obcUp ? "flow" : "broken");
+  setL("ttcd>radio", "flow");
+  setL("radio>ground", S.link ? (hears() ? "flow" : "warnl") : "broken", S.link ? (hears() ? "LoRa · " + S.prof : "perfis diferentes") : "enlace cortado");
+  for (const k of PERI) setL("obcd>" + k, S.obcUp ? "" : "broken");
+  if (S.obcUp && S.lent) { setL("obcd>ina", "warnl"); setL("obcd>aocs", "flow"); }
+  if (S.burn) setL("obcd>burn", "flow");
+  if (S.heater) setL("obcd>heat", "flow");
+  document.querySelectorAll("#cmds .cmd").forEach(b => {
+    const ev = TC[b.dataset.tc], to = S.obcUp ? transition(S.mode, ev) : null;
+    let cls, txt;
+    if (!hears()) { cls = "na"; txt = S.link ? "sem ACK: perfis diferentes" : "sem ACK: enlace cortado"; }
+    else if (!S.obcUp) { cls = "na"; txt = "obcd fora: não chega"; }
+    else if (to) { cls = "go"; txt = "→ " + to; }
+    else { cls = "no"; txt = "recusado em " + S.mode; }
+    b.className = "cmd " + cls; b.querySelector(".c3").textContent = txt;
+  });
+  document.querySelectorAll("#rates .cmd").forEach(b => {
+    const p = b.dataset.tc.slice(5).toUpperCase(), now = p === S.prof;
+    b.className = "cmd " + (now ? "now" : hears() ? "go" : "na");
+    b.querySelector(".c3").textContent = now ? (S.pend ? "atual, a confirmar" : "atual") : hears() ? "trocar" : "sem ACK";
+  });
+  const tog = (id, on) => $(id).setAttribute("aria-pressed", on ? "true" : "false");
+  tog("t-link", S.link); tog("t-obc", S.obcUp); tog("t-esp", S.esp); tog("t-tfail", S.tfail);
+  const dl = deadlines();
+  $("timers").innerHTML = dl.length
+    ? dl.map(([t, w]) => `<li><span>${w}</span><span>em ${((t - S.t) / 1000).toFixed(1).replace(".", ",")} s</span></li>`).join("")
+    : `<li><span>nenhum: o satélite espera um telecomando</span><span></span></li>`;
+}
+
+/* ================================================================ clock */
+let playing = false, speed = 10, last = null;
+const STEP = 100;
+function advanceTo(t) { let x = S.t; while (x + STEP <= t) { x += STEP; step(x); } if (x < t) step(t); }
+function frame(now) {
+  if (!playing) { last = null; return; }
+  if (last !== null) {
+    advanceTo(Math.round(S.t + Math.min(now - last, 200) * speed));
+    if (S.stopAt !== undefined && S.t >= S.stopAt) { S.stopAt = undefined; setPlay(false); }
+    render();
+  }
+  last = now; requestAnimationFrame(frame);
+}
+function setPlay(p) { playing = p; $("play").textContent = p ? "⏸ Pausar" : "▶ Rodar"; if (p) requestAnimationFrame(frame); }
+function setSpeed(v) { speed = v; document.querySelectorAll("#speeds button").forEach(b => b.classList.toggle("on", +b.dataset.sp === v)); }
+function reset(esp) {
+  S = fresh(esp); $("log").textContent = ""; narr(null);
+  log("sim", "boot", "os três daemons sobem; o obcd em PRE_TEST, o rádio em NOMINAL");
+  step(0);
+}
+$("play").onclick = () => setPlay(!playing);
+$("reset").onclick = () => { setPlay(false); reset(S.esp); render(); };
+$("next").onclick = () => { const dl = deadlines(); if (dl.length) { advanceTo(Math.max(dl[0][0], S.t)); render(); } };
+document.querySelectorAll("#speeds button").forEach(b => b.onclick = () => setSpeed(+b.dataset.sp));
+$("t-link").onclick = () => { S.link = !S.link; log("sim", "enlace", S.link ? "restabelecido" : "cortado"); render(); };
+$("t-obc").onclick = () => { S.obcUp ? crash() : restart(); render(); };
+$("t-esp").onclick = () => { S.esp = !S.esp; log("sim", "ESP32 do AOCS", S.esp ? "presente" : "ausente"); render(); };
+$("t-tfail").onclick = () => { S.tfail = !S.tfail; step(S.t); render(); };
+$("temp").oninput = e => { S.temp = +e.target.value; $("tempv").textContent = S.temp.toFixed(1).replace(".", ",") + " °C"; step(S.t); render(); };
+$("log-clear").onclick = () => { $("log").textContent = ""; };
+
+/* ================================================================ scenarios */
+function narr(title, text) {
+  if (!title) { $("narr").hidden = true; return; }
+  $("narr").hidden = false; $("narr-t").textContent = title; $("narr-s").textContent = text;
+}
+$("narr-x").onclick = () => { S.script = []; S.stopAt = undefined; setPlay(false); narr(null); };
+const at = (t, f) => S.script.push([t, f]);
+const say = (t, text) => at(t, () => { narr(S.sc, text); log("sim", "cenário", text); });
+const T = D.ttcd, G = D.gs, O = D.obcd;
+const SC = [
+  ["mission", "A missão de 10 minutos", "Um comando e nada mais: captura, fim sozinho, resumo e volta.", () => {
+    setSpeed(60);
+    say(0, "O satélite está em PRE_TEST. O operador vai mandar mode mission_adsb.");
+    at(2000, () => command("mode mission_adsb"));
+    say(2100, "MISSION_ADSB: o adsbd sobe o dump1090, o SD começa a gravar e o ttcd manda um retrato a cada " + s(T.stream_period) + ". Veja a arquitetura acender.");
+    say(2000 + O.adsb_timeout - 30000, "Faltam 30 s: o obcd vai encerrar a captura sozinho, sem ninguém no solo.");
+    say(2000 + O.adsb_timeout + 100, "ADSB_TIMEOUT: MISSION_DOWNLINK. O ttcd desce as estatísticas e o roster (" + nf(D.prof.NOMINAL.downlink_s) + " s).");
+    say(2000 + O.adsb_timeout + D.prof.NOMINAL.downlink_s * 1000 + 300, "O ttcd avisou o obcd (TASK_DONE) e o satélite voltou a PRE_TEST: missão completa.");
+    S.stopAt = 2000 + O.adsb_timeout + 8000; }],
+  ["contact", "O enlace cai no meio da missão", "SAFE nos dois lados e a volta automática.", () => {
+    setSpeed(60);
+    at(2000, () => command("mode mission_adsb"));
+    say(2100, "A captura começou. Aos 60 s o enlace vai cair.");
+    at(60000, () => { S.link = false; log("sim", "enlace", "cortado"); });
+    say(60100, "Enlace cortado. Os retratos saem, mas ninguém os ouve: a ground os conta como perdidos pelo seq. O SD continua gravando.");
+    say(60000 + T.contact_timeout + 200, s(T.contact_timeout) + " sem ouvir o solo: o satélite cai para SAFE. Os retratos param, a captura continua.");
+    say(60000 + G.contact_timeout + 200, "O solo também cai para SAFE depois de " + s(G.contact_timeout) + ". Os dois estão no mesmo perfil sem ter combinado.");
+    at(300000, () => { S.link = true; log("sim", "enlace", "restabelecido"); });
+    say(300200, "O enlace voltou: o solo ouve o beacon no SAFE, re-comanda o NOMINAL, e os retratos recomeçam com o estado atual dos aviões.");
+    S.stopAt = 320000; }],
+  ["obc", "O OBC reinicia", "UNKNOWN segura o payload; o PRE_TEST da volta o para.", () => {
+    setSpeed(10);
+    at(2000, () => command("mode mission_adsb"));
+    say(2100, "Captura em andamento. Aos 120 s o obcd vai cair.");
+    at(120000, () => crash());
+    say(120100, "obcd fora do ar: o HK diz UNKNOWN, mas o ttcd e o adsbd mantêm MISSION_ADSB. A captura continua.");
+    at(121000, () => restart());
+    say(121100, "O systemd o reinicia em ~1 s, em PRE_TEST (D5). Ao anunciar esse modo, a captura para. Veja a observação na referência.");
+    S.stopAt = 128000; }],
+  ["rate", "Troca para FAST sem confirmação", "Os dois lados voltam sozinhos ao NOMINAL.", () => {
+    setSpeed(10);
+    say(0, "O operador vai mandar rate fast, e o enlace cai logo depois do ACK.");
+    at(2000, () => { command("rate fast"); S.link = false; log("sim", "enlace", "cortado logo depois do ACK"); });
+    say(2100, "Os dois trocaram para FAST, mas nenhum frame do solo chegou no perfil novo: a troca não foi confirmada.");
+    say(2000 + T.rate_revert + 100, "O satélite volta ao NOMINAL após " + s(T.rate_revert) + " sem confirmação.");
+    say(2000 + G.rate_revert + 100, "O solo volta após " + s(G.rate_revert) + ", um prazo mais longo de propósito. Os dois estão de novo no NOMINAL.");
+    at(45000, () => { S.link = true; log("sim", "enlace", "restabelecido"); });
+    S.stopAt = 48000; }],
+  ["deploy", "Implantação e um pedido recusado", "O burn-wire, um comando fora de hora, a sobrevivência.", () => {
+    setSpeed(1);
+    at(1000, () => command("mode basic_inter"));
+    say(1100, "BASIC_INTERMEDIATE: o burn-wire liga por " + s(O.burnwire) + ".");
+    at(3000, () => command("mode mission_adsb"));
+    say(3100, "mode mission_adsb no meio do pulso: recusado, porque fora do PRE_TEST não vale. O ACK não diz isso; só o HK e o log do obcd.");
+    say(1000 + O.burnwire + 100, "Fim do pulso: o obcd gera TASK_DONE e volta a PRE_TEST.");
+    at(9000, () => command("mode survival"));
+    say(9100, "ENV_SURVIVAL: só sai com mode task_done do solo.");
+    at(14000, () => command("mode task_done"));
+    say(14100, "De volta a PRE_TEST.");
+    S.stopAt = 16000; }],
+  ["aocs", "AOCS sem o ESP32", "Como na bancada de 05/11: termina na hora.", () => {
+    setSpeed(1);
+    at(1000, () => command("mode aocs"));
+    say(1100, S.esp ? "O ESP32 aceitou: o barramento fica com ele, e V e I vão \"sem dado\". Use ⏭ para pular ao fim." :
+                     "Sem ESP32, ninguém atende o START: nada é emprestado e o modo termina no mesmo instante. Ligue \"ESP32 do AOCS\" em Comandos e rode de novo.");
+    S.stopAt = S.esp ? undefined : 4000; }],
+];
+$("scs").innerHTML = SC.map(([k, t, d], i) => `<button class="sc" data-sc="${k}" title="${d}"><span class="i">${i + 1}</span><span><b>${t}</b><span>${d}</span></span></button>`).join("");
+function runScenario(k) {
+  const sc = SC.find(x => x[0] === k);
+  setPlay(false); reset(S.esp); S.sc = sc[1];
+  log("sim", "cenário", sc[1]); narr(sc[1], sc[2]);
+  sc[3](); render(); closeSheet(); $("stage").scrollTo({top: 0, behavior: "smooth"});
+  setPlay(true);
+}
+document.querySelectorAll("[data-sc]").forEach(b => b.onclick = () => runScenario(b.dataset.sc));
+
+/* ================================================================ the sheet (narrow) */
+const TITLES = {cen: "Cenários", cmd: "Comandos", log: "Registro"};
+function openSheet(tab) {
+  const side = $("side");
+  if (side.classList.contains("open") && side.dataset.tab === tab) { closeSheet(); return; }
+  $("pop").hidden = true;
+  side.dataset.tab = tab; side.classList.add("open"); $("sheet-t").textContent = TITLES[tab];
+  document.querySelectorAll("#dock button").forEach(b => b.classList.toggle("on", b.dataset.open === tab));
+  if (tab === "log") { const L = $("log"); L.scrollTop = L.scrollHeight; }
+}
+function closeSheet() { $("side").classList.remove("open"); document.querySelectorAll("#dock button").forEach(b => b.classList.remove("on")); }
+document.querySelectorAll("#dock button").forEach(b => b.onclick = () => openSheet(b.dataset.open));
+$("sheet-x").onclick = closeSheet;
+
+/* ================================================================ start */
+reset(false);
+layout(true);
+new ResizeObserver(() => layout(false)).observe($("stage"));
+render();
 </script>
 </body>
 </html>
