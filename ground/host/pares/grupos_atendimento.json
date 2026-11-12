@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "scope": "Associações de atendimento regional verificadas por amostra; não são limites municipais nem confirmação de voos atuais.",
+  "groups": [
+    {
+      "id": "BR-sao-paulo", "label": "São Paulo — atendimento regional", "country": "BR",
+      "airports": ["SBGR", "SBSP", "SBKP", "SBMT"],
+      "source_url": "https://visitesaopaulo.com/wp-content/uploads/2025/03/SP-EM-1-MINUTO-Janeiro-2025pdf.pdf",
+      "source_name": "São Paulo Convention & Visitors Bureau — SP em 1 minuto, janeiro de 2025",
+      "note": "Os quatro aeroportos são apresentados pela entidade de turismo. Campinas permanece um município separado; pertença ao grupo não define tipo de operação.",
+      "reviewed_on": "2026-11-11"
+    },
+    {
+      "id": "AR-buenos-aires", "label": "Buenos Aires — atendimento regional", "country": "AR",
+      "airports": ["SAEZ", "SABE"],
+      "source_url": "https://turismo.buenosaires.gob.ar/en/article/getting-buenos-aires",
+      "source_name": "Turismo oficial da Cidade de Buenos Aires — Getting to Buenos Aires",
+      "note": "Confirma a associação de Ezeiza e Aeroparque à cidade. A página também contém informação histórica de El Palomar; não foi usada para afirmar seu serviço regular atual.",
+      "reviewed_on": "2026-11-11"
+    },
+    {
+      "id": "MX-ciudad-mexico", "label": "Cidade do México — sistema aeroportuário regional", "country": "MX",
+      "airports": ["MMMX", "MMSM", "MMTO"],
+      "source_url": "https://www.gob.mx/aifa/es/articulos/proyecto-198120?idiom=es",
+      "source_name": "Governo do México — AIFA, Projeto / Sistema Aeroportuário Metropolitano",
+      "note": "Associação institucional AICM, AIFA e Toluca; não muda os municípios nem as divisões administrativas cadastradas.",
+      "reviewed_on": "2026-11-11"
+    },
+    {
+      "id": "UY-montevideo", "label": "Montevidéu — atendimento regional", "country": "UY",
+      "airports": ["SUMU"],
+      "source_url": "https://aeropuertodecarrasco.com.uy/",
+      "source_name": "Operador do Aeroporto de Carrasco — Montevideo, Uruguay",
+      "note": "A cidade atendida é Montevidéu; a base cadastra Ciudad de la Costa. Outros aeroportos próximos continuam candidatos geográficos a revisão.",
+      "reviewed_on": "2026-11-11"
+    }
+  ]
+}

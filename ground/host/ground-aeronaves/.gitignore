@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+data/
+validation/*.db
+validation/*.db-wal
+validation/*.db-shm
+
+validation/replay_estado.json
+validation/painel_pares.html
+!tests/fixtures/*.ndjson

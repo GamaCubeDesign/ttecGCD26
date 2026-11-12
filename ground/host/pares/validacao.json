@@ -1,0 +1,64 @@
+{
+  "status": "passed",
+  "airports": 3291,
+  "directed_pairs": 10827390,
+  "geometry_cases": [
+    "equatorial quarter circumference",
+    "reverse bearing",
+    "antimeridian",
+    "coincident",
+    "antipodal"
+  ],
+  "database_checks": [
+    "complete generation",
+    "N*(N-1)",
+    "incoming/outgoing counts for seven airports",
+    "no self pairs for seven airports",
+    "reverse distance symmetry"
+  ],
+  "examples_columns": [
+    "origin",
+    "destination",
+    "distance_km",
+    "initial_bearing_deg"
+  ],
+  "examples": [
+    [
+      "SBBR",
+      "SBCT",
+      1081.9471059278785,
+      186.71535301351048
+    ],
+    [
+      "SBBR",
+      "SBGL",
+      913.9722887624941,
+      148.33337531338222
+    ],
+    [
+      "SBBR",
+      "SBGR",
+      854.4581187409128,
+      169.9945013469515
+    ],
+    [
+      "SBGR",
+      "SBBR",
+      854.4581187409128,
+      349.50551606004564
+    ],
+    [
+      "SBGR",
+      "SBCT",
+      359.6521834934209,
+      229.02740269791764
+    ],
+    [
+      "SBGR",
+      "SBGL",
+      336.3889571386134,
+      78.78473259213975
+    ]
+  ],
+  "size_bytes": 460369920
+}

@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "validated_at_utc": "2026-11-11T14:35:28.419817+00:00",
+  "audited_facilities": 86112,
+  "city_groups": 48355,
+  "original_directed_pairs_preserved": 10827390,
+  "nearby_links": 63055,
+  "externally_documented_service_groups": 4,
+  "examples": {
+    "SBGR": "selected",
+    "SBSP": "selected",
+    "SBKP": "selected",
+    "SBMT": "medium_reserve",
+    "SBJH": "medium_reserve",
+    "SBJD": "small_local",
+    "SBDB": "scheduled_gap",
+    "SBJU": "scheduled_gap",
+    "SBJA": "scheduled_gap"
+  },
+  "checks": [
+    "full source inventory coverage",
+    "source hash unchanged",
+    "original selection unchanged",
+    "route and regional counts unchanged",
+    "100 km same-country neighbor constraints",
+    "export totals",
+    "Latin America first",
+    "SQLite integrity and foreign keys"
+  ]
+}

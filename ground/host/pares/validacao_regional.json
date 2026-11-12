@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "validated_at_utc": "2026-11-11T14:16:14.782314+00:00",
+  "airports": 3291,
+  "regional_airports": 403,
+  "directed_pairs": 10827390,
+  "directed_pairs_by_priority": {
+    "2": 2489734,
+    "1": 259540,
+    "0": 8078116
+  },
+  "ambiguous_arcs": 0,
+  "bonus_enabled": false,
+  "example_columns": [
+    "origin",
+    "destination",
+    "origin_in_region",
+    "destination_in_region",
+    "arc_intersects_region",
+    "analysis_priority"
+  ],
+  "examples": [
+    [
+      "SBBR",
+      "SBGR",
+      1,
+      1,
+      1,
+      2
+    ],
+    [
+      "SBGR",
+      "KJFK",
+      1,
+      0,
+      1,
+      2
+    ],
+    [
+      "PHNL",
+      "KMIA",
+      0,
+      0,
+      1,
+      1
+    ],
+    [
+      "EGLL",
+      "KJFK",
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "query_plan": [
+    "SCAN regional_pairs USING INDEX regional_pairs_priority"
+  ],
+  "database_size_bytes": 599416832
+}

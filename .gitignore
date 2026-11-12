@@ -44,3 +44,6 @@ compile_commands.json
 fp-info-cache
 *.lck
 *.kicad_pro.bak
+
+# Local Python environment for ground analysis
+/.venv/

@@ -32,6 +32,7 @@ class Flight:
     elevation: float
     heading: float
     distance: float
+    category: str | None = None
 
     def position(self, elapsed):
         u = max(0,min(1,elapsed/self.duration))
@@ -63,6 +64,7 @@ class Flight:
             vertical=0
             ground=False
         return {'icao':self.icao,'callsign':self.callsign,'simulation':True,
+            **({'category':self.category} if self.category is not None else {}),
             'rx_epoch_ns':epoch_ns+round(seconds*1e9),'lat':round(lat,7),'lon':round(lon,7),
             'altitude_ft':round(altitude),'ground_speed_kt':0 if ground else round(speed,2),
             'track_deg':round(bearing_deg(*p,*q),2)%360,
@@ -76,10 +78,10 @@ def scenarios(reference):
         raise ValueError('SBBR precisa ter coordenadas e elevação no cadastro local.')
     lat,lon,elevation=row
     return [
-        Flight('F00001','SIM001','arrival',0,480,lat,lon,elevation,110,60),
-        Flight('F00002','SIM002','departure',0,480,lat,lon,elevation,290,55),
-        Flight('F00003','SIM003','cruise',90,510,lat+.35,lon-.55,elevation,85,115),
-        Flight('F00004','SIM004','arrival',180,420,lat,lon,elevation,290,55),
+        Flight('F00001','SIM001','arrival',0,480,lat,lon,elevation,110,60,category='A3'),
+        Flight('F00002','SIM002','departure',0,480,lat,lon,elevation,290,55,category='A3'),
+        Flight('F00003','SIM003','cruise',90,510,lat+.35,lon-.55,elevation,85,115,category='A3'),
+        Flight('F00004','SIM004','arrival',180,420,lat,lon,elevation,290,55,category='A2'),
     ]
 
 

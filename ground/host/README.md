@@ -80,3 +80,25 @@ Os comandos acima exigem o cadastro geográfico. Os casos sintéticos e as respo
 Não são versionados bancos, capturas NDJSON, dados de referência, estados gerados, pacotes históricos ou ambiente virtual. Para reproduzir exatamente uma avaliação anterior, use os mesmos dados locais. A documentação histórica pode mencionar caminhos do computador original e etapas antigas; este arquivo descreve a organização para GitHub.
 
 As estimativas são heurísticas experimentais. TENTATIVE é uma hipótese provisória; ESTIMATED não confirma o evento nem representa uma probabilidade calibrada.
+
+## Estimador com pares e conclusão combinada
+
+A atualização está em `ground-aeronaves/`; `iniciar_painel.sh` inicia o painel.
+O banco público de referências foi incluído. O banco de pares (~710 MB) é gerado
+localmente, não versionado. Na raiz do repositório:
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install -r ground/host/ground-aeronaves/requirements.txt -r ground/host/pares/requirements-regional.txt
+python3 ground/host/pares/gerar_pares.py --source ground/host/banco-aeronaves/referencias.db --output ground/host/pares/pares_aeroportos.db
+python3 ground/host/pares/prioridade_regional.py
+python3 ground/host/pares/auditar_cidades.py
+./ground/host/iniciar_painel.sh --input /caminho/para/eventos.ndjson
+```
+
+O gerador recusa sobrescrever um banco existente. A prioridade regional é
+necessária antes da análise; a auditoria documenta a cobertura sem alterar a
+seleção. Veja os detalhes e limites nos READMEs dessas pastas. A execução requer
+NumPy; Shapely é usado somente na geração regional. Os pesos da conclusão são
+heurísticos, não probabilidades calibradas. Não há alteração do protocolo LoRa.

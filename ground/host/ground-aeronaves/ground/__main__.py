@@ -2,12 +2,12 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from queue import Queue
+from queue import Queue, Empty
 from threading import Event, Thread
 
 from .airport_estimator import AirportEstimator
 from .aircraft_manager import AircraftManager
-from .config import Config
+from .config import Config, add_pair_arguments, pair_options
 from .database import Database
 from .parser import parse_line
 from .receiver import receive
@@ -24,7 +24,11 @@ def run(config, stream, interval, verbose=False):
 
     def consume():
         while True:
-            item = queue.get()
+            try:
+                item = queue.get(timeout=.1)
+            except Empty:
+                manager.poll_pairs()
+                continue
             if item is None:
                 return
             if isinstance(item, Exception):
@@ -41,6 +45,8 @@ def run(config, stream, interval, verbose=False):
             counts['accepted'] += 1
             if verbose:
                 print(json.dumps({'icao':result['icao'],'flight_state':result['flight_state'],
+                    'aircraft_category':result['aircraft_category'],
+                    'airport_filters':(result['snapshot'] or {}).get('airport_filters',{}),
                     'airports':{k:result[k] for k in ('reason','airport_method','destination_candidates','origin_candidates')},
                     'quality':result['data_quality'],'vertical':result['vertical_estimate']}, ensure_ascii=False), flush=True)
 
@@ -51,6 +57,7 @@ def run(config, stream, interval, verbose=False):
     finally:
         stop.set()
         receiver.join(timeout=1)
+        manager.close()
     print('\nICAO | MÉTODO | DECOLAGEM | POUSO | CONFIABILIDADE', flush=True)
     for result in manager.states.values():
         print(table_row(result, config.field_ttl_s, include_method=True), flush=True)
@@ -72,14 +79,15 @@ def main():
     parser.add_argument('--verbose', action='store_true', help='Mostra o resultado de cada mensagem, além do resumo final')
     parser.add_argument('--airport-types', nargs='+', default=list(defaults.airport_types),
                         choices=['small_airport', 'medium_airport', 'large_airport', 'heliport', 'seaplane_base', 'balloonport'])
+    add_pair_arguments(parser)
     args = parser.parse_args()
     if not 0 < args.radius_km <= 20020 or not 1 <= args.top <= 100 or not 0 <= args.interval <= 3600:
         parser.error('Raio deve estar em (0,20020], top em [1,100] e intervalo em [0,3600]')
     config = Config(reference_db=args.reference_db, telemetry_db=args.telemetry_db, output=args.output,
-                    radius_km=args.radius_km, top=args.top, airport_types=tuple(args.airport_types))
-    paths = [config.reference_db.resolve(), config.telemetry_db.resolve(), config.output.resolve()]
-    if len(set(paths)) != 3:
-        parser.error('Referências, telemetria e saída devem ser arquivos diferentes')
+                    radius_km=args.radius_km, top=args.top, airport_types=tuple(args.airport_types),**pair_options(parser,args))
+    paths = [config.reference_db.resolve(), config.telemetry_db.resolve(), config.output.resolve(), config.pairs_db.resolve()]
+    if len(set(paths)) != 4:
+        parser.error('Referências, pares, telemetria e saída devem ser arquivos diferentes')
     if args.input != '-' and Path(args.input).resolve() in paths:
         parser.error('A entrada NDJSON deve ser diferente dos arquivos de banco e saída')
     stream = sys.stdin if args.input == '-' else open(args.input, encoding='utf-8')

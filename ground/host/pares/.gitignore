@@ -1,0 +1,8 @@
+.venv/
+deps/
+__pycache__/
+*.db-journal
+
+*.db
+auditoria_cidades/cidades_mundo.json
+auditoria_cidades/cidades_america_latina.md

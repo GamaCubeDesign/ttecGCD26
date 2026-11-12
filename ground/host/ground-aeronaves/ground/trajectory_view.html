@@ -8,6 +8,12 @@
 </style></head><body>
 <header><div class="eyebrow">Ground ADS-B / análise da captura</div><h1>Reconstrução de trajetórias</h1><p>Explore as posições usadas pelo código e acompanhe suas hipóteses ao longo do tempo.</p></header>
 <main id="layout"><aside class="panel" id="details" hidden><div class="closebar"><strong>Detalhes da aeronave</strong><button id="closeDetails" aria-label="Fechar detalhes">✕</button></div><label for="aircraft">Aeronave · ICAO</label><select id="aircraft"></select><div class="stats"><div class="stat"><small>Instante · UTC</small><b id="clock"></b></div><div class="stat"><small>Fase inferida</small><b id="phase"></b></div><div class="stat"><small>Altitude no estado</small><b id="altitude"></b></div></div>
+<section class="decision" aria-label="Conclusão combinada"><h3>Conclusão atual · métodos combinados</h3><strong id="combinedRoute"></strong><p class="reason" id="combinedReason"></p><p class="reason" id="combinedWeights"></p></section>
+<section aria-label="Comparação de rotas"><h3>Rotas por pares · comparação</h3>
+<p id="pairStatus">Aguardando análise</p><p class="reason" id="pairVersion"></p>
+<p class="reason" id="pairLocal"></p><ol id="pairCandidates"></ol>
+<p class="reason">Método 2: notas geométricas, não probabilidades. Os dois rankings permanecem independentes.</p></section>
+<p id="category"></p><p class="reason" id="airportFilter"></p>
 <p id="count"></p><small id="dates"></small>
 <div class="decision"><h3>Origem · método aeroportos</h3><strong id="origin"></strong><p class="reason" id="originReason"></p><ul id="originCandidates"></ul></div>
 <div class="decision"><h3>Destino · método aeroportos</h3><strong id="destination"></strong><p class="reason" id="destinationReason"></p><ul id="destinationCandidates"></ul></div>
@@ -100,18 +106,44 @@ function showDetails(icao){
  requestAnimationFrame(animate);
 }
 function closeDetails(refit=false){++focusToken;selected=null;current=null;$('details').hidden=true;$('layout').classList.remove('details-open');if(refit)fit();render();}
-function decision(kind,frame){const d=frame.decisions[kind]||{status:'UNKNOWN',candidates:[]};const names={ESTIMATED:'estimado',TENTATIVE:'candidato',UNKNOWN:'indeterminado'};$(kind).textContent=d.chosen?d.chosen+' · '+(names[d.status]||d.status):'Indeterminado';$(kind+'Reason').textContent=d.reason||'Sem evidência';const ul=$(kind+'Candidates');ul.replaceChildren();for(const c of d.candidates){const li=document.createElement('li');li.textContent=c.ident+' · nota '+c.score.toFixed(3);ul.appendChild(li);}return d;}
+function decision(kind,frame){const d=frame.decisions[kind]||{status:'UNKNOWN',candidates:[]};const names={ESTIMATED:'estimado',TENTATIVE:'candidato',UNKNOWN:'indeterminado'};const types={small_airport:'pequeno',medium_airport:'médio',large_airport:'grande',heliport:'heliporto'};$(kind).textContent=d.chosen?d.chosen+' · '+(names[d.status]||d.status):'Indeterminado';$(kind+'Reason').textContent=d.reason||'Sem evidência';const ul=$(kind+'Candidates');ul.replaceChildren();for(const c of d.candidates){const li=document.createElement('li');li.textContent=c.ident+' · nota '+c.score.toFixed(3)+(types[c.airport_type]?' · '+types[c.airport_type]:'')+(c.type_factor!=null&&c.type_factor<1?' · compatibilidade de tipo ×'+c.type_factor:'');ul.appendChild(li);}return d;}
+function renderCombined(frame){
+ const p=frame?.pair_analysis,c=p?.combined_analysis||frame?.combined_analysis;
+ $('combinedRoute').textContent='Indeterminado';$('combinedReason').textContent='Aguardando evidência dos métodos';$('combinedWeights').textContent='';
+ if(!c)return;
+ const stale=frame.t-c.source_event_ns/1e6>60000;
+ if(stale){$('combinedReason').textContent='Conclusão anterior expirada; aguardando nova análise';return;}
+ const origin=c.origin?.ident||'Origem indefinida',destination=c.destination?.ident||'Destino indefinido';
+ $('combinedRoute').textContent=c.route?origin+' → '+destination: c.status==='PARTIAL'?origin+' / '+destination:'Indeterminado';
+ $('combinedReason').textContent=c.reason+' Confiança baixa · fase '+c.phase+' · versão '+c.source_version+(p&&!p.matches_current_version?' · rodada anterior':'');
+ $('combinedWeights').textContent=['origin','destination'].map(k=>{const d=c[k],w=d?.weights;if(!w)return '';return (k==='origin'?'Origem':'Destino')+': método 1 '+Math.round(w.local*100)+' / método 2 '+Math.round(w.pairs*100)+' · '+(d.agreement?'primeiros candidatos concordam · ':'')+d.reason;}).join(' | ');
+}
+function renderPairs(frame){
+ const p=frame?.pair_analysis,list=$('pairCandidates');list.replaceChildren();
+ renderCombined(frame);
+ $('pairVersion').textContent='';$('pairLocal').textContent='';
+ if(!p){$('pairStatus').textContent='Comparação não disponível nesta rodada';return;}
+ const labels={PENDING:'Análise em andamento',DEFERRED:'Análise adiada: fila ocupada',ERROR:'Estimador de pares indisponível',INSUFFICIENT:'Trilha insuficiente',NO_MATCH:'Nenhum par compatível',CANDIDATES:'Pares candidatos · confiança baixa'};
+ $('pairStatus').textContent=(labels[p.status]||p.status)+(p.status==='ERROR'?' · '+p.reason:'');
+ if(p.source_event_ns)$('pairVersion').textContent='Trilha até '+new Date(p.source_event_ns/1e6).toISOString().slice(11,19)+' · versão '+p.source_version+(p.matches_current_version?' · mesma versão da rodada atual':' · resultado de uma rodada anterior');
+ if(p.local_at_analysis){const local=p.local_at_analysis;const ident=d=>d?.ident||d?.top_candidate||'indeterminado';$('pairLocal').textContent='Candidatos locais na mesma rodada: '+ident(local.origin)+' → '+ident(local.destination);}
+ for(const c of p.candidates||[]){const item=document.createElement('li');item.textContent=c.origin.ident+' → '+c.destination.ident+' · nota '+c.score.toFixed(3)+' · desvio RMS '+c.evidence.rms_distance_km.toFixed(1)+' km';list.appendChild(item);}
+}
 let visibleAircraft=new Set();
 function render(){
  $('viewMode').textContent=historyMode?'Histórico':'Ao vivo';$('historyButton').textContent=historyMode?'Voltar ao vivo':'Histórico';$('replayPanel').hidden=!historyMode;
  const t=viewTime(),frame=current?frameAt(t):null,map=$('map');map.replaceChildren();let ds=[];$('globalClock').textContent=fmt(t)+' · relógio único';
+ renderPairs(frame);
+ const category=frame?.category,filter=frame?.airport_filter;
+ $('category').textContent=category?.code?'Categoria ADS-B: '+category.code+' · '+category.label:'Categoria ADS-B indisponível';
+ $('airportFilter').textContent=filter?filter.excluded+' de '+filter.considered+' instalações excluídas por incompatibilidade de tipo':'Sem avaliação de compatibilidade neste instante';
  if(frame){$('clock').textContent=new Date(t).toISOString().slice(11,19);$('phase').textContent=frame.phase;$('altitude').textContent=frame.alt===null?'Sem dado':Math.round(frame.alt).toLocaleString('pt-BR')+' ft';$('altitude').title=frame.alt_source||'';$('quality').textContent=(frame.quality||'Sem diagnóstico')+(frame.position_available?'':' · sem posição recente neste instante');ds=[decision('origin',frame),decision('destination',frame)];}
  const entries=Object.entries(DATA.aircraft),positioned=entries.filter(([id,a])=>visiblePoints(a,t).length);
  const visibleNow=new Set(positioned.map(([icao])=>DATA.session+':'+icao));
  if([...visibleNow].some(id=>!visibleAircraft.has(id))){++focusToken;fit(t);}
  visibleAircraft=visibleNow;
  const selectedVisible=!!current&&visiblePoints(current,t).length>0;
- if(current&&!selectedVisible){$('phase').textContent='Fora deste instante';$('altitude').textContent='—';$('quality').textContent='Sem posição válida neste horário';ds=[];for(const kind of ['origin','destination'])decision(kind,{decisions:{}});}
+ if(current&&!selectedVisible){renderPairs(null);$('phase').textContent='Fora deste instante';$('altitude').textContent='—';$('quality').textContent='Sem posição válida neste horário';ds=[];for(const kind of ['origin','destination'])decision(kind,{decisions:{}});}
  $('clock').textContent=new Date(t).toISOString().slice(11,19);
  $('overviewInfo').textContent=positioned.length+' aeronaves neste instante · '+entries.length+' recebidas na sessão. Posições expiram após 60 s; todas as trajetórias seguem o mesmo horário.';
  $('empty').hidden=positioned.length>0;$('empty').textContent='Nenhuma aeronave com posição válida neste horário. Avance a reprodução ou aguarde novas mensagens.';
