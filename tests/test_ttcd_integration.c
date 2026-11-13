@@ -249,6 +249,13 @@ int main(int argc, char **argv)
 
     TEST_GROUP("integration: SET_MODE reaches the OBC as an IPC event");
     {
+        uint8_t time_args[GAMA_IPC_TIME_LEN];
+        gama_ipc_time_t time = { .unix_s = 1793000000u, .nsec = 0 };
+        gama_ipc_time_encode(time_args, sizeof(time_args), &time);
+        int sync = submit(GAMA_TC_SET_TIME, time_args, sizeof(time_args));
+        run(3000, &acks[sync].done);
+        CHECK(acks[sync].done);
+        CHECK_EQ_INT(acks[sync].status, GAMA_ACK_OK);
         uint8_t ev = GAMA_OBC_EV_TC_MISSION_ADSB;
         int k = submit(GAMA_TC_SET_MODE, &ev, 1);
         run(3000, &acks[k].done);

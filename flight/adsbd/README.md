@@ -169,3 +169,37 @@ mesma base do log do `ttcd`, para os dois se alinharem.
 - **O `adsbd` dirigido pelo modo, na Pi:** o `dump1090` subindo e descendo com
   o modo, e o tempo de `SET_MODE MISSION_ADSB` até a primeira mensagem
   decodificada (roteiro de novembro, etapa 12).
+
+## Início remoto com horário sincronizado
+
+Com os serviços `ttcd`, `obcd` e `adsbd` em execução, o operador envia no console:
+
+```text
+mode mission_adsb
+```
+
+O console compartilhado pela ESP32 e pelo `gs_cli` envia `SET_TIME` primeiro,
+aguarda ACK positivo e só então envia `SET_MODE`. O PC fornece o horário à ESP32
+por `gs_serial.py`; o console recusa iniciar sem relógio. Com firmware antigo,
+use `time`, aguarde ACK `OK`, depois `mode mission_adsb`.
+
+O `ttcd` recusa iniciar a missão sem referência de horário. O `adsbd` aguarda
+modo **e** referência antes de abrir o SDR/SBS, também após reinício. O horário
+aplicado é o dos registros: relógio monotônico + referência da ground; o relógio
+global do Linux não é alterado. `decoder = always` continua sendo uma exceção
+explícita de bancada, que não exige horário da ground.
+
+Na Pi, atualizar os binários e reiniciar os três serviços durante a preparação
+(em `PRE_TEST`, antes da missão). A instalação existente é feita por `make install`
+e os arquivos em `/etc/gama/` devem refletir a placa utilizada. Confira
+`decoder = mode`, caminho do `dump1090-fa`, SDR e permissões. O programa `adsbd`
+fica residente; é o decoder que liga sob comando. A ESP32 precisa do firmware
+atualizado para executar a sequência com um único comando.
+
+Verificação de operação: ACK `OK` do `SET_TIME`, ACK do `SET_MODE`, HK com modo
+`MISSION_ADSB`, indicador de decoder ativo e registros `tracks` recebidos pela
+ground. O ACK do modo sozinho não confirma aquisição. O arquivo embarcado mantém
+as observações completas; o `ttcd` transmite os estados compactos pelo LoRa.
+
+Teste sem hardware: `ctest --test-dir build -R 'test_(gs_console|ttcd_core|adsbd_core|adsbd_integration|adsb_chain)$' --output-on-failure`.
+O contrato detalhado está no [ADR-0020](../../docs/adr/0020-time-gated-adsb-startup.md).

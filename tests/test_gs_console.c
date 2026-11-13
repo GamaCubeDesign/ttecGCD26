@@ -88,14 +88,19 @@ static void from_sat(uint64_t now, uint8_t type, const uint8_t *payload, uint8_t
 }
 
 /* The satellite acknowledges the telecommand last transmitted. */
-static void ack_last(uint64_t now)
+static void ack_status(uint64_t now, uint8_t status)
 {
     gs_console_on_tx_done(&C, now);
     gama_frame_t f;
     gama_frame_decode(H.tx, H.tx_len, &f);
-    uint8_t a[GAMA_TC_ACK_WIRE_LEN] = { f.payload[0], GAMA_ACK_OK };
+    uint8_t a[GAMA_TC_ACK_WIRE_LEN] = { f.payload[0], status };
     gama_put_u16(a + 2, f.seq);
     from_sat(now, GAMA_FRAME_TC_ACK, a, sizeof(a));
+}
+
+static void ack_last(uint64_t now)
+{
+    ack_status(now, GAMA_ACK_OK);
 }
 
 static bool printed(const char *want)
@@ -314,6 +319,65 @@ int main(void)
         CHECK(!gs_console_finished(&C));
         ack_last(1200);
         CHECK(gs_console_finished(&C));
+    }
+
+    TEST_GROUP("console: mission waits for its time ACK before requesting the OBC mode");
+    {
+        fresh(true);
+        gs_console_begin(&C, 1000);
+        line(1100, "mode mission_adsb");
+        gama_frame_t f;
+        gama_frame_decode(H.tx, H.tx_len, &f);
+        CHECK_EQ_INT(f.payload[0], GAMA_TC_SET_TIME);
+        CHECK(C.adsb_after_time);
+        CHECK(!gs_console_wants_line(&C));
+        ack_last(1400);
+        gs_console_on_tick(&C, 2400);
+        gama_frame_decode(H.tx, H.tx_len, &f);
+        CHECK_EQ_INT(f.payload[0], GAMA_TC_SET_MODE);
+        CHECK_EQ_INT(f.payload[1], GAMA_OBC_EV_TC_MISSION_ADSB);
+        CHECK(!C.adsb_after_time);
+        ack_last(2700);
+        CHECK(gs_console_wants_line(&C));
+    }
+    TEST_GROUP("console: failed time or missing clock never starts the mission");
+    {
+        fresh(true);
+        gs_console_begin(&C, 1000);
+        line(1100, "mode mission_adsb");
+        ack_status(1400, GAMA_ACK_FAILED);
+        CHECK(!C.adsb_after_time);
+        CHECK(gs_console_wants_line(&C));
+        gs_console_on_tick(&C, 2400);
+        CHECK_EQ_INT(H.n_tx, 1);
+        fresh(false);
+        gs_console_begin(&C, 1000);
+        line(1100, "mode mission_adsb");
+        CHECK_EQ_INT(H.n_tx, 0);
+        CHECK(!C.adsb_after_time);
+        CHECK(gs_console_wants_line(&C));
+    }
+
+    TEST_GROUP("console: a time timeout clears startup and does not affect the next command");
+    {
+        fresh(true);
+        gs_console_begin(&C, 1000);
+        line(1100, "mode mission_adsb");
+        for (uint64_t now = 1200; now < 90000 && C.adsb_after_time; now += 100) {
+            gs_console_on_tx_done(&C, now);
+            gs_console_on_tick(&C, now);
+        }
+        CHECK(!C.adsb_after_time);
+        CHECK(gs_console_wants_line(&C));
+        gama_frame_t f;
+        gama_frame_decode(H.tx, H.tx_len, &f);
+        CHECK_EQ_INT(f.payload[0], GAMA_TC_SET_TIME);
+        line(100000, "stat");
+        gs_console_on_tick(&C, 101000);
+        gama_frame_decode(H.tx, H.tx_len, &f);
+        CHECK_EQ_INT(f.payload[0], GAMA_TC_REQ_STAT);
+        ack_last(101300);
+        CHECK(gs_console_wants_line(&C));
     }
 
     TEST_SUMMARY("test_gs_console");

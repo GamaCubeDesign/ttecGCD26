@@ -335,11 +335,16 @@ int main(void)
         adsbd_on_ipc_frame(&C, T0, f, (size_t)n);
         adsbd_on_ipc_frame(&C, T0, f, (size_t)n);         /* same mode: logged once */
         CHECK_EQ_INT(C.obc_mode, GAMA_OBC_ST_MISSION_ADSB);
+        CHECK(!adsbd_decoder_wanted(&C));
+        time_set(T0, 1793000000u, 1000000000u);
+        CHECK(!adsbd_decoder_wanted(&C));
+        time_set(T0, 1793000000u, 0);
+        CHECK(adsbd_decoder_wanted(&C));
         CHECK_EQ_INT(count_log("obc_mode"), 1);
-        CHECK_EQ_INT(C.n.ipc_rx_bad, 0);
+        CHECK_EQ_INT(C.n.ipc_rx_bad, 1);
         n = gama_frame_encode(f, sizeof(f), GAMA_FRAME_IPC_MODE, 0, NULL, 0);
         adsbd_on_ipc_frame(&C, T0, f, (size_t)n);         /* no mode byte */
-        CHECK_EQ_INT(C.n.ipc_rx_bad, 1);
+        CHECK_EQ_INT(C.n.ipc_rx_bad, 2);
     }
 
     TEST_GROUP("core: IPC_STAT says whether dump1090 is delivering");

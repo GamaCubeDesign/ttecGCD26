@@ -122,10 +122,10 @@ static tc_result_t do_set_time(ttcd_core_t *c, uint64_t now, const gama_frame_t 
     return ok();
 }
 
-void core_send_time(ttcd_core_t *c, uint64_t now, uint8_t role)
+bool core_send_time(ttcd_core_t *c, uint64_t now, uint8_t role)
 {
     if (!c->time_synced) {
-        return;
+        return false;
     }
     /* The time as it is now, not as it was at the anchor: the receiver pairs
      * it with its own clock on arrival. */
@@ -134,7 +134,7 @@ void core_send_time(ttcd_core_t *c, uint64_t now, uint8_t role)
     time_add_ms(&current, now - c->time_anchor_mono);
     uint8_t payload[GAMA_IPC_TIME_LEN];
     gama_ipc_time_encode(payload, sizeof(payload), &current);
-    core_ipc_send(c, now, role, GAMA_FRAME_IPC_TIME_SET, payload, GAMA_IPC_TIME_LEN);
+    return core_ipc_send(c, now, role, GAMA_FRAME_IPC_TIME_SET, payload, GAMA_IPC_TIME_LEN);
 }
 
 static tc_result_t do_set_mode(ttcd_core_t *c, uint64_t now, const uint8_t *args)
@@ -145,6 +145,16 @@ static tc_result_t do_set_mode(ttcd_core_t *c, uint64_t now, const uint8_t *args
     }
     if (!c->obc_linked) {
         return fail(GAMA_ACK_FAILED, "obc not connected");
+    }
+    /* HLR-ADS-07: never begin a mission with the Pi's boot-time guess.
+     * A late/restarted payload receives the anchor before its mode too. */
+    if (ev == GAMA_OBC_EV_TC_MISSION_ADSB) {
+        if (!c->time_synced) {
+            return fail(GAMA_ACK_FAILED, "SET_TIME required before MISSION_ADSB");
+        }
+        if (c->adsbd_linked && !core_send_time(c, now, GAMA_IPC_ROLE_ADSBD)) {
+            return fail(GAMA_ACK_FAILED, "payload time delivery failed");
+        }
     }
     if (!core_ipc_send(c, now, GAMA_IPC_ROLE_OBC, GAMA_FRAME_IPC_TC_EVENT,
                        &ev, GAMA_IPC_TC_EVENT_LEN)) {

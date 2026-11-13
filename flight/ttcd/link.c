@@ -367,17 +367,17 @@ void ttcd_on_ipc_peer(ttcd_core_t *c, uint64_t now, uint8_t role, bool connected
     }
     core_log(c, now, "ipc_peer", "\"role\":\"%s\",\"connected\":%s",
              gama_ipc_role_name(role), connected ? "true" : "false");
-    /* adsbd follows the OBC's mode: it hears it on connecting, and hears
-     * UNKNOWN when the OBC goes away. */
-    if ((role == GAMA_IPC_ROLE_ADSBD && connected) ||
-        (role == GAMA_IPC_ROLE_OBC && !connected)) {
-        forward_mode(c, now);
-    }
     /* A peer that (re)connects after the ground's SET_TIME is told the time
      * at once: a restarted adsbd would otherwise stamp its record with the
      * unsynchronised system clock until the next SET_TIME (ADR-0009). */
     if (connected && (role == GAMA_IPC_ROLE_OBC || role == GAMA_IPC_ROLE_ADSBD)) {
         core_send_time(c, now, role);
+    }
+    /* adsbd follows the OBC's mode: it hears it on connecting, and hears
+     * UNKNOWN when the OBC goes away. */
+    if ((role == GAMA_IPC_ROLE_ADSBD && connected) ||
+        (role == GAMA_IPC_ROLE_OBC && !connected)) {
+        forward_mode(c, now);
     }
 }
 

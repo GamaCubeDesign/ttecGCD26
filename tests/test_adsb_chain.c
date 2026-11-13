@@ -148,6 +148,18 @@ static uint64_t last_stamp(void)
     return s != NULL ? strtoull(s + 14, NULL, 10) : 0;
 }
 
+/* The very first record must already use the ground's date (HLR-ADS-07). */
+static uint64_t first_stamp(void)
+{
+    FILE *f = fopen(rec_path, "r");
+    if (f == NULL) { return 0; }
+    char line[512] = "";
+    if (fgets(line, sizeof(line), f) == NULL) { line[0] = '\0'; }
+    fclose(f);
+    const char *s = strstr(line, "\"rx_epoch_ns\":");
+    return s != NULL ? strtoull(s + 14, NULL, 10) : 0;
+}
+
 /* ---- the ground ---- */
 
 static int g_tx(void *c, const uint8_t *f, size_t n) { (void)c; return R.transmit(&R, f, n); }
@@ -390,7 +402,20 @@ int main(int argc, char **argv)
         CHECK(!(S.last_hk.flags & GAMA_HK_F_DUMP1090_UP));
     }
 
-    TEST_GROUP("chain: SET_MODE MISSION_ADSB alone puts the aircraft on the air (TTC-07)");
+    TEST_GROUP("chain: mission is refused before time; no decoder or tracks start");
+    {
+        CHECK_EQ_INT(set_mode(GAMA_OBC_EV_TC_MISSION_ADSB), GAMA_ACK_FAILED);
+        run(300, NULL);
+        CHECK(sbs_fd < 0);
+        CHECK(!S.seen[0] && !S.seen[1] && !S.seen[2]);
+        uint8_t zeros[GAMA_IPC_TIME_LEN] = { 0 };
+        int k = submit(GAMA_TC_SET_TIME, zeros, GAMA_IPC_TIME_LEN);
+        run(3000, &S.acks[k].done);
+        CHECK(S.acks[k].done);
+        CHECK_EQ_INT(S.acks[k].status, GAMA_ACK_OK);
+    }
+
+    TEST_GROUP("chain: anchored SET_MODE MISSION_ADSB puts the aircraft on the air (TTC-07)");
     {
         CHECK_EQ_INT(set_mode(GAMA_OBC_EV_TC_MISSION_ADSB), GAMA_ACK_OK);
         bool all = false;
@@ -399,6 +424,11 @@ int main(int argc, char **argv)
             all = S.seen[0] && S.seen[1] && S.seen[2];
         }
         CHECK(all);
+        uint64_t ground_now = wall_ns() + (uint64_t)GROUND_AHEAD_S * 1000000000u;
+        uint64_t stamp = last_stamp();
+        CHECK(stamp + 3000000000u > ground_now && stamp < ground_now + 1000000000u);
+        CHECK(first_stamp() + 15000000000ull > ground_now);
+        CHECK(first_stamp() < ground_now + 1000000000u);
         for (int ac = 0; ac < AIRCRAFT; ac++) {
             const gama_track_t *t = &S.track[ac];
             CHECK(t->flags & GAMA_TRACK_F_POSITION);
@@ -449,7 +479,7 @@ int main(int argc, char **argv)
         run(3000, &S.acks[k].done);
         CHECK(S.acks[k].done);
         run(1200, NULL);
-        CHECK_EQ_INT(count_in(adsbd_log, "\"event\":\"time_anchor\""), 1);
+        CHECK(count_in(adsbd_log, "\"event\":\"time_anchor\"") >= 2);
         uint64_t ground_now = wall_ns() + (uint64_t)GROUND_AHEAD_S * 1000000000u;
         uint64_t stamp = last_stamp();
         CHECK(stamp + 3000000000u > ground_now && stamp < ground_now + 1000000000u);
@@ -470,11 +500,12 @@ int main(int argc, char **argv)
 
     TEST_GROUP("chain: a restarted adsbd is re-anchored by ttcd, with no new SET_TIME");
     {
+        int anchors_before = count_in(adsbd_log, "\"event\":\"time_anchor\"");
         adsbd_pid = spawn(adsbd_bin, adsbd_conf);
         bool anchored = false;
         for (int i = 0; i < 40 && !anchored; i++) {
             run(100, NULL);
-            anchored = count_in(adsbd_log, "\"event\":\"time_anchor\"") == 2;
+            anchored = count_in(adsbd_log, "\"event\":\"time_anchor\"") > anchors_before;
         }
         CHECK(anchored);
         run(1500, NULL);

@@ -549,7 +549,7 @@ int main(void)
     {
         boot();
         ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
-        uint8_t ev = GAMA_OBC_EV_TC_MISSION_ADSB;
+        uint8_t ev = GAMA_OBC_EV_TC_SURVIVAL;
         h_send_tc(&C, 40, GAMA_TC_SET_MODE, &ev, 1);
         CHECK(step_to(&C, H.now + 2000));
         CHECK_EQ_INT(H.n_ipc, 1);                        /* one event to the OBC */
@@ -571,7 +571,7 @@ int main(void)
     {
         boot();
         uint8_t cmd, st; uint16_t echo;
-        uint8_t ev = GAMA_OBC_EV_TC_MISSION_ADSB;
+        uint8_t ev = GAMA_OBC_EV_TC_SURVIVAL;
         h_send_tc(&C, 1, GAMA_TC_SET_MODE, &ev, 1);      /* OBC not connected */
         CHECK(step_to(&C, H.now + 1000));
         ack_of(find_tx(0, GAMA_FRAME_TC_ACK), &cmd, &st, &echo);
@@ -589,7 +589,7 @@ int main(void)
         gama_frame_t f;
         CHECK(gama_frame_decode(H.ipc[0], H.ipc_len[0], &f) > 0);
         CHECK_EQ_INT(f.type, GAMA_FRAME_IPC_TC_EVENT);
-        CHECK_EQ_INT(f.payload[0], GAMA_OBC_EV_TC_MISSION_ADSB);
+        CHECK_EQ_INT(f.payload[0], GAMA_OBC_EV_TC_SURVIVAL);
 
         uint8_t none = GAMA_OBC_EV_NONE;
         from = H.n_tx;
@@ -605,6 +605,46 @@ int main(void)
         ack_of(find_tx(from, GAMA_FRAME_TC_ACK), &cmd, &st, &echo);
         CHECK_EQ_INT(st, GAMA_ACK_FAILED);
         CHECK_EQ_INT(C.n.ipc_tx_drops, 1);
+    }
+
+    TEST_GROUP("core: ADS-B startup requires time and delivers it before the OBC event");
+    {
+        boot();
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_OBC, true);
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
+        uint8_t ev = GAMA_OBC_EV_TC_MISSION_ADSB, cmd, st;
+        uint16_t echo;
+        int events = count_ipc(GAMA_FRAME_IPC_TC_EVENT);
+        h_send_tc(&C, 100, GAMA_TC_SET_MODE, &ev, 1);
+        CHECK(step_to(&C, H.now + 1000));
+        ack_of(find_tx(0, GAMA_FRAME_TC_ACK), &cmd, &st, &echo);
+        CHECK_EQ_INT(st, GAMA_ACK_FAILED);
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TC_EVENT), events);
+        gama_ipc_time_t time = { .unix_s = 1793000000u, .nsec = 0 };
+        uint8_t args[GAMA_IPC_TIME_LEN];
+        gama_ipc_time_encode(args, sizeof(args), &time);
+        h_send_tc(&C, 101, GAMA_TC_SET_TIME, args, sizeof(args));
+        CHECK(step_to(&C, H.now + 1000));
+        int from = H.n_ipc;
+        h_send_tc(&C, 102, GAMA_TC_SET_MODE, &ev, 1);
+        CHECK(step_to(&C, H.now + 1000));
+        CHECK_EQ_INT(H.ipc[from][1], GAMA_FRAME_IPC_TIME_SET);
+        CHECK_EQ_INT(H.ipc_role[from], GAMA_IPC_ROLE_ADSBD);
+        CHECK_EQ_INT(H.ipc[from + 1][1], GAMA_FRAME_IPC_TC_EVENT);
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TC_EVENT), events + 1);
+        from = H.n_tx;
+        H.ipc_fail = true;
+        h_send_tc(&C, 103, GAMA_TC_SET_MODE, &ev, 1);
+        CHECK(step_to(&C, H.now + 1000));
+        ack_of(find_tx(from, GAMA_FRAME_TC_ACK), &cmd, &st, &echo);
+        CHECK_EQ_INT(st, GAMA_ACK_FAILED);
+        CHECK_EQ_INT(count_ipc(GAMA_FRAME_IPC_TC_EVENT), events + 1);
+        H.ipc_fail = false;
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, false);
+        from = H.n_ipc;
+        ttcd_on_ipc_peer(&C, H.now, GAMA_IPC_ROLE_ADSBD, true);
+        CHECK_EQ_INT(H.ipc[from][1], GAMA_FRAME_IPC_TIME_SET);
+        CHECK_EQ_INT(H.ipc[from + 1][1], GAMA_FRAME_IPC_MODE);
     }
 
     TEST_GROUP("core: after its own frame the satellite leaves a reply gap");

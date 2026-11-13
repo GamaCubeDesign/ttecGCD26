@@ -444,6 +444,14 @@ int main(int argc, char **argv)
         send_mode(ipc, GAMA_OBC_ST_PRE_TEST);
         CHECK(!wait_for_log("\"event\":\"dump1090_start\"", 500));
         send_mode(ipc, GAMA_OBC_ST_MISSION_ADSB);
+        listen_ttcd(ipc, 200, &h, NULL);
+        CHECK(dump1090_pid() < 0);
+        uint8_t time_frame[GAMA_FRAME_MAX_TOTAL], payload[GAMA_IPC_TIME_LEN];
+        gama_ipc_time_t time = { .unix_s = 1793000000u, .nsec = 0 };
+        gama_ipc_time_encode(payload, sizeof(payload), &time);
+        int time_len = gama_frame_encode(time_frame, sizeof(time_frame), GAMA_FRAME_IPC_TIME_SET,
+                                         0, payload, sizeof(payload));
+        CHECK_EQ_INT(ipc_send(ipc, time_frame, (size_t)time_len), IPC_OK);
         CHECK(wait_for_log("\"event\":\"dump1090_start\"", 2000));
         int dpid = dump1090_pid();
         CHECK(dpid > 0 && kill(dpid, 0) == 0);

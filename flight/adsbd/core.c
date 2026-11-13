@@ -383,7 +383,10 @@ void adsbd_on_tick(adsbd_core_t *c, uint64_t now)
 
 bool adsbd_decoder_wanted(const adsbd_core_t *c)
 {
-    return c->decoder_on;
+    /* HLR-ADS-07: IPC_MODE may race the first time anchor. Keep the
+     * requested mode, but do not open the SDR/SBS socket until anchored.
+     * The explicit bench override retains standalone capture behaviour. */
+    return c->decoder_on && (c->time_synced || c->p.decoder_always);
 }
 
 uint64_t adsbd_next_deadline(const adsbd_core_t *c)
