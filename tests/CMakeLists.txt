@@ -160,6 +160,9 @@ if(Python3_Interpreter_FOUND)
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
     # The ground's browser interface: its state, the commands the page may
     # send, and the server against a fake ground process.
+    add_test(NAME adsb_pipeline
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_adsb_pipeline
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
     add_test(NAME gs_web
              COMMAND ${Python3_EXECUTABLE} -m unittest test_gs_web
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)

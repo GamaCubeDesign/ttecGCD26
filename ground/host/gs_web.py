@@ -13,7 +13,7 @@ commands one types in the console.
 
 Then open http://127.0.0.1:8080. The state (GsState) knows nothing of sockets
 or processes, so it is tested alone; the sources and the HTTP shell only move
-lines. Standard library only, like the rest of ground/host.
+lines. ADS-B processing is enabled with --adsb and requires NumPy.
 """
 
 import argparse
@@ -22,6 +22,8 @@ import json
 import os
 import queue
 import re
+import signal
+from pathlib import Path
 import subprocess
 import sys
 import threading
@@ -190,13 +192,16 @@ class GsState:
 class Hub:
     """The state, the clients following it, and the source that feeds it."""
 
-    def __init__(self, state, source):
+    def __init__(self, state, source, pipeline=None):
+        self.pipeline = pipeline
         self.state = state
         self.source = source
         self.lock = threading.Lock()
         self.clients = set()
 
     def feed(self, obj):
+        if self.pipeline:
+            self.pipeline.feed(obj)
         with self.lock:
             self.state.feed(obj)
             self._push_locked()
@@ -208,13 +213,19 @@ class Hub:
 
     def snapshot(self):
         with self.lock:
-            return self.state.snapshot()
+            return self._snapshot()
+
+    def _snapshot(self):
+        result = self.state.snapshot()
+        if self.pipeline:
+            result["adsb"] = self.pipeline.snapshot()
+        return result
 
     def subscribe(self):
         q = queue.Queue(maxsize=50)
         with self.lock:
             self.clients.add(q)
-            q.put(json.dumps(self.state.snapshot()))
+            q.put(json.dumps(self._snapshot()))
         return q
 
     def unsubscribe(self, q):
@@ -222,7 +233,7 @@ class Hub:
             self.clients.discard(q)
 
     def _push_locked(self):
-        text = json.dumps(self.state.snapshot())
+        text = json.dumps(self._snapshot())
         for q in list(self.clients):
             try:
                 q.put_nowait(text)
@@ -233,6 +244,10 @@ class Hub:
         why = check_command(cmd, armed)
         if why is not None:
             return False, why
+        if isinstance(self.source, ReplaySource):
+            return False, "replay: no hardware commands"
+        if cmd == "mode mission_adsb" and self.pipeline and self.pipeline.snapshot()["error"]:
+            return False, "ADS-B processing unavailable"
         if not self.source.send(cmd):
             return False, "the ground is not running"
         return True, "sent"
@@ -244,11 +259,14 @@ class ProcessSource:
     def __init__(self, argv):
         self.argv = argv
         self.proc = None
+        self.send_lock = threading.Lock()
+        self.reader = None
 
     def start(self, hub):
         self.proc = subprocess.Popen(self.argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      text=True, bufsize=1)
-        threading.Thread(target=self._read, args=(hub,), daemon=True).start()
+        self.reader = threading.Thread(target=self._read, args=(hub,), daemon=True)
+        self.reader.start()
 
     def _read(self, hub):
         for raw in self.proc.stdout:
@@ -265,8 +283,9 @@ class ProcessSource:
         if self.proc is None or self.proc.poll() is not None:
             return False
         try:
-            self.proc.stdin.write(cmd + "\n")
-            self.proc.stdin.flush()
+            with self.send_lock:
+                self.proc.stdin.write(cmd + "\n")
+                self.proc.stdin.flush()
             return True
         except OSError:
             return False
@@ -279,6 +298,13 @@ class ProcessSource:
                 self.proc.wait(timeout=3)
             except (OSError, subprocess.TimeoutExpired):
                 self.proc.terminate()
+                try:
+                    self.proc.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    self.proc.kill()
+                    self.proc.wait()
+        if self.reader:
+            self.reader.join(timeout=3)
 
 
 class ReplaySource:
@@ -289,10 +315,12 @@ class ReplaySource:
         self.path, self.speed, self.loop = path, speed, loop
         self.hub = None
         self.alive = True
+        self.reader = None
 
     def start(self, hub):
         self.hub = hub
-        threading.Thread(target=self._play, daemon=True).start()
+        self.reader = threading.Thread(target=self._play, daemon=True)
+        self.reader.start()
 
     def _play(self):
         while self.alive:
@@ -313,6 +341,8 @@ class ReplaySource:
                     t = obj.get("mono_ms")
                     if last is not None and t is not None and t > last:
                         time.sleep(min((t - last) / 1000.0 / self.speed, 2.0))
+                    if not self.alive:
+                        return
                     last = t if t is not None else last
                     self.hub.feed(obj)
             if not self.loop:
@@ -325,6 +355,8 @@ class ReplaySource:
 
     def stop(self):
         self.alive = False
+        if self.reader:
+            self.reader.join(timeout=3)
 
 
 def make_handler(hub):
@@ -347,6 +379,12 @@ def make_handler(hub):
             if self.path in ("/", "/index.html"):
                 with open(UI_PATH, "rb") as f:
                     self._send(HTTPStatus.OK, f.read(), "text/html; charset=utf-8")
+            elif hub.pipeline and self.path.split("?")[0] in ("/adsb/", "/adsb/data", "/adsb/sessions"):
+                try:
+                    body, ctype = hub.pipeline.page(self.path)
+                    self._send(HTTPStatus.OK, body, ctype)
+                except Exception as exc:
+                    self._send(HTTPStatus.SERVICE_UNAVAILABLE, str(exc), "text/plain")
             elif self.path == "/api/state":
                 self._send(HTTPStatus.OK, json.dumps(hub.snapshot()), "application/json")
             elif self.path == "/events":
@@ -402,7 +440,7 @@ def build_source(args):
             argv += ["--power", str(args.power)]
         return ProcessSource(argv), "serial"
     if args.udp:
-        gs_cli = os.path.join(HERE, "..", "..", "build", "tools", "gs_cli", "gs_cli")
+        gs_cli = os.path.join(HERE, "..", "..", "..", "build", "tools", "gs_cli", "gs_cli")
         return ProcessSource([gs_cli, "--radio", "udp"]), "udp"
     return ProcessSource(args.exec), "exec"
 
@@ -419,21 +457,42 @@ def main(argv=None):
     ap.add_argument("--loop", action="store_true", help="replay again at the end")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8080)
+    ap.add_argument("--adsb", action="store_true", help="process received aircraft continuously")
+    ap.add_argument("--session-dir", type=Path, default=Path(HERE)/"sessions")
+    sys.path.insert(0, os.path.join(HERE, "ground-aeronaves"))
+    from ground.config import Config, add_pair_arguments, pair_options
+    ap.add_argument("--reference-db", type=Path, default=Config().reference_db)
+    add_pair_arguments(ap)
     args = ap.parse_args(argv)
+    pipeline = None
+    if args.adsb:
+        from adsb_pipeline import AdsbPipeline
+        from dataclasses import replace
+        try:
+            pipeline = AdsbPipeline(args.session_dir, replace(Config(), reference_db=args.reference_db, **pair_options(ap,args)))
+        except Exception as exc:
+            ap.exit(1, f"ADS-B startup failed: {exc}\n")
 
     source, name = build_source(args)
-    hub = Hub(GsState(source=name), source)
-    server = ThreadingHTTPServer((args.host, args.port), make_handler(hub))
-    server.daemon_threads = True
-    source.start(hub)
-    print("gs_web: %s on http://%s:%d" % (name, args.host, server.server_address[1]), flush=True)
+    hub = Hub(GsState(source=name), source, pipeline)
+    server = None
+    def interrupt(signum, frame):
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, interrupt)
     try:
+        server = ThreadingHTTPServer((args.host, args.port), make_handler(hub))
+        server.daemon_threads = True
+        source.start(hub)
+        print("gs_web: %s on http://%s:%d" % (name, args.host, server.server_address[1]), flush=True)
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
         source.stop()
-        server.server_close()
+        if pipeline:
+            pipeline.close()
+        if server:
+            server.server_close()
     return 0
 
 

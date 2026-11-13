@@ -57,3 +57,4 @@ Three reasons, in order of importance to the project:
 | [0018](0018-esp32-ground-station-firmware.md) | The ESP32 ground station runs the bench ground's console, and speaks its language over USB serial | **Proposed** | HLR-COMM-01, HLR-COMM-03, HLR-SW-02, HLR-ADS-08 |
 | [0019](0019-ground-route-pair-fusion.md) | Ground route-pair analysis and phase-aware fusion | Proposed | HLR-ADS-04 |
 | [0020](0020-time-gated-adsb-startup.md) | Require a ground time anchor before ADS-B mission startup | Proposed | HLR-ADS-07, HLR-ADS-08, HLR-SW-02 |
+| [0021](0021-live-ground-adsb-ingestion.md) | Feed the aircraft estimators from the ground's existing event source | Proposed | HLR-ADS-04, HLR-ADS-07, HLR-ADS-08 |

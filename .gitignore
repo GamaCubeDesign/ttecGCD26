@@ -47,3 +47,6 @@ fp-info-cache
 
 # Local Python environment for ground analysis
 /.venv/
+
+# Ground reception journals and per-run estimator databases
+/ground/host/sessions/
