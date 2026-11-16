@@ -23,10 +23,17 @@ with an unrelated ACK.
 TT&C refuses a mission-start event before its first valid time anchor. For a
 connected payload, it sends the current anchored time before forwarding the
 start event to the OBC, refusing the request if that IPC send fails. On payload
-reconnection it sends the time before the current mode. The payload independently
-requires both the requested mission mode and a valid time anchor before launching
-dump1090 or opening its SBS socket. The explicit `decoder = always` bench setting
-retains standalone capture, including ADR-0009's unsynchronised fallback.
+reconnection it sends the time before the current mode.
+
+The payload itself does not wait for the anchor: the mode alone starts dump1090,
+as in ADR-0014. The refusal lives in one place, TT&C, where the operator sees it
+at once as a negative ACK. A payload can still reach MISSION_ADSB unanchored if
+`ttcd` and `adsbd` both restart while the OBC stays in that mode; it then records
+with ADR-0009's unsynchronised clock, which its log reports and the next anchor's
+logged step allows re-timing. A wrong date can be corrected afterwards; a mission
+not captured cannot, and neither the live link nor trajectory reconstruction uses
+that date (ADR-0007 §6). Decided 2026-11-16, replacing a local gate in the payload
+that would have stopped capture there with nothing on the link to say why.
 
 This extends startup orchestration in ADR-0014 using ADR-0009's unchanged time
 representation: CLOCK_MONOTONIC plus an offset, not clock_settime. OBC mission
@@ -46,15 +53,18 @@ Housekeeping and track records confirm those subsequent stages.
 
 A late payload can connect after the mission begins and receives time before
 mode. The OBC timer still starts at its mode transition, not the first aircraft.
-IPC acceptance is not a separate payload-level acknowledgement; the decoder's
-local gate protects a new payload if its time frame was not delivered. Existing
+IPC acceptance is not a separate payload-level acknowledgement; a payload whose
+time frame was not delivered captures with the unsynchronised clock and reports
+`time_synced` false in its log. No tool re-times such a record yet. Existing
 UTC resynchronisation during capture can still step its offset and is logged.
 
 ## Verification
 
 The normal 39-suite CTest run passes, including the three actual daemons through
 UDP, rejection before time, time-aligned records, payload restart, and final
-MISSION_DOWNLINK. Core tests cover failed IPC time delivery and reconnect order;
+MISSION_DOWNLINK. `test_adsbd_core` and `test_adsbd_integration` pin that the
+mode alone starts the decoder, with no anchor. Core tests cover failed IPC time
+delivery and reconnect order;
 console tests cover successful sequencing, rejected time, missing clock and
 retry exhaustion. The six affected core/integration suites also pass under
 ASan and UBSan; compilation has no warnings. The requirement quotation check

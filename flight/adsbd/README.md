@@ -183,11 +183,14 @@ aguarda ACK positivo e só então envia `SET_MODE`. O PC fornece o horário à E
 por `gs_serial.py`; o console recusa iniciar sem relógio. Com firmware antigo,
 use `time`, aguarde ACK `OK`, depois `mode mission_adsb`.
 
-O `ttcd` recusa iniciar a missão sem referência de horário. O `adsbd` aguarda
-modo **e** referência antes de abrir o SDR/SBS, também após reinício. O horário
-aplicado é o dos registros: relógio monotônico + referência da ground; o relógio
-global do Linux não é alterado. `decoder = always` continua sendo uma exceção
-explícita de bancada, que não exige horário da ground.
+O `ttcd` recusa iniciar a missão sem referência de horário, e manda a referência
+ao `adsbd` antes do modo, também após reinício. O `adsbd` não espera por ela: o
+modo sozinho liga o SDR/SBS. Se ele chegar a `MISSION_ADSB` sem referência (o
+`ttcd` e o `adsbd` reiniciados com o OBC ainda na missão), grava com o relógio
+não sincronizado e o log diz (`time_synced` falso): uma data errada se corrige
+depois, uma missão não captada não. O horário aplicado é o dos registros:
+relógio monotônico + referência da ground; o relógio global do Linux não é
+alterado.
 
 Na Pi, atualizar os binários e reiniciar os três serviços durante a preparação
 (em `PRE_TEST`, antes da missão). A instalação existente é feita por `make install`

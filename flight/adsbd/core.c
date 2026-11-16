@@ -383,10 +383,15 @@ void adsbd_on_tick(adsbd_core_t *c, uint64_t now)
 
 bool adsbd_decoder_wanted(const adsbd_core_t *c)
 {
-    /* HLR-ADS-07: IPC_MODE may race the first time anchor. Keep the
-     * requested mode, but do not open the SDR/SBS socket until anchored.
-     * The explicit bench override retains standalone capture behaviour. */
-    return c->decoder_on && (c->time_synced || c->p.decoder_always);
+    /* The mode alone decides: capture never waits for the time anchor.
+     * ttcd refuses a mission start before its first SET_TIME and sends the
+     * time ahead of the mode (ADR-0020), so an unanchored payload here means
+     * ttcd and adsbd both restarted with the OBC still in MISSION_ADSB. It
+     * then stamps with the unsynchronised clock, which the log reports
+     * (time_synced) and the next anchor's step_ms lets one re-time
+     * (ADR-0009). A wrong date can be corrected; a mission not captured
+     * cannot (HLR-ADS-07). */
+    return c->decoder_on;
 }
 
 uint64_t adsbd_next_deadline(const adsbd_core_t *c)
