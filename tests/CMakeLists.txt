@@ -154,6 +154,11 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME tracks_to_ndjson
              COMMAND ${Python3_EXECUTABLE} -m unittest test_tracks_to_ndjson
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
+    # Real air traffic from adsb.lol and OpenSky, to test the ground without the
+    # satellite: the conversion and the truth, on recorded responses (no network).
+    add_test(NAME live_traffic
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_live_traffic
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/live_traffic)
     # The ESP32 ground station's serial bridge, against a fake board on a pty.
     add_test(NAME gs_serial
              COMMAND ${Python3_EXECUTABLE} -m unittest test_gs_serial
