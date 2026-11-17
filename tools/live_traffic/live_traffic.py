@@ -54,6 +54,7 @@ ADSBLOL = 'https://api.adsb.lol/v2/point/{lat:.4f}/{lon:.4f}/{radius}'
 OPENSKY_TRACK = 'https://opensky-network.org/api/tracks/all?icao24={icao}&time=0'
 
 POSITION_MAX_AGE_S = 10.0     # adsbd's position_max_age_ms (adsbd.conf.example)
+BACKOFF_MAX_S = 60.0          # adsb.lol answers 429 when polled too often
 GONE_AFTER_S = 60.0           # absent this long: the aircraft has left
 FT_PER_M = 3.28084
 EARTH_KM = 6371.0088
@@ -341,6 +342,7 @@ def capture(out_dir, center, radius_nm, period_s, duration_s, max_tracks,
 
     start = clock()
     next_poll = start
+    backoff = 0.0     # after a 429: the wait, doubled each time, until a 200
     try:
         with gzip.open(out_dir / 'raw.jsonl.gz', 'at', encoding='utf-8') as raw:
             while clock() - start < duration_s:
@@ -354,8 +356,12 @@ def capture(out_dir, center, radius_nm, period_s, duration_s, max_tracks,
                         hexid = str(a.get('hex', ''))
                         if hexid and not hexid.startswith('~'):
                             last_seen[hexid.upper()] = now
+                    backoff = 0.0
                 else:
                     meta['poll_failures'] += 1
+                    if status == 429:
+                        backoff = min(BACKOFF_MAX_S, backoff * 2 if backoff else period_s)
+                        meta['rate_limited'] = meta.get('rate_limited', 0) + 1
                     log(f'live_traffic: poll failed (HTTP {status})')
                 for icao, t in list(last_seen.items()):
                     if now - t > GONE_AFTER_S:
@@ -363,7 +369,7 @@ def capture(out_dir, center, radius_nm, period_s, duration_s, max_tracks,
                 if meta['polls'] % 12 == 0:
                     log('live_traffic: %d polls, %d aircraft so far, %d tracks'
                         % (meta['polls'], len(last_seen), meta['tracks']))
-                next_poll += period_s
+                next_poll += period_s + backoff
                 wait = next_poll - clock()
                 if wait > 0:
                     sleep(wait)

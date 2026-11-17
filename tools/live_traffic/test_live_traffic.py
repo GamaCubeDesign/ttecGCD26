@@ -222,9 +222,49 @@ class TestCapture(unittest.TestCase):
         self.assertEqual(sum('opensky' in u for u in net.urls), 1)
         self.assertIn('429', meta['track_stop'])
 
+    def test_a_429_backs_off_and_a_200_resets(self):
+        # adsb.lol refused 30% of the polls at 5 s on 17/11 (HTTP 429).
+        answers = iter([429, 429, 429, 200, 200] + [200] * 50)
+        polls = []
+        t = [0.0]
+
+        def net(url, timeout=20.0):
+            if 'adsb.lol' not in url:
+                return 200, TRACK_JES3104
+            polls.append(t[0])
+            status = next(answers)
+            return (status, POINT) if status == 200 else (status, None)
+        with tempfile.TemporaryDirectory() as d:
+            meta = lt.capture(d, lt.UNSAM, 150, 5.0, 80.0, 0, fetch=net, clock=lambda: t[0],
+                              sleep=lambda s: t.__setitem__(0, t[0] + s), log=lambda *a: None)
+        gaps = [b - a for a, b in zip(polls, polls[1:])]
+        self.assertEqual(gaps[:5], [10.0, 15.0, 25.0, 5.0, 5.0])   # 5 + 5, 5 + 10, 5 + 20, then the period
+        self.assertEqual(meta['rate_limited'], 3)
+
     def test_max_tracks_is_respected(self):
         meta, files, _, _ = self.run_capture(FakeNet(), max_tracks=3)
         self.assertEqual(len(files), 3)
+
+
+class TestCombinedScore(unittest.TestCase):
+    def test_the_same_rule_as_the_estimators_validation(self):
+        import avaliar_combinada as ac
+        truth = {'A': {'origin': 'SABE', 'destination': None}, 'B': {'origin': 'SAEZ', 'destination': 'SABE'},
+                 'C': {'origin': 'SADF', 'destination': None}}
+        states = {
+            'A': {'combined_analysis': {'origin': {'ident': 'SABE', 'status': 'ESTIMATED'},
+                                        'destination': {'ident': 'SBGR', 'status': 'TENTATIVE'}},
+                  'pair_analysis': {'candidates': [{'origin': {'ident': 'SABE'}, 'destination': {'ident': 'SBGR'}}]}},
+            'B': {'combined_analysis': {'origin': {'ident': 'SABE', 'status': 'ESTIMATED'},
+                                        'destination': {'ident': None, 'status': 'UNKNOWN'}}},
+            'C': {'combined_analysis': {'origin': {'ident': 'SADF', 'status': 'UNKNOWN'}}},
+        }
+        r = ac.score(states, truth, 'combined')
+        self.assertEqual((r['origin']['acertos'], r['origin']['erros'], r['origin']['unknown']), (1, 1, 1))
+        self.assertEqual((r['destination']['unknown'], r['destination']['falsos_positivos']), (1, 1))
+        self.assertAlmostEqual(r['origin']['acerto_quando_decidiu'], 0.5)
+        p = ac.score(states, truth, 'pairs')
+        self.assertEqual((p['origin']['acertos'], p['origin']['unknown']), (1, 2))
 
 
 class TestReferenceDb(unittest.TestCase):
