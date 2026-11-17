@@ -177,4 +177,10 @@ if(Python3_Interpreter_FOUND)
              COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_bench_step.py
                      ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR})
     set_tests_properties(bench_step_udp PROPERTIES TIMEOUT 150)
+    # make sim (tools/bench/sim.sh): the satellite on the PC driven from the
+    # ground's page, with recorded real traffic; a ping, a mission, aircraft.
+    add_test(NAME sim_udp
+             COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_sim.py
+                     ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR})
+    set_tests_properties(sim_udp PROPERTIES TIMEOUT 120)
 endif()

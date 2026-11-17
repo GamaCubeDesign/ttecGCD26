@@ -233,6 +233,19 @@ adsb-chain: build ## A mission through adsbd, ttcd and the ground, no hardware: 
 	BUILD_DIR=$(BUILD_DIR) PYTHON=$(PYTHON) tools/bench/adsb_chain.sh '$(INPUT)' \
 	    $(CHAIN_DIR)/$(BENCH_DATE)-$(BENCH_TIME)
 
+# The same satellite, driven from the ground's page instead of a script: the
+# environment to work on the page without the Pi (tools/bench/sim.sh). Real
+# traffic comes from tools/live_traffic.
+SIM_DIR    ?= $(BUILD_DIR)/sim
+
+.PHONY: sim
+
+sim: build ## The satellite on this PC, operated from the ground's page: INPUT=<ndjson|.sbs>
+	@test -f '$(INPUT)' || { echo "sim: name the traffic with INPUT=<ndjson or .sbs file>" >&2; exit 1; }
+	@echo "sim: open http://$(WEB_HOST):$(WEB_PORT)"
+	BUILD_DIR=$(BUILD_DIR) PYTHON=$(PYTHON) WEB_HOST=$(WEB_HOST) WEB_PORT=$(WEB_PORT) \
+	    tools/bench/sim.sh '$(INPUT)' $(SIM_DIR)/$(BENCH_DATE)-$(BENCH_TIME)
+
 ##@ ESP32 ground station — ESP-IDF in Docker (tools/esp32/idf.sh), on the PC
 
 # The DevKit's USB serial port. Not PORT: that name is often set in the
