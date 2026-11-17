@@ -24,6 +24,8 @@ class AircraftManager:
         self.grounded = set()
         self.takeoff_anchor = {}
         self.pairs = PairScheduler(config) if config.pairs_enabled else None
+        self._published_at = float('-inf')
+        self._publish_pending = False
 
     def process(self, observation):
         self.poll_pairs()
@@ -181,11 +183,25 @@ class AircraftManager:
         self.poll_pairs()
         return result
 
-    def publish(self):
+    def publish(self, force=False):
+        """Writes estado.json, at most every config.publish_interval_s unless
+        forced; a write held back is done by flush() or close()."""
+        now = time.monotonic()
+        interval = getattr(self.config, 'publish_interval_s', 0.0)
+        if not force and interval and now - self._published_at < interval:
+            self._publish_pending = True
+            return
         self.config.output.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.config.output.with_suffix('.tmp')
         tmp.write_text(json.dumps({'aircraft': self.states}, ensure_ascii=False, allow_nan=False, indent=2))
         tmp.replace(self.config.output)
+        self._published_at = now
+        self._publish_pending = False
+
+    def flush(self):
+        """The write publish() held back, once its interval has passed."""
+        if self._publish_pending:
+            self.publish()
 
 
     def poll_pairs(self, force=False):
@@ -209,6 +225,8 @@ class AircraftManager:
         if changed: self.publish()
 
     def close(self):
+        if self._publish_pending:
+            self.publish(force=True)
         if not self.pairs or self.pairs.closed: return
         deadline=time.monotonic()+self.config.pair_shutdown_timeout_s
         try:

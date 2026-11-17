@@ -9,6 +9,10 @@ class Config:
     reference_db: Path = ROOT.parent / 'banco-aeronaves' / 'referencias.db'
     telemetry_db: Path = ROOT / 'data' / 'telemetria.db'
     output: Path = ROOT / 'data' / 'estado.json'
+    # estado.json is rewritten whole: at most this often, in seconds; 0 keeps
+    # one write per change (the CLI). The live ground uses 1 s: per
+    # observation it wrote 1.2 GB in a 20-aircraft mission (17/11).
+    publish_interval_s: float = 0.0
     pairs_db: Path = ROOT.parent / 'pares' / 'pares_aeroportos.db'
     # CLI habilita comparação por padrão; API Python opta explicitamente.
     pairs_enabled: bool = False
