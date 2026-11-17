@@ -132,6 +132,17 @@ FAKE_GROUND = textwrap.dedent("""
 """)
 
 
+class TestSources(unittest.TestCase):
+    def test_udp_runs_the_repository_gs_cli(self):
+        # --udp once looked one directory above the repository (16/11).
+        source, name = gs_web.build_source(gs_web.argparse.Namespace(
+            replay=None, serial=None, udp=True, exec=None))
+        self.assertEqual(name, "udp")
+        self.assertEqual(source.argv[0], gs_web.GS_CLI)
+        self.assertTrue(os.path.isfile(os.path.join(gs_web.REPO, "flight", "ttcd", "link.c")))
+        self.assertTrue(gs_web.GS_CLI.startswith(gs_web.REPO + os.sep))
+
+
 class TestServer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

@@ -33,6 +33,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 UI_PATH = os.path.join(HERE, "gs_web_ui.html")
+# The repository's root: this file is ground/host/gs_web.py.
+REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
+# The bench ground on the UDP radio, as the top-level build makes it.
+GS_CLI = os.path.join(REPO, "build", "tools", "gs_cli", "gs_cli")
 
 # What the satellite reports for "no data" (common/gama_tc.h).
 NO_DATA = {"battery_mv": 65535, "current_ma": -32768, "temp_bat_ccel": -32768,
@@ -440,8 +444,7 @@ def build_source(args):
             argv += ["--power", str(args.power)]
         return ProcessSource(argv), "serial"
     if args.udp:
-        gs_cli = os.path.join(HERE, "..", "..", "..", "build", "tools", "gs_cli", "gs_cli")
-        return ProcessSource([gs_cli, "--radio", "udp"]), "udp"
+        return ProcessSource([GS_CLI, "--radio", "udp"]), "udp"
     return ProcessSource(args.exec), "exec"
 
 
