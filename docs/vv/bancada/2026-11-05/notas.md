@@ -125,10 +125,11 @@ burn-wire de verdade (D1, adiado). O pulso de 5 s foi medido nos LEDs.
 
 ## Logs
 
-Ficaram na Pi (a rede da bancada caiu no fim e não deu para trazê-los):
-`~/ttec/docs/vv/bancada/2026-11-05/obcd-A.jsonl`, `obcd-A7.jsonl`,
-`obcd-A5.jsonl`, `obcd-A5b.jsonl`; `~/ttec/build/bench-udp/manual-ground.jsonl`
-e `manual-ttcd.jsonl`; `~/check-T0.log`. Trazer com `make pi-fetch` e com
+Ficaram na Pi (a rede da bancada caiu no fim e não deu para trazê-los). Os do
+`obcd` vieram com o `make pi-fetch` de 16/11 e estão nesta pasta:
+`obcd-A.jsonl`, `obcd-A7.jsonl`, `obcd-A5.jsonl`, `obcd-A5b.jsonl`. Seguem na Pi:
+`~/ttec/build/bench-udp/manual-ground.jsonl` e `manual-ttcd.jsonl`;
+`~/check-T0.log`. Trazer com
 `scp pi@gamapi.local:ttec/build/bench-udp/manual-*.jsonl pi@gamapi.local:check-T0.log`.
 A Pi ficou com o `ttcd`, o `obcd` e a ground rodando na sessão `bench`.
 

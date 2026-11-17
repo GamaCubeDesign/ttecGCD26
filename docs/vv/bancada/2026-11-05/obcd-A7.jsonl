@@ -1,0 +1,31 @@
+{"mono_ms":673051,"event":"start","version":"42c1d84-dirty","ipc_path":"/tmp/ttec-bench.sock","i2c_dev":"/dev/i2c-1","ina219_addr":64,"aocs_addr":42,"i2c_lease_path":"/tmp/obcd-i2c.lease","w1_path":"auto","gpio_chip":"/dev/gpiochip0"}
+{"mono_ms":673051,"event":"output","which":"burnwire","chip":"/dev/gpiochip0","line":22}
+{"mono_ms":673051,"event":"output","which":"heater","chip":"/dev/gpiochip0","line":23}
+{"mono_ms":673051,"event":"burnwire","on":false,"why":"boot","driven":true}
+{"mono_ms":673051,"event":"heater","on":false,"why":"boot","temp_ccel":-32768,"driven":true}
+{"mono_ms":673051,"event":"boot","mode":"PRE_TEST","adsb_timeout_ms":600000,"burnwire_ms":5000,"aocs_timeout_ms":300000,"heater_on_below_ccel":1000,"heater_off_above_ccel":1200}
+{"mono_ms":673051,"event":"sensor","which":"ds18b20","found":1,"path":"/sys/bus/w1/devices/28-989fc3356461/w1_slave"}
+{"mono_ms":673051,"event":"ipc_up","path":"/tmp/ttec-bench.sock"}
+{"mono_ms":673053,"event":"sensor","which":"ina219","ok":true}
+{"mono_ms":673871,"event":"sensor","which":"ds18b20","ok":true}
+{"mono_ms":709005,"event":"start","version":"42c1d84-dirty","ipc_path":"/tmp/ttec-bench.sock","i2c_dev":"/dev/i2c-1","ina219_addr":64,"aocs_addr":42,"i2c_lease_path":"/tmp/obcd-i2c.lease","w1_path":"auto","gpio_chip":"/dev/gpiochip0"}
+{"mono_ms":709005,"event":"output","which":"burnwire","chip":"/dev/gpiochip0","line":22}
+{"mono_ms":709005,"event":"output","which":"heater","chip":"/dev/gpiochip0","line":23}
+{"mono_ms":709005,"event":"burnwire","on":false,"why":"boot","driven":true}
+{"mono_ms":709005,"event":"heater","on":false,"why":"boot","temp_ccel":-32768,"driven":true}
+{"mono_ms":709005,"event":"boot","mode":"PRE_TEST","adsb_timeout_ms":600000,"burnwire_ms":5000,"aocs_timeout_ms":300000,"heater_on_below_ccel":1000,"heater_off_above_ccel":1200}
+{"mono_ms":709005,"event":"sensor","which":"ds18b20","found":1,"path":"/sys/bus/w1/devices/28-989fc3356461/w1_slave"}
+{"mono_ms":709005,"event":"ipc_connect_failed","path":"/tmp/ttec-bench.sock","why":"No such file or directory"}
+{"mono_ms":709005,"event":"temp_fault","have":false,"age_ms":0}
+{"mono_ms":709008,"event":"sensor","which":"ina219","ok":true}
+{"mono_ms":709807,"event":"sensor","which":"ds18b20","ok":true}
+{"mono_ms":709807,"event":"temp_ok","temp_ccel":2569}
+{"mono_ms":712005,"event":"ipc_up","path":"/tmp/ttec-bench.sock"}
+{"mono_ms":733083,"event":"mode","from":"PRE_TEST","to":"BASIC_INTERMEDIATE","event":"TC_BASIC_INTER","by":"ttcd","after_ms":24078}
+{"mono_ms":733083,"event":"burnwire","on":true,"why":"deploy","driven":true}
+{"mono_ms":738083,"event":"burnwire","on":false,"why":"pulse done","driven":true}
+{"mono_ms":738083,"event":"mode","from":"BASIC_INTERMEDIATE","to":"PRE_TEST","event":"TASK_DONE","by":"burnwire","after_ms":5000}
+{"mono_ms":755313,"event":"mode","from":"PRE_TEST","to":"ENV_SURVIVAL","event":"TC_SURVIVAL","by":"ttcd","after_ms":17230}
+{"mono_ms":764324,"event":"mode","from":"ENV_SURVIVAL","to":"PRE_TEST","event":"TASK_DONE","by":"ttcd","after_ms":9011}
+{"mono_ms":769005,"event":"status","mode":"PRE_TEST","battery_mv":864,"current_ma":0,"temp_bat_ccel":2569,"heater":false,"events":4,"refused":0,"power_failures":0,"temp_failures":0,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":829005,"event":"status","mode":"PRE_TEST","battery_mv":892,"current_ma":0,"temp_bat_ccel":2563,"heater":false,"events":4,"refused":0,"power_failures":0,"temp_failures":0,"output_failures":0,"ipc_tx_drops":0}
