@@ -1,0 +1,51 @@
+
+ICAO | MÉTODO | DECOLAGEM | POUSO | CONFIABILIDADE
+E20022 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (LACUNA_ENTRE_POSICOES)
+E20063 | AEROPORTOS | indeterminado | SADP (histórico) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa; decisão inconclusiva
+E2008A | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (POUCAS_POSICOES)
+E0648B | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (LACUNA_ENTRE_POSICOES)
+E0B308 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (POUCAS_POSICOES)
+E49523 | AEROPORTOS | indeterminado | SABE (histórico) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa
+E06541 | AEROPORTOS | indeterminado | SABE (histórico) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa
+E80333 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: AMBIGUO; pouso: insuficiente (FASE_SEM_EVIDENCIA_DE_DESTINO)
+E065D3 | AEROPORTOS | indeterminado | SABE (histórico) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa
+E0B110 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: EVIDENCIA_INSUFICIENTE; pouso: insuficiente (FASE_SEM_EVIDENCIA_DE_DESTINO)
+E0B255 | AEROPORTOS | indeterminado | SABE (histórico) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa
+E0B2C5 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: EVIDENCIA_INSUFICIENTE; pouso: insuficiente (FASE_SEM_EVIDENCIA_DE_DESTINO)
+E200D7 | AEROPORTOS | indeterminado | SABE (candidato) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa; decisão inconclusiva
+E48135 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: AMBIGUO; pouso: insuficiente (FASE_SEM_EVIDENCIA_DE_DESTINO)
+E4953D | AEROPORTOS | indeterminado | SABE (histórico) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa
+E0A5C1 | AEROPORTOS | indeterminado | SADZ (candidato) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa; decisão inconclusiva
+E0B2CF | AEROPORTOS | indeterminado | SUCM (candidato) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: EVIDENCIA_INSUFICIENTE; pouso: baixa; decisão inconclusiva
+E0844F | AEROPORTOS | indeterminado | SAEZ (histórico) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa; decisão inconclusiva
+E8043C | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: AMBIGUO; pouso: insuficiente (POUCAS_POSICOES)
+E49698 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: AMBIGUO; pouso: insuficiente (FASE_SEM_EVIDENCIA_DE_DESTINO)
+E4952F | AEROPORTOS | indeterminado | SUMU (candidato) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa; decisão inconclusiva
+E8062C | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: AMBIGUO; pouso: insuficiente (FASE_SEM_EVIDENCIA_DE_DESTINO)
+E0645A | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: AMBIGUO; pouso: insuficiente (FASE_SEM_EVIDENCIA_DE_DESTINO)
+E80618 | AEROPORTOS | indeterminado | SABE (histórico) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa
+E03248 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (SEM_POSICAO_RECENTE); pouso: insuficiente (SEM_POSICAO_RECENTE)
+E075DA | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (SEM_POSICAO_RECENTE); pouso: insuficiente (SEM_POSICAO_RECENTE)
+E0B198 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: AMBIGUO; pouso: insuficiente (POUCAS_POSICOES)
+E4A5C9 | AEROPORTOS | indeterminado | SUMU (candidato) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa; decisão inconclusiva
+E072D5 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: AMBIGUO; pouso: insuficiente (POUCAS_POSICOES)
+E0958F | AEROPORTOS | indeterminado | AR-0266 (histórico) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa
+E8026C | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: AMBIGUO; pouso: insuficiente (POUCAS_POSICOES)
+E80613 | AEROPORTOS | indeterminado | SUMU (candidato) | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: baixa; decisão inconclusiva
+E06543 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); última análise: AMBIGUO; pouso: insuficiente (POUCAS_POSICOES)
+E0658F | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (POUCAS_POSICOES)
+E03246 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (SEM_POSICAO_RECENTE); pouso: insuficiente (SEM_POSICAO_RECENTE)
+E8061F | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (POUCAS_POSICOES)
+E07581 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (POUCAS_POSICOES)
+E03247 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (SEM_POSICAO_RECENTE); pouso: insuficiente (SEM_POSICAO_RECENTE)
+E082D7 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (POUCAS_POSICOES)
+E082D6 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (POUCAS_POSICOES)
+E0658D | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (POUCAS_POSICOES)
+E2002C | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (SEM_POSICAO_RECENTE); pouso: insuficiente (SEM_POSICAO_RECENTE)
+E03613 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (POUCAS_POSICOES)
+E8040F | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (POUCAS_POSICOES)
+E07191 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (JANELA_INICIAL_ENCERRADA); pouso: insuficiente (POUCAS_POSICOES)
+E4A00C | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (POUCAS_POSICOES); pouso: insuficiente (POUCAS_POSICOES)
+A13691 | AEROPORTOS | indeterminado | indeterminado | decolagem: insuficiente (POUCAS_POSICOES); pouso: insuficiente (POUCAS_POSICOES)
+Confiabilidade qualitativa: hipóteses geométricas não calibradas; não é porcentagem de acerto.
+Mensagens aceitas: 6391 | rejeitadas: 0
