@@ -12,7 +12,7 @@ src=${1:-/src}
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install -y -qq --no-install-recommends \
-    build-essential cmake python3 poppler-utils git ca-certificates >/dev/null
+    build-essential cmake python3 python3-numpy poppler-utils git ca-certificates >/dev/null
 cp -a "$src" /tmp/ttec
 cd /tmp/ttec
 git config --global --add safe.directory /tmp/ttec
