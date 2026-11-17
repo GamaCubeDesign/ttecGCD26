@@ -103,8 +103,12 @@ class AdsbPipeline:
                     raise ValueError('Pair database is incomplete or incompatible')
         directory.mkdir(parents=True, exist_ok=True)
         self.directory = Path(tempfile.mkdtemp(prefix='mission-', dir=directory))
+        # estado.json is for the evaluation after the mission (the page reads
+        # /api/adsb): every 10 s unless the configuration says otherwise, and
+        # once more at close. At 1 s it was still 345 MB written in a
+        # 20-aircraft mission (17/11).
         self.config = replace(config, telemetry_db=self.directory/'telemetria.db', output=self.directory/'estado.json',
-                              publish_interval_s=1.0)
+                              publish_interval_s=config.publish_interval_s or 10.0)
         self.database = Database(self.config.telemetry_db)
         self.manager = AircraftManager(self.database, estimator, self.config)
         # ident -> [lat, lon, name, type], for the map and the aircraft view.

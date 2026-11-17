@@ -29,7 +29,8 @@ class PipelineTests(unittest.TestCase):
             db.executemany('INSERT INTO airports VALUES (?,?,?,?,?,?,?,?)', [(1,'P1','P1','West','large_airport',0,-2,0),(2,'P2','P2','East','large_airport',0,2,0)])
         pairs = root/'pairs.db'
         pair_db(pairs)
-        self.config = replace(Config(), reference_db=reference,pairs_db=pairs,pairs_enabled=True,pair_interval_s=.1)
+        self.config = replace(Config(), reference_db=reference,pairs_db=pairs,pairs_enabled=True,pair_interval_s=.1,
+                              publish_interval_s=.2)
         self.root = root
 
     def test_live_fusion_and_rejections(self):
@@ -69,7 +70,10 @@ class PipelineTests(unittest.TestCase):
         self.assertGreaterEqual(revision, 1)
         self.assertEqual([a['icao'] for a in view['aircraft']], ['ABC123'])
         self.assertGreaterEqual(len(view['aircraft'][0]['track']), 1)
-        self.assertEqual(pipeline.config.publish_interval_s, 1.0)
+        self.assertEqual(pipeline.config.publish_interval_s, .2)
+        default = AdsbPipeline(self.root/'sessions', replace(self.config, publish_interval_s=0.0, pairs_enabled=False))
+        self.addCleanup(default.close)
+        self.assertEqual(default.config.publish_interval_s, 10.0)
 
     def test_http_mission_command_starts_ingestion(self):
         import subprocess
