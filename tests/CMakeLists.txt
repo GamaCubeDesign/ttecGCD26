@@ -171,6 +171,12 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME gs_web
              COMMAND ${Python3_EXECUTABLE} -m unittest test_gs_web
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
+    # The page's modules that need no browser (ground/host/web): where Node is.
+    find_program(NODE_EXECUTABLE node)
+    if(NODE_EXECUTABLE)
+        add_test(NAME gs_web_modules
+                 COMMAND ${NODE_EXECUTABLE} ${CMAKE_SOURCE_DIR}/ground/host/web/test_web.mjs)
+    endif()
     # A real bench step (run_step.sh, ping.txt) with the real ttcd and the
     # real ground on the UDP radio: the ground's JSON as the scripts read it.
     add_test(NAME bench_step_udp

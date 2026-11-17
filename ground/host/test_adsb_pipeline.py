@@ -6,6 +6,7 @@ import sys
 import tempfile
 import time
 import unittest
+import urllib.error
 from dataclasses import replace
 
 HERE = Path(__file__).resolve().parent
@@ -13,7 +14,7 @@ sys.path.insert(0, str(HERE/'ground-aeronaves'))
 sys.path.insert(0, str(HERE/'ground-aeronaves/tests'))
 from ground.config import Config
 from test_pair_processing import pair_db
-from adsb_pipeline import AdsbPipeline
+from adsb_pipeline import AdsbPipeline, summarize, TRACK_POINTS_MAX
 from gs_web import Hub, GsState
 
 
@@ -59,6 +60,16 @@ class PipelineTests(unittest.TestCase):
         self.assertIn("'/adsb/data",pipeline.page('/adsb/')[0])
         self.assertEqual(hub.snapshot()['adsb']['processed'],4)
         self.assertTrue((pipeline.directory/'ground.jsonl').exists())
+        # The page's aircraft view, rebuilt by the estimator's thread.
+        deadline = time.monotonic()+5
+        while time.monotonic()<deadline and b'ABC123' not in pipeline.summary()[1]:
+            time.sleep(.05)
+        revision, body = pipeline.summary()
+        view = json.loads(body)
+        self.assertGreaterEqual(revision, 1)
+        self.assertEqual([a['icao'] for a in view['aircraft']], ['ABC123'])
+        self.assertGreaterEqual(len(view['aircraft'][0]['track']), 1)
+        self.assertEqual(pipeline.config.publish_interval_s, 1.0)
 
     def test_http_mission_command_starts_ingestion(self):
         import subprocess
@@ -86,6 +97,20 @@ for line in sys.stdin:
             self.assertEqual(state['adsb']['processed'],1)
             with urllib.request.urlopen(base+'/adsb/data',timeout=5) as response:
                 self.assertIn('ABC123',json.load(response)['aircraft'])
+            deadline = time.monotonic()+5
+            while time.monotonic()<deadline:
+                with urllib.request.urlopen(base+'/api/adsb',timeout=5) as response:
+                    tag, view = response.headers['ETag'], json.load(response)
+                if view['aircraft']: break
+                time.sleep(.1)
+            self.assertEqual(view['aircraft'][0]['icao'],'ABC123')
+            again = urllib.request.Request(base+'/api/adsb',headers={'If-None-Match':tag})
+            with self.assertRaises(urllib.error.HTTPError) as cm:
+                urllib.request.urlopen(again,timeout=5)
+            self.assertEqual(cm.exception.code,304)
+            cm.exception.close()
+            with urllib.request.urlopen(base+'/api/airports',timeout=5) as response:
+                self.assertEqual(json.load(response)[0][0] in ('P1','P2'),True)
         finally:
             proc.terminate()
             proc.wait(timeout=35)
@@ -108,6 +133,46 @@ for line in sys.stdin:
         with self.assertRaises(sqlite3.Error):
             AdsbPipeline(self.root/'sessions',replace(self.config,pairs_db=self.root/'absent.db'))
         self.assertFalse((self.root/'sessions').exists())
+
+
+class SummaryTests(unittest.TestCase):
+    def result(self, n_points):
+        t0 = 1_794_000_000_000_000_000
+        traj = [{'event_ns': t0 + i * 1_000_000_000, 'lat': -34.5 + i * 1e-4, 'lon': -58.4, 'altitude_ft': 1000 + i}
+                for i in range(n_points)]
+        return {
+            'icao': 'E0B110', 'event_ns': traj[-1]['event_ns'], 'flight_state': 'CLIMB', 'last_position_age_s': 0.2,
+            'aircraft_category': {'code': 'A3', 'label': 'Aeronave de grande porte'},
+            'snapshot': {'lat': -34.4, 'lon': -58.4, 'trajectory': traj,
+                         'fields': {'altitude_ft': {'value': 3000}, 'ground_speed_kt': {'value': 180},
+                                    'track_deg': {'value': 305}, 'callsign': {'value': 'JES3104'}}},
+            'airport_summary': {'takeoff': {'airport': {'ident': 'SABE'}, 'status': 'ESTIMATED'}, 'landing': None},
+            'airport_method': {'origin': {'status': 'UNKNOWN'},
+                               'destination': {'status': 'TENTATIVE', 'candidate': {'ident': 'SAEZ'}, 'reason': 'X'}},
+            'destination_candidates': [{'ident': 'SAEZ', 'score': .7}, {'ident': 'SADF', 'score': .5}],
+            'combined_analysis': {'origin': {'ident': 'SABE', 'status': 'ESTIMATED'}, 'destination': {'ident': None, 'status': 'UNKNOWN'}},
+            'pair_analysis': {'status': 'CANDIDATES', 'candidates': [
+                {'origin': {'ident': 'SABE'}, 'destination': {'ident': 'SAME'}, 'score': .6}]},
+        }
+
+    def test_the_view_is_compact_and_names_its_airports(self):
+        airports = {i: [0, 0, i, 'large_airport'] for i in ('SABE', 'SAEZ', 'SADF', 'SAME', 'SBBR')}
+        view = summarize({'E0B110': self.result(1000)}, airports)
+        a = view['aircraft'][0]
+        self.assertLessEqual(len(a['track']), TRACK_POINTS_MAX + 1)
+        self.assertEqual(a['track'][-1][0], self.result(1000)['event_ns'] // 1_000_000)   # the last point kept
+        self.assertEqual((a['callsign'], a['category'], a['phase'], a['alt'], a['trk']), ('JES3104', 'A3', 'CLIMB', 3000, 305))
+        self.assertEqual((a['origin']['ident'], a['origin']['status'], a['origin']['source']), ('SABE', 'ESTIMATED', 'history'))
+        self.assertEqual((a['destination']['ident'], a['destination']['status']), ('SAEZ', 'TENTATIVE'))
+        self.assertEqual([c['ident'] for c in a['destination']['candidates']], ['SAEZ', 'SADF'])
+        self.assertEqual(a['pairs']['top'], [{'origin': 'SABE', 'destination': 'SAME', 'score': .6}])
+        self.assertEqual(sorted(view['airports']), ['SABE', 'SADF', 'SAEZ', 'SAME'])
+        json.dumps(view, allow_nan=False)
+
+    def test_an_aircraft_without_position_is_still_listed(self):
+        view = summarize({'E0844F': {'icao': 'E0844F', 'snapshot': None}}, {})
+        a = view['aircraft'][0]
+        self.assertEqual((a['icao'], a['lat'], a['track'], a['pairs'], a['combined']), ('E0844F', None, [], None, None))
 
 
 if __name__ == '__main__':

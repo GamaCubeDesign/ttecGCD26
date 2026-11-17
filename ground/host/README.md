@@ -3,7 +3,7 @@
 O que roda no computador da ground station, em Python:
 
 - `gs_serial.py`: a ponte com a ESP32 da ground (ADR-0018). Reseta a placa, dá a ela o relógio do PC (a ESP32 não tem), manda os comandos e grava as linhas JSON. Para os roteiros da bancada, a ESP32 fica igual à `gs_cli`. Uso em `ground/esp32/README.md`; testado contra uma ESP32 falsa num pseudo-terminal (`test_gs_serial.py`, CTest `gs_serial`).
-- `gs_web.py` (e `gs_web_ui.html`): a interface da ground no navegador. Segue o satélite ao vivo (modo do OBC, tensão, corrente, temperaturas, enlace, linha do tempo de eventos) e manda os comandos pelos botões. Veja "A interface no navegador" abaixo.
+- `gs_web.py` e `web/`: a interface da ground no navegador, central para a operação: a telemetria sempre visível, uma aba por teste avaliado (ADS-B, implantação, AOCS, sobrevivência), os utilitários de enlace e os eventos. Veja "A interface no navegador" abaixo.
 - `tracks_to_ndjson.py`: do log da ground ao formato do estimador (abaixo).
 - `ground-aeronaves/`: o projeto ADS-B da ground, trazido da branch `ADSB-ground` (onde ficava em `ground- adsb/`): recepção de NDJSON, estimador por aeroportos/pistas, memória temporal, painel web, simulador e testes.
 - `banco-aeronaves/`: importador do cadastro OurAirports. O banco de rotas foi removido.
@@ -37,7 +37,7 @@ O simulador e o painel usam por padrão `~/adsb/eventos.ndjson`. Para processar 
 
 ## A interface no navegador
 
-`gs_web.py` lê as mesmas linhas JSON da ground e serve uma página com o estado do satélite. Só biblioteca padrão; escuta em `127.0.0.1:8080`.
+`gs_web.py` lê as mesmas linhas JSON da ground e serve a página com o estado do satélite. Só biblioteca padrão (o processamento ADS-B, com `--adsb`, usa NumPy); escuta em `127.0.0.1:8080`.
 
 Pela raiz do repositório, `make gs-web` escolhe a fonte por variável: `ESP32_PORT=/dev/ttyUSB0` (padrão), `UDP=1` ou `REPLAY=<log.jsonl>` (com `SPEED=10`). `POWER`, `WEB_HOST` e `WEB_PORT` ajustam a potência da ground, o endereço e a porta. Equivale a:
 
@@ -47,7 +47,16 @@ python3 gs_web.py --udp                                   # gs_cli no rádio UDP
 python3 gs_web.py --replay ../../docs/vv/bancada/AAAA-MM-DD/x-ground.jsonl --speed 10   # sem hardware
 ```
 
-Abra `http://127.0.0.1:8080`. A página mostra o modo atual no diagrama da Figura 44 (clicar num modo manda o `SET_MODE`), a telemetria com "sem dado" no lugar dos valores sentinela, o enlace (RSSI, SNR, ACKs, latência) e a linha do tempo. Português, inglês e espanhol; o botão "projetar" aumenta as letras.
+Abra `http://127.0.0.1:8080`. Sem a Pi, `make sim INPUT=<captura>` sobe o satélite inteiro no PC (rádio UDP, os três daemons de voo, o `sbs_replay` no lugar do SDR) com esta página na frente; tráfego aéreo real vem do `tools/live_traffic`.
+
+A página (`web/`, arquivos e módulos ES servidos pelo próprio `gs_web.py`, sem passo de build e sem nada da internet):
+
+- **Barra fixa:** contato, modo do OBC e há quanto tempo, RSSI/SNR e idade do último quadro, bateria, corrente, temperaturas, tempo ligado, hora sincronizada (bit do HK) e mensagens ADS-B.
+- **Abas por teste:** Operação (o diagrama da Figura 44; clicar num modo manda o `SET_MODE`; as execuções de cada comando de modo), ADS-B (o botão da missão com o passo a passo `SET_TIME` → `SET_MODE` → modo → decodificador → retratos → downlink e o cronômetro dos 10 min; as estatísticas; o mapa offline; a tabela e o detalhe de cada aeronave com origem e destino por método), Implantação (burn-wire), AOCS (a atitude do HK e o slot da página da equipe do AOCS, `web/aocs/README.md`), Sobrevivência e Enlace.
+- **Utilitários e eventos** ao lado de todas as abas; o "armar" desarma sozinho em 15 s, e o servidor confere tudo de novo.
+- **Identidade visual da Gama** (`web/css/gama.css`): tema escuro por padrão, claro no botão; Open Sans; o favicon oficial sem alteração. Português, espanhol e inglês; "projetar" aumenta as letras; `#adsb` na URL abre a aba.
+
+O servidor agrupa o que empurra para a página (no máximo 2 mensagens por segundo, e só o log novo), e o estimador refaz a vista das aeronaves no máximo uma vez por segundo (`/api/adsb`, com `ETag`). `tools/analysis/gs_web_load.py` mede CPU, memória e escrita em disco com uma sessão gravada.
 
 - **Só os comandos de operação passam:** `ping`, `hk`, `stat`, `roster`, `time`, `stream`, `stop`, `rate` e `mode`. `shutdown`, `deafen` e o resto do console são recusados no servidor.
 - **`mode basic_inter` e `mode aocs` pedem para armar** (o burn-wire e o empréstimo do I²C ao AOCS). A chave de armar na página desliga sozinha em 15 s e depois de cada disparo, e o servidor confere de novo.

@@ -115,6 +115,85 @@ class TestState(unittest.TestCase):
         self.s.feed({"ev": "something_new", "a": 1})
         self.assertIsNone(self.s.snapshot()["hk"])
 
+    def test_hk_flags_are_decoded_and_its_line_has_no_sentinels(self):
+        self.s.feed(dict(hk(), flags=4 | 8))
+        h = self.s.snapshot()["hk"]
+        self.assertEqual((h["obc_linked"], h["adsb_linked"], h["time_synced"], h["dump1090_up"]),
+                         (False, False, True, True))
+        self.s.feed(dict(hk(), battery_mv=65535, current_ma=-32768))
+        text = self.s.snapshot()["log"][-1]["text"]
+        self.assertEqual(text, "hk: PRE_TEST · 25.9 °C · 42.9 °C SoC")
+
+    def test_the_log_comes_whole_or_as_what_is_new(self):
+        for i in range(5):
+            self.s.note("info", "line %d" % i)
+        full = self.s.snapshot()
+        self.assertTrue(full["full"])
+        self.assertEqual(full["log_n"], 5)
+        delta = self.s.snapshot(since=3)
+        self.assertFalse(delta["full"])
+        self.assertEqual([e["text"] for e in delta["log"]], ["line 3", "line 4"])
+
+    def ack(self, cmd, status="OK", ms=300):
+        self.s.feed({"ev": "ack", "id": 1, "cmd": cmd, "status": status, "latency_ms": ms, "attempts": 1})
+
+    def test_a_mission_is_followed_from_the_command_to_the_downlink(self):
+        self.clock.t = 0.0
+        self.s.feed(hk())
+        self.s.feed({"ev": "command", "text": "mode mission_adsb"})
+        self.clock.t = 1.0
+        self.ack("SET_TIME", ms=310)
+        self.ack("SET_MODE", ms=289)
+        self.clock.t = 4.0
+        self.s.feed(dict(hk(mode="MISSION_ADSB"), flags=4))
+        self.clock.t = 9.0
+        self.s.feed(dict(hk(mode="MISSION_ADSB"), flags=4 | 8))
+        self.s.feed({"ev": "tracks", "n": 8})
+        self.clock.t = 10.0
+        self.s.feed({"ev": "tracks", "n": 8})
+        self.clock.t = 604.0
+        self.s.feed(hk(mode="MISSION_DOWNLINK"))
+        self.s.feed({"ev": "tracks", "n": 8})            # after the mission: not counted
+        run = self.s.snapshot()["runs"][-1]
+        self.assertEqual(run["target"], "MISSION_ADSB")
+        self.assertEqual([(a["cmd"], a["status"], a["latency_ms"]) for a in run["acks"]],
+                         [("SET_TIME", "OK", 310), ("SET_MODE", "OK", 289)])
+        self.assertEqual((run["sent"], run["entered"], run["dump1090"], run["first_tracks"]), (0, 4.0, 9.0, 9.0))
+        self.assertEqual((run["tracks"], run["left"], run["left_to"], run["failed"]), (2, 604.0, "MISSION_DOWNLINK", None))
+
+    def test_a_refused_time_fails_the_run(self):
+        self.s.feed({"ev": "command", "text": "mode mission_adsb"})
+        self.ack("SET_TIME", status="BAD_ARGS")
+        run = self.s.snapshot()["runs"][-1]
+        self.assertEqual(run["failed"], "SET_TIME BAD_ARGS")
+        self.s.feed({"ev": "command", "text": "mode mission_adsb"})
+        self.s.feed({"ev": "tc_failed", "id": 2, "cmd": "SET_TIME", "attempts": 8})
+        self.assertEqual(self.s.snapshot()["runs"][-1]["failed"], "SET_TIME NO_ACK")
+
+    def test_other_commands_are_not_runs(self):
+        for text in ("ping 3", "hk", "rate fast", "mode"):
+            self.s.feed({"ev": "command", "text": text})
+        self.assertEqual(self.s.snapshot()["runs"], [])
+
+
+class TestHub(unittest.TestCase):
+    def test_a_burst_reaches_the_pages_as_few_messages_with_every_entry(self):
+        hub = gs_web.Hub(gs_web.GsState(), source=None)
+        self.addCleanup(hub.close)
+        q = hub.subscribe()
+        first = json.loads(q.get(timeout=1))
+        self.assertTrue(first["full"])
+        for i in range(200):
+            hub.note("info", "line %d" % i)
+        import time
+        time.sleep(1.3)
+        msgs = []
+        while not q.empty():
+            msgs.append(json.loads(q.get_nowait()))
+        self.assertLessEqual(len(msgs), 4)
+        texts = [e["text"] for m in msgs for e in m["log"]]
+        self.assertEqual(texts, ["line %d" % i for i in range(200)])
+
 
 FAKE_GROUND = textwrap.dedent("""
     import json, sys
@@ -184,7 +263,19 @@ class TestServer(unittest.TestCase):
 
     def test_page_and_state(self):
         page = self.get("/").read().decode()
-        self.assertIn("EventSource('/events')", page)
+        self.assertIn('src="/js/main.js"', page)
+        with self.get("/js/state.js") as r:
+            self.assertEqual(r.headers["Content-Type"], "text/javascript; charset=utf-8")
+            self.assertIn("EventSource('/events')", r.read().decode())
+        with self.get("/fonts/OpenSans.woff2") as r:
+            self.assertEqual(r.headers["Content-Type"], "font/woff2")
+        for path in ("/../gs_web.py", "/%2e%2e/gs_web.py", "/js/../../gs_web.py", "/aocs/README.md", "/nothing.js"):
+            with self.assertRaises(urllib.error.HTTPError, msg=path) as cm:
+                self.get(path)
+            self.assertEqual(cm.exception.code, 404, path)
+            cm.exception.close()
+        with self.get("/api/adsb") as r:
+            self.assertEqual(json.loads(r.read())["aircraft"], [])
         snap = self.wait_state(lambda s: s["hk"] is not None)
         self.assertEqual(snap["mode"], "PRE_TEST")
         self.assertIsNone(snap["hk"]["adsb_msgs"])
