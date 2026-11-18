@@ -99,3 +99,84 @@ O que isso diz, com a ressalva de que é 1 h e 42 voos:
 Os arquivos de trabalho do estimador (`*.db`, `*.estado.json`) e o
 `capture.ndjson` ficam fora do Git. Regeneram-se com `live_traffic.py convert`
 e com o `avaliar.sh`, a partir do `raw.jsonl.gz`.
+
+## Cenários sintéticos com gabarito
+
+O ADS-B da competição é simulado pela organização (regulamento 4.4.4): os aviões
+podem ser gravados, sintéticos ou inventados. `tools/live_traffic/synthetic.py`
+gera, em volta da UNSAM, os dois casos que a captura real não cobre, no mesmo
+formato de uma captura:
+
+- **`sintetico-rotas/`**: 23 voos em linha reta entre aeroportos reais. São 8
+  decolagens de SABE e SAEZ, metade vista já no ar (sem posição no solo); 8 chegadas;
+  4 sobrevoos; e 3 aviões leves saindo de SADF e SADM. Origem e destino conhecidos
+  em todos.
+- **`sintetico-ficticio/`**: 12 aeronaves com endereços inventados e pontas a mais
+  de 15 km de qualquer aeroporto. Qualquer decisão é falso positivo.
+
+O `capture.ndjson` se regenera com o mesmo comando, que é determinístico; ficam
+versionados o gabarito e os metadados.
+
+## 2026-11-18 · Buenos Aires (UNSAM), 1 h: a validação
+
+`2026-11-18-unsam/`: das 11h22 às 12h22 UTC, os mesmos 150 NM.
+
+- **Coleta:** 544 consultas, 44 aeronaves, 37 trilhas. Com a espera progressiva, os
+  429 caíram para 8% das consultas (30% em 17/11).
+- **Gabarito:** 38 voos, 26 com origem e 12 com destino.
+  - Origens: Aeroparque 5, Ezeiza 5, San Fernando 5, e voos chegando de Madri,
+    Houston, Miami, Dallas, Atlanta, Galeão, Santiago, Córdoba e Montevidéu.
+  - Destinos: Aeroparque 5, Ezeiza 4, San Fernando 2, Montevidéu 1.
+
+Nada desta captura foi usado para ajustar os limites da Etapa A. Ela só confere.
+
+## A Etapa A: origem pela física do voo (ADR-0022)
+
+Duas mudanças no estimador, só na ground:
+
+- **Classe "grande" pela cinemática:** um jato prova o porte pela velocidade, pela
+  altitude ou pela subida.
+- **Distância de decolagem pela subida:** sem posição no solo, a altura, a razão de
+  subida e a velocidade dizem a que distância a pista deve estar.
+
+Origem decidida e acertos, **sem a categoria** (o que a ground recebe), pelo
+método local:
+
+| Conjunto | Antes | Depois | O que se fazia **com** a categoria |
+|---|---|---|---|
+| Real 17/11, 27 origens (calibração) | 0 | **7 de 7** | 5 de 6 |
+| Real 18/11, 26 origens (**validação**) | 4 de 4 | **6 de 6** | 6 de 6 |
+| Sintético `rotas`, 23 origens | 3 de 3 | **10 de 10** | 7 de 7 |
+| Sintético `ficticio` (o certo é não decidir) | 0 decididas | 0 decididas | — |
+
+- **O destino não mudou:** 9 de 10 em 17/11, 10 de 12 em 18/11.
+- **A conclusão combinada** passou a decidir onde antes se abstinha: em 17/11, de 0
+  para 4 origens e 3 destinos; em 18/11, de 4 para 6 origens e de 1 para 3 destinos.
+- **Nenhuma decisão errada de origem,** em nenhum conjunto.
+- **Com a categoria,** a distância pela subida leva a origem ainda mais longe:
+  18/11, de 6 para 10; 17/11, de 5 de 6 para 7 de 7.
+
+**As duas partes andam juntas.** A distância pela subida sozinha, sem saber que é um
+jato, favoreceu heliportos à distância certa (17/11: 2 de 4 origens erradas). Por
+isso ela só vale quando a classe é conhecida.
+
+**O classificador contra a categoria verdadeira** (17/11, 47 aeronaves):
+
+| Categoria real | Inferida "grande" | Desconhecida |
+|---|---|---|
+| A3, 31 | 29 | 2 |
+| A1, 7 | **0** | 7 |
+| A2, 1 | 1 | — |
+| A0 ou sem categoria, 6 | 5 | 1 |
+
+**O método de pares** ficou desligado por padrão na página e no `make sim`. Ligado,
+a conclusão combinada não decidiu nenhum voo em nenhum conjunto. E ele mesmo:
+
+- real 17/11: 3 de 12 origens;
+- sintético `rotas`: 12 de 21 origens e 15 de 21 destinos;
+- `ficticio`: 11 falsos positivos.
+
+Os relatórios de 17/11 em `2026-11-17-unsam/avaliacao-*` são do estimador **antes**
+da Etapa A; os de 18/11, depois. Para comparar as duas versões no mesmo conjunto:
+`--no-kinematic-category --climb-back-weight 0` no `python -m ground` reproduz o
+antes.

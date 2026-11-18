@@ -1,0 +1,8 @@
+{
+ "scenario": "ficticio",
+ "flights": 12,
+ "records": 1263,
+ "period_s": 5,
+ "mission_s": 600,
+ "generator": "tools/live_traffic/synthetic.py"
+}
