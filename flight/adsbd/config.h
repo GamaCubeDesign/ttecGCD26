@@ -24,6 +24,8 @@ typedef struct {
     char     ipc_path[108];         /* ttcd's socket (AF_UNIX sun_path limit) */
     char     sbs_host[40];          /* dump1090's SBS output: IPv4 address   */
     uint16_t sbs_port;
+    uint16_t avr_port;              /* dump1090's raw output, for the emitter
+                                       category (ADR-0023); 0: not read      */
     char     dump1090_cmd[400];     /* split on spaces, run without a shell;
                                        empty: start nothing, only connect    */
     char     ndjson_path[256];      /* the onboard record (HLR-SW-02)        */

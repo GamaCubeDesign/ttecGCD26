@@ -1,0 +1,41 @@
+{
+  "provider": "Natural Earth",
+  "release": "v5.1.2",
+  "dataset": "ne_50m_admin_0_map_units",
+  "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_admin_0_map_units.geojson",
+  "license": "public domain",
+  "original_sha256": "b8d421aca6e9e08e8cdf09cc26af111cc3e0deba4fe915611d58ade71e8a4db0",
+  "selection": [
+    "AR",
+    "BO",
+    "BR",
+    "CL",
+    "CO",
+    "CR",
+    "CU",
+    "DO",
+    "EC",
+    "SV",
+    "GT",
+    "HT",
+    "HN",
+    "MX",
+    "NI",
+    "PA",
+    "PY",
+    "PE",
+    "UY",
+    "VE",
+    "PR",
+    "GF",
+    "GP",
+    "MQ",
+    "MF",
+    "BL"
+  ],
+  "iso_aliases": {
+    "FR-973": "GF",
+    "FR-971": "GP",
+    "FR-972": "MQ"
+  }
+}

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 · Estação de solo</title>
+<link rel="icon" type="image/png" href="/brand/favicon.png">
+<link rel="stylesheet" href="/css/gama.css">
+<script>
+  // The theme before the first paint, so the page never flashes the other one.
+  // ?theme=light in the address wins, for screenshots and projectors.
+  try {
+    document.documentElement.dataset.theme =
+      new URLSearchParams(location.search).get('theme') || localStorage.getItem('gs-theme') || 'dark';
+  } catch (e) {}
+</script>
+</head>
+<body>
+<header class="bar">
+  <div class="brand">
+    <img class="mark" src="/brand/favicon.png" alt="Gama CubeDesign" width="52" height="44">
+    <div class="title"><b data-t="title"></b><small id="source"></small></div>
+  </div>
+  <div class="status" id="status"></div>
+  <div class="hk" id="hk"></div>
+  <div class="tools">
+    <button class="tool" id="b-lang" type="button"></button>
+    <button class="tool" id="b-theme" type="button"></button>
+    <button class="tool" id="b-big" type="button" aria-pressed="false"></button>
+  </div>
+</header>
+<div class="banner" id="banner" role="status"></div>
+<nav class="tabs" id="tabs" role="tablist"></nav>
+<div class="layout">
+  <main id="panels"></main>
+  <aside class="side">
+    <section class="card" id="utilities"></section>
+    <section class="card events" id="events"></section>
+  </aside>
+</div>
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>

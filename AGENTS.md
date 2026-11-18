@@ -22,18 +22,19 @@ proposing anything that moves bytes over the radio, check it against
 | `common/` | Shared packet codec: framing, CRC, TM/TC records | compiles on Pi **and** ESP32 |
 | `flight/ttcd/` | Telecom daemon: pure core (`link.c`, `tc_dispatch.c`, `tm_sched.c`) + epoll shell (`main.c`) | Pi |
 | `flight/radio/` | SX1278 driver over an abstract bus; Linux bus (spidev + GPIO chardev); radio backends (sx1278, udp) | Pi |
-| `flight/adsbd/` | Payload daemon: supervises dump1090-fa, parses SBS, track table, NDJSON onboard record, snapshots to `ttcd`; pure core (`sbs.c`, `tracks.c`, `ndjson.c`, `core.c`) + epoll shell (`main.c`) | Pi |
+| `flight/adsbd/` | Payload daemon: supervises dump1090-fa, parses SBS, track table, NDJSON onboard record, snapshots to `ttcd`; optionally the raw AVR port for the emitter category (`avr_port`, ADR-0023); pure core (`sbs.c`, `avr.c`, `tracks.c`, `ndjson.c`, `core.c`) + epoll shell (`main.c`) | Pi |
 | `flight/libipc/` | AF_UNIX SOCK_SEQPACKET transport | Pi |
 | `flight/obcd/` | OBC daemon: mission modes (Figure 44), burn-wire, heaters, the DS18B20 in its own thread, and one thread owning the I²C bus shared with the AOCS ESP32 — the INA219, and the bus lent to the ESP32 during `ADVANCED_AOCS` (ADR-0017); pure core (`core.c`, `i2c_sched.c`) + epoll shell (`main.c`) (ADR-0016) | Pi |
 | `flight/conf/` | Flight configuration per board: `obc-v2/` holds the new OBC board's `ttcd.conf`, `obcd.conf` and `config.txt` lines; `make install CONF_DIR=flight/conf/obc-v2` | Pi |
 | `ground/console/` | The ground station's console: the link's ground side, the text commands and the JSON lines; portable, shared by `gs_cli` and the ESP32 (ADR-0018) | Pi / PC / ESP32 |
 | `ground/esp32/` | Ground station firmware (ESP-IDF, built in Docker by `tools/esp32/idf.sh`); sends the remote commands of the on-site tests (ADR-0018). `ground/esp32-tests/` runs the portable suites on the ESP32 or in QEMU | ESP32 |
-| `ground/host/` | Serial bridge to the ESP32 ground, also the operator CLI (`gs_serial.py`); downlink → estimator adapter (`tracks_to_ndjson.py`); origin/destination estimator and dashboard (`ground-aeronaves/`, a teammate's project, merged 2026-09-28); airport DB importer; the browser interface that follows the satellite and sends the operator's commands (`gs_web.py`, `make gs-web`) | PC, Python |
-| `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check, downlink emulation over full captures (`downlink_emulation.py`), the flight configuration checked wire by wire against the boards' layouts (`board_check.py`, also in CTest) | PC |
+| `ground/host/` | Serial bridge to the ESP32 ground, also the operator CLI (`gs_serial.py`); the ground's ADS-B in `adsb/`: the downlink → estimator adapter (`adsb/tracks_to_ndjson.py`), the live pipeline (`adsb/pipeline.py`), the origin/destination estimator and dashboard (`adsb/estimator/`, package `adsb.estimator`, a teammate's project, merged 2026-09-28), the airport DB and the route pairs (`adsb/data/`), validation (`adsb/validation/`); tests in `tests/` (reorganised 2026-11-18, old → new paths in its README); the ground station's central page — the satellite always in view, one tab per evaluated test (ADS-B, deployment, AOCS, survival), the AOCS team's page in a slot (`web/aocs/`), in the Gama visual identity (`gs_web.py` + `web/`, `make gs-web`, `make sim`) | PC, Python |
+| `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check, downlink emulation over full captures (`downlink_emulation.py`), the flight configuration checked wire by wire against the boards' layouts (`board_check.py`, also in CTest), what the ground's page costs the PC (`gs_web_load.py`) | PC |
 | `tools/gs_cli/` | Bench ground station: the ground console on a second RA-02 or the UDP radio | Pi / PC |
-| `tools/bench/` | Bench procedure: one `gs_cli` command script per step, and `run_step.sh`, which starts `ttcd` afresh for each; `adsb_chain.sh` | Pi / PC |
+| `tools/bench/` | Bench procedure: one `gs_cli` command script per step, and `run_step.sh`, which starts `ttcd` afresh for each; `adsb_chain.sh`; `sim.sh` (`make sim`): the whole satellite on the PC, driven from the ground's page | Pi / PC |
 | `tools/ci/` | `check_debian.sh`: `make check` on Debian 13 with the Pi's GCC 14, run by the CI (`.github/workflows/check.yml`) and by `make check-debian` | PC / CI |
 | `tools/sbs_replay/` | Plays dump1090: serves SBS lines from a capture or a simulation, so `adsbd` runs without an SDR | Pi / PC |
+| `tools/live_traffic/` | Real air traffic from adsb.lol (with the emitter category) around a point — UNSAM by default — in the onboard record's format, and a truth of origin and destination from OpenSky tracks; `avaliar.sh` scores the ground's estimator against it | PC |
 | `Makefile` | Entry point for build, tests, bench, Pi install and PC→Pi runs (`make help`) | Pi / PC |
 | `docs/adr/` | Architecture Decision Records | — |
 | `docs/budgets/` | Data and link budgets (figures from `lora_budget.py`) | — |
@@ -86,6 +87,8 @@ make bench-gs RADIO=udp     # ...the ground in another: ping 5, rate fast, ...
 
 # a recorded or simulated ADS-B mission through adsbd, ttcd, the UDP radio and the ground
 make adsb-chain INPUT=<capture.sbs | record.ndjson>   # real time: 10 min of mission = 10 min
+make sim INPUT=<capture>    # the same satellite, operated from the ground's page (http://127.0.0.1:8080)
+python3 tools/live_traffic/live_traffic.py capture --out DIR --duration 3600   # real traffic + truth
 ```
 
 The `Makefile` only strings these commands together — `cmake`, `ctest`, the
@@ -105,7 +108,7 @@ change link behaviour, rerun it and update the ADR's verification table.
 
 Keep the `ttcd`, `adsbd` and `obcd` cores free of system calls (ADR-0005):
 no clock reads, no sleeps, no file descriptors in `link.c`, `tc_dispatch.c`,
-`tm_sched.c`, nor in `sbs.c`, `tracks.c`, `ndjson.c`, `core.c`, nor in
+`tm_sched.c`, nor in `sbs.c`, `avr.c`, `tracks.c`, `ndjson.c`, `core.c`, nor in
 `obcd/core.c`. Everything a core needs from the world goes through its ops
 table (`ttcd_ops_t`, `adsbd_ops_t`, and the same for `obcd`).
 
@@ -163,7 +166,9 @@ version bump, and review the diff byte by byte.
 
 Record sizes are load-bearing for the data budget: track 20 B, roster 11 B,
 HK 27 B (protocol v2, ADR-0013), stat 26 B, framing overhead 7 B. Changing
-one means revising `docs/budgets/data-budget.md` and probably an ADR.
+one means revising `docs/budgets/data-budget.md` and probably an ADR. The
+track's `flags` byte is full since ADR-0023: bits 0-5 validity, bits 6-7 the
+aircraft class (`GAMA_TRACK_CLASS_*`, 0 unknown).
 
 ## Where decisions live
 
@@ -212,8 +217,11 @@ risks. As of 2026-11-05:
   flight configuration, checked wire by wire against the boards' layouts
   (`tools/analysis/board_check.py`, 2026-11-03); since 2026-11-05 the
   ground's browser interface (`ground/host/gs_web.py`, `make gs-web`) and
-  the radio bench split between the Pi and the PC (`make bench SPLIT=1`).
-  39 CTest suites, zero warnings, clean under ASan and UBSan, and under
+  the radio bench split between the Pi and the PC (`make bench SPLIT=1`);
+  since 2026-11-17 real traffic with a truth (`tools/live_traffic`), the
+  satellite on the PC behind the page (`make sim`), and the ground's central
+  page (`ground/host/web`). 46 CTest suites (45 where Node is missing, as in
+  the CI), zero warnings, clean under ASan and UBSan, and under
   ThreadSanitizer for `obcd`'s integration test. **Most of this has not run
   on the bench yet**: the script is
   `docs/relatorios/2026-11-05-roteiro-bancada.html` (summary in
@@ -234,7 +242,34 @@ risks. As of 2026-11-05:
   steps and the thermostat. Fixed in software since (2026-11-09): with no
   AOCS ESP32, `ADVANCED_AOCS` ends at once although the Pi's driver says
   EIO, not NACK (ADR-0017); a DS18B20 reading of registers no DS18B20 holds
-  (all zero, which passes the CRC) is refused.
+  (all zero, which passes the CRC) is refused. On 2026-11-16
+  (`docs/vv/bancada/2026-11-16/notas.md`): the antenna receives no aircraft
+  (the SDR and dump1090 are fine); with `sbs_replay` in place of the SDR,
+  20 simulated aircraft went through `adsbd` → `ttcd` → LoRa → ESP32 → page
+  in hardware: 0 of 359 frames lost, latency p95 2.8 s, trajectory error p95
+  23 m and 0.11 s. The origin/destination estimator fails without the
+  emitter category, which the downlink does not carry (the SBS feed has
+  none). Radio A of the bench is still on October's wiring (RESET 20, DIO0
+  21); with the board's pins the ping passes but with retries (DIO0 seen
+  only by the 250 ms poll). On 2026-11-17, against 1 h of real traffic
+  around UNSAM with a truth (`docs/vv/trafego-real/`): without the category
+  — what the ground really gets — the local method gets 9 of 10
+  destinations and decides no origin (5 of 6 with it); the pair method of
+  ADR-0019 gets 3 of 12 origins and 0 of 3 destinations, and with it the
+  combined conclusion abstains on every flight. To discuss with the
+  estimator's author before PR #89 merges. On 2026-11-18 (ADR-0022, ground
+  only): the "large" class inferred from kinematics and the take-off
+  distance from the climb take the origin, without the category, from 0 to
+  7 of 7 (17/11) and from 4 to 6 of 6 on a second capture used only to
+  validate, the same as with the category; 10 of 10 on synthetic straight
+  flights, no false positive on invented aircraft; the pair method is off by
+  default in the page (`gs_web.py --pairs`). The category on board
+  (`dump1090-fa`'s AVR port, 2 spare bits of the track flags) is ADR-0023,
+  done in software on 2026-11-18 behind `avr_port` (0 by default: the flight
+  as before; `make sim` and `make adsb-chain` turn it on, `AVR=0` off); the
+  bench that decides whether it flies is `docs/vv/bancada/2026-11-20/roteiro.md`.
+  The estimator before and after Etapa A, for the team:
+  `docs/relatorios/2026-11-18-estimador-antes-depois-etapa-a.html`.
 - **Priority now: the bench, then the hardware.** (1) ~~protocol version 2,
   mode-driven `ttcd`/`adsbd`, 433.92 MHz and 14 dBm~~ — done in software
   2026-10-24; (2) ~~`flight/obcd/`~~ — done in software, the Pi's side of the

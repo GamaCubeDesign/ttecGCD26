@@ -6,6 +6,7 @@
 
 #include "test_util.h"
 #include "core.h"
+#include "avr.h"
 #include "gama_frame.h"
 #include "gama_ipc.h"
 #include "gama_tc.h"
@@ -29,7 +30,7 @@ static struct {
     char    rec[MAX_REC][ADSBD_NDJSON_MAX];
     int     n_log;
     char    log[256][32];
-    char    last_fields[512];
+    char    last_fields[800];
 } H;
 
 static int h_ipc(void *ctx, const uint8_t *f, size_t n)
@@ -95,6 +96,49 @@ static void ident(uint64_t now, uint32_t icao, const char *callsign)
     char l[160];
     snprintf(l, sizeof(l), "MSG,1,1,1,%06X,1,,,,,%s,,,,,,,,,,,", (unsigned)icao, callsign);
     line(now, l);
+}
+
+/* An identification message on the AVR port, category set A, ca. */
+static void avr_ident(uint64_t now, uint32_t icao, unsigned ca)
+{
+    uint8_t m[14] = { 0x8D, (uint8_t)(icao >> 16), (uint8_t)(icao >> 8), (uint8_t)icao,
+                      (uint8_t)(4u << 3 | ca), 0x2C, 0xC3, 0x71, 0xC3, 0x2C, 0xE0 };
+    uint32_t pi = avr_crc24(m, 11);
+    m[11] = (uint8_t)(pi >> 16); m[12] = (uint8_t)(pi >> 8); m[13] = (uint8_t)pi;
+    char l[40], *p = l;
+    *p++ = '*';
+    for (size_t i = 0; i < sizeof(m); i++) {
+        p += snprintf(p, 3, "%02X", m[i]);
+    }
+    *p++ = ';';
+    adsbd_on_avr_line(&C, now, l, (size_t)(p - l));
+}
+
+/* The class of icao in the latest snapshot sent, or -1. */
+static int snapshot_class(uint32_t icao)
+{
+    for (int i = H.n_ipc - 1; i >= 0 && i < MAX_IPC; i--) {
+        gama_frame_t f;
+        gama_ipc_tracks_hdr_t h;
+        gama_track_t r[GAMA_IPC_TRACKS_MAX];
+        size_t n = 0;
+        if (gama_frame_decode(H.ipc[i], H.ipc_len[i], &f) < 0 || f.type != GAMA_FRAME_IPC_TRACKS) {
+            continue;
+        }
+        int hdr = gama_ipc_tracks_decode(f.payload, f.len, &h, &n);
+        if (hdr < 0) {
+            continue;
+        }
+        for (size_t k = 0; k < n; k++) {
+            gama_track_decode(f.payload + (size_t)hdr + k * GAMA_TRACK_WIRE_LEN,
+                              GAMA_TRACK_WIRE_LEN, &r[k]);
+            if (r[k].icao == icao) {
+                return GAMA_TRACK_CLASS(r[k].flags);
+            }
+        }
+        return -1;
+    }
+    return -1;
 }
 
 /* The roster records of every IPC_ROSTER frame from `from` on. */
@@ -335,11 +379,22 @@ int main(void)
         adsbd_on_ipc_frame(&C, T0, f, (size_t)n);
         adsbd_on_ipc_frame(&C, T0, f, (size_t)n);         /* same mode: logged once */
         CHECK_EQ_INT(C.obc_mode, GAMA_OBC_ST_MISSION_ADSB);
+        /* The mode alone starts the decoder. Without an anchor the record is
+         * stamped unsynchronised, which can be corrected afterwards; a
+         * mission not captured cannot (ADR-0020). */
+        CHECK(!C.time_synced);
+        CHECK(adsbd_decoder_wanted(&C));
+        time_set(T0, 1793000000u, 1000000000u);           /* nsec out of range */
+        CHECK(!C.time_synced);
+        CHECK(adsbd_decoder_wanted(&C));
+        time_set(T0, 1793000000u, 0);                     /* an anchor changes nothing here */
+        CHECK(C.time_synced);
+        CHECK(adsbd_decoder_wanted(&C));
         CHECK_EQ_INT(count_log("obc_mode"), 1);
-        CHECK_EQ_INT(C.n.ipc_rx_bad, 0);
+        CHECK_EQ_INT(C.n.ipc_rx_bad, 1);
         n = gama_frame_encode(f, sizeof(f), GAMA_FRAME_IPC_MODE, 0, NULL, 0);
         adsbd_on_ipc_frame(&C, T0, f, (size_t)n);         /* no mode byte */
-        CHECK_EQ_INT(C.n.ipc_rx_bad, 1);
+        CHECK_EQ_INT(C.n.ipc_rx_bad, 2);
     }
 
     TEST_GROUP("core: IPC_STAT says whether dump1090 is delivering");
@@ -443,6 +498,48 @@ int main(void)
         CHECK_EQ_INT(s.aircraft_tracked, 0);
     }
 
+    TEST_GROUP("core: an AVR identification sets the class and is recorded (ADR-0023)");
+    {
+        reset(WALL0);
+        avr_ident(T0 + 50 * MS, 0xE0B244, 3);              /* before any SBS: no track */
+        CHECK_EQ_INT(C.n.avr_no_track, 1);
+        CHECK_EQ_INT(H.n_rec, 0);
+        position(T0 + 100 * MS, 0xE0B244, -34.8);
+        avr_ident(T0 + 200 * MS, 0xE0B244, 3);
+        CHECK_EQ_INT(C.n.avr_idents, 1);
+        CHECK_EQ_INT(H.n_rec, 2);
+        CHECK_STR_EQ(H.rec[1], "{\"icao\":\"E0B244\",\"rx_epoch_ns\":1789900000200000000,"
+                               "\"category\":\"A3\"}\n");
+        adsbd_on_ipc_link(&C, T0 + 300 * MS, true);
+        adsbd_on_tick(&C, T0 + 300 * MS);
+        CHECK_EQ_INT(snapshot_class(0xE0B244), GAMA_TRACK_CLASS_LARGE);
+        /* The other kinds of line: counted by reason, never recorded. */
+        const char *pos = "*8D40621D58C382D690C8AC2863A7;";
+        const char *bad_crc = "*8D4840D6232CC371C32CE0576098;";
+        adsbd_on_avr_line(&C, T0 + 400 * MS, pos, strlen(pos));
+        adsbd_on_avr_line(&C, T0 + 400 * MS, bad_crc, strlen(bad_crc));
+        adsbd_on_avr_line(&C, T0 + 400 * MS, "garbage", 7);
+        adsbd_on_avr_line(&C, T0 + 400 * MS, "", 0);           /* not even a line */
+        adsbd_on_avr_overlong_line(&C, T0 + 400 * MS);
+        CHECK_EQ_INT(C.n.avr_lines, 6);
+        CHECK_EQ_INT(C.n.avr_not_ident, 1);
+        CHECK_EQ_INT(C.n.avr_rejected, 3);
+        CHECK_EQ_INT(count_log("avr_reject"), 3);
+        CHECK_EQ_INT(H.n_rec, 2);
+        /* None of it touches the SBS counters. */
+        CHECK_EQ_INT(C.n.lines, 1);
+        CHECK_EQ_INT(C.n.rejected, 0);
+    }
+
+    TEST_GROUP("core: without the AVR port the class stays unknown, the record as before");
+    {
+        reset(WALL0);
+        position(T0 + 100 * MS, 0xE0B244, -34.8);
+        adsbd_on_ipc_link(&C, T0 + 300 * MS, true);
+        adsbd_on_tick(&C, T0 + 300 * MS);
+        CHECK_EQ_INT(snapshot_class(0xE0B244), GAMA_TRACK_CLASS_UNKNOWN);
+    }
+
     TEST_GROUP("core: the counters reach the event log every minute");
     {
         reset(WALL0);
@@ -453,6 +550,8 @@ int main(void)
         CHECK_EQ_INT(count_log("stats"), 1);
         CHECK(strstr(H.last_fields, "\"decoded\":1,") != NULL);
         CHECK(strstr(H.last_fields, "\"time_synced\":false") != NULL);
+        CHECK(strstr(H.last_fields, "\"avr_lines\":0,") != NULL);
+        CHECK(strstr(H.last_fields, "\"avr_rejected\":0") != NULL);
     }
 
     TEST_SUMMARY("test_adsbd_core");

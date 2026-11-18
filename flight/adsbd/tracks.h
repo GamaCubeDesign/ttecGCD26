@@ -21,6 +21,9 @@
  *   - it carries each field whose last value is no older than field_ttl,
  *     flagged GAMA_TRACK_F_*. An aircraft whose positions stopped keeps
  *     being reported, without a position, until its other fields go stale;
+ *   - its class (ADR-0023) rides in bits 6-7 of the flags, whatever
+ *     else is fresh: 0, unknown, until an identification arrives on the
+ *     AVR port, and always 0 with that port off;
  *   - aircraft with a fresh position come first, newest first, and at most
  *     max_records are sent. The rest are counted, not silently dropped.
  */
@@ -63,6 +66,7 @@ typedef struct {
     int32_t  vertical_rate_fpm;
     bool     on_ground;
     char     callsign[9];
+    uint8_t  cls;                         /* GAMA_TRACK_CLASS_*, ADR-0023     */
 } adsbd_track_t;
 
 typedef struct {
@@ -84,6 +88,14 @@ void tracks_init(adsbd_table_t *t, uint32_t capacity);
  * false if the table was full and the stalest aircraft was dropped to make
  * room for this one. */
 bool tracks_apply(adsbd_table_t *t, const sbs_msg_t *m, uint64_t now_ms);
+
+/* Sets the class (GAMA_TRACK_CLASS_*) of a tracked aircraft, from its
+ * identification message on the AVR port (ADR-0023). The latest received
+ * wins, and it lives as long as the track: an aircraft's category does not
+ * change in flight. It does not refresh the track, whose life follows the
+ * SBS messages. Returns false, changing nothing, for an address not
+ * tracked: the category alone is worth no record. */
+bool tracks_set_class(adsbd_table_t *t, uint32_t icao, uint8_t cls);
 
 /* Drops aircraft that have sent nothing for longer than expiry_ms. Returns
  * how many were dropped. */

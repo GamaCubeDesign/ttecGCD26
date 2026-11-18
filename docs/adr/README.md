@@ -55,3 +55,8 @@ Three reasons, in order of importance to the project:
 | [0016](0016-obc-software-as-obcd.md) | The OBC software is obcd, a third process built like ttcd and adsbd | **Proposed** | HLR-SW-01, HLR-GEN-02, HLR-GEN-03, HLR-COMM-02, HLR-EPS-04 |
 | [0017](0017-shared-i2c-bus-lease-to-aocs.md) | The shared I²C bus is lent to the AOCS ESP32 for a bounded time; the INA219 is not read meanwhile | **Proposed** | HLR-SW-01, HLR-COMM-02, HLR-EPS-04 (deviation), HLR-GEN-03 |
 | [0018](0018-esp32-ground-station-firmware.md) | The ESP32 ground station runs the bench ground's console, and speaks its language over USB serial | **Proposed** | HLR-COMM-01, HLR-COMM-03, HLR-SW-02, HLR-ADS-08 |
+| [0019](0019-ground-route-pair-fusion.md) | Ground route-pair analysis and phase-aware fusion | Proposed | HLR-ADS-04 |
+| [0020](0020-time-gated-adsb-startup.md) | Require a ground time anchor before ADS-B mission startup | Proposed | HLR-ADS-07, HLR-ADS-08, HLR-SW-02 |
+| [0021](0021-live-ground-adsb-ingestion.md) | Feed the aircraft estimators from the ground's existing event source | Proposed | HLR-ADS-04, HLR-ADS-07, HLR-ADS-08 |
+| [0022](0022-kinematic-aircraft-class-and-climb-back.md) | The ground infers a large aircraft from its kinematics, and the take-off distance from its climb | **Proposed** | rules 4.4.1, HLR-ADS-04 |
+| [0023](0023-onboard-emitter-category-from-avr.md) | The satellite reads the emitter category from dump1090-fa's raw output and sends it in two spare bits of the track record | **Proposed** | rules 4.4.1, HLR-ADS-02, HLR-ADS-08 |

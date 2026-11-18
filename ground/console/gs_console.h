@@ -25,6 +25,7 @@
  *   ground_power DBM      this ground station's transmit power, 2..20
  *   mode EVENT            OBC event: basic_inter aocs mission_adsb downlink
  *                         survival task_done adsb_timeout, or its number
+ *                         mission_adsb first waits for a successful SET_TIME
  *   stream SECONDS        start streaming track snapshots at this period
  *   stop                  stop streaming
  *   time                  send the ground's wall clock (SET_TIME)
@@ -88,6 +89,7 @@ typedef struct {
     uint64_t         now;          /* the time of the call in progress        */
     bool             begun, quit;
     bool             auto_time;
+    bool             adsb_after_time; /* ordered SET_TIME -> SET_MODE startup */
     bool             clock_set;
     int64_t          clock_offset; /* wall = mono + this, from `set clock`    */
     uint64_t         deaf_until;

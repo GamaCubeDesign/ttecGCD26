@@ -1,0 +1,234 @@
+{
+ "aircraft": {
+  "E10001": {
+   "callsign": "RTA001",
+   "category": "A3",
+   "origin": "SABE",
+   "destination": "SBGR",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10002": {
+   "callsign": "RTA002",
+   "category": "A3",
+   "origin": "SABE",
+   "destination": "SACO",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10003": {
+   "callsign": "RTA003",
+   "category": "A3",
+   "origin": "SABE",
+   "destination": "SAME",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10004": {
+   "callsign": "RTA004",
+   "category": "A3",
+   "origin": "SAEZ",
+   "destination": "SCEL",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10005": {
+   "callsign": "RTA005",
+   "category": "A3",
+   "origin": "SAEZ",
+   "destination": "SBPA",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10006": {
+   "callsign": "RTA006",
+   "category": "A3",
+   "origin": "SAEZ",
+   "destination": "SASA",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10007": {
+   "callsign": "RTA007",
+   "category": "A3",
+   "origin": "SABE",
+   "destination": "SAZS",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10008": {
+   "callsign": "RTA008",
+   "category": "A3",
+   "origin": "SAEZ",
+   "destination": "SARI",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10009": {
+   "callsign": "RTA009",
+   "category": "A3",
+   "origin": "SBGR",
+   "destination": "SABE",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E1000A": {
+   "callsign": "RTA010",
+   "category": "A3",
+   "origin": "SACO",
+   "destination": "SABE",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E1000B": {
+   "callsign": "RTA011",
+   "category": "A3",
+   "origin": "SCEL",
+   "destination": "SAEZ",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E1000C": {
+   "callsign": "RTA012",
+   "category": "A3",
+   "origin": "SAME",
+   "destination": "SABE",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E1000D": {
+   "callsign": "RTA013",
+   "category": "A3",
+   "origin": "SBPA",
+   "destination": "SAEZ",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E1000E": {
+   "callsign": "RTA014",
+   "category": "A3",
+   "origin": "SASA",
+   "destination": "SABE",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E1000F": {
+   "callsign": "RTA015",
+   "category": "A3",
+   "origin": "SAZS",
+   "destination": "SAEZ",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10010": {
+   "callsign": "RTA016",
+   "category": "A3",
+   "origin": "SARI",
+   "destination": "SABE",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10011": {
+   "callsign": "RTA017",
+   "category": "A3",
+   "origin": "SUMU",
+   "destination": "SAME",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10012": {
+   "callsign": "RTA018",
+   "category": "A3",
+   "origin": "SBPA",
+   "destination": "SAZM",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10013": {
+   "callsign": "RTA019",
+   "category": "A3",
+   "origin": "SBGR",
+   "destination": "SAZS",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10014": {
+   "callsign": "RTA020",
+   "category": "A3",
+   "origin": "SACO",
+   "destination": "SUMU",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10015": {
+   "callsign": "LVL021",
+   "category": "A1",
+   "origin": "SADF",
+   "destination": "SAAR",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10016": {
+   "callsign": "LVL022",
+   "category": "A1",
+   "origin": "SADM",
+   "destination": "SAZM",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  },
+  "E10017": {
+   "callsign": "LVL023",
+   "category": "A1",
+   "origin": "SADF",
+   "destination": "SUMU",
+   "evidence": {
+    "origin": "scenario",
+    "destination": "scenario"
+   }
+  }
+ }
+}

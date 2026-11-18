@@ -314,6 +314,12 @@ int main(void)
         sim_reset(10);
         ttcd_on_ipc_peer(&S.sat, S.now, GAMA_IPC_ROLE_OBC, true);
         start_streaming();
+        uint8_t time_args[GAMA_IPC_TIME_LEN];
+        gama_ipc_time_t time = { .unix_s = 1793000000u, .nsec = 0 };
+        gama_ipc_time_encode(time_args, sizeof(time_args), &time);
+        submit(GAMA_TC_SET_TIME, time_args, sizeof(time_args));
+        run_until(S.now + 10000);
+        CHECK(S.sat.time_synced);
         uint8_t ev = GAMA_OBC_EV_TC_MISSION_ADSB;
         int first = S.n_tc;
         for (int k = 0; k < 100; k++) {

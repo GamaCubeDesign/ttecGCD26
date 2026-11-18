@@ -131,6 +131,41 @@ int main(void)
         CHECK(!(out[0].flags & GAMA_TRACK_F_ON_GROUND));
     }
 
+    TEST_GROUP("tracks: the class rides in bits 6-7, kept for the track's life (ADR-0023)");
+    {
+        tracks_init(&T, 128);
+        CHECK(!tracks_set_class(&T, 0xE0B244u, GAMA_TRACK_CLASS_LARGE));   /* not tracked */
+        CHECK_EQ_INT(T.count, 0);
+        position(0xE0B244u, -34.8, -58.5, 6425, 100000);
+        size_t n = tracks_snapshot(&T, 100000, &RULES, out, 128, NULL);
+        CHECK_EQ_INT(n, 1);
+        CHECK_EQ_INT(GAMA_TRACK_CLASS(out[0].flags), GAMA_TRACK_CLASS_UNKNOWN);
+        CHECK(tracks_set_class(&T, 0xE0B244u, GAMA_TRACK_CLASS_LARGE));
+        velocity(0xE0B244u, 263.0, 185.0, 2816, 101000);
+        n = tracks_snapshot(&T, 101000, &RULES, out, 128, NULL);
+        CHECK_EQ_INT(GAMA_TRACK_CLASS(out[0].flags), GAMA_TRACK_CLASS_LARGE);
+        CHECK_EQ_INT(out[0].flags & ~GAMA_TRACK_CLASS_MASK,
+                     GAMA_TRACK_F_POSITION | GAMA_TRACK_F_ALTITUDE |
+                     GAMA_TRACK_F_VELOCITY | GAMA_TRACK_F_VRATE);
+        /* Long after the identification, still large, while the track lives. */
+        position(0xE0B244u, -34.9, -58.5, 9000, 150000);
+        n = tracks_snapshot(&T, 150000, &RULES, out, 128, NULL);
+        CHECK_EQ_INT(GAMA_TRACK_CLASS(out[0].flags), GAMA_TRACK_CLASS_LARGE);
+        /* The latest received wins. */
+        CHECK(tracks_set_class(&T, 0xE0B244u, GAMA_TRACK_CLASS_ROTOR));
+        n = tracks_snapshot(&T, 150000, &RULES, out, 128, NULL);
+        CHECK_EQ_INT(GAMA_TRACK_CLASS(out[0].flags), GAMA_TRACK_CLASS_ROTOR);
+        /* Expired and heard again: a new track, the class unknown again. */
+        CHECK_EQ_INT(tracks_expire(&T, 300000, 60000), 1);
+        position(0xE0B244u, -34.9, -58.5, 9000, 301000);
+        n = tracks_snapshot(&T, 301000, &RULES, out, 128, NULL);
+        CHECK_EQ_INT(n, 1);
+        CHECK_EQ_INT(GAMA_TRACK_CLASS(out[0].flags), GAMA_TRACK_CLASS_UNKNOWN);
+        /* The class does not keep a silent track alive. */
+        CHECK(tracks_set_class(&T, 0xE0B244u, GAMA_TRACK_CLASS_LARGE));
+        CHECK_EQ_INT(tracks_find(&T, 0xE0B244u)->last_ms, 301000);
+    }
+
     TEST_GROUP("tracks: a full table drops the aircraft heard from least recently");
     {
         tracks_init(&T, 3);

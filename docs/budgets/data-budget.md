@@ -86,6 +86,12 @@ The NDJSON log grows at ~12.5 KiB/s, so 7.34 MiB for the mission. A 16 GB SD
 card is three orders of magnitude clear of that; no rotation is needed for the
 nominal mission.
 
+With the AVR port on (ADR-0023), each identification message read there adds
+one 68-byte line with the aircraft's category: one per aircraft about every
+5 s, so 20 aircraft over 10 minutes add ~160 KB, about 2% of the record. The
+downlink does not change: the category travels in two bits of the track
+record's `flags` byte that were always 0, and the record stays 20 B.
+
 `ENV_SURVIVAL` may run indefinitely, which the OBC's `docs/log_schema.md`
 already flags as unbounded. `adsbd` caps its log at a configured size and stops
 appending rather than filling the filesystem, because a full root filesystem

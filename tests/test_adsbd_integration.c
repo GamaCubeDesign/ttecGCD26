@@ -35,6 +35,7 @@
 static char dir[64], sock_path[128], rec_path[128], log_path[128], conf_path[128];
 static const char *adsbd_bin;
 static uint16_t sbs_port;
+static uint16_t avr_port;      /* 0 in every group but the AVR one (ADR-0023) */
 /* Most groups run the decoder whatever the mode, as on a bench without an
  * OBC; the mode-driven one sets "mode". */
 static const char *decoder = "always";
@@ -69,6 +70,16 @@ static int sbs_listen(void)
     return s;
 }
 
+/* dump1090's raw (AVR) port, played the same way (ADR-0023). */
+static int avr_listen(void)
+{
+    uint16_t keep = sbs_port;
+    int s = sbs_listen();
+    avr_port = sbs_port;
+    sbs_port = keep;
+    return s;
+}
+
 static bool readable(int fd, int ms)
 {
     struct pollfd p = { .fd = fd, .events = POLLIN };
@@ -98,6 +109,9 @@ static void write_conf(const char *dump1090_cmd)
             "dump1090_cmd = %s\ndecoder = %s\n"
             "retry_ms = 200\nrestart_min_ms = 100\nrestart_max_ms = 400\n",
             sock_path, sbs_port, rec_path, log_path, dump1090_cmd, decoder);
+    if (avr_port != 0) {
+        fprintf(cf, "avr_port = %u\n", avr_port);
+    }
     fclose(cf);
 }
 
@@ -443,6 +457,8 @@ int main(int argc, char **argv)
 
         send_mode(ipc, GAMA_OBC_ST_PRE_TEST);
         CHECK(!wait_for_log("\"event\":\"dump1090_start\"", 500));
+        /* This adsbd was never sent IPC_TIME_SET: the mode alone starts the
+         * decoder, and the record is stamped unsynchronised (ADR-0020). */
         send_mode(ipc, GAMA_OBC_ST_MISSION_ADSB);
         CHECK(wait_for_log("\"event\":\"dump1090_start\"", 2000));
         int dpid = dump1090_pid();
@@ -504,6 +520,62 @@ int main(int argc, char **argv)
         CHECK(dpid > 0 && kill(dpid, 0) != 0 && errno == ESRCH);   /* and gone */
         int ipc2 = accept_within(ttcd_lfd, 10);           /* drain its connection */
         if (ipc2 >= 0) { close(ipc2); }
+    }
+
+    TEST_GROUP("integration: the AVR port gives the class, the record the category (ADR-0023)");
+    {
+        unlink(log_path);
+        unlink(rec_path);
+        /* Connections earlier adsbd runs left queued, never accepted. */
+        for (int old; (old = accept_within(sbs_lfd, 10)) >= 0;) { close(old); }
+        for (int old; (old = accept_within(ttcd_lfd, 10)) >= 0;) { close(old); }
+        int avr_lfd = avr_listen();
+        pid_t pid = start_adsbd("");
+        int ipc3 = accept_within(ttcd_lfd, 3000);
+        int sbs3 = accept_within(sbs_lfd, 3000);
+        int avr3 = accept_within(avr_lfd, 3000);
+        CHECK(ipc3 >= 0 && sbs3 >= 0 && avr3 >= 0);
+        if (ipc3 >= 0 && sbs3 >= 0 && avr3 >= 0) {
+            fcntl(ipc3, F_SETFL, O_NONBLOCK);
+            say(sbs3, "MSG,3,1,1,E0B244,1,,,,,,6425,,,-34.800000,-58.500000,,,0,,0,0\n");
+            pause_ms(100);
+            /* An A3 identification, a position message, a corrupted
+             * identification and a line that is not AVR. */
+            say(avr3, "*8DE0B244232CC371C32CE090D327;\n"
+                      "*8D40621D58C382D690C8AC2863A7;\n"
+                      "*8DE0B244232CC371C32CE090D328;\n"
+                      "not avr\n");
+            heard_t h3;
+            memset(&h3, 0, sizeof(h3));
+            uint64_t until = now_ms() + 3000;
+            const gama_track_t *t = NULL;
+            while (now_ms() < until) {
+                listen_ttcd(ipc3, 300, &h3, NULL);
+                t = heard_track(&h3, 0xE0B244);
+                if (t != NULL && GAMA_TRACK_CLASS(t->flags) == GAMA_TRACK_CLASS_LARGE) {
+                    break;
+                }
+            }
+            CHECK(t != NULL && GAMA_TRACK_CLASS(t->flags) == GAMA_TRACK_CLASS_LARGE);
+            CHECK(t != NULL && (t->flags & GAMA_TRACK_F_POSITION));
+            CHECK(file_contains(rec_path, "\"icao\":\"E0B244\""));
+            CHECK(file_contains(rec_path, "\"category\":\"A3\""));
+            CHECK(file_contains(log_path, "\"event\":\"avr_up\""));
+            CHECK(file_contains(log_path, "\"event\":\"avr_reject\",\"why\":\"crc\""));
+            CHECK(file_contains(log_path, "\"event\":\"avr_reject\",\"why\":\"format\""));
+            /* dump1090's raw port closing is survived like the SBS one. */
+            close(avr3);
+            avr3 = accept_within(avr_lfd, 3000);
+            CHECK(avr3 >= 0);
+            CHECK(wait_for_log("\"event\":\"avr_down\"", 1000));
+        }
+        CHECK_EQ_INT(stop_adsbd(pid), 0);
+        CHECK(file_contains(log_path, "\"avr_port\":"));
+        if (avr3 >= 0) { close(avr3); }
+        if (sbs3 >= 0) { close(sbs3); }
+        if (ipc3 >= 0) { close(ipc3); }
+        close(avr_lfd);
+        avr_port = 0;
     }
 
     close(sbs_lfd);

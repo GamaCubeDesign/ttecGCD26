@@ -1,0 +1,42 @@
+{
+  "world": {
+    "facilities": 86112,
+    "named_city_groups": 43609,
+    "named_city_groups_with_fixed_wing_airports": 30891,
+    "unnamed_facilities": 4746,
+    "countries_with_records": 247,
+    "roles": {
+      "small_local": 41836,
+      "special_facility": 24555,
+      "medium_reserve": 1985,
+      "selected": 3291,
+      "closed": 13544,
+      "runway_conflict": 36,
+      "scheduled_gap": 865
+    },
+    "cities_with_multiple_fixed_wing_airports": 5740,
+    "cities_with_multiple_selected_airports": 51,
+    "cities_with_scheduled_gaps": 838,
+    "cities_without_selected_airport": 27705
+  },
+  "latin_america": {
+    "facilities": 15781,
+    "named_city_groups": 6059,
+    "named_city_groups_with_fixed_wing_airports": 5022,
+    "unnamed_facilities": 516,
+    "countries_with_records": 26,
+    "roles": {
+      "small_local": 10450,
+      "special_facility": 3381,
+      "medium_reserve": 215,
+      "selected": 403,
+      "closed": 1234,
+      "runway_conflict": 9,
+      "scheduled_gap": 89
+    },
+    "cities_with_multiple_fixed_wing_airports": 1426,
+    "cities_with_multiple_selected_airports": 6,
+    "cities_with_scheduled_gaps": 88,
+    "cities_without_selected_airport": 4625
+  }
+}

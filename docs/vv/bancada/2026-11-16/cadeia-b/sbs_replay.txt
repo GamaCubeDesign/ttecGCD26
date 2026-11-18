@@ -1,0 +1,3 @@
+sbs_replay: waiting for a client on 127.0.0.1:31003
+sbs_replay: 127.0.0.1:53302 connected
+sbs_replay: end of input, 32940 lines sent

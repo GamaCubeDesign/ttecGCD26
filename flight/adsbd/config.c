@@ -115,6 +115,14 @@ int adsbd_config_set(adsbd_config_t *c, const char *key, const char *value,
         c->sbs_port = (uint16_t)t;
         return 0;
     }
+    if (strcmp(key, "avr_port") == 0) {
+        uint64_t t;
+        if (set_u(&t, 0, 65535, key, value, err, errlen) != 0) {
+            return -1;
+        }
+        c->avr_port = (uint16_t)t;
+        return 0;
+    }
     if (strcmp(key, "ndjson_max_bytes") == 0) {
         return set_u(&c->ndjson_max_bytes, 4096u, UINT64_MAX, key, value, err, errlen);
     }
@@ -246,6 +254,30 @@ int adsbd_config_validate(const adsbd_config_t *c, char *err, size_t errlen)
     if (argv[0] != NULL && argv[0][0] != '/') {
         snprintf(err, errlen, "dump1090_cmd must start with an absolute path (no shell, no PATH)");
         return -1;
+    }
+    if (c->avr_port != 0) {
+        /* ADR-0023. The default command turns the raw output off
+         * (--net-ro-port 0): reading a port dump1090 never opens would only
+         * retry forever, so the two must agree. */
+        if (c->avr_port == c->sbs_port) {
+            snprintf(err, errlen, "avr_port must differ from sbs_port");
+            return -1;
+        }
+        if (argv[0] != NULL) {
+            char want[8];
+            snprintf(want, sizeof(want), "%u", (unsigned)c->avr_port);
+            bool found = false;
+            for (int i = 1; argv[i] != NULL && argv[i + 1] != NULL; i++) {
+                if (strcmp(argv[i], "--net-ro-port") == 0 && strcmp(argv[i + 1], want) == 0) {
+                    found = true;
+                }
+            }
+            if (!found) {
+                snprintf(err, errlen, "avr_port %s: dump1090_cmd must have --net-ro-port %s",
+                         want, want);
+                return -1;
+            }
+        }
     }
     return 0;
 }

@@ -1,0 +1,26 @@
+{"mono_ms":116,"wall_ms":1794862675723,"ev":"start","radio":"esp32","profile":"NOMINAL"}
+{"mono_ms":136,"wall_ms":1794862675743,"ev":"command","text":"ping 10"}
+{"mono_ms":412,"wall_ms":1794862676019,"ev":"contact","up":true}
+{"mono_ms":412,"wall_ms":1794862676019,"ev":"frame","type":"TC_ACK","seq":1,"rssi":-48,"snr":13,"payload":"01000100"}
+{"mono_ms":412,"wall_ms":1794862676019,"ev":"ack","id":1,"cmd":"PING","status":"OK","latency_ms":276,"attempts":1}
+{"mono_ms":689,"wall_ms":1794862676296,"ev":"frame","type":"TC_ACK","seq":2,"rssi":-49,"snr":13,"payload":"01000200"}
+{"mono_ms":689,"wall_ms":1794862676296,"ev":"ack","id":2,"cmd":"PING","status":"OK","latency_ms":277,"attempts":1}
+{"mono_ms":965,"wall_ms":1794862676572,"ev":"frame","type":"TC_ACK","seq":3,"rssi":-49,"snr":12,"payload":"01000300"}
+{"mono_ms":965,"wall_ms":1794862676572,"ev":"ack","id":3,"cmd":"PING","status":"OK","latency_ms":276,"attempts":1}
+{"mono_ms":1241,"wall_ms":1794862676848,"ev":"frame","type":"TC_ACK","seq":4,"rssi":-49,"snr":13,"payload":"01000400"}
+{"mono_ms":1241,"wall_ms":1794862676848,"ev":"ack","id":4,"cmd":"PING","status":"OK","latency_ms":276,"attempts":1}
+{"mono_ms":1517,"wall_ms":1794862677124,"ev":"frame","type":"TC_ACK","seq":5,"rssi":-48,"snr":12,"payload":"01000500"}
+{"mono_ms":1517,"wall_ms":1794862677124,"ev":"ack","id":5,"cmd":"PING","status":"OK","latency_ms":276,"attempts":1}
+{"mono_ms":1793,"wall_ms":1794862677400,"ev":"frame","type":"TC_ACK","seq":6,"rssi":-48,"snr":12,"payload":"01000600"}
+{"mono_ms":1793,"wall_ms":1794862677400,"ev":"ack","id":6,"cmd":"PING","status":"OK","latency_ms":276,"attempts":1}
+{"mono_ms":2069,"wall_ms":1794862677676,"ev":"frame","type":"TC_ACK","seq":7,"rssi":-49,"snr":13,"payload":"01000700"}
+{"mono_ms":2069,"wall_ms":1794862677676,"ev":"ack","id":7,"cmd":"PING","status":"OK","latency_ms":276,"attempts":1}
+{"mono_ms":2346,"wall_ms":1794862677953,"ev":"frame","type":"TC_ACK","seq":8,"rssi":-48,"snr":12,"payload":"01000800"}
+{"mono_ms":2346,"wall_ms":1794862677953,"ev":"ack","id":8,"cmd":"PING","status":"OK","latency_ms":277,"attempts":1}
+{"mono_ms":2622,"wall_ms":1794862678229,"ev":"frame","type":"TC_ACK","seq":9,"rssi":-48,"snr":13,"payload":"01000900"}
+{"mono_ms":2622,"wall_ms":1794862678229,"ev":"ack","id":9,"cmd":"PING","status":"OK","latency_ms":276,"attempts":1}
+{"mono_ms":2898,"wall_ms":1794862678505,"ev":"frame","type":"TC_ACK","seq":10,"rssi":-49,"snr":12,"payload":"01000a00"}
+{"mono_ms":2898,"wall_ms":1794862678505,"ev":"ack","id":10,"cmd":"PING","status":"OK","latency_ms":276,"attempts":1}
+{"mono_ms":2898,"wall_ms":1794862678505,"ev":"ping_summary","sent":10,"acked":10,"failed":0,"attempts":10,"latency_min_ms":276,"latency_mean_ms":276,"latency_max_ms":277}
+{"mono_ms":2917,"wall_ms":1794862678524,"ev":"command","text":"quit"}
+{"mono_ms":2918,"wall_ms":1794862678525,"ev":"summary","dl_frames":10,"dl_lost":0,"dl_bad":0,"tc_sent":10,"tc_acked":10,"tc_failed":0,"lbt_defers":0}

@@ -1,0 +1,6 @@
+CONCLUSÃO COMBINADA
+  ORIGEM  : acertos=6 | erros=0 | UNKNOWN=20 | falso positivo=0 | coverage=23.1% | acerto quando decidiu=100.0%
+  DESTINO : acertos=3 | erros=0 | UNKNOWN=9 | falso positivo=2 | coverage=25.0% | acerto quando decidiu=100.0%
+MELHOR PAR
+  ORIGEM  : acertos=0 | erros=0 | UNKNOWN=26 | falso positivo=0 | coverage=0.0% | acerto quando decidiu=-
+  DESTINO : acertos=0 | erros=0 | UNKNOWN=12 | falso positivo=0 | coverage=0.0% | acerto quando decidiu=-

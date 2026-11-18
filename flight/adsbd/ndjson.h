@@ -4,7 +4,7 @@
  * HLR-ADS-07).
  *
  * The format is the prototype's (adsb_capture.c), byte for byte, for two
- * reasons: the ground's estimator (ground/host/ground-aeronaves) already
+ * reasons: the ground's estimator (ground/host/adsb/estimator) already
  * reads it, and tools/analysis/lora_budget.py sizes the whole data
  * budget from it — 160.4 B per line, 7.34 MiB per mission. tests/test_sbs.c
  * pins the three lines that budget is computed from.
@@ -36,6 +36,13 @@ extern "C" {
 /* Writes the line for m, '\n' included, NUL-terminated. Returns its length
  * without the NUL, or -1 if cap is too small. */
 int adsbd_ndjson_format(char *buf, size_t cap, const sbs_msg_t *m, uint64_t rx_epoch_ns);
+
+/* The line for an emitter category read on the AVR port (ADR-0023):
+ * {"icao":"E0B244","rx_epoch_ns":...,"category":"A3"}. The ground's
+ * estimator reads it as an identification. set is 'A'..'D', category 0..7.
+ * Returns the length without the NUL, or -1 if cap is too small. */
+int adsbd_ndjson_category(char *buf, size_t cap, uint32_t icao, char set,
+                          uint8_t category, uint64_t rx_epoch_ns);
 
 #ifdef __cplusplus
 }

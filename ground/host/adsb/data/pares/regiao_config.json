@@ -1,0 +1,46 @@
+{
+  "region_id": "latin_america_v1",
+  "description": "20 países latino-americanos e seis territórios associados; definição operacional configurável",
+  "country_codes": [
+    "AR",
+    "BO",
+    "BR",
+    "CL",
+    "CO",
+    "CR",
+    "CU",
+    "DO",
+    "EC",
+    "SV",
+    "GT",
+    "HT",
+    "HN",
+    "MX",
+    "NI",
+    "PA",
+    "PY",
+    "PE",
+    "UY",
+    "VE",
+    "PR",
+    "GF",
+    "GP",
+    "MQ",
+    "MF",
+    "BL"
+  ],
+  "priority": {
+    "endpoint": 2,
+    "crossing_only": 1,
+    "other": 0
+  },
+  "score_bonus_enabled": false,
+  "score_bonus": {
+    "endpoint": 0.0,
+    "crossing_only": 0.0,
+    "other": 0.0
+  },
+  "max_segment_km": 50.0,
+  "geometry_file": "geografia/america_latina.geojson",
+  "geometry_method": "shortest spherical arc, densified to <=50 km; planar segment intersection with Natural Earth 1:50m land polygons; no territorial waters"
+}

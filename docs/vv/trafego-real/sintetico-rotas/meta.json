@@ -1,0 +1,8 @@
+{
+ "scenario": "rotas",
+ "flights": 23,
+ "records": 2430,
+ "period_s": 5,
+ "mission_s": 600,
+ "generator": "tools/live_traffic/synthetic.py"
+}

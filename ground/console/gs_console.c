@@ -3,7 +3,7 @@
  *
  * The output format is the one tools/gs_cli has written since the bench of
  * 2026-10-07: the bench scripts (tools/bench/run_step.sh) and the downlink
- * adapter (ground/host/tracks_to_ndjson.py) read it byte for byte, and
+ * adapter (ground/host/adsb/tracks_to_ndjson.py) read it byte for byte, and
  * tests/test_gs_console.c pins it.
  */
 
@@ -348,6 +348,15 @@ static void g_event(void *ctx, uint64_t now, const gs_event_t *e)
             e->latency_ms, e->attempts);
         if (e->id != 0 && c->a.kind == GS_AWAIT_ACK && e->id == c->a.id) {
             c->a.kind = GS_IDLE;
+            if (c->adsb_after_time) {
+                c->adsb_after_time = false;
+                if (e->cmd == GAMA_TC_SET_TIME && e->status == GAMA_ACK_OK) {
+                    uint8_t mode = GAMA_OBC_EV_TC_MISSION_ADSB;
+                    submit(c, GAMA_TC_SET_MODE, &mode, 1);
+                } else {
+                    out(c, "\"ev\":\"error\",\"what\":\"ADSB not started: SET_TIME refused\"");
+                }
+            }
         } else if (e->id != 0 && c->a.kind == GS_PINGING && e->id == c->a.id) {
             c->a.acked++;
             c->a.attempts += e->attempts;
@@ -361,6 +370,7 @@ static void g_event(void *ctx, uint64_t now, const gs_event_t *e)
         out(c, "\"ev\":\"tc_failed\",\"id\":%" PRIu32 ",\"cmd\":\"%s\",\"attempts\":%u",
             e->id, gama_tc_name(e->cmd), e->attempts);
         if (c->a.kind == GS_AWAIT_ACK && e->id == c->a.id) {
+            c->adsb_after_time = false;
             c->a.kind = GS_IDLE;
         } else if (c->a.kind == GS_PINGING && e->id == c->a.id) {
             c->a.failed++;
@@ -603,7 +613,12 @@ void gs_console_line(gs_console_t *c, uint64_t now, char *line)
         int ev = parse_event(arg);
         if (ev < 0) { out(c, "\"ev\":\"error\",\"what\":\"unknown OBC event\""); return; }
         uint8_t e = (uint8_t)ev;
-        submit(c, GAMA_TC_SET_MODE, &e, 1);
+        if (e == GAMA_OBC_EV_TC_MISSION_ADSB) {
+            submit_time(c, true);
+            c->adsb_after_time = c->a.kind == GS_AWAIT_ACK;
+        } else {
+            submit(c, GAMA_TC_SET_MODE, &e, 1);
+        }
     } else if (strcmp(cmd, "stream") == 0 && arg != NULL) {
         if (!parse_real(arg, 0.0, 6553.5, &d)) {
             out(c, "\"ev\":\"error\",\"what\":\"stream SECONDS\"");

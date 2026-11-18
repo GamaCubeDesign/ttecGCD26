@@ -1,0 +1,305 @@
+"""gs_web.py: the state from the ground's lines, the commands the page may
+send, and the server end to end against a fake ground process."""
+
+import json
+import os
+import subprocess
+import sys
+import textwrap
+import unittest
+import urllib.error
+import urllib.request
+
+HERE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # ground/host
+sys.path.insert(0, HERE)
+import gs_web  # noqa: E402
+
+
+def hk(mode="PRE_TEST", battery=7400, current=80, temp=2588, t=0):
+    return {"mono_ms": t, "wall_ms": 1793000000000 + t, "ev": "hk", "seq": 1, "rssi": -50,
+            "snr": 10, "battery_mv": battery, "current_ma": current, "temp_bat_ccel": temp,
+            "temp_ext_ccel": -32768, "temp_soc_ccel": 4293, "roll_cdeg": -32768,
+            "pitch_cdeg": -32768, "yaw_cdeg": -32768, "adsb_msgs": 4294967295,
+            "obc_mode": mode, "link": "IDLE", "uptime_s": 16, "flags": 1}
+
+
+class Clock:
+    def __init__(self):
+        self.t = 1000.0
+
+    def __call__(self):
+        return self.t
+
+
+class TestCommands(unittest.TestCase):
+    def test_allowed(self):
+        for cmd in ("ping 3", "hk", "stat", "roster", "time", "stop", "stream 5", "stream 2.5",
+                    "rate fast", "mode mission_adsb", "mode downlink", "mode survival",
+                    "mode task_done"):
+            self.assertIsNone(gs_web.check_command(cmd, False), cmd)
+
+    def test_refused(self):
+        for cmd in ("shutdown confirm", "deafen 10", "quit", "set power 20", "ping", "ping 3; hk",
+                    "mode 1", "rate turbo", "hk\nquit", "", None, 5):
+            self.assertIsNotNone(gs_web.check_command(cmd, True), repr(cmd))
+
+    def test_mechanism_and_aocs_need_arming(self):
+        for cmd in ("mode basic_inter", "mode aocs"):
+            self.assertEqual(gs_web.check_command(cmd, False), "arm first")
+            self.assertIsNone(gs_web.check_command(cmd, True))
+
+
+class TestState(unittest.TestCase):
+    def setUp(self):
+        self.clock = Clock()
+        self.s = gs_web.GsState("test", now=self.clock)
+
+    def test_no_data_becomes_none(self):
+        self.s.feed(hk(battery=65535, current=-32768, temp=-32768))
+        snap = self.s.snapshot()["hk"]
+        self.assertIsNone(snap["battery_mv"])
+        self.assertIsNone(snap["current_ma"])
+        self.assertIsNone(snap["temp_bat_ccel"])
+        self.assertIsNone(snap["adsb_msgs"])
+        self.assertEqual(snap["obc_mode"], "PRE_TEST")
+
+    def test_values_pass_through(self):
+        self.s.feed(hk(battery=7400, current=84, temp=2588))
+        snap = self.s.snapshot()["hk"]
+        self.assertEqual((snap["battery_mv"], snap["current_ma"], snap["temp_bat_ccel"]), (7400, 84, 2588))
+
+    def test_mode_change_is_logged_once(self):
+        self.s.feed(hk("PRE_TEST"))
+        self.s.feed(hk("PRE_TEST"))
+        self.clock.t += 5
+        self.s.feed(hk("MISSION_ADSB"))
+        modes = [e for e in self.s.snapshot()["log"] if e["kind"] == "mode"]
+        self.assertEqual(len(modes), 1)
+        self.assertIn("PRE_TEST → MISSION_ADSB", modes[0]["text"])
+        self.assertEqual(self.s.snapshot()["mode"], "MISSION_ADSB")
+
+    def test_ages_follow_the_clock(self):
+        self.s.feed(hk())
+        self.clock.t += 12.34
+        snap = self.s.snapshot()
+        self.assertEqual(snap["hk_age"], 12.3)
+        self.assertEqual(snap["frame_age"], 12.3)
+
+    def test_contact_acks_and_failures(self):
+        self.s.feed({"ev": "contact", "up": True})
+        self.s.feed({"ev": "ack", "cmd": "PING", "status": "OK", "latency_ms": 268, "attempts": 1})
+        self.s.feed({"ev": "ack", "cmd": "SET_MODE", "status": "OK", "latency_ms": 290, "attempts": 1})
+        self.s.feed({"ev": "tc_failed", "cmd": "SET_MODE", "attempts": 27})
+        snap = self.s.snapshot()
+        self.assertTrue(snap["contact"])
+        self.assertEqual(snap["acks"], {"ok": 2, "bad": 0, "tc_failed": 1, "rx_bad": 0, "latency_ms": 279})
+        self.s.feed({"ev": "contact", "up": False})
+        self.assertFalse(self.s.snapshot()["contact"])
+
+    def test_radio_error_is_shown_and_cleared_by_start(self):
+        self.s.feed({"ev": "error", "what": "ground station radio: unexpected RegVersion"})
+        self.assertIn("RegVersion", self.s.snapshot()["error"])
+        self.s.feed({"ev": "start", "radio": "esp32", "profile": "NOMINAL"})
+        self.assertIsNone(self.s.snapshot()["error"])
+        self.assertEqual(self.s.snapshot()["ground"], {"radio": "esp32", "profile": "NOMINAL"})
+
+    def test_link_series_are_bounded(self):
+        for i in range(200):
+            self.s.feed(hk(t=i))
+        snap = self.s.snapshot()
+        self.assertEqual(len(snap["rssi"]), gs_web.GsState.SPARK_MAX)
+        self.assertLessEqual(len(snap["log"]), 120)
+
+    def test_unknown_lines_are_ignored(self):
+        self.s.feed({"x": 1})
+        self.s.feed({"ev": "something_new", "a": 1})
+        self.assertIsNone(self.s.snapshot()["hk"])
+
+    def test_hk_flags_are_decoded_and_its_line_has_no_sentinels(self):
+        self.s.feed(dict(hk(), flags=4 | 8))
+        h = self.s.snapshot()["hk"]
+        self.assertEqual((h["obc_linked"], h["adsb_linked"], h["time_synced"], h["dump1090_up"]),
+                         (False, False, True, True))
+        self.s.feed(dict(hk(), battery_mv=65535, current_ma=-32768))
+        text = self.s.snapshot()["log"][-1]["text"]
+        self.assertEqual(text, "hk: PRE_TEST · 25.9 °C · 42.9 °C SoC")
+
+    def test_the_log_comes_whole_or_as_what_is_new(self):
+        for i in range(5):
+            self.s.note("info", "line %d" % i)
+        full = self.s.snapshot()
+        self.assertTrue(full["full"])
+        self.assertEqual(full["log_n"], 5)
+        delta = self.s.snapshot(since=3)
+        self.assertFalse(delta["full"])
+        self.assertEqual([e["text"] for e in delta["log"]], ["line 3", "line 4"])
+
+    def ack(self, cmd, status="OK", ms=300):
+        self.s.feed({"ev": "ack", "id": 1, "cmd": cmd, "status": status, "latency_ms": ms, "attempts": 1})
+
+    def test_a_mission_is_followed_from_the_command_to_the_downlink(self):
+        self.clock.t = 0.0
+        self.s.feed(hk())
+        self.s.feed({"ev": "command", "text": "mode mission_adsb"})
+        self.clock.t = 1.0
+        self.ack("SET_TIME", ms=310)
+        self.ack("SET_MODE", ms=289)
+        self.clock.t = 4.0
+        self.s.feed(dict(hk(mode="MISSION_ADSB"), flags=4))
+        self.clock.t = 9.0
+        self.s.feed(dict(hk(mode="MISSION_ADSB"), flags=4 | 8))
+        self.s.feed({"ev": "tracks", "n": 8})
+        self.clock.t = 10.0
+        self.s.feed({"ev": "tracks", "n": 8})
+        self.clock.t = 604.0
+        self.s.feed(hk(mode="MISSION_DOWNLINK"))
+        self.s.feed({"ev": "tracks", "n": 8})            # after the mission: not counted
+        run = self.s.snapshot()["runs"][-1]
+        self.assertEqual(run["target"], "MISSION_ADSB")
+        self.assertEqual([(a["cmd"], a["status"], a["latency_ms"]) for a in run["acks"]],
+                         [("SET_TIME", "OK", 310), ("SET_MODE", "OK", 289)])
+        self.assertEqual((run["sent"], run["entered"], run["dump1090"], run["first_tracks"]), (0, 4.0, 9.0, 9.0))
+        self.assertEqual((run["tracks"], run["left"], run["left_to"], run["failed"]), (2, 604.0, "MISSION_DOWNLINK", None))
+
+    def test_a_refused_time_fails_the_run(self):
+        self.s.feed({"ev": "command", "text": "mode mission_adsb"})
+        self.ack("SET_TIME", status="BAD_ARGS")
+        run = self.s.snapshot()["runs"][-1]
+        self.assertEqual(run["failed"], "SET_TIME BAD_ARGS")
+        self.s.feed({"ev": "command", "text": "mode mission_adsb"})
+        self.s.feed({"ev": "tc_failed", "id": 2, "cmd": "SET_TIME", "attempts": 8})
+        self.assertEqual(self.s.snapshot()["runs"][-1]["failed"], "SET_TIME NO_ACK")
+
+    def test_other_commands_are_not_runs(self):
+        for text in ("ping 3", "hk", "rate fast", "mode"):
+            self.s.feed({"ev": "command", "text": text})
+        self.assertEqual(self.s.snapshot()["runs"], [])
+
+
+class TestHub(unittest.TestCase):
+    def test_a_burst_reaches_the_pages_as_few_messages_with_every_entry(self):
+        hub = gs_web.Hub(gs_web.GsState(), source=None)
+        self.addCleanup(hub.close)
+        q = hub.subscribe()
+        first = json.loads(q.get(timeout=1))
+        self.assertTrue(first["full"])
+        for i in range(200):
+            hub.note("info", "line %d" % i)
+        import time
+        time.sleep(1.3)
+        msgs = []
+        while not q.empty():
+            msgs.append(json.loads(q.get_nowait()))
+        self.assertLessEqual(len(msgs), 4)
+        texts = [e["text"] for m in msgs for e in m["log"]]
+        self.assertEqual(texts, ["line %d" % i for i in range(200)])
+
+
+FAKE_GROUND = textwrap.dedent("""
+    import json, sys
+    def out(**o):
+        print(json.dumps(o), flush=True)
+    out(ev="start", radio="udp", profile="NOMINAL")
+    out(ev="contact", up=True)
+    out(ev="hk", seq=1, rssi=-50, snr=10, battery_mv=7400, current_ma=80, temp_bat_ccel=2588,
+        temp_ext_ccel=-32768, temp_soc_ccel=4293, roll_cdeg=-32768, pitch_cdeg=-32768,
+        yaw_cdeg=-32768, adsb_msgs=4294967295, obc_mode="PRE_TEST", link="IDLE", uptime_s=5, flags=1)
+    for line in sys.stdin:
+        out(ev="command", text=line.strip())
+        if line.strip() == "quit":
+            break
+""")
+
+
+class TestSources(unittest.TestCase):
+    def test_udp_runs_the_repository_gs_cli(self):
+        # --udp once looked one directory above the repository (16/11).
+        source, name = gs_web.build_source(gs_web.argparse.Namespace(
+            replay=None, serial=None, udp=True, exec=None))
+        self.assertEqual(name, "udp")
+        self.assertEqual(source.argv[0], gs_web.GS_CLI)
+        self.assertTrue(os.path.isfile(os.path.join(gs_web.REPO, "flight", "ttcd", "link.c")))
+        self.assertTrue(gs_web.GS_CLI.startswith(gs_web.REPO + os.sep))
+
+
+class TestServer(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.proc = subprocess.Popen(
+            [sys.executable, os.path.join(HERE, "gs_web.py"), "--port", "0", "--exec",
+             sys.executable, "-c", FAKE_GROUND],
+            stdout=subprocess.PIPE, text=True)
+        first = cls.proc.stdout.readline()
+        cls.base = first.split(" on ")[1].strip()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.proc.terminate()
+        cls.proc.wait(timeout=5)
+        cls.proc.stdout.close()
+
+    def get(self, path):
+        return urllib.request.urlopen(self.base + path, timeout=5)
+
+    def post(self, cmd, armed=False):
+        req = urllib.request.Request(
+            self.base + "/api/cmd", data=json.dumps({"cmd": cmd, "armed": armed}).encode(),
+            headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=5) as r:
+                return r.status, json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            with e:
+                return e.code, json.loads(e.read())
+
+    def wait_state(self, ready):
+        import time
+        for _ in range(50):
+            snap = json.loads(self.get("/api/state").read())
+            if ready(snap):
+                return snap
+            time.sleep(0.1)
+        self.fail("the state never got there")
+
+    def test_page_and_state(self):
+        page = self.get("/").read().decode()
+        self.assertIn('src="/js/main.js"', page)
+        with self.get("/js/state.js") as r:
+            self.assertEqual(r.headers["Content-Type"], "text/javascript; charset=utf-8")
+            self.assertIn("EventSource('/events')", r.read().decode())
+        with self.get("/fonts/OpenSans.woff2") as r:
+            self.assertEqual(r.headers["Content-Type"], "font/woff2")
+        for path in ("/../gs_web.py", "/%2e%2e/gs_web.py", "/js/../../gs_web.py", "/aocs/README.md", "/nothing.js"):
+            with self.assertRaises(urllib.error.HTTPError, msg=path) as cm:
+                self.get(path)
+            self.assertEqual(cm.exception.code, 404, path)
+            cm.exception.close()
+        with self.get("/api/adsb") as r:
+            self.assertEqual(json.loads(r.read())["aircraft"], [])
+        snap = self.wait_state(lambda s: s["hk"] is not None)
+        self.assertEqual(snap["mode"], "PRE_TEST")
+        self.assertIsNone(snap["hk"]["adsb_msgs"])
+        self.assertTrue(snap["contact"])
+
+    def test_command_reaches_the_ground(self):
+        self.assertEqual(self.post("ping 3")[0], 200)
+        self.wait_state(lambda s: any(e["text"] == "> ping 3" for e in s["log"]))
+
+    def test_refused_commands_do_not_reach_the_ground(self):
+        self.assertEqual(self.post("shutdown confirm", armed=True)[0], 403)
+        self.assertEqual(self.post("mode basic_inter")[0], 403)
+        code, body = self.post("mode basic_inter", armed=True)
+        self.assertEqual((code, body["ok"]), (200, True))
+        snap = self.wait_state(lambda s: any(e["text"] == "> mode basic_inter" for e in s["log"]))
+        self.assertFalse(any("shutdown" in e["text"] for e in snap["log"]))
+
+    def test_event_stream_starts_with_the_state(self):
+        with self.get("/events") as r:
+            self.assertEqual(r.headers["Content-Type"], "text/event-stream")
+            line = r.readline().decode()
+            self.assertTrue(line.startswith("data: "))
+            json.loads(line[6:])
+
+
+if __name__ == "__main__":
+    unittest.main()

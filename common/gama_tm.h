@@ -71,6 +71,24 @@ extern "C" {
 #define GAMA_TRACK_F_ON_GROUND (1u << 4)
 #define GAMA_TRACK_F_CALLSIGN  (1u << 5) /* callsign already sent in ROSTER */
 
+/* Bits 6-7: the aircraft class, from the ADS-B emitter category the
+ * satellite read in an identification message (ADR-0023). 0 is "unknown",
+ * which is also what every record carried before ADR-0023, so the field
+ * needs no version change. It is not a validity bit: it is a value. */
+#define GAMA_TRACK_CLASS_SHIFT 6u
+#define GAMA_TRACK_CLASS_MASK  (3u << GAMA_TRACK_CLASS_SHIFT)
+#define GAMA_TRACK_CLASS_UNKNOWN 0u  /* none received, A0, B0, B2-B7, sets C, D */
+#define GAMA_TRACK_CLASS_LIGHT   1u  /* A1, A2, B1 (glider)                 */
+#define GAMA_TRACK_CLASS_LARGE   2u  /* A3, A4, A5, A6                      */
+#define GAMA_TRACK_CLASS_ROTOR   3u  /* A7                                  */
+
+/* The class carried in a flags byte, and a flags byte with one set. */
+#define GAMA_TRACK_CLASS(flags) \
+    ((uint8_t)(((unsigned)(flags) & GAMA_TRACK_CLASS_MASK) >> GAMA_TRACK_CLASS_SHIFT))
+#define GAMA_TRACK_WITH_CLASS(flags, cls) \
+    ((uint8_t)(((unsigned)(flags) & ~GAMA_TRACK_CLASS_MASK) | \
+               (((unsigned)(cls) << GAMA_TRACK_CLASS_SHIFT) & GAMA_TRACK_CLASS_MASK)))
+
 typedef struct {
     uint32_t icao;            /* 24-bit ICAO address                       */
     double   latitude;        /* degrees, -90 .. +90                       */
@@ -80,7 +98,7 @@ typedef struct {
     double   track_deg;       /* degrees true, 0 .. 360, step 0.01         */
     int32_t  vertical_rate_fpm; /* feet per minute, step 1                 */
     uint16_t age_ds;          /* see "Track age" below                     */
-    uint8_t  flags;           /* GAMA_TRACK_F_*                            */
+    uint8_t  flags;           /* GAMA_TRACK_F_*, class in bits 6-7          */
 } gama_track_t;
 
 /*
