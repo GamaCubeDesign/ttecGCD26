@@ -135,6 +135,28 @@ int main(void)
         CHECK(out.flags & GAMA_TRACK_F_ON_GROUND);
     }
 
+    TEST_GROUP("track: the class bits survive the wire and leave the validity bits alone");
+    {
+        static const uint8_t classes[] = { GAMA_TRACK_CLASS_UNKNOWN, GAMA_TRACK_CLASS_LIGHT,
+                                           GAMA_TRACK_CLASS_LARGE, GAMA_TRACK_CLASS_ROTOR };
+        for (size_t i = 0; i < sizeof(classes); i++) {
+            uint8_t all = GAMA_TRACK_F_POSITION | GAMA_TRACK_F_ALTITUDE | GAMA_TRACK_F_VELOCITY |
+                          GAMA_TRACK_F_VRATE | GAMA_TRACK_F_ON_GROUND | GAMA_TRACK_F_CALLSIGN;
+            gama_track_t in = { .icao = 0x123456u, .flags = GAMA_TRACK_WITH_CLASS(all, classes[i]) };
+            uint8_t wire[GAMA_TRACK_WIRE_LEN];
+            gama_track_t out;
+            CHECK_EQ_INT(gama_track_encode(wire, sizeof(wire), &in), GAMA_TRACK_WIRE_LEN);
+            CHECK_EQ_INT(gama_track_decode(wire, sizeof(wire), &out), GAMA_TRACK_WIRE_LEN);
+            CHECK_EQ_INT(GAMA_TRACK_CLASS(out.flags), classes[i]);
+            CHECK_EQ_INT(out.flags & ~GAMA_TRACK_CLASS_MASK, all);
+        }
+        /* Setting a class replaces the previous one; it never ORs into it. */
+        uint8_t f = GAMA_TRACK_WITH_CLASS(GAMA_TRACK_F_POSITION, GAMA_TRACK_CLASS_ROTOR);
+        f = GAMA_TRACK_WITH_CLASS(f, GAMA_TRACK_CLASS_LIGHT);
+        CHECK_EQ_INT(GAMA_TRACK_CLASS(f), GAMA_TRACK_CLASS_LIGHT);
+        CHECK_EQ_INT(f & ~GAMA_TRACK_CLASS_MASK, GAMA_TRACK_F_POSITION);
+    }
+
     TEST_GROUP("track: ICAO keeps all 24 bits");
     {
         gama_track_t in = { .icao = 0xFFFFFFu };
