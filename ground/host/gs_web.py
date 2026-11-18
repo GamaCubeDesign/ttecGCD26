@@ -639,6 +639,12 @@ def main(argv=None):
     from ground.config import Config, add_pair_arguments, pair_options
     ap.add_argument("--reference-db", type=Path, default=Config().reference_db)
     add_pair_arguments(ap)
+    # The pair method stays off unless asked for (ADR-0022): on real traffic
+    # (17/11) and on straight synthetic flights it was wrong on 43 to 75 % of
+    # its origins, and with it on the combined conclusion never decided.
+    ap.add_argument("--pairs", action="store_true", dest="pairs_enabled",
+                    help="also run the route-pair method of ADR-0019")
+    ap.set_defaults(pairs_enabled=False)
     args = ap.parse_args(argv)
     pipeline = None
     if args.adsb:

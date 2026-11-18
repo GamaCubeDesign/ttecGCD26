@@ -46,11 +46,11 @@ sock=$(mktemp -u "${TMPDIR:-/tmp}/sim.XXXXXX.sock")
 kind=--ndjson
 [[ $input == *.sbs ]] && kind=--sbs
 
-# The second strategy needs the 710 MB pair database (ADR-0019); without it
-# the ground runs the local method alone, and says so.
-pairs=(--no-pairs)
-if [[ -f ground/host/pares/pares_aeroportos.db ]]; then
-    pairs=(--pairs-db ground/host/pares/pares_aeroportos.db)
+# The route-pair method (ADR-0019) is off, as in the ground's default
+# (ADR-0022); PAIRS=1 turns it on, with the locally generated database.
+pairs=()
+if [[ ${PAIRS:-0} == 1 ]]; then
+    pairs=(--pairs --pairs-db ground/host/pares/pares_aeroportos.db)
 fi
 
 pids=()
