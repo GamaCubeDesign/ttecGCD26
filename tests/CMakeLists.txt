@@ -43,6 +43,11 @@ target_link_libraries(test_sbs PRIVATE adsbd_core)
 target_include_directories(test_sbs PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_sbs COMMAND test_sbs)
 
+add_executable(test_avr test_avr.c)
+target_link_libraries(test_avr PRIVATE adsbd_core)
+target_include_directories(test_avr PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_avr COMMAND test_avr)
+
 add_executable(test_tracks test_tracks.c)
 target_link_libraries(test_tracks PRIVATE adsbd_core)
 target_include_directories(test_tracks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
