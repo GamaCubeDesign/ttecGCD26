@@ -10,7 +10,7 @@ chain from a recorded or simulated mission to the ground's estimator
                  present, otherwise at --rate lines per second.
   --ndjson FILE  one JSON object per message: the onboard record adsbd (or
                  the prototype adsb_capture.c) writes, or the output of the
-                 ground's simulator (ground/host/ground-aeronaves/
+                 ground's simulator (ground/host/adsb/validation/
                  simular_trajetorias.py). Each object becomes the SBS lines dump1090
                  would have written for it, paced by rx_epoch_ns.
 

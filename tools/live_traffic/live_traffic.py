@@ -47,7 +47,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-REFERENCE_DB = ROOT / 'ground/host/banco-aeronaves/referencias.db'
+REFERENCE_DB = ROOT / 'ground/host/adsb/data/referencias/referencias.db'
 UNSAM = (-34.5772, -58.5225)          # Campus Miguelete, San Martín
 USER_AGENT = 'ttec-live-traffic/1'
 ADSBLOL = 'https://api.adsb.lol/v2/point/{lat:.4f}/{lon:.4f}/{radius}'

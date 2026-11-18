@@ -32,13 +32,13 @@ if [[ -f $dir/raw.jsonl.gz ]]; then
     [[ -f $dir/ground_truth.json ]] || "$python" "$root/tools/live_traffic/live_traffic.py" truth "$dir" >/dev/null
 fi
 
-cd "$root/ground/host/ground-aeronaves"
+cd "$root/ground/host"
 for kind in capture capture_sem_categoria; do
     tag=${kind#capture}; tag=${tag#_}; tag=${tag:-com_categoria}
     rm -f "$out/$tag.db" "$out/$tag.db-wal" "$out/$tag.db-shm"
-    "$python" -m ground --input "$dir/$kind.ndjson" --telemetry-db "$out/$tag.db" \
+    "$python" -m adsb.estimator --input "$dir/$kind.ndjson" --telemetry-db "$out/$tag.db" \
         --output "$out/$tag.estado.json" "${pairs[@]}" > "$out/$tag.estimador.txt" 2>&1
-    "$python" validation/avaliar_estimativas.py --state "$out/$tag.estado.json" \
+    "$python" adsb/validation/avaliar_estimativas.py --state "$out/$tag.estado.json" \
         --truth "$dir/ground_truth.json" --json-out "$out/$tag.json" --csv-out "$out/$tag.csv" \
         > "$out/$tag.txt"
     "$python" "$root/tools/live_traffic/avaliar_combinada.py" "$out/$tag.estado.json" \

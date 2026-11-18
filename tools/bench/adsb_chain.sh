@@ -3,7 +3,7 @@
 # with no hardware:
 #
 #   sbs_replay (dump1090) -> adsbd -> ttcd -> UDP radio -> gs_cli (ground)
-#       -> ground/host/tracks_to_ndjson.py -> the estimator's NDJSON
+#       -> ground/host/adsb/tracks_to_ndjson.py -> the estimator's NDJSON
 #   obcd (the OBC, with no board: no sensors, no outputs) <-> ttcd
 #
 #   adsb_chain.sh INPUT OUT_DIR [DURATION_S]
@@ -13,7 +13,7 @@
 # receives every process's log, adsbd's onboard record, and ground.ndjson:
 # what the ground rebuilt from the radio, ready for the ground's estimator:
 #
-#   cd ground/host/ground-aeronaves && python -m ground --input OUT_DIR/ground.ndjson
+#   cd ground/host && python -m adsb.estimator --input OUT_DIR/ground.ndjson
 #
 # Real time — a 10-minute mission takes 10 minutes — because adsbd stamps
 # every message on arrival (ADR-0009). The mission runs as the modes say
@@ -90,7 +90,7 @@ printf 'wait 3\nmode mission_adsb\nwait %s\nmode downlink\nwait 5\nhk\n' "$durat
     | "$build"/tools/gs_cli/gs_cli --radio udp --port "$gnd_port" --peer-port "$sat_port" \
           --auto-time on \
     | tee "$out/ground.jsonl" \
-    | "$python" ground/host/tracks_to_ndjson.py > "$out/ground.ndjson"
+    | "$python" ground/host/adsb/tracks_to_ndjson.py > "$out/ground.ndjson"
 
 echo
 echo "== adsb-chain: what happened"
@@ -103,4 +103,4 @@ grep -o '"event":"mode".*' "$out/obcd.jsonl" | sed 's/^/obcd:                  /
 grep -o '"event":"downlink_done".*' "$out/ttcd.jsonl" | sed 's/^/ttcd:                  /' || true
 echo
 echo "next, the ground's estimator:"
-echo "  cd ground/host/ground-aeronaves && python -m ground --input $(realpath "$out")/ground.ndjson"
+echo "  cd ground/host && python -m adsb.estimator --input $(realpath "$out")/ground.ndjson"

@@ -2,7 +2,7 @@
 """Erro da trajetória reconstruída na ground contra o gabarito da simulação.
 
 Cada posição que desceu pelo LoRa (ground.jsonl, convertida como a ground faz,
-por ground/host/tracks_to_ndjson.py) é comparada com a posição verdadeira da
+por ground/host/adsb/tracks_to_ndjson.py) é comparada com a posição verdadeira da
 simulação no mesmo instante. O replay começou quando o adsbd se conectou; o
 deslocamento entre os relógios sai do registro de bordo.
 
@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(ROOT / 'ground/host'))
-from tracks_to_ndjson import records  # noqa: E402
+from adsb.tracks_to_ndjson import records  # noqa: E402
 
 
 def hav(a, b, c, d):

@@ -18,10 +18,10 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[4]
-EST = ROOT / 'ground/host/ground-aeronaves'
+EST = ROOT / 'ground/host'
 sys.path.insert(0, str(ROOT / 'ground/host'))
 sys.path.insert(0, str(HERE))
-from tracks_to_ndjson import records  # noqa: E402
+from adsb.tracks_to_ndjson import records  # noqa: E402
 from gerar_sim20 import KIND  # noqa: E402
 
 
@@ -61,7 +61,7 @@ def main(sim, ground):
     with tempfile.TemporaryDirectory() as tmp:
         d = Path(tmp)
         names = inputs(sim, ground, d)
-        procs = [subprocess.Popen([sys.executable, '-m', 'ground', '--input', str(d / f'{k}.ndjson'),
+        procs = [subprocess.Popen([sys.executable, '-m', 'adsb.estimator', '--input', str(d / f'{k}.ndjson'),
                                    '--telemetry-db', str(d / f'{k}.db'), '--output', str(d / f'{k}.json'),
                                    '--no-pairs'], cwd=EST, stdout=subprocess.DEVNULL) for k in names]
         for p in procs:

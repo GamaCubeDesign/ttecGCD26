@@ -40,7 +40,7 @@ STATIC_TYPES = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=
                 ".txt": "text/plain; charset=utf-8"}
 # The map's land: the 26 Latin American units of the pair database's region
 # (Natural Earth, public domain), served as is.
-BASEMAP_PATH = os.path.join(HERE, "pares", "geografia", "america_latina.geojson")
+BASEMAP_PATH = os.path.join(HERE, "adsb", "data", "pares", "geografia", "america_latina.geojson")
 # The repository's root: this file is ground/host/gs_web.py.
 REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
 # The bench ground on the UDP radio, as the top-level build makes it.
@@ -635,8 +635,7 @@ def main(argv=None):
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--adsb", action="store_true", help="process received aircraft continuously")
     ap.add_argument("--session-dir", type=Path, default=Path(HERE)/"sessions")
-    sys.path.insert(0, os.path.join(HERE, "ground-aeronaves"))
-    from ground.config import Config, add_pair_arguments, pair_options
+    from adsb.estimator.config import Config, add_pair_arguments, pair_options
     ap.add_argument("--reference-db", type=Path, default=Config().reference_db)
     add_pair_arguments(ap)
     # The pair method stays off unless asked for (ADR-0022): on real traffic
@@ -648,7 +647,7 @@ def main(argv=None):
     args = ap.parse_args(argv)
     pipeline = None
     if args.adsb:
-        from adsb_pipeline import AdsbPipeline
+        from adsb.pipeline import AdsbPipeline
         from dataclasses import replace
         try:
             pipeline = AdsbPipeline(args.session_dir, replace(Config(), reference_db=args.reference_db, **pair_options(ap,args)))

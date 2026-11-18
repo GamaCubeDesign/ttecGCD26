@@ -108,8 +108,8 @@ class TestConvert(unittest.TestCase):
         self.assertFalse(any('category' in r for r in plain))
 
     def test_the_estimator_accepts_every_record(self):
-        sys.path.insert(0, str(lt.ROOT / 'ground/host/ground-aeronaves'))
-        from ground.parser import parse_line
+        sys.path.insert(0, str(lt.ROOT / 'ground/host'))
+        from adsb.estimator.parser import parse_line
         for r in lt.records_from_response(POINT):
             parse_line(json.dumps(r), r['rx_epoch_ns'])
 

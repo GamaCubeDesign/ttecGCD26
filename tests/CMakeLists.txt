@@ -148,11 +148,17 @@ if(Python3_Interpreter_FOUND)
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
     # The ground's ADS-B estimator, with its own tests.
     add_test(NAME ground_aeronaves
-             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests
-             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host/ground-aeronaves)
+             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/estimator
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
+    # The route-pair data's city audit (ground/host/adsb/data/pares); its regional
+    # priority test needs Shapely, used only to generate the database, so it is
+    # left to whoever regenerates it.
+    add_test(NAME ground_data
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_auditar_cidades
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host/adsb/data/pares)
     # The ground's adapter from the downlink to the estimator's NDJSON.
     add_test(NAME tracks_to_ndjson
-             COMMAND ${Python3_EXECUTABLE} -m unittest test_tracks_to_ndjson
+             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/host -p test_tracks_to_ndjson.py
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
     # Real air traffic from adsb.lol and OpenSky, to test the ground without the
     # satellite: the conversion and the truth, on recorded responses (no network).
@@ -161,15 +167,15 @@ if(Python3_Interpreter_FOUND)
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/live_traffic)
     # The ESP32 ground station's serial bridge, against a fake board on a pty.
     add_test(NAME gs_serial
-             COMMAND ${Python3_EXECUTABLE} -m unittest test_gs_serial
+             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/host -p test_gs_serial.py
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
     # The ground's browser interface: its state, the commands the page may
     # send, and the server against a fake ground process.
     add_test(NAME adsb_pipeline
-             COMMAND ${Python3_EXECUTABLE} -m unittest test_adsb_pipeline
+             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/host -p test_adsb_pipeline.py
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
     add_test(NAME gs_web
-             COMMAND ${Python3_EXECUTABLE} -m unittest test_gs_web
+             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/host -p test_gs_web.py
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
     # The page's modules that need no browser (ground/host/web): where Node is.
     find_program(NODE_EXECUTABLE node)

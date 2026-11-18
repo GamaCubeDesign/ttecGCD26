@@ -50,7 +50,7 @@ kind=--ndjson
 # (ADR-0022); PAIRS=1 turns it on, with the locally generated database.
 pairs=()
 if [[ ${PAIRS:-0} == 1 ]]; then
-    pairs=(--pairs --pairs-db ground/host/pares/pares_aeroportos.db)
+    pairs=(--pairs --pairs-db ground/host/adsb/data/pares/pares_aeroportos.db)
 fi
 
 pids=()

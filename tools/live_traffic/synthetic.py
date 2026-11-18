@@ -12,7 +12,7 @@ airports, or invented. "rotas" is the second case — the one the pair method
 of ADR-0019 models best — and "ficticio" the third, where the right answer is
 no airport at all, so any decision counts as a false positive.
 
-Flights use ground/host/ground-aeronaves/simular_trajetorias.Flight. Half the
+Flights use ground/host/adsb/validation/simular_trajetorias.Flight. Half the
 departures are first seen already airborne, with no position on the ground
 and hence no take-off anchor: the case ADR-0022's climb-back distance is for.
 Samples every 5 s, the downlink's snapshot period; 600 s, one mission.
@@ -27,11 +27,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / 'ground/host/ground-aeronaves'))
-import simular_trajetorias as sim  # noqa: E402
-from ground.geo import bearing_deg, distance_km  # noqa: E402
+sys.path.insert(0, str(ROOT / 'ground/host'))
+from adsb.validation import simular_trajetorias as sim  # noqa: E402
+from adsb.estimator.geo import bearing_deg, distance_km  # noqa: E402
 
-REFERENCE_DB = ROOT / 'ground/host/banco-aeronaves/referencias.db'
+REFERENCE_DB = ROOT / 'ground/host/adsb/data/referencias/referencias.db'
 UNSAM = (-34.5772, -58.5225)
 MISSION_S = 600
 PERIOD_S = 5

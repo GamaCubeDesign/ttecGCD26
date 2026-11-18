@@ -2,7 +2,7 @@
 """A missão simulada da cadeia B de 16/11: 20 aeronaves em 600 s em torno de SBBR.
 
 6 chegadas e 6 saídas em SBBR, 8 em cruzeiro, com a classe Flight de
-ground/host/ground-aeronaves/simular_trajetorias.py. Todas da categoria A3.
+ground/host/adsb/validation/simular_trajetorias.py. Todas da categoria A3.
 A geometria é sempre a mesma; só o rx_epoch_ns muda com a hora da geração.
 
     python3 gerar_sim20.py SAIDA.ndjson
@@ -12,9 +12,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[5]
-sys.path.insert(0, str(ROOT / 'ground/host/ground-aeronaves'))
-import simular_trajetorias as s  # noqa: E402
-from ground.config import Config  # noqa: E402
+sys.path.insert(0, str(ROOT / 'ground/host'))
+from adsb.validation import simular_trajetorias as s  # noqa: E402
+from adsb.estimator.config import Config  # noqa: E402
 
 
 def flights():
