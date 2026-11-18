@@ -13,6 +13,12 @@ class Config:
     # one write per change (the CLI). The live ground uses 1 s: per
     # observation it wrote 1.2 GB in a 20-aircraft mission (17/11).
     publish_interval_s: float = 0.0
+    # ADR-0022: infer the "large" class from kinematics when no category is
+    # received. Off only to measure the estimator as it was.
+    kinematic_category: bool = True
+    # ADR-0022: weight of the climb-back distance in the origin score, when no
+    # ground position anchors the take-off; 0 turns it off.
+    climb_back_weight: float = 0.30
     pairs_db: Path = ROOT.parent / 'pares' / 'pares_aeroportos.db'
     # CLI habilita comparação por padrão; API Python opta explicitamente.
     pairs_enabled: bool = False

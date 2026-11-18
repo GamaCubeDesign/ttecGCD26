@@ -7,7 +7,7 @@ from .flight_state import FlightStateEstimator
 from .temporal import vertical_features, quality, approach_context
 from .decision_fusion import DecisionFusion
 from .trajectory import build_snapshot
-from .aircraft_category import airport_compatibility, describe_category
+from .aircraft_category import airport_compatibility, describe_category, infer_class
 
 
 class AircraftManager:
@@ -23,6 +23,7 @@ class AircraftManager:
         self.segment_start = {}
         self.grounded = set()
         self.takeoff_anchor = {}
+        self.kinematic_class = {}
         self.pairs = PairScheduler(config) if config.pairs_enabled else None
         self._published_at = float('-inf')
         self._publish_pending = False
@@ -41,12 +42,14 @@ class AircraftManager:
             self.fusions.pop(observation.icao,None)
             self.first_position_ns.pop(observation.icao,None)
             self.takeoff_anchor.pop(observation.icao,None)
+            self.kinematic_class.pop(observation.icao,None)
             self.approach_since.pop(observation.icao,None)
             previous = {}
             self.grounded.discard(observation.icao)
         start = self.segment_start.get(observation.icao,history[0].event_ns)
         history = [o for o in history if o.event_ns>=start]
         snapshot = build_snapshot(history, self.config.field_ttl_s, self.config.category_ttl_s)
+        self._kinematic_category(observation.icao, history, snapshot)
         category = describe_category(snapshot)
         # An excluded site must not survive in the historical summary or in
         # diagnostic rankings after a new identification message arrives.
@@ -182,6 +185,23 @@ class AircraftManager:
         self.publish()
         self.poll_pairs()
         return result
+
+    def _kinematic_category(self, icao, history, snapshot):
+        """ADR-0022: with no category received (missing, invalid or A0), the
+        class the aircraft's kinematics prove, kept for the episode, so a jet
+        slowing down on approach stays large. A received category always wins."""
+        if snapshot is None:
+            return
+        received = (snapshot['fields'].get('category') or {}).get('value')
+        if received not in (None, 'A0'):
+            return
+        if icao not in self.kinematic_class and getattr(self.config, 'kinematic_category', True):
+            inferred = infer_class(history)
+            if inferred:
+                self.kinematic_class[icao] = inferred
+        inferred = self.kinematic_class.get(icao)
+        if inferred:
+            snapshot['fields']['category'] = {'value': inferred, 'age_s': 0.0, 'source': 'kinematics'}
 
     def publish(self, force=False):
         """Writes estado.json, at most every config.publish_interval_s unless

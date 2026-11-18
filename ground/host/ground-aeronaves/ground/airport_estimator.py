@@ -15,6 +15,33 @@ DESCENT_FULL_FEASIBILITY_FPM = 2500.0
 DESCENT_ZERO_FEASIBILITY_FPM = 5000.0
 
 
+CLIMB_BACK_MIN_FPM = 300.0      # below this the climb says nothing about the runway
+CLIMB_BACK_SIGMA_KM = 3.0       # the tolerance's floor
+CLIMB_BACK_SIGMA_FRACTION = .3  # and its share of the expected distance
+
+
+def climb_back(fields, vr, elevation_ft, distance):
+    """ADR-0022: how far the take-off should be, from the climb so far.
+
+    An aircraft at h feet above an airport, climbing at vr ft/min at gs
+    knots, left that airport about h/vr minutes ago, gs·h/vr away (a straight
+    climb at today's rate: an approximation, hence the wide tolerance). The
+    score compares that with the airport's real distance. None when the
+    climb is too weak or a field is missing: no evidence, not bad evidence."""
+    altitude, speed = fields.get('altitude_ft'), fields.get('ground_speed_kt')
+    if altitude is None or speed is None or vr is None or elevation_ft is None:
+        return None
+    if vr < CLIMB_BACK_MIN_FPM or speed <= 0:
+        return None
+    height = altitude - elevation_ft
+    if height < 0:
+        return None
+    expected = speed * 1.852 * (height / vr) / 60.0
+    sigma = max(CLIMB_BACK_SIGMA_KM, CLIMB_BACK_SIGMA_FRACTION * expected)
+    score = math.exp(-((distance - expected) / sigma) ** 2)
+    return {'expected_km': round(expected, 3), 'sigma_km': round(sigma, 3), 'score': round(score, 4)}
+
+
 class AirportEstimator:
     def __init__(self, config):
         self.config = config
@@ -83,6 +110,10 @@ class AirportEstimator:
                          'distance':(math.exp(-distance/120),.05)}
             else:
                 parts = {'distance':(math.exp(-distance/(120 if phase else radius)),.15)}
+                climb = climb_back(fields, vr, airport['elevation_ft'], distance) if origin else None
+                if climb and self.config.climb_back_weight > 0:
+                    parts['climb_back'] = (climb['score'], self.config.climb_back_weight)
+                    evidence['climb_back'] = climb
             track = fields.get('track_deg')
             if track is not None:
                 direction = (track+180)%360 if origin else track

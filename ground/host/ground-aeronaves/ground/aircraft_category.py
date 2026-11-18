@@ -54,3 +54,42 @@ def airport_compatibility(category, airport_type):
               'ROTORCRAFT_ADMITE_AEROPORTO_E_HELIPORTO' if code == 'A7' else
               'TIPO_COMPATIVEL' if code in FIXED_WING else 'CATEGORIA_SEM_RESTRICAO')
     return {'allowed': True, 'factor': factor, 'reason': reason}
+
+
+# ---- the class inferred from kinematics (ADR-0022) ----
+# The emitter category does not reach the ground: the SBS feed the satellite
+# reads carries none, nor does the downlinked track record. Without it the
+# origin estimate cannot tell a jet climbing out of Aeroparque from the
+# heliports around it, and decides nothing (17/11: 0 origins, 5 of 6 right
+# with the category). Only the "large" class is inferred, and only from
+# evidence a light aircraft or a helicopter cannot produce; "light" is not:
+# a helicopter at 120 kt and 2000 ft looks like one, and calling it fixed
+# wing would rule out the heliports it flies to.
+LARGE_SPEED_KT = 250.0          # sustained ground speed
+LARGE_ALTITUDE_FT = 18000.0     # barometric
+LARGE_CLIMB_FPM = 1800.0        # with LARGE_CLIMB_SPEED_KT
+LARGE_CLIMB_SPEED_KT = 160.0
+SUSTAINED = 2                   # observations, so one corrupt value never decides
+
+
+def infer_class(history):
+    """'A3' when the aircraft's own kinematics say "large", else None.
+
+    history: the episode's observations (ground.models.Observation), any
+    order. A received category is never replaced: the caller applies this
+    only when none is known (missing, invalid or A0)."""
+    fast = high = climbing = 0
+    for o in history:
+        f = o.fields
+        if f.get('on_ground') == 1:
+            continue
+        gs, alt, vr = f.get('ground_speed_kt'), f.get('altitude_ft'), f.get('vertical_rate_fpm')
+        if gs is not None and gs > LARGE_SPEED_KT:
+            fast += 1
+        if alt is not None and alt > LARGE_ALTITUDE_FT:
+            high += 1
+        if vr is not None and gs is not None and vr > LARGE_CLIMB_FPM and gs > LARGE_CLIMB_SPEED_KT:
+            climbing += 1
+        if max(fast, high, climbing) >= SUSTAINED:
+            return 'A3'
+    return None

@@ -80,11 +80,19 @@ def main():
     parser.add_argument('--airport-types', nargs='+', default=list(defaults.airport_types),
                         choices=['small_airport', 'medium_airport', 'large_airport', 'heliport', 'seaplane_base', 'balloonport'])
     add_pair_arguments(parser)
+    parser.add_argument('--no-kinematic-category', action='store_false', dest='kinematic_category',
+                        help='Não infere a classe "grande" pela cinemática (ADR-0022)')
+    parser.add_argument('--climb-back-weight', type=float, default=defaults.climb_back_weight,
+                        help='Peso da distância de decolagem pela subida na origem; 0 desliga (ADR-0022)')
     args = parser.parse_args()
+    if not 0 <= args.climb_back_weight <= 5:
+        parser.error('Peso da subida deve estar em [0,5]')
     if not 0 < args.radius_km <= 20020 or not 1 <= args.top <= 100 or not 0 <= args.interval <= 3600:
         parser.error('Raio deve estar em (0,20020], top em [1,100] e intervalo em [0,3600]')
     config = Config(reference_db=args.reference_db, telemetry_db=args.telemetry_db, output=args.output,
-                    radius_km=args.radius_km, top=args.top, airport_types=tuple(args.airport_types),**pair_options(parser,args))
+                    radius_km=args.radius_km, top=args.top, airport_types=tuple(args.airport_types),
+                    kinematic_category=args.kinematic_category, climb_back_weight=args.climb_back_weight,
+                    **pair_options(parser,args))
     paths = [config.reference_db.resolve(), config.telemetry_db.resolve(), config.output.resolve(), config.pairs_db.resolve()]
     if len(set(paths)) != 4:
         parser.error('Referências, pares, telemetria e saída devem ser arquivos diferentes')
