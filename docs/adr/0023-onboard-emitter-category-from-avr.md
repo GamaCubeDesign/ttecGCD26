@@ -87,6 +87,23 @@ it is. The record stays 20 B and the protocol version stays 2.
   right), and leaves 17/11 at 7 of 7. Light aircraft and helicopters, which the
   inference leaves unknown, are the cases it helps most.
 
+## Verification (2026-11-18, without hardware)
+
+| What | Where | Result |
+|---|---|---|
+| The parser against the textbook message `8D4840D6202CC371C32CE0576098` (its CRC known from outside), every category's class, DF18 CF, other message kinds, bad CRC, malformed lines | `tests/test_avr.c` | 98 checks |
+| The class kept for the track's life, the latest winning, gone with the track, never keeping it alive | `tests/test_tracks.c` | passes |
+| Each AVR line counted by reason; the category line in the onboard record; with the port off, the class 0 | `tests/test_adsbd_core.c` | passes |
+| The real `adsbd` with a fake dump1090 on both ports: the class in `IPC_TRACKS`, the record line, the AVR port closing and reconnecting; `avr_port` refused unless `dump1090_cmd` opens it | `tests/test_adsbd_integration.c`, `test_adsbd_config.c` | passes |
+| `sbs_replay --avr-port` reproduces the textbook message byte for byte | `tools/sbs_replay/test_sbs_replay.py` | passes |
+| `make sim` with real traffic: a category reaches the ground's page as received, over the UDP radio | `tests/test_sim.py` (`sim_udp`) | passes |
+| 10 minutes of the 18/11 capture through `sbs_replay` → `adsbd` → `ttcd` → UDP radio → ground, with and without the port | `make adsb-chain`, `AVR=1` / `AVR=0` | the same 243 `TM_TRACKS` frames and 0 lost in both; 1 012 identifications applied, 0 rejected, 0 without a track; 1 411 of 1 430 records reached the ground with a class (the other 19: an aircraft's first second) |
+| The whole 18/11 capture with the category reduced to the two bits (A2 → light, A5 → large) | the estimator, offline | origin 10 of 10, destination 10 of 12, combined 6 and 3: **identical** to the exact category. The two bits lose nothing the estimator uses |
+
+Still to measure on the Pi: the same chain over LoRa, and the CPU of
+`dump1090-fa` and `adsbd` with the raw output open
+(`docs/vv/bancada/2026-11-20/roteiro.md`).
+
 ## Alternatives considered
 
 ### Read `dump1090-fa`'s `aircraft.json`
