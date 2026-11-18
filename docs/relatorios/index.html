@@ -182,6 +182,7 @@ h1,h2{font-weight:800}
     <li><a href="#comecar">Por onde começar</a></li>
     <li><a href="#guias">Guias de estudo e material de apoio</a></li>
     <li><a href="#adsb">ADS-B: o estimador e a categoria da aeronave</a></li>
+    <li><a href="#lora">Telecomunicação pelo LoRa</a></li>
     <li><a href="#bancada">Bancada e operação</a></li>
     <li><a href="#estado">Estado do projeto</a></li>
     <li><a href="#obc">OBC, placas e integração</a></li>
@@ -191,7 +192,7 @@ h1,h2{font-weight:800}
 <header class="doc">
   <p class="eyebrow">GCD26 · TT&amp;C · índice</p>
   <h1>Relatórios do TT&amp;C</h1>
-  <p class="lede">Os 22 relatórios de <code>docs/relatorios/</code>, agrupados pelo que você quer fazer com eles. Os arquivos continuam com o nome datado de sempre: este índice só os organiza.</p>
+  <p class="lede">Os 24 relatórios de <code>docs/relatorios/</code>, agrupados pelo que você quer fazer com eles. Os arquivos continuam com o nome datado de sempre: este índice só os organiza.</p>
   <div class="meta"><span><b>Atualizado:</b> 18/11/2026</span><span><b>Regra:</b> todo relatório novo entra aqui; o CTest <code>relatorios_index</code> falha se algum ficar de fora</span></div>
 </header>
 
@@ -199,7 +200,7 @@ h1,h2{font-weight:800}
 <div class="tiles">
   <div class="tile"><div class="v"><a href="2026-11-18-guia-de-estudo.html">Estudar</a></div><div class="l">o <b>guia de estudo de 18/11</b>, do problema a cada arquivo; as suas dúvidas ficam em <code>docs/estudo/</code></div></div>
   <div class="tile"><div class="v"><a href="2026-11-17-comandos-principais.html">Operar</a></div><div class="l">os <b>comandos do dia a dia</b>; na bancada, os roteiros de <a href="../vv/bancada/2026-11-19/roteiro.md">19/11</a> e <a href="../vv/bancada/2026-11-20/roteiro.md">20/11</a></div></div>
-  <div class="tile"><div class="v"><a href="2026-11-18-estimador-antes-depois-etapa-a.html">O mais novo</a></div><div class="l">a <b>ADS-B da ground</b>: como o estimador decide, antes e depois da Etapa A</div></div>
+  <div class="tile"><div class="v"><a href="2026-11-18-adsb-ponta-a-ponta.html">O mais novo</a></div><div class="l">a <b>ADS-B de ponta a ponta</b> e a <a href="2026-11-18-enlace-lora.html">telecomunicação pelo LoRa</a>, para estudar</div></div>
 </div>
 <p class="small">"Atual" é a versão a ler hoje; "versão anterior" foi substituída por outra do mesmo grupo e fica como registro de como o projeto chegou aqui. As decisões formais estão em <code>docs/adr/</code>, e a evidência de bancada em <code>docs/vv/bancada/</code>.</p>
 
@@ -217,12 +218,22 @@ h1,h2{font-weight:800}
 </table></div>
 
 <h2 id="adsb">ADS-B: o estimador e a categoria da aeronave</h2>
-<p>O que mudou em 18/11 na estimativa de origem e destino (Etapa A, ADR-0022) e a proposta da categoria a bordo (Etapa B, ADR-0023).</p>
+<p>A ADS-B inteira, para estudar, e os dois relatórios de 18/11 que ela resume: a estimativa de origem e destino antes e depois da Etapa A (ADR-0022) e a proposta da categoria a bordo (Etapa B, ADR-0023).</p>
 <div class="table-wrap"><table>
   <thead><tr><th>Data</th><th>Relatório</th><th>Situação</th></tr></thead>
   <tbody>
+    <tr><td class="nw">18/11</td><td><a href="2026-11-18-adsb-ponta-a-ponta.html"><b>A ADS-B do GCD26, de ponta a ponta</b></a><br><span class="small">Do sinal de 1090 MHz ao aeroporto de origem e de destino: o que roda a bordo, o que desce pelo LoRa, como a ground reconstrói e estima, como montar os dados de teste a partir das APIs e como tudo é medido. Para estudar.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
     <tr><td class="nw">18/11</td><td><a href="2026-11-18-estimador-antes-depois-etapa-a.html"><b>Estimador ADS-B: antes e depois da Etapa A</b></a><br><span class="small">Como a ground transforma os registros que descem pelo LoRa em trajetórias, como escolhe o aeroporto de origem e de destino de cada aeronave, e o que mudou em 18/11 para a origem voltar a ser decidida sem a categoria ADS-B.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
     <tr><td class="nw">18/11</td><td><a href="2026-11-18-proposta-categoria-adsb.html"><b>A categoria da aeronave a bordo</b></a><br><span class="small">Por que a estimativa de origem precisa da categoria ADS-B, por que ela não chega hoje à ground, e como levá-la sem mudar o tamanho de nada que vai pelo rádio.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="lora">Telecomunicação pelo LoRa</h2>
+<p>O enlace entre o satélite e a ground: o rádio, os perfis, o quadro, o protocolo e os orçamentos.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Data</th><th>Relatório</th><th>Situação</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">18/11</td><td><a href="2026-11-18-enlace-lora.html"><b>A telecomunicação pelo LoRa</b></a><br><span class="small">Como o satélite e a ground conversam: o rádio e a frequência, os perfis de taxa e o tempo no ar, o formato do quadro, o protocolo que garante que um telecomando executa uma vez só, o que desce em cada modo, os orçamentos de enlace e de dados, e o que a bancada já mediu. Para estudar.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
   </tbody>
 </table></div>
 

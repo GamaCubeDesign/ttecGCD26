@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — A ADS-B de ponta a ponta (18/11/2026)</title>
+<link rel="icon" href="assets/favicon.png">
+<style>
+@font-face{
+  font-family:"Open Sans"; src:url("assets/OpenSans.woff2") format("woff2");
+  font-weight:300 800; font-style:normal; font-display:swap;
+}
+:root{
+  /* Gama Cube Design (identidade_visual_gama.pdf; the same tokens as
+   * ground/host/web/css/gama.css): black, British Racing Green #034a2c and
+   * white; Forest Green, Yellow Orange and Terra Cotta for ok, warning and
+   * failure, in darker shades for text on a light background. */
+  --brand:#034a2c; --brand-band:#000000;
+  --bg:#f3f5f4; --surface:#ffffff; --surface-2:#eaefec; --fg:#111312; --muted:#56605b;
+  --line:#d0d6d3; --line-strong:#7f8a84; --accent:#034a2c; --accent-soft:#e3eee8;
+  --ok:#2f6b3a; --ok-soft:#e6f1e7; --warn:#8a5300; --warn-soft:#fbf0df;
+  --todo:#56605b; --todo-soft:#eceeed; --bad:#a8321f; --bad-soft:#fbe7e3;
+  --code-bg:#eef1ef; --node:#ffffff; --node-hw:#eef1ef; --node-ext:#e3eee8;
+  --sans:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0a0c0b; --surface:#121614; --surface-2:#19201c; --fg:#f2f5f3; --muted:#9aa7a0;
+    --line:#26302b; --line-strong:#6f7c75; --accent:#8cc391; --accent-soft:#10251a;
+    --ok:#8cc391; --ok-soft:#15301f; --warn:#f3b866; --warn-soft:#33280e;
+    --todo:#a8b0ac; --todo-soft:#222826; --bad:#ef8d80; --bad-soft:#3a1b19;
+    --code-bg:#19201c; --node:#121614; --node-hw:#19201c; --node-ext:#10251a;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+
+svg.diagram .lost{fill:var(--bad-soft);stroke:var(--bad);stroke-width:2}
+svg.diagram .new{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2;stroke-dasharray:5 4}
+svg.diagram .edge.ok{stroke:var(--ok);stroke-width:2}
+svg.diagram .ah-ok{fill:var(--ok)}
+svg.diagram .t-bad{font-size:12px;fill:var(--bad);font-weight:600}
+svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
+.bytes .fl{background:var(--warn-soft)}
+
+/* Gama: the band on top, as on the ground's page; ExtraBold titles. */
+.brand-bar{background:var(--brand-band);border-bottom:3px solid var(--brand);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:8px 20px;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.brand-bar img{width:28px;height:28px;display:block}
+.brand-bar b{font-weight:800;letter-spacing:.04em}
+.brand-bar span{opacity:.75}
+h1,h2{font-weight:800}
+.eyebrow{color:var(--accent);font-weight:700}
+@media print{.brand-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="brand-bar"><img src="assets/favicon.png" alt=""><b>Gama Cube Design</b><span>CubeDesign 2026 · TT&amp;C</span></div>
+<div class="layout">
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#problema">O problema em números</a></li>
+    <li><a href="#cadeia">A cadeia inteira</a></li>
+    <li><a href="#bordo">A bordo: do sinal ao registro</a></li>
+    <li><a href="#enlace">O enlace e o tempo</a></li>
+    <li><a href="#trajetoria">Na ground: a trajetória</a></li>
+    <li><a href="#aeroportos">Na ground: os aeroportos</a></li>
+    <li><a href="#categoria">A categoria: Etapas A e B</a></li>
+    <li><a href="#bancos">Os bancos de dados</a></li>
+    <li><a href="#avaliar">Como avaliar</a></li>
+    <li><a href="#resultados">Os resultados</a></li>
+    <li><a href="#reproduzir">Reproduzir do zero</a></li>
+    <li><a href="#limites">Limites e o que falta</a></li>
+  </ol>
+</nav>
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · TT&amp;C · ADS-B · estudo</p>
+  <h1>A ADS-B do GCD26, de ponta a ponta</h1>
+  <p class="lede">Do sinal de 1090 MHz que o satélite recebe até o aeroporto de origem e de destino que a ground decide: o que roda a bordo, o que desce pelo LoRa, como a ground reconstrói e estima, de onde vêm os dados de teste e como tudo é medido.</p>
+  <div class="meta"><span><b>Data:</b> 18/11/2026</span><span><b>Para:</b> estudo do repositório</span><span><b>Decisões:</b> ADR-0003, 0007, 0008, 0009, 0019 a 0023</span><span><b>Código:</b> <code>flight/adsbd/</code>, <code>ground/host/adsb/</code>, <code>tools/live_traffic/</code></span></div>
+</header>
+
+<h2 id="problema"><span class="n">1</span>O problema em números</h2>
+<div class="tiles">
+  <div class="tile"><div class="v">7,34 MiB</div><div class="l">o ADS-B bruto de 20 aviões em 10 min, a 4 mensagens por segundo cada (48 000 mensagens)</div></div>
+  <div class="tile"><div class="v">58,3 KB</div><div class="l">o que o LoRa desce em 10 min no perfil NOMINAL (SF9), usando metade do tempo no ar</div></div>
+  <div class="tile"><div class="v">155:1</div><div class="l">a redução a bordo: o fluxo bruto vira 48,5 KB de estados de aeronave a cada 5 s</div></div>
+</div>
+<p>O regulamento pede duas coisas da carga ADS-B: <b>reconstruir a trajetória</b> de cada aeronave e <b>estimar de onde ela saiu e para onde vai</b> (regulamento 4.4.1). O fluxo bruto é 129 vezes maior do que o rádio consegue descer. Isso decide a arquitetura inteira (ADR-0003):</p>
+<ul>
+  <li><b>a bordo</b>, o satélite decodifica as mensagens e mantém uma tabela com o estado mais recente de cada aeronave;</li>
+  <li><b>pelo rádio</b>, desce só um "retrato" dessa tabela a cada 5 s, com 20 bytes por aeronave;</li>
+  <li><b>na ground</b>, os retratos viram trajetórias, e as trajetórias viram aeroportos.</li>
+</ul>
+<p>Todos os números desta seção saem de <code>python3 tools/analysis/lora_budget.py</code>; o detalhe está em <code>docs/budgets/data-budget.md</code>.</p>
+
+<h2 id="cadeia"><span class="n">2</span>A cadeia inteira</h2>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 900 420" role="img" aria-label="A cadeia ADS-B, do SDR à página">
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker></defs>
+  <rect class="zone" x="10" y="10" width="880" height="150" rx="10"/>
+  <text class="zone-label" x="24" y="30">A BORDO · RASPBERRY PI ZERO 2 W</text>
+  <rect class="box hw" x="24" y="44" width="110" height="52" rx="7"/><text class="t-b" x="79" y="68" text-anchor="middle">SDR</text><text class="t-s" x="79" y="86" text-anchor="middle">1090 MHz</text>
+  <rect class="box" x="160" y="44" width="150" height="52" rx="7"/><text class="t-b" x="235" y="68" text-anchor="middle">dump1090-fa</text><text class="t-s" x="235" y="86" text-anchor="middle">decodifica Mode S</text>
+  <rect class="box done" x="360" y="44" width="200" height="52" rx="7"/><text class="t-b" x="460" y="68" text-anchor="middle">adsbd</text><text class="t-s" x="460" y="86" text-anchor="middle">tabela de tracks, retrato 1 s</text>
+  <rect class="box" x="610" y="44" width="260" height="52" rx="7"/><text class="t-b" x="740" y="68" text-anchor="middle">ttcd</text><text class="t-s" x="740" y="86" text-anchor="middle">o retrato mais recente, a cada 5 s</text>
+  <path class="edge" d="M134 70H156" marker-end="url(#a)"/>
+  <path class="edge" d="M310 62H356" marker-end="url(#a)"/><text class="t-e" x="333" y="56" text-anchor="middle">SBS</text>
+  <path class="edge rf" d="M310 82H356" marker-end="url(#a)"/><text class="t-e" x="333" y="104" text-anchor="middle">AVR*</text>
+  <path class="edge" d="M560 70H606" marker-end="url(#a)"/><text class="t-e" x="583" y="62" text-anchor="middle">IPC</text>
+  <rect class="box" x="340" y="112" width="240" height="34" rx="7"/><text class="t-s" x="460" y="134" text-anchor="middle">registro de bordo: toda mensagem</text>
+  <path class="edge" d="M460 96V110" marker-end="url(#a)"/>
+  <path class="edge rf" d="M740 96V200" marker-end="url(#a)"/><text class="t-e" x="752" y="124">LoRa 433,92 MHz</text><text class="t-e" x="752" y="140">SF9, TM_TRACKS</text><text class="t-e" x="752" y="156">12 por quadro</text>
+  <rect class="zone" x="10" y="190" width="880" height="220" rx="10"/>
+  <text class="zone-label" x="24" y="210">NA GROUND · ESP32 + PC</text>
+  <rect class="box hw" x="610" y="222" width="260" height="52" rx="7"/><text class="t-b" x="740" y="246" text-anchor="middle">ESP32 + RA-02</text><text class="t-s" x="740" y="264" text-anchor="middle">uma linha JSON por quadro, pela USB</text>
+  <rect class="box done" x="330" y="222" width="230" height="52" rx="7"/><text class="t-b" x="445" y="246" text-anchor="middle">tracks_to_ndjson</text><text class="t-s" x="445" y="264" text-anchor="middle">o instante de cada registro</text>
+  <rect class="box done" x="24" y="222" width="250" height="52" rx="7"/><text class="t-b" x="149" y="246" text-anchor="middle">retrato da aeronave</text><text class="t-s" x="149" y="264" text-anchor="middle">trajetória, fase, categoria</text>
+  <path class="edge" d="M610 248H564" marker-end="url(#a)"/><path class="edge" d="M330 248H278" marker-end="url(#a)"/>
+  <rect class="box done" x="24" y="300" width="250" height="52" rx="7"/><text class="t-b" x="149" y="324" text-anchor="middle">pontuação dos aeroportos</text><text class="t-s" x="149" y="342" text-anchor="middle">referencias.db (OurAirports)</text>
+  <rect class="box done" x="330" y="300" width="230" height="52" rx="7"/><text class="t-b" x="445" y="324" text-anchor="middle">decisão no tempo</text><text class="t-s" x="445" y="342" text-anchor="middle">ESTIMATED só com margem</text>
+  <rect class="box" x="610" y="300" width="260" height="52" rx="7"/><text class="t-b" x="740" y="324" text-anchor="middle">a página (gs_web)</text><text class="t-s" x="740" y="342" text-anchor="middle">mapa, tabela, origem e destino</text>
+  <path class="edge" d="M149 274V296" marker-end="url(#a)"/><path class="edge" d="M274 326H326" marker-end="url(#a)"/><path class="edge" d="M560 326H606" marker-end="url(#a)"/>
+  <text class="t-e" x="24" y="390">* AVR: a saída bruta do dump1090, só com avr_port ligado (Etapa B, ADR-0023). Desligada por padrão.</text>
+</svg></div>
+<figcaption>Cada caixa é um programa; as setas são o formato que passa entre eles. Em verde, o que é nosso e testado no CTest. A ground lê o mesmo NDJSON ao vivo (<code>gs_web.py --adsb</code>), numa captura (<code>avaliar.sh</code>) ou no <code>make sim</code>.</figcaption>
+</figure>
+
+<h2 id="bordo"><span class="n">3</span>A bordo: do sinal ao registro de 20 bytes</h2>
+
+<h3>3.1 O <code>dump1090-fa</code> e as duas portas</h3>
+<p>O SDR (NooElec NESDR Nano 3) entrega amostras ao <code>dump1090-fa</code>, o decodificador da FlightAware, que encontra as mensagens Mode S e as escreve em portas TCP. Ele não é nosso: vem pronto do pacote da FlightAware e é configurado pela linha de comando no <code>adsbd.conf</code>.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Porta</th><th>Formato</th><th>O que o <code>adsbd</code> tira dela</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">30003, SBS-1</td><td>uma linha de texto por mensagem, 22 campos: <code>MSG,3,1,1,E48DF5,…,37000,,,-23.55,-46.65,…</code></td><td>posição, altitude, velocidade, rumo, razão vertical, no solo, indicativo. É a fonte de tudo</td></tr>
+    <tr><td class="nw">30002, AVR</td><td>a mensagem crua em hexadecimal: <code>*8D4840D6202CC371C32CE0576098;</code></td><td>só a <b>categoria</b> da aeronave, que o SBS não tem. Lida só com <code>avr_port</code> ligado (seção 7)</td></tr>
+  </tbody>
+</table></div>
+<p>Uma aeronave manda posição e velocidade a cerca de 2 Hz cada e a identificação (indicativo e categoria) a cada ~5 s. Cada tipo de mensagem traz só um pedaço do estado: por isso a tabela.</p>
+
+<h3>3.2 A tabela de tracks (<code>flight/adsbd/tracks.c</code>)</h3>
+<p>O <code>adsbd</code> lê as linhas assim que chegam, carimba cada uma com o relógio monotônico e funde os pedaços por endereço ICAO numa tabela de tamanho fixo (128 aeronaves, sem alocação). Para cada campo guarda o valor e <b>quando ele chegou</b>. As regras do retrato, com os valores de <code>adsbd_params_default</code>:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Parâmetro</th><th class="r">Valor</th><th>O que faz</th></tr></thead>
+  <tbody>
+    <tr><td><code>snapshot_period</code></td><td class="r">1 s</td><td>um retrato da tabela vai ao <code>ttcd</code> a cada segundo</td></tr>
+    <tr><td><code>position_max_age</code></td><td class="r">10 s</td><td>uma posição mais velha que isso fica fora do registro</td></tr>
+    <tr><td><code>field_ttl</code></td><td class="r">60 s</td><td>um campo mais velho que isso fica fora</td></tr>
+    <tr><td><code>track_expiry</code></td><td class="r">60 s</td><td>uma aeronave calada por um minuto sai da tabela</td></tr>
+    <tr><td><code>snapshot_max</code></td><td class="r">24</td><td>no máximo 24 aeronaves por retrato, em dois quadros; posições frescas primeiro, as mais novas primeiro. O que sobra é contado</td></tr>
+  </tbody>
+</table></div>
+<p>Ao mesmo tempo, <b>toda mensagem</b> vai inteira para o registro de bordo (<code>adsb.ndjson</code>, uma linha JSON por mensagem, ~160 B cada), guardado no cartão para análise depois do teste (HLR-SW-02, HLR-ADS-07). É esse registro, e não o que desce, que guarda tudo.</p>
+
+<h3>3.3 O registro de track: 20 bytes por aeronave</h3>
+<p>Cada aeronave do retrato vira um registro de tamanho fixo (<code>common/gama_tm.h</code>), sem ponto flutuante: cada grandeza é um inteiro escalado, com o passo escolhido abaixo da precisão do próprio ADS-B.</p>
+<div class="bytes">
+  <div>icao<small>3 B · u24</small></div><div>lat<small>3 B · ×93 206</small></div><div>lon<small>3 B · ×46 603</small></div><div>alt<small>2 B · ÷25 ft</small></div><div>vel.<small>2 B · ×10 kt</small></div><div>rumo<small>2 B · ×100 °</small></div><div>subida<small>2 B · ft/min</small></div><div>idade<small>2 B · 0,1 s</small></div><div class="fl">flags<small>1 B</small></div>
+</div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Campo</th><th>Codificação</th><th>Resolução</th></tr></thead>
+  <tbody>
+    <tr><td>latitude, longitude</td><td>graus × 93 206 e × 46 603, inteiros de 24 bits com sinal</td><td>~1,2 m e ~2,4 m no equador</td></tr>
+    <tr><td>altitude</td><td>pés ÷ 25, 16 bits com sinal</td><td>25 ft, o passo do próprio ADS-B</td></tr>
+    <tr><td>velocidade, rumo</td><td>× 10 nós, × 100 graus</td><td>0,1 kt, 0,01°</td></tr>
+    <tr><td>razão vertical</td><td>ft/min, 16 bits com sinal</td><td>1 ft/min</td></tr>
+    <tr><td>idade</td><td>décimos de segundo, até 65 535</td><td>0,1 s (seção 4)</td></tr>
+    <tr><td>flags, bits 0–5</td><td>quais campos são válidos: posição, altitude, velocidade, subida, no solo, indicativo já enviado</td><td>—</td></tr>
+    <tr><td>flags, bits 6–7</td><td>a <b>classe da aeronave</b> (Etapa B): 00 desconhecida, 01 leve, 10 grande, 11 asa rotativa</td><td>—</td></tr>
+  </tbody>
+</table></div>
+<p>Um campo nunca recebido tem o bit de validade em 0 e a ground o ignora. A posição é absoluta, não um delta da anterior: sem entrega garantida, um quadro perdido estragaria todas as posições seguintes. Com 248 bytes de carga por quadro, cabem 12 registros: 20 aeronaves são 2 quadros, 414 bytes, 2,09 s no ar.</p>
+
+<h3>3.4 O <code>ttcd</code> e o retrato no ar</h3>
+<p>O <code>ttcd</code> guarda só o retrato mais recente que o <code>adsbd</code> mandou. Em <code>MISSION_ADSB</code>, a cada 5 s ele o transmite em quadros <code>TM_TRACKS</code> (<code>flight/ttcd/tm_sched.c</code>). Na fila de transmissão, os ACKs vêm antes, depois a telemetria de saúde (a cada 10 s), as estatísticas (a cada 30 s) e só então os tracks. Em <code>SAFE</code> (SF12) os tracks não descem: um retrato levaria 23 s no ar.</p>
+<p>Por que 5 s e não mais rápido: a 4,2 s o tempo no ar acaba sem folga para a saúde e os ACKs. A 5 s, são 120 retratos por missão, 120 pontos de trajetória por aeronave, e 48,5 KB em 251 s de rádio, dos 300 s reservados.</p>
+
+<h2 id="enlace"><span class="n">4</span>O enlace e o tempo de cada registro</h2>
+<p>A Pi não tem relógio de tempo real, e a ground não sincroniza nada com ela (ADR-0009). Mesmo assim, cada registro chega à ground com o instante certo, no relógio da própria ground, graças à <b>idade</b> (ADR-0007):</p>
+<ol class="steps">
+  <li>o <code>adsbd</code> marca, no retrato, há quanto tempo cada aeronave mandou a última atualização;</li>
+  <li>o <code>ttcd</code>, um instante antes de transmitir, soma a essa idade o tempo desde o retrato. A idade passa a medir da atualização até o <b>início da transmissão</b>;</li>
+  <li>a ground carimba a chegada do quadro com o relógio dela e calcula:</li>
+</ol>
+<pre><code>instante da atualização = chegada do quadro − tempo no ar do quadro − 100 ms × idade</code></pre>
+<p>O tempo no ar é conhecido pelo tamanho do quadro e pelo perfil do rádio (<code>common/gama_lora.h</code>). Medido em hardware em 16/11, com 20 aeronaves pelo LoRa: <b>0 de 359 quadros perdidos, latência p95 de 2,8 s, erro de trajetória p95 de 23 m e 0,11 s</b> (<code>docs/vv/bancada/2026-11-16/notas.md</code>). O satélite manda todas as aeronaves em todo retrato; uma que não mudou chega de novo com o mesmo instante, e <code>tracks_to_ndjson.py</code> a descarta (instantes a menos de 250 ms com os mesmos valores).</p>
+<p>A saída é uma linha JSON por registro, no mesmo formato do registro de bordo: <code>{"icao":"E0B244","rx_epoch_ns":…,"lat":…,"lon":…,"altitude_ft":…,"category":"A3"}</code>. Só os campos marcados como válidos aparecem. É esse o "contrato" que o estimador lê, venha da ESP32, de uma captura ou do <code>make sim</code>.</p>
+
+<h2 id="trajetoria"><span class="n">5</span>Na ground: a trajetória</h2>
+<p>O estimador (<code>ground/host/adsb/estimator/</code>, do Pedro) guarda as observações de cada aeronave num SQLite e, a cada observação nova, monta um <b>retrato</b> dela. Resumo; o detalhe, com exemplos reais, está no <a href="2026-11-18-estimador-antes-depois-etapa-a.html">relatório do estimador</a>, seções 3 a 5.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Etapa</th><th>Regra</th><th>Onde</th></tr></thead>
+  <tbody>
+    <tr><td>janela</td><td>até 900 s e 2 000 observações por aeronave; uma lacuna maior que a janela começa um episódio novo</td><td><code>aircraft_manager.py</code></td></tr>
+    <tr><td>retrato</td><td>a última posição (até 60 s); o valor mais recente de cada campo, com idade; categoria válida por 300 s; velocidade e rumo derivados das posições, se faltarem</td><td><code>trajectory.py</code></td></tr>
+    <tr><td>razão vertical</td><td>mediana do recebido nos últimos 10 s; sem ele, regressão robusta (Theil–Sen) da altitude em 30 a 90 s. Sentidos opostos acima de 300 ft/min = conflito, nada é decidido</td><td><code>temporal.py</code></td></tr>
+    <tr><td>fase</td><td><code>CLIMB</code> e <code>DESCENT</code> acima de 300 ft/min por 10 s (sai abaixo de 150, histerese); <code>LEVEL</code> entre os dois; <code>GROUND</code> pelo campo no solo; <code>APPROACH</code> em descida alinhada a uma pista por 10 s</td><td><code>flight_state.py</code></td></tr>
+    <tr><td>qualidade</td><td>nos últimos 120 s: ≥ 3 posições, ≥ 20 s de trecho, nenhuma lacuna &gt; 60 s, nenhum salto impossível (&gt; 2 km + 0,65 km/s)</td><td><code>temporal.py</code></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="aeroportos"><span class="n">6</span>Na ground: os aeroportos</h2>
+
+<h3>6.1 O método local: pontuar cada candidato</h3>
+<p>São candidatos todos os aeroportos, aeródromos e heliportos de <code>referencias.db</code> num raio de 500 km. Cada um recebe componentes entre 0 e 1, e a pontuação é a <b>média ponderada</b> deles vezes um fator pelo tipo de aeroporto e a categoria da aeronave (seção 7):</p>
+<pre><code>pontuação = ( Σ peso_i × componente_i ) / ( Σ peso_i )  ×  fator(categoria, tipo do aeroporto)</code></pre>
+<div class="table-wrap"><table>
+  <thead><tr><th>Componente</th><th>Fórmula (d em km)</th><th class="r">Origem, com âncora</th><th class="r">Origem, sem âncora</th></tr></thead>
+  <tbody>
+    <tr><td><code>takeoff_anchor</code></td><td>e<sup>−d/10</sup>, d da última posição recebida <b>no solo</b> até o aeroporto</td><td class="r">0,45</td><td class="r">—</td></tr>
+    <tr><td><code>distance</code></td><td>e<sup>−d/120</sup>, d da aeronave agora até o aeroporto</td><td class="r">0,05</td><td class="r">0,15</td></tr>
+    <tr><td><code>direction</code></td><td>e<sup>−½(erro/90°)²</sup>, o aeroporto atrás da aeronave (rumo + 180°)</td><td class="r">0,05</td><td class="r">0,05</td></tr>
+    <tr><td><code>trend</code></td><td>(1 + tanh(v/0,05))/2, v = inclinação da distância em km/s nos últimos 120 s (positiva: afastando)</td><td class="r">0,40</td><td class="r">0,40</td></tr>
+    <tr><td><code>vertical</code></td><td>e<sup>−max(0, h − 6000)/8000</sup>, h a altura sobre o aeroporto em pés</td><td class="r">0,25</td><td class="r">0,25</td></tr>
+    <tr><td><code>runway</code></td><td>a trajetória saindo no eixo de uma pista do aeroporto</td><td class="r">0,15</td><td class="r">0,15</td></tr>
+    <tr><td><code>climb_back</code> (Etapa A)</td><td>e<sup>−((d − d<sub>esp</sub>)/σ)²</sup>, seção 7.2</td><td class="r">—</td><td class="r">0,30</td></tr>
+  </tbody>
+</table></div>
+<p>A origem só é estimada em <code>CLIMB</code> e nos primeiros 180 s depois da primeira posição (ou da decolagem). O destino usa os mesmos componentes com o sentido invertido (à frente, aproximando) e mais três: a <b>viabilidade da descida</b> (a razão necessária para perder a altura até lá; zero acima de 5 000 ft/min), e, na fase final, a <b>convergência acumulada</b> e a <b>desaceleração</b>. Na <code>APPROACH</code>, o alinhamento à pista pesa 0,5.</p>
+
+<h3>6.2 A decisão no tempo</h3>
+<p>Um retrato não decide. A fusão (<code>decision_fusion.py</code>) atualiza uma memória por candidato no máximo a cada 10 s, com média exponencial (α = 1 − e<sup>−Δt/30</sup>). Um candidato vira <span class="badge b-ok">ESTIMATED</span> só se:</p>
+<ul>
+  <li>for o melhor em ≥ 3 atualizações seguidas, por ≥ 20 s;</li>
+  <li>qualidade ≥ 0,35, cobertura de evidência ≥ 0,55, tendência ≥ 0,65;</li>
+  <li>altura inicial sobre o aeroporto entre −300 e 6 000 ft (origem) ou até 10 000 ft (destino);</li>
+  <li>compatibilidade ≥ 0,65 <b>e margem ≥ 0,08 sobre o segundo</b>. Sem margem: <span class="badge b-warn">AMBIGUO</span>.</li>
+</ul>
+<p>No destino há ainda o <span class="badge b-warn">TENTATIVE</span>: um candidato a menos de 50 km, com compatibilidade ≥ 0,65 (0,55 na fase final), mostrado como hipótese mesmo sem margem.</p>
+
+<h3>6.3 O método de pares e a conclusão combinada (ADR-0019)</h3>
+<p>Um segundo método olha a <b>rota inteira</b>: para cada par de aeroportos (A → B), mede quão bem a trajetória observada cabe no arco de grande círculo entre eles.</p>
+<pre><code>pontuação do par = e<sup>−(rms/corredor)²</sup> × fração monotônica × alinhamento × min(fator_A, fator_B)
+  rms        distância média quadrática dos pontos ao arco finito, km   (corredor = 80 km)
+  monotônica fração dos passos que andam no sentido A → B              (≥ 0,8)
+  alinhamento progresso ao longo do arco ÷ distância percorrida</code></pre>
+<p>Os pares vêm de um banco gerado localmente (seção 8.2), avaliados em processos separados com NumPy. A <b>conclusão combinada</b> pesa os dois métodos pela fase: o local vale 0,8 perto da decolagem ou do pouso, 0,6 nas outras fases verticais e 0,3 em cruzeiro nivelado; a concordância soma no máximo 0,05; decide com suporte ≥ 0,6 e separação ≥ 0,08.</p>
+<div class="callout warn"><p><b>Desligado por padrão na página</b> (ADR-0022): com tráfego real, o melhor par acertou 3 de 12 origens, e com ele ligado a conclusão combinada não decidiu nenhum voo. Rotas reais não seguem o grande círculo perto dos aeroportos, e voos curtos cabem em muitos pares. <code>gs_web.py --pairs</code> o liga.</p></div>
+
+<h2 id="categoria"><span class="n">7</span>A categoria da aeronave: Etapas A e B</h2>
+<p>A categoria ADS-B diz o porte: A1 leve, A2 pequeno, A3 grande, A5 pesado, A7 helicóptero… O método local a usa para filtrar e pesar os candidatos:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Categoria</th><th>Heliporto</th><th class="r">Aeródromo pequeno</th><th class="r">Aeroporto médio</th></tr></thead>
+  <tbody>
+    <tr><td>A1, A2</td><td><span class="badge b-bad">excluído</span></td><td class="r">× 1,00 (A2: 0,95)</td><td class="r">× 1,00</td></tr>
+    <tr><td>A3</td><td><span class="badge b-bad">excluído</span></td><td class="r">× 0,85</td><td class="r">× 0,95</td></tr>
+    <tr><td>A5</td><td><span class="badge b-bad">excluído</span></td><td class="r">× 0,75</td><td class="r">× 0,90</td></tr>
+    <tr><td>A7</td><td class="r">× 1,00</td><td class="r">× 1,00</td><td class="r">× 1,00</td></tr>
+    <tr class="total"><td>sem categoria</td><td class="r">× 0,90</td><td class="r">× 1,00</td><td class="r">× 1,00</td></tr>
+  </tbody>
+</table></div>
+<p><b>O problema:</b> o SBS não tem a categoria, então ela nunca chegava à ground. Sem ela, os heliportos ao lado de Aeroparque empatavam com o aeroporto (margem 0,04 &lt; 0,08), e a origem não saía: 0 decididas em 1 h de tráfego real. Duas frentes resolvem isso.</p>
+
+<h3>7.1 Etapa A: a classe pela cinemática, na ground (ADR-0022)</h3>
+<p>Sem categoria recebida, a aeronave é marcada <b>A3</b> quando, pelo menos duas vezes: voa acima de 250 kt, <b>ou</b> acima de 18 000 ft, <b>ou</b> sobe acima de 1 800 ft/min a mais de 160 kt. Nenhum avião leve nem helicóptero faz isso. A classe vale até o fim do episódio. Só "grande" é inferido: um helicóptero a 120 kt e 2 000 ft se move como um avião leve, e marcá-lo como asa fixa excluiria os heliportos (<code>aircraft_category.infer_class</code>).</p>
+
+<h3>7.2 Etapa A: a distância de decolagem pela subida</h3>
+<p>Sem âncora no solo, cada candidato da origem ganha o componente <code>climb_back</code>. Uma aeronave h pés acima do aeroporto, subindo a v ft/min, a s nós, saiu de lá há h/v minutos:</p>
+<pre><code>d_esp = s × 1,852 × (h / v) / 60      km
+σ     = max(3 km; 0,3 × d_esp)
+climb_back = e^(−((d − d_esp)/σ)²)     só com v ≥ 300 ft/min e classe conhecida</code></pre>
+<p>Exemplo real (ARG1842, 18/11): 6 425 ft e 263 kt. O v da conta é a razão vertical do estimador, a mediana do recebido nos últimos 10 s (seção 5), e não o último valor (2 816 ft/min): por isso d<sub>esp</sub> saiu 19,2 km para Ezeiza (elevação 67 ft), e não os 18,3 km que o último valor daria. A distância real era 19,9 km, componente 0,99. Aeroparque, a 44 km, ficou com 0. Só vale com a classe conhecida: sozinha, a conta favorecia heliportos à distância certa.</p>
+
+<h3>7.3 Etapa B: a categoria a bordo, pela porta AVR (ADR-0023)</h3>
+<p>A categoria está na <b>mensagem de identificação</b> ADS-B, que o <code>dump1090-fa</code> escreve crua na porta AVR. O <code>adsbd</code> lê essa porta só para isso (<code>flight/adsbd/avr.c</code>):</p>
+<pre><code>*8D4840D6202CC371C32CE0576098;</code></pre>
+<div class="table-wrap"><table>
+  <thead><tr><th>Bytes (hex)</th><th>Bits</th><th>Campo</th><th>Neste exemplo</th></tr></thead>
+  <tbody>
+    <tr><td><code>8D</code></td><td>1–8</td><td>DF (5 bits) e CA (3 bits)</td><td>DF = 17: ADS-B</td></tr>
+    <tr><td><code>4840D6</code></td><td>9–32</td><td>o endereço ICAO</td><td>4840D6</td></tr>
+    <tr><td><code>20</code></td><td>33–40</td><td>tipo (5 bits) e categoria (3 bits)</td><td>tipo 4 → conjunto A; categoria 0 → <b>A0</b></td></tr>
+    <tr><td><code>2CC371C32CE0</code></td><td>41–88</td><td>o indicativo, 8 caracteres de 6 bits</td><td>KLM1023</td></tr>
+    <tr><td><code>576098</code></td><td>89–112</td><td>PI: CRC-24, gerador 0xFFF409</td><td>o CRC sobre a mensagem inteira dá 0</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li>Só DF17/18 de 112 bits com tipo 1 a 4; o CRC-24 é conferido nelas. As outras mensagens são contadas e descartadas (regra 6).</li>
+  <li>A categoria vira uma <b>classe de 2 bits</b> nos bits 6–7 dos <code>flags</code>: 01 leve (A1, A2, B1), 10 grande (A3–A6), 11 asa rotativa (A7). A ground a traduz de volta em A1, A3 ou A7.</li>
+  <li>Os bits eram sempre 0, que passa a ser "desconhecida": <b>nenhum byte a mais no rádio, nenhuma mudança de versão</b>, e uma ground antiga continua entendendo o satélite novo.</li>
+  <li>A categoria exata (A2, A5…) fica no registro de bordo, numa linha <code>{"icao":…,"category":"A3"}</code>.</li>
+  <li><b>Desligada por padrão</b> (<code>avr_port = 0</code>) até a bancada de 20/11. A tag <code>adsb-etapa-a</code> marca a versão sem ela.</li>
+</ul>
+<p>As duas convivem: a categoria recebida prevalece; sem ela (porta desligada, ou cenário que não a transmite), a ground infere.</p>
+
+<h2 id="bancos"><span class="n">8</span>Os bancos de dados</h2>
+
+<h3>8.1 A referência: <code>referencias.db</code> (OurAirports)</h3>
+<p>Os aeroportos do mundo, baixados do OurAirports em 22/09/2026 e importados para SQLite (<code>ground/host/adsb/data/referencias/</code>, no Git): <b>86 112 instalações</b> (aeroportos, heliportos, bases de hidroavião, fechadas), <b>48 250 pistas</b> com cabeceiras e rumos, países e regiões, e uma tabela com a fonte, a data e o SHA-256 de cada CSV. 14 948 aeroportos não informam a elevação; ela fica <code>NULL</code>, nunca zero. O estimador abre o banco só para leitura e carrega os tipos <code>large</code>, <code>medium</code>, <code>small_airport</code> e <code>heliport</code>.</p>
+
+<h3>8.2 O banco de pares (ADR-0019)</h3>
+<p>Gerado localmente a partir do <code>referencias.db</code> em ~1,5 min (<code>gerar_pares.py</code> e <code>prioridade_regional.py</code>), com 599 MB, por isso <b>fora do Git</b>. Tem 3 291 aeroportos (todos os <code>large</code> e os <code>medium</code> com voo regular) e todos os pares ordenados entre eles, com a distância e o rumo inicial do grande círculo. A prioridade regional (América Latina primeiro) só ordena a busca; não muda pontuação. A auditoria de cidades documenta os aeroportos regulares que ficaram de fora.</p>
+
+<h3>8.3 Os dados de teste: tráfego real pelas APIs</h3>
+<p>Sem aviões passando pela antena da bancada, os testes usam tráfego real gravado de duas fontes públicas (<code>tools/live_traffic/live_traffic.py</code>, só biblioteca padrão):</p>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 900 250" role="img" aria-label="Como uma captura é montada a partir das APIs">
+  <defs><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker></defs>
+  <rect class="box ext" x="20" y="20" width="210" height="58" rx="7"/><text class="t-b" x="125" y="44" text-anchor="middle">adsb.lol /v2/point</text><text class="t-s" x="125" y="62" text-anchor="middle">a cada 5 s, raio 150 NM</text>
+  <rect class="box ext" x="20" y="150" width="210" height="58" rx="7"/><text class="t-b" x="125" y="174" text-anchor="middle">OpenSky /tracks/all</text><text class="t-s" x="125" y="192" text-anchor="middle">a trilha desde a decolagem</text>
+  <rect class="box" x="290" y="20" width="190" height="58" rx="7"/><text class="t-b" x="385" y="44" text-anchor="middle">raw.jsonl.gz</text><text class="t-s" x="385" y="62" text-anchor="middle">as respostas cruas</text>
+  <rect class="box" x="290" y="150" width="190" height="58" rx="7"/><text class="t-b" x="385" y="174" text-anchor="middle">tracks/ICAO.json</text><text class="t-s" x="385" y="192" text-anchor="middle">uma por aeronave</text>
+  <rect class="box done" x="540" y="20" width="340" height="58" rx="7"/><text class="t-b" x="710" y="44" text-anchor="middle">convert → capture.ndjson</text><text class="t-s" x="710" y="62" text-anchor="middle">e capture_sem_categoria.ndjson</text>
+  <rect class="box done" x="540" y="150" width="340" height="58" rx="7"/><text class="t-b" x="710" y="174" text-anchor="middle">truth → ground_truth.json</text><text class="t-s" x="710" y="192" text-anchor="middle">origem e destino de cada voo</text>
+  <path class="edge" d="M230 49H286" marker-end="url(#b)"/><path class="edge" d="M230 179H286" marker-end="url(#b)"/>
+  <path class="edge" d="M480 49H536" marker-end="url(#b)"/><path class="edge" d="M480 179H536" marker-end="url(#b)"/>
+  <path class="edge" d="M480 60L536 170" marker-end="url(#b)"/>
+  <text class="t-e" x="20" y="236">A internet só entra aqui. Depois, o mesmo par captura + gabarito é tocado e avaliado quantas vezes for preciso, sem rede.</text>
+</svg></div>
+<figcaption>Quando uma aeronave some por 60 s, o <code>capture</code> pede a trilha dela à OpenSky; a resposta da adsb.lol de cada consulta fica guardada crua, e tudo o mais é refeito a partir dela.</figcaption>
+</figure>
+<div class="table-wrap"><table>
+  <thead><tr><th>Passo</th><th>O que faz</th><th>Por quê</th></tr></thead>
+  <tbody>
+    <tr><td><b>capture</b></td><td>consulta a adsb.lol a cada 5 s num raio de 150 NM da UNSAM (o local da competição) e guarda cada resposta. Num HTTP 429 (limite de taxa), espera o dobro a cada recusa, até 60 s, e volta ao período na primeira resposta boa. Pede à OpenSky a trilha de cada aeronave que sai, até um teto</td><td>5 s é o período do retrato do satélite. Buenos Aires tem 18 a 20 aeronaves na área, a adsb.lol traz a categoria, e a OpenSky guarda a trilha desde antes da captura começar</td></tr>
+    <tr><td><b>convert</b></td><td>de cada resposta, um registro por aeronave no formato do registro de bordo: o instante (<code>now − seen_pos</code>), posição, altitude, velocidade, rumo, subida, no solo, indicativo, categoria. <b>Descarta</b> endereços não ICAO, posições de MLAT ou TIS-B e posições com mais de 10 s. Tira repetições (&lt; 200 ms). <code>--no-category</code> tira a categoria</td><td>só o que o nosso receptor veria: o SDR não multilatera, e o <code>adsbd</code> descarta posições velhas. Sem a categoria é o que a ground recebe com a porta AVR desligada</td></tr>
+    <tr><td><b>truth</b></td><td>para cada aeronave vista no ar, a origem e o destino, ou <code>null</code> quando os dados não mostram. Primeiro o que a captura viu; o que faltar, pela trilha da OpenSky</td><td>o gabarito só afirma o que tem evidência; o resto vira "UNKNOWN esperado"</td></tr>
+  </tbody>
+</table></div>
+<p><b>As regras do gabarito</b> (<code>endpoint</code> e <code>snap_airport</code>):</p>
+<ul>
+  <li><b>Origem:</b> o primeiro ponto da trilha, se a aeronave estava <b>no solo</b> e depois foi vista no ar, ou estava <b>baixa e subiu ≥ 500 ft</b> depois dele. Quem entra na captura já voando baixo não tem origem conhecida.</li>
+  <li><b>Destino:</b> o último ponto, se estava no solo depois de voar, ou baixo depois de ter estado ≥ 2 000 ft mais alto.</li>
+  <li><b>O aeroporto:</b> no solo, o mais próximo até 3 km; no ar, até 8 km e até 1 000 ft acima dele. Com a categoria conhecida, só os tipos que ela usa (um jato não é atribuído ao heliporto embaixo da sua subida); sem ela, o maior tipo primeiro.</li>
+</ul>
+<p>As duas capturas de 1 h estão em <code>docs/vv/trafego-real/</code>:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Captura</th><th class="r">Consultas</th><th class="r">Aeronaves</th><th class="r">Voos</th><th class="r">Origens conhecidas</th><th class="r">Destinos conhecidos</th><th>Papel</th></tr></thead>
+  <tbody>
+    <tr><td>17/11, 14h56–15h56 UTC</td><td class="r">692 (30% com 429)</td><td class="r">47</td><td class="r">42</td><td class="r">27</td><td class="r">10</td><td>calibração: os limites da Etapa A foram ajustados aqui</td></tr>
+    <tr><td>18/11, 11h22–12h22 UTC</td><td class="r">544 (8% com 429)</td><td class="r">44</td><td class="r">38</td><td class="r">26</td><td class="r">12</td><td><b>validação</b>: não ajustou nada, só confere</td></tr>
+  </tbody>
+</table></div>
+
+<h3>8.4 Os cenários sintéticos</h3>
+<p>O ADS-B da competição é <b>simulado pela organização</b> com um SDR (regulamento 4.4.4): as aeronaves podem ser regravadas, sintéticas ou inventadas. <code>tools/live_traffic/synthetic.py</code> gera os dois casos que o tráfego real não cobre, no mesmo formato de uma captura, deterministicamente:</p>
+<ul>
+  <li><b><code>rotas</code></b>: 23 voos em linha reta entre aeroportos reais (8 decolagens, metade vista já no ar; 8 chegadas; 4 sobrevoos; 3 aviões leves). Origem e destino conhecidos em todos.</li>
+  <li><b><code>ficticio</code></b>: 12 aeronaves com endereços inventados e pontas a mais de 15 km de qualquer aeroporto. Qualquer decisão é falso positivo.</li>
+</ul>
+
+<h2 id="avaliar"><span class="n">9</span>Como avaliar</h2>
+<p><code>tools/live_traffic/avaliar.sh DIR</code> roda o estimador sobre <code>capture.ndjson</code> e <code>capture_sem_categoria.ndjson</code> e pontua o resultado contra o gabarito, com o avaliador do próprio estimador (<code>adsb/validation/avaliar_estimativas.py</code>) e, para a conclusão combinada e o melhor par, com <code>avaliar_combinada.py</code>, na mesma regra. Para cada aeronave e cada ponta (origem, destino):</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Gabarito</th><th>Estimador decidiu</th><th>Resultado</th></tr></thead>
+  <tbody>
+    <tr><td>um aeroporto</td><td>o mesmo</td><td><span class="badge b-ok">ACERTO</span></td></tr>
+    <tr><td>um aeroporto</td><td>outro</td><td><span class="badge b-bad">ERRO</span></td></tr>
+    <tr><td>um aeroporto</td><td>nada</td><td><span class="badge b-todo">UNKNOWN</span>: não decidiu; não é erro</td></tr>
+    <tr><td><code>null</code></td><td>nada</td><td><span class="badge b-todo">UNKNOWN esperado</span>: o certo</td></tr>
+    <tr><td><code>null</code></td><td>um aeroporto</td><td><span class="badge b-warn">falso positivo</span>: num voo real pode ser só um pouso que a captura não viu</td></tr>
+  </tbody>
+</table></div>
+<p>Dois números resumem: <b>cobertura</b> = decididos ÷ casos com gabarito, e <b>acerto quando decide</b> = acertos ÷ decididos. "7 de 7" quer dizer 7 decididos, 7 certos. O estimador foi feito para errar pouco, não para decidir sempre: errar com confiança é pior que abster.</p>
+
+<h2 id="resultados"><span class="n">10</span>Os resultados</h2>
+<p><b>Origem pelo método local, sem a categoria</b> (o que a ground recebe com a porta AVR desligada):</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Conjunto</th><th class="r">Antes da Etapa A</th><th class="r">Com a Etapa A</th><th class="r">Com a categoria verdadeira e a Etapa A</th></tr></thead>
+  <tbody>
+    <tr><td>Real 17/11 (calibração)</td><td class="r">0</td><td class="r"><b>7 de 7</b></td><td class="r">7 de 7</td></tr>
+    <tr><td>Real 18/11 (validação)</td><td class="r">4 de 4</td><td class="r"><b>6 de 6</b></td><td class="r"><b>10 de 10</b></td></tr>
+    <tr><td>Sintético <code>rotas</code></td><td class="r">3 de 3</td><td class="r"><b>10 de 10</b></td><td class="r">—</td></tr>
+    <tr><td>Sintético <code>ficticio</code> (o certo é 0)</td><td class="r">0</td><td class="r">0</td><td class="r">—</td></tr>
+  </tbody>
+</table></div>
+<ul>
+  <li><b>Destino:</b> 9 de 10 (17/11) e 10 de 12 (18/11), igual antes e depois; os pousos vistos bastam ao método local.</li>
+  <li><b>Etapa B:</b> a captura de 18/11 com a categoria <b>reduzida aos 2 bits</b> dá exatamente o mesmo que a categoria exata (10 de 10). Pela cadeia inteira, 10 min de 18/11 com e sem a porta AVR: os mesmos 243 quadros e 0 perdidos; 1 012 identificações aplicadas, 0 rejeitadas.</li>
+  <li><b>O classificador da Etapa A</b> contra a categoria verdadeira (17/11): dos 31 A3, 29 inferidos grandes; dos 7 A1, <b>nenhum</b>.</li>
+  <li><b>O método de pares:</b> 3 de 12 origens no real, 12 de 21 nos voos retos (o melhor caso dele), 11 falsos positivos nos inventados.</li>
+</ul>
+<p>Os relatórios de cada avaliação ficam em <code>docs/vv/trafego-real/*/avaliacao*</code>; a análise do porquê, com dois voos reais lado a lado, no <a href="2026-11-18-estimador-antes-depois-etapa-a.html">relatório do estimador</a>.</p>
+
+<h2 id="reproduzir"><span class="n">11</span>Reproduzir do zero</h2>
+<pre><code># 1. Uma captura nova (1 h de internet; a OpenSky limita as trilhas)
+python3 tools/live_traffic/live_traffic.py capture --out docs/vv/trafego-real/AAAA-MM-DD-unsam --duration 3600
+#    (o capture já roda o convert; o gabarito:)
+python3 tools/live_traffic/live_traffic.py truth docs/vv/trafego-real/AAAA-MM-DD-unsam
+
+# 2. Pontuar o estimador, com e sem a categoria (minutos, sem rede)
+tools/live_traffic/avaliar.sh docs/vv/trafego-real/AAAA-MM-DD-unsam
+#    com o método de pares (gere o banco antes, ~1,5 min):
+tools/live_traffic/avaliar.sh docs/vv/trafego-real/AAAA-MM-DD-unsam --pairs-db ground/host/adsb/data/pares/pares_aeroportos.db
+
+# 3. O estimador de antes da Etapa A, para comparar
+cd ground/host && python3 -m adsb.estimator --input CAPTURA.ndjson --no-kinematic-category --climb-back-weight 0
+
+# 4. Ver na página, com o satélite inteiro no PC (http://127.0.0.1:8080)
+make sim INPUT=docs/vv/trafego-real/2026-11-18-unsam/capture.ndjson          # porta AVR ligada
+make sim INPUT=docs/vv/trafego-real/2026-11-18-unsam/capture.ndjson AVR=0    # o voo de hoje
+
+# 5. A cadeia inteira sem página, em tempo real, com o resumo no fim
+make adsb-chain INPUT=docs/vv/trafego-real/2026-11-18-unsam/capture.ndjson
+
+# 6. Cenários sintéticos
+python3 tools/live_traffic/synthetic.py rotas docs/vv/trafego-real/sintetico-rotas</code></pre>
+
+<h2 id="limites"><span class="n">12</span>Limites e o que falta</h2>
+<ul>
+  <li><b>Amostra:</b> 80 voos reais em duas horas de um mesmo espaço aéreo. Os limites da Etapa A foram ajustados à mão numa captura e conferidos na outra.</li>
+  <li><b>Os pesos e limiares são heurísticos</b>: "compatibilidade", não probabilidade. Não estão calibrados estatisticamente.</li>
+  <li><b>A subida reta:</b> a <code>climb_back</code> erra numa subida em curva ou com razão variável; o σ largo é a proteção.</li>
+  <li><b>Hardware:</b> a Etapa A pelo LoRa é o teste 1 da bancada de 19/11; a Etapa B, com a porta AVR, a de 20/11 (<code>docs/vv/bancada/</code>). A antena ainda não recebeu aeronave real (16/11).</li>
+  <li><b>A organização:</b> não se sabe se os cenários simulados transmitem a mensagem de identificação com a categoria. Sem ela, a Etapa B não ajuda e a Etapa A cobre.</li>
+</ul>
+
+<footer>
+  <p>GCD26 · TT&amp;C · 18/11/2026. Números de <code>lora_budget.py</code>, do código (<code>adsbd</code>, <code>adsb/estimator</code>, <code>live_traffic</code>), das avaliações em <code>docs/vv/trafego-real/</code> e da bancada de 16/11. Relacionados: <a href="2026-11-18-estimador-antes-depois-etapa-a.html">o estimador antes e depois da Etapa A</a>, <a href="2026-11-18-proposta-categoria-adsb.html">a proposta da categoria a bordo</a>, <a href="2026-11-18-enlace-lora.html">a telecomunicação pelo LoRa</a>.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

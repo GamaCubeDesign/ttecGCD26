@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — A telecomunicação pelo LoRa (18/11/2026)</title>
+<link rel="icon" href="assets/favicon.png">
+<style>
+@font-face{
+  font-family:"Open Sans"; src:url("assets/OpenSans.woff2") format("woff2");
+  font-weight:300 800; font-style:normal; font-display:swap;
+}
+:root{
+  /* Gama Cube Design (identidade_visual_gama.pdf; the same tokens as
+   * ground/host/web/css/gama.css): black, British Racing Green #034a2c and
+   * white; Forest Green, Yellow Orange and Terra Cotta for ok, warning and
+   * failure, in darker shades for text on a light background. */
+  --brand:#034a2c; --brand-band:#000000;
+  --bg:#f3f5f4; --surface:#ffffff; --surface-2:#eaefec; --fg:#111312; --muted:#56605b;
+  --line:#d0d6d3; --line-strong:#7f8a84; --accent:#034a2c; --accent-soft:#e3eee8;
+  --ok:#2f6b3a; --ok-soft:#e6f1e7; --warn:#8a5300; --warn-soft:#fbf0df;
+  --todo:#56605b; --todo-soft:#eceeed; --bad:#a8321f; --bad-soft:#fbe7e3;
+  --code-bg:#eef1ef; --node:#ffffff; --node-hw:#eef1ef; --node-ext:#e3eee8;
+  --sans:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0a0c0b; --surface:#121614; --surface-2:#19201c; --fg:#f2f5f3; --muted:#9aa7a0;
+    --line:#26302b; --line-strong:#6f7c75; --accent:#8cc391; --accent-soft:#10251a;
+    --ok:#8cc391; --ok-soft:#15301f; --warn:#f3b866; --warn-soft:#33280e;
+    --todo:#a8b0ac; --todo-soft:#222826; --bad:#ef8d80; --bad-soft:#3a1b19;
+    --code-bg:#19201c; --node:#121614; --node-hw:#19201c; --node-ext:#10251a;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+
+svg.diagram .lost{fill:var(--bad-soft);stroke:var(--bad);stroke-width:2}
+svg.diagram .new{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2;stroke-dasharray:5 4}
+svg.diagram .edge.ok{stroke:var(--ok);stroke-width:2}
+svg.diagram .ah-ok{fill:var(--ok)}
+svg.diagram .t-bad{font-size:12px;fill:var(--bad);font-weight:600}
+svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
+.bytes .fl{background:var(--warn-soft)}
+
+/* Gama: the band on top, as on the ground's page; ExtraBold titles. */
+.brand-bar{background:var(--brand-band);border-bottom:3px solid var(--brand);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:8px 20px;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.brand-bar img{width:28px;height:28px;display:block}
+.brand-bar b{font-weight:800;letter-spacing:.04em}
+.brand-bar span{opacity:.75}
+h1,h2{font-weight:800}
+.eyebrow{color:var(--accent);font-weight:700}
+@media print{.brand-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="brand-bar"><img src="assets/favicon.png" alt=""><b>Gama Cube Design</b><span>CubeDesign 2026 · TT&amp;C</span></div>
+<div class="layout">
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#hardware">O rádio</a></li>
+    <li><a href="#lora">LoRa em poucas linhas</a></li>
+    <li><a href="#perfis">Os três perfis e o tempo no ar</a></li>
+    <li><a href="#quadro">O quadro</a></li>
+    <li><a href="#protocolo">O protocolo</a></li>
+    <li><a href="#perfil">Mudar de perfil e perder contato</a></li>
+    <li><a href="#desce">O que desce, e quando</a></li>
+    <li><a href="#orcamento">Os orçamentos</a></li>
+    <li><a href="#ground">Na ground</a></li>
+    <li><a href="#testes">Como é testado</a></li>
+    <li><a href="#bancada">O que a bancada mediu</a></li>
+    <li><a href="#limites">Limites e o que falta</a></li>
+  </ol>
+</nav>
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · TT&amp;C · enlace LoRa · estudo</p>
+  <h1>A telecomunicação pelo LoRa</h1>
+  <p class="lede">Como o satélite e a ground conversam: o rádio e a frequência, os perfis de taxa e o tempo que cada quadro ocupa no ar, o formato do quadro, o protocolo que garante que um telecomando chega e executa uma vez só, o que desce em cada modo, os orçamentos de enlace e de dados, e o que a bancada já mediu.</p>
+  <div class="meta"><span><b>Data:</b> 18/11/2026</span><span><b>Para:</b> estudo do repositório</span><span><b>Decisões:</b> ADR-0004, 0006, 0007, 0012, 0013, 0014, 0015, 0018</span><span><b>Código:</b> <code>common/</code>, <code>flight/ttcd/</code>, <code>flight/radio/</code>, <code>ground/</code></span></div>
+</header>
+
+<h2 id="resumo"><span class="n">1</span>Resumo</h2>
+<div class="tiles">
+  <div class="tile"><div class="v">58,3 KB</div><div class="l">o que desce em 10 min no perfil NOMINAL (SF9, 125 kHz), usando metade do tempo no ar</div></div>
+  <div class="tile"><div class="v">1,40 s</div><div class="l">o pior caso de um telecomando até ser executado, sem perda (HLR-COMM-01); 3,37 s com um quadro perdido</div></div>
+  <div class="tile"><div class="v">0 de 2 220</div><div class="l">quadros perdidos na bancada de rádio de 09/10; 0 de 359 na cadeia ADS-B de 16/11, com a ESP32</div></div>
+</div>
+<p>Um único rádio LoRa de 433,92 MHz em cada ponta, <b>half-duplex</b>: quem transmite não escuta. Todo o resto decorre disso. O satélite fala por padrão e abre, depois de cada quadro, uma pequena janela de silêncio para a ground responder. A ground manda um telecomando por vez e espera o ACK. Cada telecomando é executado no máximo uma vez, mesmo que o ACK se perca e ele seja retransmitido. As duas pontas compilam a mesma tabela de perfis e o mesmo codec (<code>common/</code>), então não podem discordar sobre o formato.</p>
+
+<h2 id="hardware"><span class="n">2</span>O rádio</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Item</th><th>Valor</th><th>De onde</th></tr></thead>
+  <tbody>
+    <tr><td>módulo</td><td>Ai-Thinker RA-02, chip Semtech SX1278, um em cada ponta</td><td>—</td></tr>
+    <tr><td>frequência</td><td><b>433,92 MHz</b>, o centro da faixa de 433,05 a 434,79 MHz: o canal de 125 kHz fica inteiro dentro dela, com 807,5 kHz de folga para cada borda</td><td>ADR-0015, <code>GAMA_LORA_FREQ_HZ</code></td></tr>
+    <tr><td>potência</td><td><b>14 dBm</b> em voo; o telecomando <code>SET_TX_POWER</code> aceita 2 a 20 dBm. Na bancada, 2 dBm com os rádios a 1 m</td><td>ADR-0015</td></tr>
+    <tr><td>sync word</td><td><code>0x12</code>, rede privada: o rádio ignora o tráfego LoRaWAN</td><td>ADR-0004</td></tr>
+    <tr><td>antenas</td><td>dipolos de 433,92 MHz com balun LC, sendo feitos pela equipe; COTS nos testes. O orçamento supõe 2,15 dBi em cada ponta</td><td><code>docs/budgets/link-budget.md</code></td></tr>
+    <tr><td>no satélite</td><td>o <code>ttcd</code> fala com o SX1278 pelo SPI do kernel (<code>spidev</code>) e pelos GPIO (<code>/dev/gpiochip</code>): RESET e o DIO0, a interrupção de "transmissão terminou" e "chegou um quadro"</td><td>ADR-0012, <code>flight/radio/sx1278_linux.c</code></td></tr>
+    <tr><td>na ground</td><td>uma ESP32 com o mesmo driver (<code>flight/radio/sx1278.c</code>), ligada ao PC pela USB</td><td>ADR-0018</td></tr>
+    <tr><td>sem hardware</td><td>um "rádio UDP" que imita o LoRa num socket, com o mesmo tempo no ar: a cadeia inteira roda no PC</td><td><code>flight/radio/radio_udp.c</code></td></tr>
+  </tbody>
+</table></div>
+<p>O driver (<code>sx1278.c</code>) não sabe de Linux nem de ESP32: ele fala com um "barramento" abstrato (ler e escrever registradores), e cada plataforma fornece o seu. É isso que permite o mesmo driver nas duas pontas e testá-lo contra um chip emulado em C (<code>tests/test_sx1278.c</code>).</p>
+
+<h2 id="lora"><span class="n">3</span>LoRa em poucas linhas</h2>
+<p>LoRa é uma modulação de <b>espalhamento por chirp</b>: cada símbolo é uma varredura de frequência ao longo da banda, e o ponto onde a varredura começa codifica SF bits. Três parâmetros controlam tudo (conhecimento geral, conferido no datasheet do SX1276/77/78/79, §4.1.1):</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Parâmetro</th><th>O que é</th><th>Efeito</th></tr></thead>
+  <tbody>
+    <tr><td><b>SF</b>, spreading factor (7 a 12)</td><td>bits por símbolo; o símbolo dura 2<sup>SF</sup>/BW</td><td>+1 no SF <b>dobra o tempo</b> de cada símbolo e ganha ~2,5 dB de sensibilidade: mais alcance, menos taxa</td></tr>
+    <tr><td><b>BW</b>, largura de banda</td><td>quanto do espectro o chirp varre</td><td>dobrar a banda dobra a taxa e perde ~3 dB</td></tr>
+    <tr><td><b>CR</b>, taxa de código (4/5 a 4/8)</td><td>bits de correção de erro a cada 4 de dados</td><td>4/8 corrige mais e custa 60% a mais de tempo que 4/5</td></tr>
+  </tbody>
+</table></div>
+<p>O tempo no ar de um quadro, como está em <code>common/gama_lora.c</code> (e, de forma independente, em <code>lora_budget.py</code>; <code>tests/test_lora.c</code> confere que os dois concordam):</p>
+<pre><code>T_símbolo = 2^SF / BW
+T_preâmbulo = (8 + 4,25) × T_símbolo
+n_símbolos = 8 + max( ⌈ (8·N − 4·SF + 28 + 16) / (4·(SF − 2·DE)) ⌉ × (CR + 4), 0 )
+T_no_ar = T_preâmbulo + n_símbolos × T_símbolo
+
+  N  = bytes do quadro (carga LoRa); +16 = o CRC do próprio LoRa ligado
+  DE = 1 quando o símbolo passa de 16 ms (SF11 e SF12 a 125 kHz), senão 0
+  CR = 1 para 4/5, 4 para 4/8</code></pre>
+<p>A ground só sabe que um quadro está chegando depois de decodificar o <b>cabeçalho</b> LoRa: o preâmbulo mais 8 símbolos, 83 ms no NOMINAL. Esse número aparece em todas as janelas do protocolo.</p>
+
+<h2 id="perfis"><span class="n">4</span>Os três perfis e o tempo no ar</h2>
+<p>Só três combinações existem, compiladas nas duas pontas (ADR-0004). O telecomando <code>SET_RATE</code> leva o número do perfil, nunca SF ou CR soltos: um comando corrompido não consegue deixar as pontas em configurações que não se ouvem. Todos a 125 kHz, preâmbulo de 8 símbolos, cabeçalho explícito e CRC do LoRa ligado.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Perfil</th><th>SF</th><th>CR</th><th class="r">Símbolo</th><th class="r">Taxa útil</th><th class="r">Em 10 min a 50%</th><th class="r">Sensibilidade</th><th>Para quê</th></tr></thead>
+  <tbody>
+    <tr><td><code>SAFE</code></td><td>12</td><td>4/8</td><td class="r">32,8 ms</td><td class="r">143 bit/s</td><td class="r">5,2 KB</td><td class="r">−137 dBm</td><td>recuperação: o farol, quando o contato some</td></tr>
+    <tr><td><b><code>NOMINAL</code></b></td><td>9</td><td>4/5</td><td class="r">4,1 ms</td><td class="r">1 592 bit/s</td><td class="r"><b>58,3 KB</b></td><td class="r">−129 dBm</td><td><b>a missão</b>: o padrão</td></tr>
+    <tr><td><code>FAST</code></td><td>7</td><td>4/5</td><td class="r">1,0 ms</td><td class="r">5 074 bit/s</td><td class="r">185,8 KB</td><td class="r">−123 dBm</td><td>descarga rápida, com a ground perto</td></tr>
+  </tbody>
+</table></div>
+<p>Quanto cada quadro ocupa no ar (fórmula da seção 3; N inclui os 7 bytes do quadro GAMA):</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Quadro</th><th class="r">Bytes</th><th class="r">SAFE</th><th class="r">NOMINAL</th><th class="r">FAST</th></tr></thead>
+  <tbody>
+    <tr><td><code>TC</code> PING / <code>BEACON</code></td><td class="r">8 / 7</td><td class="r">1 188 ms</td><td class="r">124 ms</td><td class="r">36 ms</td></tr>
+    <tr><td><code>TC_ACK</code></td><td class="r">11</td><td class="r">1 450 ms</td><td class="r">144 ms</td><td class="r">41 ms</td></tr>
+    <tr><td><code>TC</code> SET_TIME</td><td class="r">16</td><td class="r">1 712 ms</td><td class="r">165 ms</td><td class="r">52 ms</td></tr>
+    <tr><td><code>TM_HK</code> (saúde)</td><td class="r">34</td><td class="r">2 499 ms</td><td class="r">247 ms</td><td class="r">77 ms</td></tr>
+    <tr><td><code>TM_TRACKS</code> cheio, 12 aeronaves</td><td class="r">247</td><td class="r">13 771 ms</td><td class="r">1 230 ms</td><td class="r">389 ms</td></tr>
+  </tbody>
+</table></div>
+<p>Por que SF9: a regra foi "o menor SF cuja margem continua grande depois de toda suposição pessimista justificável". A 100 m, SF9 tem 79,8 dB de margem; tirando 70 dB de perdas supostas ao mesmo tempo (multipercurso, antena dessintonizada pela estrutura, interferência na faixa de 433 MHz, polarização, e 10 dB pelo que não se pensou), sobram 9,8 dB. SF12 daria 8 dB a mais, a um onze avos da taxa. CR 4/5 porque, com essa margem, os erros virão de rajadas de interferência, que derrubam 4/8 do mesmo jeito; o CRC transforma o erro em perda contada.</p>
+
+<h2 id="quadro"><span class="n">5</span>O quadro</h2>
+<p>Um quadro leva uma mensagem. O mesmo formato serve ao rádio e à comunicação entre os processos do satélite (IPC, ADR-0006): o caminho que leva um telecomando ao OBC é exercitado por todo teste do enlace (<code>common/gama_frame.h</code>).</p>
+<div class="bytes">
+  <div>ver<small>1 B · = 2</small></div><div>tipo<small>1 B</small></div><div>seq<small>2 B</small></div><div>len<small>1 B · 0..248</small></div><div class="pl">carga<small>0 a 248 B · registros de tamanho fixo</small></div><div>crc16<small>2 B</small></div>
+</div>
+<ul>
+  <li><b>Little-endian</b>, campo a campo por <code>common/gama_bytes.h</code>: nunca uma <code>struct</code> convertida em bytes (regra dura 1). <code>tests/test_vectors.c</code> fixa os bytes de cada registro.</li>
+  <li><b>248 bytes de carga</b>: o FIFO do SX1278 aceita 255, menos os 7 do quadro.</li>
+  <li><b>CRC-16/CCITT-FALSE</b> sobre cabeçalho e carga, além do CRC do próprio LoRa. Um quadro com versão, tamanho ou CRC errado é descartado e <b>contado</b> (regra 6, HLR-ADS-08).</li>
+  <li><b><code>seq</code></b> conta por direção. O satélite numera cada quadro; a ground conta as perdas pelos buracos. Um telecomando retransmitido mantém o seu número.</li>
+  <li><b>A versão 2</b> (ADR-0013) mudou o tamanho do HK e alguns registros IPC; um par na versão 1 é rejeitado quadro a quadro, e contado.</li>
+</ul>
+<div class="table-wrap"><table>
+  <thead><tr><th>Tipo</th><th>Sentido</th><th>Carga</th></tr></thead>
+  <tbody>
+    <tr><td><code>0x01 TC</code></td><td>ground → satélite</td><td>o código do telecomando e os argumentos</td></tr>
+    <tr><td><code>0x02 TC_ACK</code></td><td>satélite → ground</td><td>4 B: qual telecomando e o resultado</td></tr>
+    <tr><td><code>0x10 TM_HK</code></td><td>satélite → ground</td><td>27 B: bateria, corrente, temperaturas, atitude, mensagens ADS-B, modo do OBC, estado do enlace, tempo ligado, flags</td></tr>
+    <tr><td><code>0x11 TM_TRACKS</code></td><td>satélite → ground</td><td>até 12 registros de 20 B (o <a href="2026-11-18-adsb-ponta-a-ponta.html">relatório da ADS-B</a> os detalha)</td></tr>
+    <tr><td><code>0x12 TM_ROSTER</code></td><td>satélite → ground</td><td>registros de 11 B: endereço ICAO → indicativo</td></tr>
+    <tr><td><code>0x13 TM_STAT</code></td><td>satélite → ground</td><td>26 B: mensagens recebidas e decodificadas, aeronaves, quadros enviados, telecomandos bons e ruins, latência p95, reinícios do <code>dump1090</code></td></tr>
+    <tr><td><code>0x7F BEACON</code></td><td>satélite → ground</td><td>vazio: "estou vivo", em SAFE</td></tr>
+    <tr><td><code>0x20</code>, <code>0x21</code> BULK</td><td>—</td><td>reservados; a descarga do registro bruto pelo rádio não foi implementada (seção 13)</td></tr>
+    <tr><td><code>0x30</code>–<code>0x37</code> IPC</td><td>dentro do satélite</td><td>nunca vão ao ar: eventos para o OBC, hora, telemetria do OBC, modo, retratos e estatísticas do <code>adsbd</code></td></tr>
+  </tbody>
+</table></div>
+<p>Um valor que nenhum sensor mandou viaja como "sem dado" (<code>0xFFFF</code>, <code>0x8000</code>…), nunca zero: zero é uma leitura plausível, e um sensor ausente não pode se passar por ela (ADR-0013).</p>
+
+<h2 id="protocolo"><span class="n">6</span>O protocolo (ADR-0007)</h2>
+
+<h3>6.1 Quem fala quando</h3>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 900 240" role="img" aria-label="Linha do tempo: o satélite transmite, abre a janela de resposta, a ground manda um telecomando e o satélite responde com o ACK">
+  <defs><marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker></defs>
+  <text class="t-b" x="20" y="58">satélite</text><text class="t-b" x="20" y="158">ground</text>
+  <line class="edge" x1="100" y1="70" x2="880" y2="70"/><line class="edge" x1="100" y1="170" x2="880" y2="170"/>
+  <rect class="box done" x="110" y="44" width="250" height="26" rx="4"/><text class="t-s" x="235" y="62" text-anchor="middle">TM_TRACKS · 1 230 ms</text>
+  <rect class="box plan" x="360" y="44" width="60" height="26" rx="4"/><text class="t-e" x="390" y="36" text-anchor="middle">janela 112 ms</text>
+  <rect class="box ext" x="372" y="144" width="80" height="26" rx="4"/><text class="t-s" x="412" y="162" text-anchor="middle">TC · 124 ms</text>
+  <path class="edge" d="M452 157L520 76" marker-end="url(#c)"/>
+  <rect class="box done" x="522" y="44" width="110" height="26" rx="4"/><text class="t-s" x="577" y="62" text-anchor="middle">TC_ACK · 144 ms</text>
+  <path class="edge" d="M632 57L700 160" marker-end="url(#c)"/>
+  <rect class="box done" x="660" y="44" width="200" height="26" rx="4"/><text class="t-s" x="760" y="62" text-anchor="middle">próximo quadro</text>
+  <text class="t-e" x="100" y="206">O satélite escuta antes de falar (LBT) e, depois de cada quadro, fica calado o suficiente para a ground ser ouvida.</text><text class="t-e" x="100" y="224">Um quadro da ground fecha a janela na hora: o ACK sai em seguida.</text>
+</svg></div>
+<figcaption>NOMINAL, tempos da seção 4. A janela de resposta = 20 ms de virada da ground + o cabeçalho (83 ms) + 2 símbolos: 112 ms no NOMINAL, 43 ms no FAST, 750 ms no SAFE.</figcaption>
+</figure>
+<ul>
+  <li><b>O satélite</b> (<code>flight/ttcd/link.c</code>) escuta por padrão; antes de cada transmissão pergunta ao modem se há recepção em curso e espera se houver (<i>listen before talk</i>); depois de cada quadro, abre a janela de resposta.</li>
+  <li><b>A ground</b> (<code>common/gama_gs_link.c</code>) manda o telecomando assim que o modem não está recebendo, e logo que um quadro do satélite termina. O <i>keepalive</i> (um PING a cada 30 s, para um operador quieto não derrubar o contato) só vai dentro da janela, que é garantidamente livre.</li>
+</ul>
+
+<h3>6.2 ACK, retransmissão e "no máximo uma vez"</h3>
+<ul>
+  <li><b>Todo telecomando recebe exatamente um <code>TC_ACK</code></b>, com o resultado: <code>OK</code>, comando desconhecido, argumentos errados, recusado no estado atual (por exemplo, <code>MISSION_ADSB</code> sem hora, ADR-0020) ou falhou ao executar.</li>
+  <li><b>Pare e espere:</b> a ground só manda o próximo depois do ACK do atual. Espera do ACK = o ACK no ar + o cabeçalho + 100 ms (<b>328 ms</b> no NOMINAL). Sem ACK, retransmite com 250 ms de espera, dobrando até 2 s; desiste em 60 s, com um evento.</li>
+  <li><b>No máximo uma vez:</b> o satélite lembra o último telecomando executado. Um repetido com o mesmo <code>seq</code> e a mesma carga em 60 s só tem o ACK reenviado: um <code>SET_MODE</code> cujo ACK se perdeu não dispara o burn-wire duas vezes.</li>
+  <li><b>Exceções:</b> <code>SET_RATE</code> sempre executa, porque é idempotente e é a única saída se as pontas se desencontrarem (seção 7); <code>SET_TIME</code> leva a hora de agora a cada tentativa e executa como novo.</li>
+</ul>
+<div class="table-wrap"><table>
+  <thead><tr><th>Telecomando</th><th>Argumentos</th><th>O que faz</th></tr></thead>
+  <tbody>
+    <tr><td><code>0x01 PING</code></td><td>—</td><td>só o ACK; mede o enlace</td></tr>
+    <tr><td><code>0x02 SET_TIME</code></td><td>u32 s, u32 ns</td><td>a âncora do relógio de parede: o <code>ttcd</code> a repassa ao OBC e ao <code>adsbd</code> (ADR-0009)</td></tr>
+    <tr><td><code>0x10 SET_MODE</code></td><td>u8 evento</td><td>um evento da máquina de estados do OBC (Figura 44): missão ADS-B, implantação, AOCS, sobrevivência…</td></tr>
+    <tr><td><code>0x20 SET_RATE</code></td><td>u8 perfil</td><td>SAFE, NOMINAL ou FAST (seção 7)</td></tr>
+    <tr><td><code>0x21 SET_TX_POWER</code></td><td>u8 dBm</td><td>2 a 20 dBm</td></tr>
+    <tr><td><code>0x30</code>/<code>0x31 STREAM_START/STOP</code></td><td>u16 período</td><td>força os retratos ligados ou desligados até a próxima troca de modo</td></tr>
+    <tr><td><code>0x40</code>–<code>0x42 REQ_HK/STAT/ROSTER</code></td><td>—</td><td>pede o relatório agora</td></tr>
+    <tr><td><code>0x50</code>/<code>0x51 BULK</code></td><td>—</td><td>responde "falhou": não implementado</td></tr>
+    <tr><td><code>0x70 SHUTDOWN</code></td><td>u16 número mágico</td><td>desliga; o número evita um desligamento por um byte trocado</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="perfil"><span class="n">7</span>Mudar de perfil e perder contato</h2>
+<p>É o ponto mais perigoso do enlace: se as pontas ficam em perfis diferentes, não se ouvem, e o único canal para consertar é o que acabou de quebrar. Daí as regras (ADR-0007 §4):</p>
+<ol class="steps">
+  <li>O satélite recebe o <code>SET_RATE</code>, responde o ACK <b>no perfil antigo</b> e só então troca.</li>
+  <li>A ground ouve o ACK, espera 50 ms, troca também e confirma com um PING no perfil novo.</li>
+  <li>O satélite <b>confirma</b> a troca ao ouvir qualquer quadro da ground no perfil novo, e <b>volta</b> ao antigo depois de 20 s sem ouvir nada. A ground volta depois de 30 s: o tempo dela é maior para não desistir enquanto o satélite ainda espera.</li>
+  <li><b>Perda de contato:</b> 120 s sem ouvir a ground, o satélite cai para SAFE; 150 s sem ouvir o satélite, a ground também. Ao ouvir o farol em SAFE, a ground pede de novo o perfil que queria, sem operador.</li>
+</ol>
+<p>Na simulação, com o ACK perdido, as pontas ficam em perfis diferentes por 20,0 s e se reencontram em FAST aos 23,4 s; na bancada, 23,2 s.</p>
+
+<h2 id="desce"><span class="n">8</span>O que desce, e quando</h2>
+<p>A cada oportunidade de transmitir (sem recepção em curso, a janela de resposta já passada), o satélite escolhe <b>um</b> quadro, nesta ordem (<code>flight/ttcd/tm_sched.c</code>):</p>
+<ol>
+  <li>os ACKs, porque a ground está esperando;</li>
+  <li>a saúde (<code>TM_HK</code>), a cada 10 s ou quando pedida;</li>
+  <li>as estatísticas (<code>TM_STAT</code>), a cada 30 s durante a missão, ou quando pedidas;</li>
+  <li>o roster, depois de um <code>REQ_ROSTER</code>;</li>
+  <li>o próximo quadro do retrato de tracks, ou um retrato novo quando passam 5 s;</li>
+  <li>em SAFE, só o farol (a cada 30 s) e a saúde (a cada 60 s): um retrato levaria 23 s no ar a SF12.</li>
+</ol>
+<p><b>O modo do OBC comanda a telemetria</b> (ADR-0014): entrar em <code>MISSION_ADSB</code> liga os retratos e as estatísticas, sem telecomando da ground; <code>MISSION_DOWNLINK</code> manda as estatísticas finais e o roster e avisa o OBC que a tarefa acabou; o OBC sem conexão não muda nada, para uma queda do processo do OBC não parar a missão. Cada retrato vai inteiro e uma vez só.</p>
+
+<h2 id="orcamento"><span class="n">9</span>Os orçamentos</h2>
+<h3>9.1 De dados: 58 KB em 10 minutos</h3>
+<p>O orçamento supõe o rádio transmitindo <b>metade</b> do tempo. Não é uma regra regulatória: é o half-duplex. Cada segundo transmitindo é um segundo em que um telecomando não pode ser ouvido. Dos 300 s de rádio da missão, 20 aeronaves a cada 5 s ocupam 251 s (120 retratos de 2 quadros, 414 B e 2,09 s cada), e sobram 49 s para a saúde, as estatísticas e os ACKs. A 4,2 s não sobraria nada; por isso 5 s.</p>
+<h3>9.2 De enlace: a margem</h3>
+<p>Com 14 dBm, 2,15 dBi em cada antena e 2,3 dB de perdas, a 433,92 MHz (<code>lora_budget.py</code>):</p>
+<div class="table-wrap"><table>
+  <thead><tr><th class="r">Distância</th><th class="r">Perda no espaço livre</th><th class="r">Potência recebida</th><th class="r">Margem SF7</th><th class="r">Margem SF9</th><th class="r">Margem SF12</th></tr></thead>
+  <tbody>
+    <tr><td class="r">10 m</td><td class="r">45,2 dB</td><td class="r">−29,2 dBm</td><td class="r">93,8 dB</td><td class="r">99,8 dB</td><td class="r">107,8 dB</td></tr>
+    <tr><td class="r">100 m</td><td class="r">65,2 dB</td><td class="r">−49,2 dBm</td><td class="r">73,8 dB</td><td class="r">79,8 dB</td><td class="r">87,8 dB</td></tr>
+    <tr><td class="r">1 km</td><td class="r">85,2 dB</td><td class="r">−69,2 dBm</td><td class="r">53,8 dB</td><td class="r">59,8 dB</td><td class="r">67,8 dB</td></tr>
+    <tr><td class="r">5 km</td><td class="r">99,2 dB</td><td class="r">−83,2 dBm</td><td class="r">39,8 dB</td><td class="r">45,8 dB</td><td class="r">53,8 dB</td></tr>
+  </tbody>
+</table></div>
+<pre><code>perda no espaço livre (dB) = 20·log10(d) + 20·log10(f) − 147,55        (d em m, f em Hz)
+potência recebida = 14 dBm + 2,15 + 2,15 − 2,3 − perda
+margem = potência recebida − sensibilidade do perfil</code></pre>
+<p>A ground da competição fica a dezenas de metros do satélite. Mesmo depois de 70 dB de perdas supostas ao mesmo tempo, a 100 m, SF9 fecha com 9,8 dB. Se o local for pior que isso, <code>SET_TX_POWER 20</code> devolve 6 dB sem mudar software.</p>
+<h3>9.3 De tempo: o telecomando (HLR-COMM-01)</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Perfil</th><th class="r">Sem perda (B0)</th><th class="r">Um quadro perdido (B1)</th></tr></thead>
+  <tbody>
+    <tr><td>SAFE</td><td class="r">4,21 s</td><td class="r">10,89 s</td></tr>
+    <tr><td><b>NOMINAL</b></td><td class="r"><b>1,40 s</b></td><td class="r"><b>3,37 s</b></td></tr>
+    <tr><td>FAST</td><td class="r">0,44 s</td><td class="r">1,30 s</td></tr>
+  </tbody>
+</table></div>
+<p>B0 = esperar o quadro mais longo que o satélite manda terminar + o telecomando no ar. B1 = B0 + um ciclo de retransmissão (espera do ACK, primeira espera, B0 de novo). Os comandos que o OBC executa somam um ciclo dele, 1 s.</p>
+
+<h2 id="ground"><span class="n">10</span>Na ground</h2>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 900 190" role="img" aria-label="As camadas da ground">
+  <defs><marker id="d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker></defs>
+  <rect class="box hw" x="20" y="30" width="150" height="58" rx="7"/><text class="t-b" x="95" y="54" text-anchor="middle">RA-02</text><text class="t-s" x="95" y="72" text-anchor="middle">sx1278.c</text>
+  <rect class="box done" x="200" y="30" width="200" height="58" rx="7"/><text class="t-b" x="300" y="54" text-anchor="middle">gama_gs_link.c</text><text class="t-s" x="300" y="72" text-anchor="middle">o protocolo, lado da ground</text>
+  <rect class="box done" x="430" y="30" width="200" height="58" rx="7"/><text class="t-b" x="530" y="54" text-anchor="middle">gs_console.c</text><text class="t-s" x="530" y="72" text-anchor="middle">texto entra, JSON sai</text>
+  <rect class="box" x="660" y="30" width="220" height="58" rx="7"/><text class="t-b" x="770" y="54" text-anchor="middle">gs_serial / gs_web</text><text class="t-s" x="770" y="72" text-anchor="middle">o PC: a ponte e a página</text>
+  <path class="edge" d="M170 59H196" marker-end="url(#d)"/><path class="edge" d="M400 59H426" marker-end="url(#d)"/><path class="edge" d="M630 59H656" marker-end="url(#d)"/>
+  <rect class="zone" x="190" y="106" width="450" height="40" rx="8"/><text class="t-s" x="415" y="131" text-anchor="middle">o mesmo código na ESP32 (USB) e na gs_cli do PC (RA-02 ou rádio UDP)</text>
+  <text class="t-e" x="20" y="176">ADR-0018: a ESP32 roda o mesmo console da bancada e fala a mesma língua pela USB; o PC dá a ela o relógio, que ela não tem.</text>
+</svg></div>
+</figure>
+<ul>
+  <li><b><code>common/gama_gs_link.c</code></b>: o lado da ground do protocolo (fila de telecomandos, ACK, retransmissão, troca de perfil, keepalive, perda de contato). Está em <code>common/</code>, sem sistema operacional, e por isso roda igual na ESP32 e no PC.</li>
+  <li><b><code>ground/console/gs_console.c</code></b>: os comandos em texto (<code>ping 5</code>, <code>mode mission_adsb</code>, <code>rate fast</code>…) e uma linha JSON por evento: cada quadro recebido, com os bytes, o RSSI e o SNR, cada ACK, cada perda contada pelo <code>seq</code>.</li>
+  <li><b>A ESP32</b> (<code>ground/esp32/</code>) roda o console sobre o RA-02 e manda as linhas pela USB. <b><code>gs_serial.py</code></b> é a ponte no PC: reseta a placa, dá a hora do PC (para o <code>SET_TIME</code>) e grava o log. <b><code>gs_web.py</code></b> é a página.</li>
+  <li><b><code>tools/gs_cli</code></b>: a mesma ground no PC, sobre um RA-02 da bancada ou o rádio UDP.</li>
+</ul>
+
+<h2 id="testes"><span class="n">11</span>Como é testado</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Teste</th><th>O que prova</th></tr></thead>
+  <tbody>
+    <tr><td><code>test_lora</code></td><td>o tempo no ar em C igual ao do <code>lora_budget.py</code>, escrito separadamente</td></tr>
+    <tr><td><code>test_frame</code>, <code>test_vectors</code>, <code>test_tm</code>, <code>test_tc</code></td><td>o quadro e cada registro, byte a byte; cada caminho de rejeição tem um caso. Rodam também na ESP32 (em QEMU e na placa): as contagens são idênticas às do PC</td></tr>
+    <tr><td><code>test_ttcd_core</code>, <code>test_gs_link</code></td><td>cada regra de cada ponta, sozinha, com o tempo controlado pelo teste</td></tr>
+    <tr><td><code>test_link_sim</code></td><td>as duas pontas reais num canal half-duplex simulado: cada quadro ocupa o ar pelo tempo exato, uma colisão destrói os dois, um rádio só percebe o outro depois de decodificar o cabeçalho. Tempo virtual e semente fixa: os números se repetem</td></tr>
+    <tr><td><code>test_sx1278</code></td><td>o driver contra um SX1278 emulado em C (registradores e FIFO)</td></tr>
+    <tr><td><code>test_ttcd_integration</code>, <code>bench_step_udp</code>, <code>test_adsb_chain</code></td><td>os binários reais no rádio UDP</td></tr>
+  </tbody>
+</table></div>
+<p>O que a simulação mede (NOMINAL, <code>./build/tests/test_link_sim</code>, ADR-0007):</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Cenário</th><th>Resultado</th></tr></thead>
+  <tbody>
+    <tr><td>enlace ocioso, 400 telecomandos</td><td>p50 0,12 s, máximo 0,83 s; 6 colisões, nenhum falhou</td></tr>
+    <tr><td>com 20 aeronaves descendo, 401 telecomandos</td><td>p50 0,21 s, p95 1,78 s; primeira tentativa no máximo 1,27 s (B0 = 1,40 s); 12% retransmitidos; nenhum falhou</td></tr>
+    <tr><td>10% de perda em cada sentido</td><td>p95 2,34 s, máximo 6,25 s; nenhum falhou; cada quadro perdido contado exatamente pela ground</td></tr>
+    <tr><td>só keepalives, 30 min</td><td>0 colisões, 0 perdas de contato</td></tr>
+    <tr><td>latência a bordo, recepção → transmissão</td><td>p95 3,2 s (o alvo do HLR-ADS-08 é 5 s)</td></tr>
+    <tr><td>200 s sem uplink; 300 s sem nada</td><td>de volta ao NOMINAL 58 s e 32 s depois; os retratos recomeçam sozinhos</td></tr>
+    <tr><td><code>SET_MODE</code> ×100 com um ACK perdido</td><td>exatamente 100 eventos no OBC: a repetição só reenviou o ACK</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="bancada"><span class="n">12</span>O que a bancada mediu</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Quando</th><th>Montagem</th><th>Resultado</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">09/10</td><td>dois RA-02 na mesma Pi, a 0,8 m, 2 dBm, RSSI ~−28 dBm</td><td>tempo no ar medido contra o calculado: pior erro +1,9% (FAST), NOMINAL +0,4%. PING 1 000/1 000/200 na primeira tentativa (NOMINAL/FAST/SAFE), média 276/81/2 700 ms, dentro de B0. 2 220 quadros, nenhum perdido. Troca de perfil 7 de 7. ACK perdido: as pontas se reencontram aos 23,2 s. O LBT adiou 1 174 transmissões sem custar um comando</td></tr>
+    <tr><td class="nw">05/11</td><td>a ground na ESP32, separada da Pi</td><td>as 11 suítes portáteis na ESP32 com as contagens idênticas às do PC. Dois defeitos achados e corrigidos: o pino de RESET (que era o de boot da ESP32) e o <code>spi_device_polling_start</code> do ESP-IDF 5.3</td></tr>
+    <tr><td class="nw">16/11</td><td>a cadeia ADS-B em hardware: Pi → RA-02 → RA-02 → ESP32 → página</td><td><b>359 quadros de telemetria, 0 perdidos</b>, RSSI −42 a −44 dBm, SNR 13 a 14 dB, latência p95 2,8 s</td></tr>
+  </tbody>
+</table></div>
+<p>Dois achados que a simulação não pegaria:</p>
+<ul>
+  <li><b>09/10:</b> no chip real, o bit "recepção em curso" do <code>RegModemStat</code> fica ligado o tempo todo no modo de recepção contínua, mesmo com o canal vazio. Contado como ocupado, ele segurava toda transmissão. O driver deixou de contá-lo.</li>
+  <li><b>16/11:</b> com o DIO0 no pino errado o enlace <b>funciona pior sem dar erro</b>: o fim da transmissão só era visto pela varredura de 250 ms, 106 ms tarde, e o satélite perdia o telecomando seguinte (10 de 10 pings, 9 com duas tentativas). Proposta: contar no log os fins de transmissão achados pela varredura, para um DIO0 mal soldado na placa nova aparecer.</li>
+</ul>
+
+<h2 id="limites"><span class="n">13</span>Limites e o que falta</h2>
+<ul>
+  <li><b>Distância e antenas:</b> tudo foi medido a menos de 1 m. As antenas da equipe ainda estão sendo caracterizadas; o alcance real, com a estrutura do satélite em volta, não foi medido.</li>
+  <li><b>O rádio A na placa:</b> a bancada ainda está na fiação de outubro (RESET 20, DIO0 21); o teste 3 de 19/11 a passa para os pinos da placa nova (RESET 25, DIO0 4).</li>
+  <li><b>Descarga em massa:</b> <code>BULK_START</code> responde "falhou". Os 7,3 MiB do registro bruto levariam horas até em FAST; eles saem pela USB depois da missão.</li>
+  <li><b>Os keepalives lentos:</b> em 16/11, os PINGs automáticos levaram de 1,6 a 10,3 s, todos na primeira tentativa, enquanto os do operador levaram ~300 ms. A causa não foi investigada.</li>
+  <li><b>O ICD do enlace</b> (<code>docs/icd/ota-protocol-icd.md</code>, citado em <code>gama_tc.h</code>) ainda não foi escrito: hoje a referência é o ADR-0007 e os headers de <code>common/</code>.</li>
+</ul>
+
+<footer>
+  <p>GCD26 · TT&amp;C · 18/11/2026. Números de <code>tools/analysis/lora_budget.py</code>, de <code>common/gama_lora.c</code>, do ADR-0007 (simulação e bancada de 09/10) e das notas de bancada de 05/11 e 16/11. Relacionados: <a href="2026-11-18-adsb-ponta-a-ponta.html">a ADS-B de ponta a ponta</a>, <a href="2026-11-17-comandos-principais.html">os comandos do dia a dia</a>, <a href="2026-11-18-guia-de-estudo.html">o guia de estudo</a>.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

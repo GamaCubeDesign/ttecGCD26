@@ -14,6 +14,10 @@ com a ADS-B da ground, a página central e as Etapas A e B. As seções têm os
 mesmos números do [de 10/11](../relatorios/2026-11-10-guia-de-estudo.html), e
 as dúvidas já registradas continuam valendo. Para o estimador por dentro:
 [o estimador antes e depois da Etapa A](../relatorios/2026-11-18-estimador-antes-depois-etapa-a.html).
+Dois relatórios de estudo, de ponta a ponta: [a ADS-B](../relatorios/2026-11-18-adsb-ponta-a-ponta.html)
+(do sinal ao aeroporto, os bancos de dados das APIs, como avaliar) e
+[a telecomunicação pelo LoRa](../relatorios/2026-11-18-enlace-lora.html) (o rádio,
+os perfis, o quadro, o protocolo, os orçamentos).
 
 | Seção do guia | Arquivo | Perguntas |
 |---|---|---|
