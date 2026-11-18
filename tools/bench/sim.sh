@@ -21,7 +21,8 @@
 # Ctrl-C stops everything.
 #
 # The Makefile runs it: make sim INPUT=<file>. WEB_HOST, WEB_PORT, SBS_PORT,
-# SAT_PORT and GND_PORT move the ports if the defaults are taken.
+# SAT_PORT, GND_PORT and AVR_PORT move the ports if the defaults are taken;
+# AVR=0 leaves the category port off (ADR-0023).
 
 set -euo pipefail
 
@@ -34,6 +35,7 @@ web_port=${WEB_PORT:-8080}
 sbs_port=${SBS_PORT:-31013}
 sat_port=${SAT_PORT:-47011}
 gnd_port=${GND_PORT:-47012}
+avr_port=${AVR_PORT:-31012}
 
 for b in ttcd adsbd obcd; do
     [[ -x $build/flight/$b ]] || { echo "sim: $build/flight/$b is missing; run make first" >&2; exit 1; }
@@ -45,6 +47,15 @@ mkdir -p "$out"
 sock=$(mktemp -u "${TMPDIR:-/tmp}/sim.XXXXXX.sock")
 kind=--ndjson
 [[ $input == *.sbs ]] && kind=--sbs
+# dump1090's raw (AVR) port, where adsbd reads the emitter category
+# (ADR-0023): on here, with an NDJSON input that carries one; AVR=0 plays
+# the flight's default, without it, for comparison.
+avr=()
+replay_avr=()
+if [[ ${AVR:-1} == 1 && $kind == --ndjson ]]; then
+    avr=(-o avr_port="$avr_port")
+    replay_avr=(--avr-port "$avr_port")
+fi
 
 # The route-pair method (ADR-0019) is off, as in the ground's default
 # (ADR-0022); PAIRS=1 turns it on, with the locally generated database.
@@ -72,14 +83,14 @@ for _ in {1..100}; do [[ -S $sock ]] && break; sleep 0.1; done
 # One replay per mission: a new one waits as soon as the last client leaves.
 ( trap 'exit 0' TERM
   while true; do
-      "$python" tools/sbs_replay/sbs_replay.py "$kind" "$input" --port "$sbs_port" \
+      "$python" tools/sbs_replay/sbs_replay.py "$kind" "$input" --port "$sbs_port" "${replay_avr[@]}" \
           2>> "$out/replay.log" || sleep 1
   done ) &
 pids+=($!)
 
 "$build"/flight/adsbd -c flight/adsbd/adsbd.conf.example -o ipc_path="$sock" \
     -o sbs_port="$sbs_port" -o dump1090_cmd= -o ndjson_path="$out/adsb.ndjson" \
-    -o log_path="$out/adsbd.jsonl" &
+    -o log_path="$out/adsbd.jsonl" "${avr[@]}" &
 pids+=($!)
 
 "$build"/flight/obcd -c flight/obcd/obcd.conf.example -o ipc_path="$sock" \

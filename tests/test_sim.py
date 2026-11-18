@@ -24,7 +24,7 @@ sys.path.insert(0, str(SRC / 'tools/live_traffic'))
 import live_traffic  # noqa: E402
 
 # Ports of their own, so this test runs beside bench_step_udp and adsb_chain.
-PORTS = {'SBS_PORT': '31023', 'SAT_PORT': '47021', 'GND_PORT': '47022'}
+PORTS = {'SBS_PORT': '31023', 'SAT_PORT': '47021', 'GND_PORT': '47022', 'AVR_PORT': '31022'}
 
 
 def traffic(path):
@@ -102,6 +102,17 @@ class TestSim(unittest.TestCase):
         s = self.wait(lambda s: (s.get('adsb') or {}).get('processed', 0) >= 5, 40)
         self.assertIsNone(s['adsb']['error'])
         self.assertEqual(s['adsb']['rejected'], 0)
+        # ADR-0023: the category the replay sent on the AVR port, through
+        # adsbd, the track's 2 bits and the radio, received by the ground.
+        deadline, received = time.monotonic() + 30, []
+        while time.monotonic() < deadline and not received:
+            with urllib.request.urlopen(self.base + '/api/adsb', timeout=5) as r:
+                aircraft = json.load(r).get('aircraft', [])
+            received = [a for a in aircraft if a.get('category') and
+                        a.get('category_source') in ('received', 'last_known')]
+            time.sleep(0.5)
+        self.assertTrue(received, 'no category arrived over the link')
+        self.assertTrue(set(a['category'] for a in received) <= {'A1', 'A3', 'A7'})
         self.stop()
         self.assertEqual(self.proc.returncode in (0, 130, 143, -15), True, self.proc.returncode)
         left = subprocess.run(['pgrep', '-f', 'udp_port=' + PORTS['SAT_PORT']],
