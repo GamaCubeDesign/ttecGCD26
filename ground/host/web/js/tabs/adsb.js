@@ -87,7 +87,7 @@ function drawAircraft() {
   if (!body) return;
   const rows = view.aircraft.slice().sort((x, y) => (x.callsign || x.icao).localeCompare(y.callsign || y.icao));
   setHTML(body, rows.length ? rows.map((a) => `<tr data-icao="${esc(a.icao)}" class="${a.icao === selected ? 'sel' : ''}">
-      <td>${esc(a.icao)}</td><td>${esc(a.callsign || '')}</td><td>${esc(a.category || '—')}</td><td>${esc(a.phase || '')}</td>
+      <td>${esc(a.icao)}</td><td>${esc(a.callsign || '')}</td><td title="${esc(a.category_source === 'kinematics' ? t('cat_inferred') : '')}">${esc(a.category || '—')}${a.category_source === 'kinematics' ? '<sup>*</sup>' : ''}</td><td>${esc(a.phase || '')}</td>
       <td>${esc(a.on_ground ? 'solo' : fmtNum(a.alt))}</td><td>${esc(fmtNum(a.gs))}</td>
       <td>${tag(a.origin)}</td><td>${tag(a.destination)}</td>
       <td>${a.combined ? tag(a.combined.destination) : '—'}</td></tr>`).join('')
@@ -109,7 +109,7 @@ function drawDetail() {
     ? a.pairs.top.map((c) => `${esc(c.origin)} → ${esc(c.destination)} <span class="muted">${esc(fmtNum(c.score, 2))}</span>`).join('<br>')
     : `<span class="muted">${esc(a.pairs ? a.pairs.status || '—' : '—')}</span>`;
   setHTML(box, `<h2>${esc(t('detail'))}</h2>
-    <h3>${esc(a.callsign || a.icao)} <span class="muted">${esc(a.icao)} · ${esc(a.category_label || '')}</span></h3>
+    <h3>${esc(a.callsign || a.icao)} <span class="muted">${esc(a.icao)} · ${esc(a.category_label || '')}${a.category_source === 'kinematics' ? ' · ' + esc(t('cat_inferred')) : ''}</span></h3>
     <div class="kv">
       <span>${esc(t('c_phase'))}</span><span>${esc(a.phase || '—')} · ${esc(a.quality || '')}</span>
       <span>${esc(t('c_alt'))} / ${esc(t('c_gs'))}</span><span>${esc(a.on_ground ? 'solo' : fmtNum(a.alt))} / ${esc(fmtNum(a.gs))} · ${esc(fmtNum(a.trk))}°</span>

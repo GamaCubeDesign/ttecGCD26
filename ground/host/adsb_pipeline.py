@@ -61,6 +61,7 @@ def summarize(states, airports):
         category = r.get('aircraft_category') or {}
         entry = {
             'icao': icao, 'callsign': val('callsign'), 'category': category.get('code'),
+            'category_source': category.get('source'),
             'category_label': category.get('label'), 'phase': r.get('flight_state'),
             't': (r.get('event_ns') or 0) // 1_000_000, 'position_age_s': r.get('last_position_age_s'),
             'lat': snap.get('lat'), 'lon': snap.get('lon'), 'alt': val('altitude_ft'),

@@ -166,6 +166,7 @@ class SummaryTests(unittest.TestCase):
         self.assertLessEqual(len(a['track']), TRACK_POINTS_MAX + 1)
         self.assertEqual(a['track'][-1][0], self.result(1000)['event_ns'] // 1_000_000)   # the last point kept
         self.assertEqual((a['callsign'], a['category'], a['phase'], a['alt'], a['trk']), ('JES3104', 'A3', 'CLIMB', 3000, 305))
+        self.assertIsNone(a['category_source'])
         self.assertEqual((a['origin']['ident'], a['origin']['status'], a['origin']['source']), ('SABE', 'ESTIMATED', 'history'))
         self.assertEqual((a['destination']['ident'], a['destination']['status']), ('SAEZ', 'TENTATIVE'))
         self.assertEqual([c['ident'] for c in a['destination']['candidates']], ['SAEZ', 'SADF'])
