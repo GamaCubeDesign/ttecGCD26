@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — Modelo de relatório</title>
+<link rel="icon" href="assets/favicon.png">
+<style>
+@font-face{
+  font-family:"Open Sans"; src:url("assets/OpenSans.woff2") format("woff2");
+  font-weight:300 800; font-style:normal; font-display:swap;
+}
+:root{
+  /* Gama Cube Design (identidade_visual_gama.pdf; the same tokens as
+   * ground/host/web/css/gama.css): black, British Racing Green #034a2c and
+   * white; Forest Green, Yellow Orange and Terra Cotta for ok, warning and
+   * failure, in darker shades for text on a light background. */
+  --brand:#034a2c; --brand-band:#000000;
+  --bg:#f3f5f4; --surface:#ffffff; --surface-2:#eaefec; --fg:#111312; --muted:#56605b;
+  --line:#d0d6d3; --line-strong:#7f8a84; --accent:#034a2c; --accent-soft:#e3eee8;
+  --ok:#2f6b3a; --ok-soft:#e6f1e7; --warn:#8a5300; --warn-soft:#fbf0df;
+  --todo:#56605b; --todo-soft:#eceeed; --bad:#a8321f; --bad-soft:#fbe7e3;
+  --code-bg:#eef1ef; --node:#ffffff; --node-hw:#eef1ef; --node-ext:#e3eee8;
+  --sans:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0a0c0b; --surface:#121614; --surface-2:#19201c; --fg:#f2f5f3; --muted:#9aa7a0;
+    --line:#26302b; --line-strong:#6f7c75; --accent:#8cc391; --accent-soft:#10251a;
+    --ok:#8cc391; --ok-soft:#15301f; --warn:#f3b866; --warn-soft:#33280e;
+    --todo:#a8b0ac; --todo-soft:#222826; --bad:#ef8d80; --bad-soft:#3a1b19;
+    --code-bg:#19201c; --node:#121614; --node-hw:#19201c; --node-ext:#10251a;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+
+svg.diagram .lost{fill:var(--bad-soft);stroke:var(--bad);stroke-width:2}
+svg.diagram .new{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2;stroke-dasharray:5 4}
+svg.diagram .edge.ok{stroke:var(--ok);stroke-width:2}
+svg.diagram .ah-ok{fill:var(--ok)}
+svg.diagram .t-bad{font-size:12px;fill:var(--bad);font-weight:600}
+svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
+.bytes .fl{background:var(--warn-soft)}
+
+/* Gama: the band on top, as on the ground's page; ExtraBold titles. */
+.brand-bar{background:var(--brand-band);border-bottom:3px solid var(--brand);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:8px 20px;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.brand-bar img{width:28px;height:28px;display:block}
+.brand-bar b{font-weight:800;letter-spacing:.04em}
+.brand-bar span{opacity:.75}
+h1,h2{font-weight:800}
+.eyebrow{color:var(--accent);font-weight:700}
+@media print{.brand-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="brand-bar"><img src="assets/favicon.png" alt=""><b>Gama Cube Design</b><span>CubeDesign 2026 · TT&amp;C</span></div>
+<div class="layout">
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#secao">Uma seção</a></li>
+    <li><a href="#componentes">Os componentes</a></li>
+  </ol>
+</nav>
+<main>
+<!--
+  MODELO DE RELATÓRIO (a partir de 18/11/2026), na identidade visual da Gama.
+
+  Para um relatório novo:
+   1. Copie este arquivo para docs/relatorios/AAAA-MM-DD-assunto.html.
+   2. Troque o <title> (o assunto e a data), o cabeçalho e as seções.
+   3. Apague o que não usar da seção "Os componentes": ela só mostra o que existe.
+   4. Ponha o relatório no index.html, no grupo certo, como "atual"; o que
+      ele substitui vira "versão anterior". O CTest relatorios_index confere.
+
+  A fonte e o favicon vêm de assets/. Enviado sozinho, fora desta pasta, o
+  relatório continua legível: cai na fonte do sistema e perde só o ícone.
+  As cores são variáveis em :root; não escreva cores fixas no corpo, para o
+  tema escuro funcionar. Os diagramas SVG usam as mesmas classes de sempre.
+-->
+<header class="doc">
+  <p class="eyebrow">GCD26 · TT&amp;C · assunto</p>
+  <h1>O título do relatório</h1>
+  <p class="lede">Uma ou duas frases: do que trata o relatório e para quem ele é.</p>
+  <div class="meta"><span><b>Data:</b> DD/MM/AAAA</span><span><b>Estado:</b> rascunho, proposta, registro…</span><span><b>Registro formal:</b> ADR-NNNN</span></div>
+</header>
+
+<h2 id="resumo"><span class="n">1</span>Resumo</h2>
+<div class="tiles">
+  <div class="tile"><div class="v">0 → 7 de 7</div><div class="l">um número que resume o relatório, com a sua unidade e de onde vem</div></div>
+  <div class="tile"><div class="v">58 KB</div><div class="l">outro número</div></div>
+  <div class="tile"><div class="v">20 B</div><div class="l">mais um</div></div>
+</div>
+<p>O primeiro parágrafo diz a conclusão. Números, não adjetivos: cada número cita o arquivo ou o script que o produz.</p>
+
+<h2 id="secao"><span class="n">2</span>Uma seção</h2>
+<h3>2.1 Uma subseção</h3>
+<p>Texto corrido, com <code>código em linha</code> e <a href="index.html">links</a> para outros relatórios pelo nome do arquivo.</p>
+<pre><code>make check          # um bloco de comandos, com o comentário ao lado</code></pre>
+
+<h2 id="componentes"><span class="n">3</span>Os componentes</h2>
+<div class="callout"><p><b>Um quadro de destaque</b>, para o que o leitor não pode perder.</p></div>
+<div class="callout warn"><p><b>Um aviso</b>: um risco ou uma pendência.</p></div>
+<div class="callout bad"><p><b>Um problema</b>: algo errado ou bloqueado.</p></div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Item</th><th class="r">Valor</th><th>Situação</th></tr></thead>
+  <tbody>
+    <tr><td>uma linha</td><td class="r">1 012</td><td><span class="badge b-ok">feito</span></td></tr>
+    <tr><td>outra linha</td><td class="r">23 m</td><td><span class="badge b-warn">em teste</span></td></tr>
+    <tr><td>mais uma</td><td class="r">—</td><td><span class="badge b-todo">falta</span></td></tr>
+    <tr><td>a última</td><td class="r">0</td><td><span class="badge b-bad">bloqueado</span></td></tr>
+  </tbody>
+</table></div>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 720 120" role="img" aria-label="Exemplo de diagrama">
+  <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker></defs>
+  <rect class="box hw" x="20" y="35" width="180" height="52" rx="7"/><text class="t-b" x="110" y="59" text-anchor="middle">hardware</text><text class="t-s" x="110" y="77" text-anchor="middle">box hw</text>
+  <rect class="box done" x="270" y="35" width="180" height="52" rx="7"/><text class="t-b" x="360" y="59" text-anchor="middle">pronto</text><text class="t-s" x="360" y="77" text-anchor="middle">box done</text>
+  <rect class="box plan" x="520" y="35" width="180" height="52" rx="7"/><text class="t-b" x="610" y="59" text-anchor="middle">planejado</text><text class="t-s" x="610" y="77" text-anchor="middle">box plan</text>
+  <path class="edge" d="M200 61H266" marker-end="url(#ah)"/><path class="edge rf" d="M450 61H516"/>
+</svg></div>
+<figcaption>A legenda diz o que o diagrama mostra e o que observar nele.</figcaption>
+</figure>
+
+<footer>
+  <p>GCD26 · TT&amp;C · DD/MM/AAAA. De onde vêm os números e o que ficou de fora.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>
