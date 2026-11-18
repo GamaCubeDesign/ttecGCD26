@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — Relatórios do TT&amp;C</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+
+svg.diagram .lost{fill:var(--bad-soft);stroke:var(--bad);stroke-width:2}
+svg.diagram .new{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2;stroke-dasharray:5 4}
+svg.diagram .edge.ok{stroke:var(--ok);stroke-width:2}
+svg.diagram .ah-ok{fill:var(--ok)}
+svg.diagram .t-bad{font-size:12px;fill:var(--bad);font-weight:600}
+svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
+.bytes .fl{background:var(--warn-soft)}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#comecar">Por onde começar</a></li>
+    <li><a href="#guias">Guias de estudo e material de apoio</a></li>
+    <li><a href="#adsb">ADS-B: o estimador e a categoria da aeronave</a></li>
+    <li><a href="#bancada">Bancada e operação</a></li>
+    <li><a href="#estado">Estado do projeto</a></li>
+    <li><a href="#obc">OBC, placas e integração</a></li>
+  </ol>
+</nav>
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · TT&amp;C · índice</p>
+  <h1>Relatórios do TT&amp;C</h1>
+  <p class="lede">Os 22 relatórios de <code>docs/relatorios/</code>, agrupados pelo que você quer fazer com eles. Os arquivos continuam com o nome datado de sempre: este índice só os organiza.</p>
+  <div class="meta"><span><b>Atualizado:</b> 18/11/2026</span><span><b>Regra:</b> todo relatório novo entra aqui; o CTest <code>relatorios_index</code> falha se algum ficar de fora</span></div>
+</header>
+
+<h2 id="comecar">Por onde começar</h2>
+<div class="tiles">
+  <div class="tile"><div class="v"><a href="2026-11-18-guia-de-estudo.html">Estudar</a></div><div class="l">o <b>guia de estudo de 18/11</b>, do problema a cada arquivo; as suas dúvidas ficam em <code>docs/estudo/</code></div></div>
+  <div class="tile"><div class="v"><a href="2026-11-17-comandos-principais.html">Operar</a></div><div class="l">os <b>comandos do dia a dia</b>; na bancada, os roteiros de <a href="../vv/bancada/2026-11-19/roteiro.md">19/11</a> e <a href="../vv/bancada/2026-11-20/roteiro.md">20/11</a></div></div>
+  <div class="tile"><div class="v"><a href="2026-11-18-estimador-antes-depois-etapa-a.html">O mais novo</a></div><div class="l">a <b>ADS-B da ground</b>: como o estimador decide, antes e depois da Etapa A</div></div>
+</div>
+<p class="small">"Atual" é a versão a ler hoje; "versão anterior" foi substituída por outra do mesmo grupo e fica como registro de como o projeto chegou aqui. As decisões formais estão em <code>docs/adr/</code>, e a evidência de bancada em <code>docs/vv/bancada/</code>.</p>
+
+<h2 id="guias">Guias de estudo e material de apoio</h2>
+<p>Para entender o repositório: comece pelo guia mais recente; as versões anteriores mostram como ele evoluiu.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Data</th><th>Relatório</th><th>Situação</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">18/11</td><td><a href="2026-11-18-guia-de-estudo.html"><b>Guia de estudo do repositório</b></a><br><span class="small">Do amplo ao detalhe: o problema, as decisões, como as peças conversam, os protocolos, as ferramentas, os testes e o Makefile. Depois, o mapa dos diretórios e cada um dos 185 arquivos de código, com o que observar ao ler. O objetivo é chegar a qualquer arquivo já sabendo onde ele está na arquitetura.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
+    <tr><td class="nw">10/11</td><td><a href="2026-11-10-maquina-de-estados.html"><b>Máquina de estados</b></a><br><span class="small">A máquina de estados do satélite (Figura 44) como aplicação interativa: cada comando, o que cada processo faz com ele e o que volta à ground.</span></td><td class="nw"><span class="badge b-todo">apoio</span></td></tr>
+    <tr><td class="nw">28/09</td><td><a href="2026-09-28-comparativo-ultima-missao.html"><b>Da última missão à nova arquitetura</b></a><br><span class="small">Quadro comparativo do TT&amp;C: o que a missão anterior implementou, o que está sendo implementado agora e por que cada coisa mudou. Serve de base para escrever as decisões de arquitetura do CDR.</span></td><td class="nw"><span class="badge b-todo">apoio</span></td></tr>
+    <tr><td class="nw">10/11</td><td><a href="2026-11-10-guia-de-estudo.html"><b>Guia de estudo do repositório</b></a><br><span class="small">Do amplo ao detalhe: o problema, as decisões, como as peças conversam, os protocolos, as ferramentas, os testes e o Makefile. Depois, o mapa dos diretórios e cada um dos 152 arquivos de código, com o que observar ao ler. O objetivo é chegar a qualquer arquivo já sabendo onde ele está na arquitetura.</span></td><td class="nw"><span class="badge b-todo">versão anterior</span></td></tr>
+    <tr><td class="nw">31/10</td><td><a href="2026-10-31-guia-de-estudo.html"><b>Guia de estudo do repositório</b></a><br><span class="small">Do amplo ao detalhe: o problema, as decisões, como as peças conversam, os protocolos, as ferramentas, os testes e o Makefile. Depois, o mapa dos diretórios e cada um dos 148 arquivos de código, com o que observar ao ler. O objetivo é chegar a qualquer arquivo já sabendo onde ele está na arquitetura.</span></td><td class="nw"><span class="badge b-todo">versão anterior</span></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="adsb">ADS-B: o estimador e a categoria da aeronave</h2>
+<p>O que mudou em 18/11 na estimativa de origem e destino (Etapa A, ADR-0022) e a proposta da categoria a bordo (Etapa B, ADR-0023).</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Data</th><th>Relatório</th><th>Situação</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">18/11</td><td><a href="2026-11-18-estimador-antes-depois-etapa-a.html"><b>Estimador ADS-B: antes e depois da Etapa A</b></a><br><span class="small">Como a ground transforma os registros que descem pelo LoRa em trajetórias, como escolhe o aeroporto de origem e de destino de cada aeronave, e o que mudou em 18/11 para a origem voltar a ser decidida sem a categoria ADS-B.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
+    <tr><td class="nw">18/11</td><td><a href="2026-11-18-proposta-categoria-adsb.html"><b>A categoria da aeronave a bordo</b></a><br><span class="small">Por que a estimativa de origem precisa da categoria ADS-B, por que ela não chega hoje à ground, e como levá-la sem mudar o tamanho de nada que vai pelo rádio.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="bancada">Bancada e operação</h2>
+<p>Para pôr a mão no hardware. Os roteiros mais recentes, de 19 e 20/11, estão em Markdown, junto das notas de cada dia em docs/vv/bancada/.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Data</th><th>Relatório</th><th>Situação</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">17/11</td><td><a href="2026-11-17-comandos-principais.html"><b>Os comandos do dia a dia</b></a><br><span class="small">Uma folha de consulta para decorar: entrar na Pi, compilar e testar, fazer um ping pelo rádio, gravar a ESP32, ler os sensores do OBC, rodar o ADS-B e cuidar dos serviços. Todos os comandos foram tirados do Makefile, dos roteiros de bancada e do código da ground. Nada aqui é inventado.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
+    <tr><td class="nw">05/11</td><td><a href="2026-11-05-roteiro-bancada.html"><b>Roteiro da bancada de novembro, revisado</b></a><br><span class="small">A segunda sessão com hardware, agora com a ground separada da Pi: a ESP32 com seu RA-02 fica no PC, o satélite (Pi, RA-02, INA219, DS18B20 e LEDs) fica na outra ponta da mesa. Junta o roteiro de 03/11 com o guia de bancada do OBC e organiza tudo em blocos que não dependem uns dos outros sem necessidade.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
+    <tr><td class="nw">03/11</td><td><a href="2026-11-03-roteiro-bancada.html"><b>Roteiro da bancada de novembro</b></a><br><span class="small">A segunda sessão com hardware, montada para deixar o firmware validado para as placas novas. A Pi da bancada usa os mesmos GPIOs da placa do OBC e a mesma configuração de voo (flight/conf/obc-v2/). Entram o protocolo novo em 433,92 MHz, a ground na ESP32, os três processos dirigidos pelo modo e o OBC com os sensores e as saídas da placa. Montagem, pinagem, ordem e comandos, com o que esperar em cada passo.</span></td><td class="nw"><span class="badge b-todo">versão anterior</span></td></tr>
+    <tr><td class="nw">05/10</td><td><a href="2026-10-05-roteiro-testes-raspberry.html"><b>Roteiro de testes na Raspberry Pi</b></a><br><span class="small">A primeira sessão com o hardware de verdade: o código rodando na Pi, os dois rádios LoRa trocando frames, o SDR recebendo aviões e, se der tempo, ADS-B real descendo pelo rádio real. Passo a passo, com o que esperar em cada um.</span></td><td class="nw"><span class="badge b-todo">versão anterior</span></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="estado">Estado do projeto</h2>
+<p>Fotografias do projeto em cada momento: o que existia, o que tinha sido decidido e o que faltava. O estado de hoje está no quadro &quot;o que mudou&quot; do guia de 18/11 e no AGENTS.md.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Data</th><th>Relatório</th><th>Situação</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">03/11</td><td><a href="2026-11-03-status-firmware.html"><b>Status do firmware e próximas etapas</b></a><br><span class="small">Onde está o software de voo e da ground station em 3 de novembro, o que já está provado e o que só a bancada prova, e o caminho até a prova de 24/11.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
+    <tr><td class="nw">31/10</td><td><a href="2026-10-31-estado-do-projeto.html"><b>O OBC fala com o AOCS, a ground vai para a ESP32</b></a><br><span class="small">Relatório de estado da sessão de 31 de outubro. Cobre o contrato I²C com o AOCS e o lado do OBC, a ground station na ESP32, a placa nova do OBC e sua configuração, o roteiro da bancada de novembro e a CI. Fecha com o estado do projeto inteiro antes da bancada.</span></td><td class="nw"><span class="badge b-todo">versão anterior</span></td></tr>
+    <tr><td class="nw">06/10</td><td><a href="2026-10-06-panorama-ttec-cdr.html"><b>Panorama para o CDR</b></a><br><span class="small">Um mapa do repositório inteiro — arquitetura, arquivos, documentos, testes e decisões —, para entender onde o sistema está hoje, onde a proposta quer chegar até a UNSAM e o que disso dá para levar ao CDR.</span></td><td class="nw"><span class="badge b-todo">versão anterior</span></td></tr>
+    <tr><td class="nw">28/09</td><td><a href="2026-09-28-estado-do-projeto.html"><b>Fase 3: o payload ADS-B</b></a><br><span class="small">Terceiro relatório de estado para a equipe. Cobre o que entrou desde 20 de setembro: a bancada virando alvos do make (22/09) e, em 28/09, o daemon do payload, a referência de tempo, o estimador da ground trazido para o repositório e a cadeia inteira rodando sem hardware.</span></td><td class="nw"><span class="badge b-todo">versão anterior</span></td></tr>
+    <tr><td class="nw">20/09</td><td><a href="2026-09-20-estado-do-projeto.html"><b>Fase 2: o enlace</b></a><br><span class="small">Segundo relatório de contexto para a equipe. Cobre o que entrou entre 18 e 19 de setembro: o daemon ttcd, o protocolo do enlace, o driver do rádio, a ground de bancada e o levantamento dos requisitos.</span></td><td class="nw"><span class="badge b-todo">versão anterior</span></td></tr>
+    <tr><td class="nw">18/09</td><td><a href="2026-09-18-estado-do-projeto.html"><b>Estado do projeto</b></a><br><span class="small">Relatório de contexto para a equipe: o que já existe, o que foi decidido e por quê, o que falta, e os conceitos por trás de cada escolha.</span></td><td class="nw"><span class="badge b-todo">versão anterior</span></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="obc">OBC, placas e integração</h2>
+<p>O software do OBC, as placas e a conversa com os outros times.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Data</th><th>Relatório</th><th>Situação</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">03/11</td><td><a href="2026-11-03-pendencias-placas.html"><b>Pendências das placas</b></a><br><span class="small">O que ainda está errado ou indefinido nas placas do Cubetschek depois da revisão TF de 01–02/11 e da reunião geral de 03/11: o que acontece em cada caso, por que é um problema para a missão e o que precisa ser decidido ou medido.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
+    <tr><td class="nw">24/10</td><td><a href="2026-10-24-proposta-i2c-ina219-obc.html"><b>Placa do OBC: INA219 num I²C próprio</b></a><br><span class="small">Uma mudança de duas trilhas na placa do OBC que está sendo refeita, para que a tensão e a corrente da bateria continuem chegando à ground enquanto o AOCS controla a atitude.</span></td><td class="nw"><span class="badge b-warn">decidido em 31/10</span></td></tr>
+    <tr><td class="nw">22/10</td><td><a href="2026-10-22-validacao-obc.html"><b>O que validar antes do software do OBC</b></a><br><span class="small">Os pontos que precisam estar acertados para começar o flight/obcd/: o que as placas finais realmente ligam, o que medir no stack montado e as decisões de comportamento que o código vai materializar.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
+    <tr><td class="nw">02/10</td><td><a href="2026-10-02-integracao-obc-ttec.html"><b>Integração OBC ↔ TT&amp;C, versão 2</b></a><br><span class="small">Proposta para a conversa com o time do OBC: como o modelo de vocês se encaixa na arquitetura do TT&amp;C, o que já está de acordo e o que precisamos decidir juntos.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
+    <tr><td class="nw">28/09</td><td><a href="2026-09-28-integracao-obc-ttec.html"><b>Integração OBC ↔ TT&amp;C</b></a><br><span class="small">Proposta para a conversa com o time do OBC: como o modelo de vocês se encaixa na arquitetura do TT&amp;C, o que já está de acordo e o que precisamos decidir juntos.</span></td><td class="nw"><span class="badge b-todo">versão anterior</span></td></tr>
+  </tbody>
+</table></div>
+
+<footer>
+  <p>Índice de 18/11/2026. Os relatórios são HTML autocontidos, em português, para a equipe; cada um diz no topo de que data é e do que trata.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

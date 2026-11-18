@@ -146,6 +146,10 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME budget_matches_adrs
              COMMAND ${Python3_EXECUTABLE}
                      ${CMAKE_SOURCE_DIR}/tools/analysis/lora_budget.py --check)
+    # docs/relatorios/index.html lists every report, and links to nothing missing.
+    add_test(NAME relatorios_index
+             COMMAND ${Python3_EXECUTABLE}
+                     ${CMAKE_SOURCE_DIR}/tools/analysis/check_report_index.py ${CMAKE_SOURCE_DIR})
     # The flight configuration against the boards' layouts in hardware/:
     # every wire the firmware counts on, from the Pi's GPIO to the chip.
     add_test(NAME boards_match_conf
