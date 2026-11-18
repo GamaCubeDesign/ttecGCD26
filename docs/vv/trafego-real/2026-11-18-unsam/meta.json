@@ -1,0 +1,19 @@
+{
+ "center": [
+  -34.5772,
+  -58.5225
+ ],
+ "radius_nm": 150.0,
+ "period_s": 5.0,
+ "source": "adsb.lol v2/point (ODbL 1.0)",
+ "truth": "OpenSky Network tracks/all (non-commercial research)",
+ "started_s": 1795000969.3928316,
+ "polls": 544,
+ "poll_failures": 44,
+ "aircraft": 44,
+ "tracks": 37,
+ "track_failures": 7,
+ "track_stop": null,
+ "rate_limited": 44,
+ "ended_s": 1795004629.3930545
+}

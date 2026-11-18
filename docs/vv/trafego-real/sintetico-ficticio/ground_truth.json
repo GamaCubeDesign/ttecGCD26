@@ -1,0 +1,124 @@
+{
+ "aircraft": {
+  "67C723": {
+   "callsign": "FIC001",
+   "category": "A3",
+   "origin": null,
+   "destination": null,
+   "evidence": {
+    "origin": null,
+    "destination": null
+   }
+  },
+  "C40B03": {
+   "callsign": "FIC002",
+   "category": null,
+   "origin": null,
+   "destination": null,
+   "evidence": {
+    "origin": null,
+    "destination": null
+   }
+  },
+  "9B2DE2": {
+   "callsign": "FIC003",
+   "category": "A3",
+   "origin": null,
+   "destination": null,
+   "evidence": {
+    "origin": null,
+    "destination": null
+   }
+  },
+  "A1ECD5": {
+   "callsign": "FIC004",
+   "category": "A3",
+   "origin": null,
+   "destination": null,
+   "evidence": {
+    "origin": null,
+    "destination": null
+   }
+  },
+  "8E7EE6": {
+   "callsign": "FIC005",
+   "category": null,
+   "origin": null,
+   "destination": null,
+   "evidence": {
+    "origin": null,
+    "destination": null
+   }
+  },
+  "E1ECDC": {
+   "callsign": "FIC006",
+   "category": "A0",
+   "origin": null,
+   "destination": null,
+   "evidence": {
+    "origin": null,
+    "destination": null
+   }
+  },
+  "D62AD0": {
+   "callsign": "FIC007",
+   "category": "A0",
+   "origin": null,
+   "destination": null,
+   "evidence": {
+    "origin": null,
+    "destination": null
+   }
+  },
+  "F1BF1B": {
+   "callsign": "FIC008",
+   "category": null,
+   "origin": null,
+   "destination": null,
+   "evidence": {
+    "origin": null,
+    "destination": null
+   }
+  },
+  "BDFAB2": {
+   "callsign": "FIC009",
+   "category": "A0",
+   "origin": null,
+   "destination": null,
+   "evidence": {
+    "origin": null,
+    "destination": null
+   }
+  },
+  "DE6D7D": {
+   "callsign": "FIC010",
+   "category": "A0",
+   "origin": null,
+   "destination": null,
+   "evidence": {
+    "origin": null,
+    "destination": null
+   }
+  },
+  "74F755": {
+   "callsign": "FIC011",
+   "category": "A3",
+   "origin": null,
+   "destination": null,
+   "evidence": {
+    "origin": null,
+    "destination": null
+   }
+  },
+  "2ACB7A": {
+   "callsign": "FIC012",
+   "category": null,
+   "origin": null,
+   "destination": null,
+   "evidence": {
+    "origin": null,
+    "destination": null
+   }
+  }
+ }
+}

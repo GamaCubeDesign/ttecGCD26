@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — A categoria da aeronave a bordo (18/11/2026)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+
+svg.diagram .lost{fill:var(--bad-soft);stroke:var(--bad);stroke-width:2}
+svg.diagram .new{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2;stroke-dasharray:5 4}
+svg.diagram .edge.ok{stroke:var(--ok);stroke-width:2}
+svg.diagram .ah-ok{fill:var(--ok)}
+svg.diagram .t-bad{font-size:12px;fill:var(--bad);font-weight:600}
+svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
+.bytes .fl{background:var(--warn-soft)}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#problema">O problema em números</a></li>
+    <li><a href="#cenario">O cenário da competição</a></li>
+    <li><a href="#perda">Onde a categoria se perde</a></li>
+    <li><a href="#opcoes">As opções</a></li>
+    <li><a href="#proposta">A proposta</a></li>
+    <li><a href="#componentes">O que muda em cada parte</a></li>
+    <li><a href="#testes">Testes e bancada</a></li>
+    <li><a href="#riscos">Riscos e retorno</a></li>
+    <li><a href="#decisoes">Calendário e decisões</a></li>
+  </ol>
+</nav>
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · TT&amp;C · proposta</p>
+  <h1>A categoria da aeronave a bordo</h1>
+  <p class="lede">Por que a estimativa de origem precisa da categoria ADS-B, por que ela não chega hoje à ground, e como levá-la sem mudar o tamanho de nada que vai pelo rádio.</p>
+  <div class="meta"><span><b>Data:</b> 18/11/2026</span><span><b>Estado:</b> proposta, para a equipe ler antes da execução</span><span><b>Registro formal:</b> ADR-0023 (a escrever)</span></div>
+</header>
+
+<h2 id="resumo"><span class="n">1</span>Resumo</h2>
+<div class="tiles">
+  <div class="tile"><div class="v">0 → 5 de 6</div><div class="l">origens certas sem e com a categoria, em 1 h de tráfego real de Buenos Aires (17/11)</div></div>
+  <div class="tile"><div class="v">2 bits</div><div class="l">o que a categoria ocupa no registro de track, nos bits livres dos <code>flags</code></div></div>
+  <div class="tile"><div class="v">0 bytes</div><div class="l">de mudança no tamanho do registro (20 B) e no orçamento de dados (58 KB)</div></div>
+</div>
+<p>O <code>dump1090-fa</code> decodifica a categoria de cada aeronave (avião leve, grande, helicóptero…), mas a entrega num formato que o <code>adsbd</code> não lê. A proposta é ler também a saída bruta do <code>dump1090-fa</code> (a porta AVR, 30002), tirar dela a categoria e mandá-la à ground em 2 bits que hoje sobram no registro de track.</p>
+<p>A mudança é <b>opcional por configuração</b>: com a porta desligada, o voo fica idêntico ao de hoje. Em paralelo, a ground passa a <b>inferir o porte pela física do voo</b> (Etapa A). Essa inferência vale quando a categoria não vem, e é a reserva se esta etapa não fechar a tempo.</p>
+
+<h2 id="problema"><span class="n">2</span>O problema em números</h2>
+<p>Em 17/11 gravamos 1 h de tráfego real num raio de 150 NM da UNSAM, pela adsb.lol, com as trilhas da OpenSky como gabarito (<code>docs/vv/trafego-real/</code>): 47 aeronaves e 42 voos, 27 com origem conhecida e 10 com destino conhecido. Rodamos o estimador da ground duas vezes, com e sem a categoria. "Sem a categoria" é o que a ground recebe de fato.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Método</th><th>Categoria</th><th class="r">Origem: decidiu</th><th class="r">acertou</th><th class="r">Destino: decidiu</th><th class="r">acertou</th></tr></thead>
+<tbody>
+<tr><td>local</td><td>com</td><td class="r">6</td><td class="r">5</td><td class="r">10</td><td class="r">9</td></tr>
+<tr><td>local</td><td><b>sem</b> (o real)</td><td class="r"><b>0</b></td><td class="r">—</td><td class="r">10</td><td class="r">9</td></tr>
+<tr><td>combinada, sem pares</td><td>com</td><td class="r">3</td><td class="r">3</td><td class="r">2</td><td class="r">2</td></tr>
+<tr><td>combinada, sem pares</td><td>sem</td><td class="r">0</td><td class="r">—</td><td class="r">0</td><td class="r">—</td></tr>
+<tr><td>melhor par (ADR-0019)</td><td>com</td><td class="r">12</td><td class="r">3</td><td class="r">3</td><td class="r">0</td></tr>
+</tbody></table></div>
+<p><b>O destino sobrevive à falta da categoria; a origem, não.</b> Sem saber o porte, o estimador não descarta os heliportos e aeródromos pequenos em volta de Aeroparque. Os candidatos ficam próximos demais entre si e ele não decide. Na simulação de 16/11 em Brasília o efeito foi o mesmo: as 6 chegadas apontaram SBBR com a categoria, e aeródromos vizinhos sem ela (<code>docs/vv/bancada/2026-11-16/notas.md</code>, achado 4).</p>
+<div class="callout warn"><p>A amostra é de 1 h e 42 voos. Os números indicam a direção; uma segunda captura, em outro horário, vai servir de validação na Etapa A.</p></div>
+
+<h2 id="cenario"><span class="n">3</span>O cenário da competição</h2>
+<p>O regulamento (4.4.4) diz que a organização fornece <i>"simulated ADS-B scenarios using SDR"</i> e <i>"multi-aircraft traffic"</i>. Um rádio da organização transmite mensagens ADS-B de verdade em 1090 MHz, geradas a partir de um cenário montado por ela. A estimativa de origem e destino é objetivo primário da missão (4.4.1).</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Se o cenário for…</th><th>A categoria</th><th>O que vale</th></tr></thead>
+<tbody>
+<tr><td>tráfego real regravado</td><td>vem, se a gravação a guardou</td><td>esta proposta e a Etapa A</td></tr>
+<tr><td>voos sintéticos entre aeroportos reais</td><td>vem, se o gerador mandar as mensagens de identificação com ela</td><td>esta proposta, a Etapa A e talvez o método de pares (voos em linha reta)</td></tr>
+<tr><td>aeronaves fictícias</td><td>pode vir zerada (A0) ou nem vir</td><td>só a Etapa A, se a cinemática fizer sentido</td></tr>
+</tbody></table></div>
+<p>Por isso as duas frentes andam juntas, e por isso vale <b>perguntar à organização</b> se os cenários transmitem identificação com categoria. A resposta diz quanto esta etapa vale.</p>
+
+<h2 id="perda"><span class="n">4</span>Onde a categoria se perde</h2>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 900 250" role="img" aria-label="A cadeia ADS-B hoje e com a proposta">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-ok" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+  <rect class="zone" x="10" y="10" width="560" height="230" rx="10"/><text class="zone-label" x="24" y="30">SATÉLITE (PI ZERO 2 W)</text>
+  <rect class="zone" x="590" y="10" width="300" height="230" rx="10"/><text class="zone-label" x="604" y="30">GROUND</text>
+  <rect class="box hw" x="26" y="60" width="130" height="64" rx="8"/><text class="t-b" x="40" y="86">dump1090-fa</text><text class="t-s" x="40" y="106">decodifica tudo,</text><text class="t-s" x="40" y="118">inclusive a categoria</text>
+  <rect class="lost" x="186" y="44" width="110" height="40" rx="6"/><text class="t-b" x="198" y="62">SBS · 30003</text><text class="t-bad" x="198" y="77">sem categoria</text>
+  <rect class="new" x="186" y="104" width="110" height="40" rx="6"/><text class="t-b" x="198" y="122">AVR · 30002</text><text class="t-ok" x="198" y="137">com categoria</text>
+  <rect class="box" x="326" y="60" width="104" height="64" rx="8"/><text class="t-b" x="340" y="86">adsbd</text><text class="t-s" x="340" y="106">tabela de tracks</text>
+  <rect class="box" x="456" y="60" width="98" height="64" rx="8"/><text class="t-b" x="468" y="86">ttcd</text><text class="t-s" x="468" y="106">track 20 B</text>
+  <rect class="box hw" x="606" y="60" width="100" height="64" rx="8"/><text class="t-b" x="620" y="86">ESP32</text><text class="t-s" x="620" y="106">rádio B</text>
+  <rect class="box" x="736" y="60" width="140" height="64" rx="8"/><text class="t-b" x="750" y="86">estimador</text><text class="t-s" x="750" y="106">origem e destino</text>
+  <path class="edge" d="M156 80H186" marker-end="url(#a)"/>
+  <path class="edge ok" d="M156 112C170 112 172 124 186 124" marker-end="url(#ok)"/>
+  <path class="edge" d="M296 64C312 64 312 82 326 82" marker-end="url(#a)"/>
+  <path class="edge ok" d="M296 124C312 124 312 104 326 104" marker-end="url(#ok)"/>
+  <path class="edge" d="M430 92H456" marker-end="url(#a)"/>
+  <path class="edge rf" d="M554 92H606" marker-end="url(#a)"/>
+  <text class="t-e" x="562" y="78">LoRa</text>
+  <path class="edge" d="M706 92H736" marker-end="url(#a)"/>
+  <text class="t-s" x="26" y="180">Hoje: o adsbd lê só o SBS, que não tem campo para a categoria;</text>
+  <text class="t-s" x="26" y="198">o registro de track não a carrega; a ground recebe "categoria indisponível".</text>
+  <text class="t-ok" x="26" y="222">Proposta: também a porta AVR; a categoria nos bits 6–7 dos flags do track.</text>
+</svg></div>
+<figcaption>Em vermelho, onde a categoria some hoje. Em verde tracejado, o caminho novo. O <code>ttcd</code> e a ESP32 só repassam o registro e não mudam.</figcaption></figure>
+
+<h2 id="opcoes"><span class="n">5</span>As opções</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Opção</th><th>Como</th><th>Avaliação</th></tr></thead>
+<tbody>
+<tr><td><b>Saída AVR (porta 30002)</b></td><td>Ligar <code>--net-ro-port 30002</code>, hoje em 0 no <code>adsbd.conf</code>; o <code>adsbd</code> decodifica só as mensagens de identificação (DF17/18, tipos 1 a 4).</td><td><span class="badge b-ok">recomendada</span> É configuração no <code>dump1090-fa</code>, e o parser é pequeno, puro e testável.</td></tr>
+<tr><td>Ler o <code>aircraft.json</code></td><td>O <code>dump1090-fa</code> reescreve um JSON por segundo; o <code>adsbd</code> leria o arquivo.</td><td><span class="badge b-bad">descartada</span> Fere a regra 5 do <code>AGENTS.md</code> (IPC por arquivo) e exige consultar o arquivo de tempos em tempos.</td></tr>
+<tr><td>Modificar o <code>dump1090-fa</code></td><td>Pôr a categoria no SBS.</td><td><span class="badge b-bad">descartada</span> Viraria um fork para compilar e manter na Pi; hoje ele vem pronto do repositório da FlightAware.</td></tr>
+<tr><td>Inferir pela cinemática (Etapa A)</td><td>Velocidade, altitude e subida dizem se é jato ou avião leve, na ground.</td><td><span class="badge b-ok">em paralelo</span> Funciona em qualquer cenário, sem mexer no voo. É a reserva desta etapa.</td></tr>
+</tbody></table></div>
+
+<h2 id="proposta"><span class="n">6</span>A proposta</h2>
+<h3>Recepção a bordo</h3>
+<ul>
+<li><b>Porta opcional:</b> o <code>adsbd.conf</code> ganha <code>avr_port</code>, 0 por padrão. Com 0 nada muda; com 30002, o <code>adsbd</code> abre uma segunda conexão com o <code>dump1090-fa</code>, com a mesma reconexão da SBS.</li>
+<li><b>Parser no núcleo puro</b> (<code>flight/adsbd/avr.c</code>, sem chamadas de sistema, ADR-0005): uma linha <code>*8D4840D6202CC371C32CE0576098;</code> vira (ICAO, categoria). Ele confere o CRC-24, aceita só DF17/18 com tipo 1 a 4, e <b>conta cada rejeição</b> (regra 6, HLR-ADS-08).</li>
+<li><b>Tabela de tracks:</b> guarda a última categoria de cada ICAO e a apaga quando o track expira.</li>
+</ul>
+<h3>No registro de track: 2 bits que já sobram</h3>
+<p>O registro tem 20 bytes, todos ocupados por campos. O byte de <code>flags</code> usa os bits 0 a 5; <b>os bits 6 e 7 estão livres</b> (<code>common/gama_tm.h</code>).</p>
+<div class="bytes">
+  <div>icao<small>3 B</small></div><div>lat<small>3 B</small></div><div>lon<small>3 B</small></div><div>alt<small>2 B</small></div><div>vel.<small>2 B</small></div><div>rumo<small>2 B</small></div><div>subida<small>2 B</small></div><div>idade<small>2 B</small></div><div class="fl">flags<small>1 B: bits 6–7</small></div>
+</div>
+<div class="table-wrap"><table>
+<thead><tr><th>Bits 6–7</th><th>Classe</th><th>Categorias ADS-B</th><th>O que o estimador faz com ela</th></tr></thead>
+<tbody>
+<tr><td><code>00</code></td><td>desconhecida</td><td>A0, sem identificação, conjuntos B/C/D</td><td>o mesmo que hoje</td></tr>
+<tr><td><code>01</code></td><td>leve</td><td>A1, A2, B1 (planador)</td><td>exclui heliportos</td></tr>
+<tr><td><code>10</code></td><td>grande</td><td>A3, A4, A5, A6</td><td>exclui heliportos e reduz o peso dos aeródromos pequenos</td></tr>
+<tr><td><code>11</code></td><td>asa rotativa</td><td>A7</td><td>aceita heliportos</td></tr>
+</tbody></table></div>
+<p>As quatro classes cobrem exatamente as distinções que o estimador usa (<code>aircraft_category.py</code>). Só se perde a diferença entre A3 e A5, que muda pouco o peso dos candidatos. <b>O tamanho do registro e o orçamento de dados não mudam.</b> Os vetores atuais de <code>tests/test_vectors.c</code> continuam valendo, porque neles esses bits estão em 0, que passa a significar "desconhecida".</p>
+
+<h2 id="componentes"><span class="n">7</span>O que muda em cada parte</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Parte</th><th>Muda?</th><th>O quê</th></tr></thead>
+<tbody>
+<tr><td><code>common/</code> (formato de fio)</td><td><span class="badge b-warn">sim, pouco</span></td><td>As constantes dos bits 6–7 em <code>gama_tm.h</code>; codificar e decodificar.</td></tr>
+<tr><td><code>flight/adsbd/</code></td><td><span class="badge b-warn">sim</span></td><td><code>avr.c</code> (novo), a categoria na tabela de tracks, a segunda conexão no <code>main.c</code>, a chave <code>avr_port</code>.</td></tr>
+<tr><td><code>flight/ttcd/</code></td><td><span class="badge b-ok">não</span></td><td>Só repassa o registro; a idade continua sendo ajustada como hoje.</td></tr>
+<tr><td><code>flight/obcd/</code></td><td><span class="badge b-ok">não</span></td><td>—</td></tr>
+<tr><td>ESP32 da ground</td><td><span class="badge b-ok">não</span></td><td>O console já imprime o byte de <code>flags</code> inteiro; não precisa regravar.</td></tr>
+<tr><td>Ground no PC</td><td><span class="badge b-warn">sim, pouco</span></td><td>O <code>tracks_to_ndjson.py</code> traduz os 2 bits para o campo <code>category</code>; o estimador e a página já sabem usá-lo.</td></tr>
+<tr><td><code>dump1090-fa</code></td><td><span class="badge b-ok">não</span></td><td>Só a linha de comando no <code>adsbd.conf</code>: <code>--net-ro-port 30002</code>.</td></tr>
+<tr><td>Orçamento de dados, ADR-0003/0004</td><td><span class="badge b-ok">não</span></td><td>Nenhum byte a mais no rádio.</td></tr>
+</tbody></table></div>
+
+<h2 id="testes"><span class="n">8</span>Testes e bancada</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Onde</th><th>O que verifica</th></tr></thead>
+<tbody>
+<tr><td><code>test_tm</code>, <code>test_vectors</code></td><td>os 2 bits ida e volta; um vetor novo com a categoria; os vetores atuais intactos</td></tr>
+<tr><td><code>test_avr</code> (novo)</td><td>quadros conhecidos (o exemplo clássico <code>8D4840D6…</code>), CRC errado, DF e tipos que não interessam, linhas malformadas; cada rejeição contada</td></tr>
+<tr><td><code>test_tracks</code></td><td>a categoria guardada, mantida entre atualizações e apagada quando o track expira</td></tr>
+<tr><td><code>test_adsbd_integration</code></td><td>um <code>dump1090</code> falso também na porta 30002, caindo e voltando; com <code>avr_port = 0</code>, tudo igual a hoje</td></tr>
+<tr><td><code>sbs_replay.py</code></td><td>passa a servir também a saída AVR, gerando as mensagens de identificação com CRC a partir do campo <code>category</code> das capturas</td></tr>
+<tr><td><code>test_adsb_chain</code>, <code>sim_udp</code></td><td>a categoria indo do <code>sbs_replay</code> até a ground pelo rádio UDP</td></tr>
+<tr><td><code>test_tracks_to_ndjson</code></td><td>os 2 bits viram <code>"category": "A3"</code></td></tr>
+<tr><td>Bancada (20/11)</td><td>a porta 30002 no <code>/etc/gama/adsbd.conf</code> da Pi; a cadeia com o <code>sbs_replay</code> servindo AVR e, se a antena passar, com o SDR real; a CPU do <code>dump1090-fa</code> com a saída extra (em 09/10 ele usava 21,9% de um núcleo)</td></tr>
+</tbody></table></div>
+<p>A medida final é a mesma de 17/11: <code>tools/live_traffic/avaliar.sh</code> sobre a captura real, agora com a categoria chegando pela cadeia. O alvo são os 5 de 6 que medimos quando o estimador recebeu a categoria verdadeira.</p>
+
+<h2 id="riscos"><span class="n">9</span>Riscos e retorno</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Risco</th><th>Como fica contido</th></tr></thead>
+<tbody>
+<tr><td>Mexer no código de voo a 6 dias da competição</td><td>A porta é opcional: com <code>avr_port = 0</code>, o <code>adsbd</code> e o registro ficam idênticos aos de hoje, e os testes conferem isso. Se a bancada de 20/11 não fechar, a etapa vai à competição desligada.</td></tr>
+<tr><td>O simulador da organização não mandar a categoria</td><td>Ganho zero, mas sem prejuízo: os bits ficam em <code>00</code>. A inferência pela cinemática (Etapa A) cobre esse caso.</td></tr>
+<tr><td>Carga extra no <code>dump1090-fa</code> e no <code>adsbd</code></td><td>Medida na bancada. Só as mensagens de identificação são decodificadas; as outras linhas AVR são descartadas na primeira checagem.</td></tr>
+<tr><td>Endereços fictícios que coincidam com aeronaves reais</td><td>Não afeta: a categoria vem do próprio sinal, não de uma base externa.</td></tr>
+</tbody></table></div>
+
+<h2 id="decisoes"><span class="n">10</span>Calendário e decisões em aberto</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Quando</th><th>O quê</th></tr></thead>
+<tbody>
+<tr><td>18/11</td><td>Etapa A (a inferência na ground), medida em tráfego real e em cenários sintéticos</td></tr>
+<tr><td>19/11</td><td>reorganização de <code>ground/host</code>; bancada da Etapa A; ADR-0023; <code>common/</code> e o parser AVR</td></tr>
+<tr><td>20/11</td><td><code>sbs_replay</code> com AVR, testes de ponta a ponta, bancada desta etapa</td></tr>
+</tbody></table></div>
+<div class="callout"><p><b>Decisões em aberto:</b></p>
+<ol>
+<li><b>Perguntar à organização</b> se os cenários simulados transmitem as mensagens de identificação com a categoria preenchida.</li>
+<li><b>Revisar o ADR-0023</b> antes do código: a porta opcional e a codificação em 2 bits.</li>
+<li><b>Combinar com o Pedro:</b> o estimador é dele, e a Etapa A mexe na entrada de categoria do estimador.</li>
+</ol></div>
+</main>
+</div>
+</body>
+</html>

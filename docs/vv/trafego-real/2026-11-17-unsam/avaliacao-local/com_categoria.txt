@@ -1,0 +1,97 @@
+
+RESULTADO POR AERONAVE
+--------------------------------------------------------------------------------------------------------
+ICAO     TIPO         ESPERADO     GROUND       STATUS         RESULTADO         
+--------------------------------------------------------------------------------------------------------
+A13691   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+A13691   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E03613   origin       SBGR         UNKNOWN      UNKNOWN        UNKNOWN           
+E03613   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E0645A   origin       SABE         SABE         ESTIMATED      ACERTO            
+E0645A   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E0648B   origin       SAEZ         UNKNOWN      UNKNOWN        UNKNOWN           
+E0648B   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E06541   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E06541   destination  SABE         SABE         ESTIMATED      ACERTO            
+E06543   origin       SAEZ         SABE         ESTIMATED      ERRO              
+E06543   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E0658D   origin       SABE         UNKNOWN      UNKNOWN        UNKNOWN           
+E0658D   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E0658F   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E0658F   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E065D3   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E065D3   destination  SABE         SABE         ESTIMATED      ACERTO            
+E07191   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E07191   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E072D5   origin       SABE         SABE         ESTIMATED      ACERTO            
+E072D5   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E07581   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E07581   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E082D6   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E082D6   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E082D7   origin       SBGL         UNKNOWN      UNKNOWN        UNKNOWN           
+E082D7   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E0844F   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E0844F   destination  UNKNOWN      SAEZ         TENTATIVE      FALSO_POSITIVO    
+E0958F   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E0958F   destination  SABE         AR-0266      TENTATIVE      ERRO              
+E0A5C1   origin       SADM         UNKNOWN      UNKNOWN        UNKNOWN           
+E0A5C1   destination  UNKNOWN      SADZ         TENTATIVE      FALSO_POSITIVO    
+E0B110   origin       SABE         UNKNOWN      UNKNOWN        UNKNOWN           
+E0B110   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E0B198   origin       SABE         SABE         ESTIMATED      ACERTO            
+E0B198   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E0B255   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E0B255   destination  SABE         SABE         ESTIMATED      ACERTO            
+E0B2C5   origin       SABE         UNKNOWN      UNKNOWN        UNKNOWN           
+E0B2C5   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E0B2CF   origin       SADF         UNKNOWN      UNKNOWN        UNKNOWN           
+E0B2CF   destination  UNKNOWN      SUCM         TENTATIVE      FALSO_POSITIVO    
+E0B308   origin       SADF         UNKNOWN      UNKNOWN        UNKNOWN           
+E0B308   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E20022   origin       SADP         UNKNOWN      UNKNOWN        UNKNOWN           
+E20022   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E20063   origin       SADM         UNKNOWN      UNKNOWN        UNKNOWN           
+E20063   destination  UNKNOWN      SADP         TENTATIVE      FALSO_POSITIVO    
+E2008A   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E2008A   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E200D7   origin       SADF         UNKNOWN      UNKNOWN        UNKNOWN           
+E200D7   destination  UNKNOWN      SABE         TENTATIVE      FALSO_POSITIVO    
+E48135   origin       SABE         UNKNOWN      UNKNOWN        UNKNOWN           
+E48135   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E49523   origin       SBGR         UNKNOWN      UNKNOWN        UNKNOWN           
+E49523   destination  SABE         SABE         ESTIMATED      ACERTO            
+E4952F   origin       SBGR         UNKNOWN      UNKNOWN        UNKNOWN           
+E4952F   destination  SUMU         SUMU         ESTIMATED      ACERTO            
+E4953D   origin       SBGR         UNKNOWN      UNKNOWN        UNKNOWN           
+E4953D   destination  SABE         SABE         ESTIMATED      ACERTO            
+E49698   origin       SUMU         SUMU         ESTIMATED      ACERTO            
+E49698   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E4A00C   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E4A00C   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E4A5C9   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E4A5C9   destination  SUMU         SUMU         ESTIMATED      ACERTO            
+E8026C   origin       SAEZ         UNKNOWN      UNKNOWN        UNKNOWN           
+E8026C   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E80333   origin       SABE         SABE         ESTIMATED      ACERTO            
+E80333   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E8040F   origin       SAEZ         UNKNOWN      UNKNOWN        UNKNOWN           
+E8040F   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E8043C   origin       SUMU         UNKNOWN      UNKNOWN        UNKNOWN           
+E8043C   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E80613   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E80613   destination  SUMU         SUMU         ESTIMATED      ACERTO            
+E80618   origin       UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E80618   destination  SABE         SABE         ESTIMATED      ACERTO            
+E8061F   origin       SABE         UNKNOWN      UNKNOWN        UNKNOWN           
+E8061F   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+E8062C   origin       SAEZ         UNKNOWN      UNKNOWN        UNKNOWN           
+E8062C   destination  UNKNOWN      UNKNOWN      UNKNOWN        UNKNOWN_ESPERADO  
+
+RESUMO
+ORIGEM  : acertos=5 | erros=1 | UNKNOWN=21 | UNKNOWN esperado=15 | falso positivo=0 | coverage=22.2% | acerto quando decidiu=83.3%
+DESTINO : acertos=9 | erros=6 | UNKNOWN=0 | UNKNOWN esperado=27 | falso positivo=5 | coverage=100.0% | acerto quando decidiu=90.0%
+TOTAL   : acertos=14 | erros=7 | UNKNOWN=21 | UNKNOWN esperado=42 | falso positivo=5 | coverage=43.2% | acerto quando decidiu=87.5%
+
+JSON: /home/brunobreis/Projects/gama/ttec/docs/vv/trafego-real/2026-11-17-unsam/avaliacao/com_categoria.json
+CSV:  /home/brunobreis/Projects/gama/ttec/docs/vv/trafego-real/2026-11-17-unsam/avaliacao/com_categoria.csv

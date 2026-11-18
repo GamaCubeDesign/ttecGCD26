@@ -1,0 +1,799 @@
+{
+  "rows": [
+    {
+      "icao": "347691",
+      "callsign": "AEA041",
+      "kind": "origin",
+      "expected": "LEMD",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "347691",
+      "callsign": "AEA041",
+      "kind": "destination",
+      "expected": "SAEZ",
+      "predicted": "SAEZ",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "A1A2A2",
+      "callsign": "UAL819",
+      "kind": "origin",
+      "expected": "KIAH",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "A1A2A2",
+      "callsign": "UAL819",
+      "kind": "destination",
+      "expected": "SAEZ",
+      "predicted": "SAEZ",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "A9D286",
+      "callsign": "AAL907",
+      "kind": "origin",
+      "expected": "KMIA",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "A9D286",
+      "callsign": "AAL907",
+      "kind": "destination",
+      "expected": "SAEZ",
+      "predicted": "SAEZ",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "AB0969",
+      "callsign": "AAL997",
+      "kind": "origin",
+      "expected": "KDFW",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "AB0969",
+      "callsign": "AAL997",
+      "kind": "destination",
+      "expected": "SAEZ",
+      "predicted": "SAEZ",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "AB599B",
+      "callsign": "DAL101",
+      "kind": "origin",
+      "expected": "KATL",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "AB599B",
+      "callsign": "DAL101",
+      "kind": "destination",
+      "expected": null,
+      "predicted": "AR-0252",
+      "status": "TENTATIVE",
+      "result": "FALSO_POSITIVO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E03614",
+      "callsign": "ARG1774",
+      "kind": "origin",
+      "expected": "SAEZ",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "FASE_SEM_EVIDENCIA_DE_ORIGEM"
+    },
+    {
+      "icao": "E03614",
+      "callsign": "ARG1774",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E0645A",
+      "callsign": "ARG1472",
+      "kind": "origin",
+      "expected": "SAEZ",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E0645A",
+      "callsign": "ARG1472",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E06541",
+      "callsign": "ARG1880",
+      "kind": "origin",
+      "expected": "SABE",
+      "predicted": "SABE",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E06541",
+      "callsign": "ARG1880",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E071D1",
+      "callsign": "ARG1406",
+      "kind": "origin",
+      "expected": "SAEZ",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E071D1",
+      "callsign": "ARG1406",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E073CF",
+      "callsign": "ARG1494",
+      "kind": "origin",
+      "expected": "SABE",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E073CF",
+      "callsign": "ARG1494",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E0844F",
+      "callsign": "LVHQO",
+      "kind": "origin",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "EVIDENCIA_INSUFICIENTE"
+    },
+    {
+      "icao": "E0844F",
+      "callsign": "LVHQO",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E092CE",
+      "callsign": "LVIKN",
+      "kind": "origin",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E092CE",
+      "callsign": "LVIKN",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E0958F",
+      "callsign": "JES3073",
+      "kind": "origin",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E0958F",
+      "callsign": "JES3073",
+      "kind": "destination",
+      "expected": "SABE",
+      "predicted": "SABE",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0A3C9",
+      "callsign": "LVJOI",
+      "kind": "origin",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E0A3C9",
+      "callsign": "LVJOI",
+      "kind": "destination",
+      "expected": "SABE",
+      "predicted": "SABE",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0A546",
+      "callsign": "LVJUF",
+      "kind": "origin",
+      "expected": "SADF",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E0A546",
+      "callsign": "LVJUF",
+      "kind": "destination",
+      "expected": null,
+      "predicted": "AR-0427",
+      "status": "TENTATIVE",
+      "result": "FALSO_POSITIVO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0B04B",
+      "callsign": "LVKAK",
+      "kind": "origin",
+      "expected": "SADF",
+      "predicted": "SADF",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0B04B",
+      "callsign": "LVKAK",
+      "kind": "destination",
+      "expected": null,
+      "predicted": "SABE",
+      "status": "TENTATIVE",
+      "result": "FALSO_POSITIVO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0B0D4",
+      "callsign": "LVKCT",
+      "kind": "origin",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E0B0D4",
+      "callsign": "LVKCT",
+      "kind": "destination",
+      "expected": "SADF",
+      "predicted": "SADF",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0B198",
+      "callsign": "JES3101",
+      "kind": "origin",
+      "expected": "SACO",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E0B198",
+      "callsign": "JES3101",
+      "kind": "destination",
+      "expected": null,
+      "predicted": "SADF",
+      "status": "ESTIMATED",
+      "result": "FALSO_POSITIVO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0B244",
+      "callsign": "ARG1842",
+      "kind": "origin",
+      "expected": "SAEZ",
+      "predicted": "SAEZ",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0B244",
+      "callsign": "ARG1842",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E0B254",
+      "callsign": "ARG1469",
+      "kind": "origin",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E0B254",
+      "callsign": "ARG1469",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "EVIDENCIA_INSUFICIENTE"
+    },
+    {
+      "icao": "E0B255",
+      "callsign": "ARG1670",
+      "kind": "origin",
+      "expected": "SABE",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E0B255",
+      "callsign": "ARG1670",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E0B298",
+      "callsign": "SAETTAM",
+      "kind": "origin",
+      "expected": "SADF",
+      "predicted": "SADF",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0B298",
+      "callsign": "SAETTAM",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "POUCAS_POSICOES"
+    },
+    {
+      "icao": "E0B354",
+      "callsign": "LVKMT",
+      "kind": "origin",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E0B354",
+      "callsign": "LVKMT",
+      "kind": "destination",
+      "expected": "SADF",
+      "predicted": "SABE",
+      "status": "TENTATIVE",
+      "result": "ERRO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0B390",
+      "callsign": "ARG1408",
+      "kind": "origin",
+      "expected": "SABE",
+      "predicted": "SABE",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0B390",
+      "callsign": "ARG1408",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E0B391",
+      "callsign": "ARG1803",
+      "kind": "origin",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E0B391",
+      "callsign": "ARG1803",
+      "kind": "destination",
+      "expected": "SABE",
+      "predicted": "SABE",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0B393",
+      "callsign": "LVKNS",
+      "kind": "origin",
+      "expected": "AR-0126",
+      "predicted": "AR-0126",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E0B393",
+      "callsign": "LVKNS",
+      "kind": "destination",
+      "expected": null,
+      "predicted": "AR-0051",
+      "status": "TENTATIVE",
+      "result": "FALSO_POSITIVO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E1724F",
+      "callsign": "LVWIO",
+      "kind": "origin",
+      "expected": "SADF",
+      "predicted": "SADF",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E1724F",
+      "callsign": "LVWIO",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E20063",
+      "callsign": "LVS048",
+      "kind": "origin",
+      "expected": "SADM",
+      "predicted": "SADM",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E20063",
+      "callsign": "LVS048",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E200B9",
+      "callsign": "LVS114",
+      "kind": "origin",
+      "expected": "SADF",
+      "predicted": "SADF",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E200B9",
+      "callsign": "LVS114",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E480A2",
+      "callsign": "TAM8128",
+      "kind": "origin",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E480A2",
+      "callsign": "TAM8128",
+      "kind": "destination",
+      "expected": "SABE",
+      "predicted": "SABE",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E4811C",
+      "callsign": "PPNNN",
+      "kind": "origin",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E4811C",
+      "callsign": "PPNNN",
+      "kind": "destination",
+      "expected": "SUMU",
+      "predicted": "UY-0020",
+      "status": "TENTATIVE",
+      "result": "ERRO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E49475",
+      "callsign": "GLO7226",
+      "kind": "origin",
+      "expected": "SBGL",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E49475",
+      "callsign": "GLO7226",
+      "kind": "destination",
+      "expected": "SABE",
+      "predicted": "SABE",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E4A1BA",
+      "callsign": "PRBCB",
+      "kind": "origin",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E4A1BA",
+      "callsign": "PRBCB",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "EVIDENCIA_INSUFICIENTE"
+    },
+    {
+      "icao": "E80338",
+      "callsign": "SKU1820",
+      "kind": "origin",
+      "expected": "SAEZ",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E80338",
+      "callsign": "SKU1820",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E8033D",
+      "callsign": "SKX5572",
+      "kind": "origin",
+      "expected": "SABE",
+      "predicted": "SABE",
+      "status": "ESTIMATED",
+      "result": "ACERTO",
+      "source": "airport_summary"
+    },
+    {
+      "icao": "E8033D",
+      "callsign": "SKX5572",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E8043D",
+      "callsign": "LAN762",
+      "kind": "origin",
+      "expected": "SCEL",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E8043D",
+      "callsign": "LAN762",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E8045E",
+      "callsign": "LPE2399",
+      "kind": "origin",
+      "expected": "SUMU",
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E8045E",
+      "callsign": "LPE2399",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "FASE_SEM_EVIDENCIA_DE_DESTINO"
+    },
+    {
+      "icao": "E90191",
+      "callsign": "FAU595",
+      "kind": "origin",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "JANELA_INICIAL_ENCERRADA"
+    },
+    {
+      "icao": "E90191",
+      "callsign": "FAU595",
+      "kind": "destination",
+      "expected": null,
+      "predicted": null,
+      "status": "UNKNOWN",
+      "result": "UNKNOWN_ESPERADO",
+      "source": "LACUNA_ENTRE_POSICOES"
+    }
+  ],
+  "summary": {
+    "origin": {
+      "acertos": 10,
+      "erros": 0,
+      "unknown": 16,
+      "unknown_esperado": 12,
+      "falsos_positivos": 0,
+      "casos_com_ground_truth": 26,
+      "decisoes_emitidas_em_casos_conhecidos": 10,
+      "coverage": 0.38461538461538464,
+      "accuracy_quando_decidiu": 1.0
+    },
+    "destination": {
+      "acertos": 10,
+      "erros": 7,
+      "unknown": 0,
+      "unknown_esperado": 21,
+      "falsos_positivos": 5,
+      "casos_com_ground_truth": 12,
+      "decisoes_emitidas_em_casos_conhecidos": 12,
+      "coverage": 1.0,
+      "accuracy_quando_decidiu": 0.8333333333333334
+    },
+    "all": {
+      "acertos": 20,
+      "erros": 7,
+      "unknown": 16,
+      "unknown_esperado": 33,
+      "falsos_positivos": 5,
+      "casos_com_ground_truth": 38,
+      "decisoes_emitidas_em_casos_conhecidos": 22,
+      "coverage": 0.5789473684210527,
+      "accuracy_quando_decidiu": 0.9090909090909091
+    }
+  }
+}

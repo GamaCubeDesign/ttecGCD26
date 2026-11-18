@@ -1,0 +1,18 @@
+{"mono_ms":102241,"event":"start","version":"42c1d84-dirty","ipc_path":"/tmp/ttec-bench.sock","i2c_dev":"/dev/i2c-1","ina219_addr":64,"aocs_addr":42,"i2c_lease_path":"/tmp/obcd-i2c.lease","w1_path":"auto","gpio_chip":"/dev/gpiochip0"}
+{"mono_ms":102241,"event":"output","which":"burnwire","chip":"/dev/gpiochip0","line":22}
+{"mono_ms":102241,"event":"output","which":"heater","chip":"/dev/gpiochip0","line":23}
+{"mono_ms":102241,"event":"burnwire","on":false,"why":"boot","driven":true}
+{"mono_ms":102241,"event":"heater","on":false,"why":"boot","temp_ccel":-32768,"driven":true}
+{"mono_ms":102241,"event":"boot","mode":"PRE_TEST","adsb_timeout_ms":600000,"burnwire_ms":5000,"aocs_timeout_ms":300000,"heater_on_below_ccel":2600,"heater_off_above_ccel":2800}
+{"mono_ms":102241,"event":"sensor","which":"ds18b20","found":0,"dir":"/sys/bus/w1/devices"}
+{"mono_ms":102241,"event":"ipc_connect_failed","path":"/tmp/ttec-bench.sock","why":"No such file or directory"}
+{"mono_ms":102241,"event":"temp_fault","have":false,"age_ms":0}
+{"mono_ms":102242,"event":"sensor","which":"ds18b20","ok":false,"why":"NOT_FOUND"}
+{"mono_ms":102244,"event":"sensor","which":"ina219","ok":true}
+{"mono_ms":107241,"event":"ipc_up","path":"/tmp/ttec-bench.sock"}
+{"mono_ms":162241,"event":"status","mode":"PRE_TEST","battery_mv":884,"current_ma":0,"temp_bat_ccel":-32768,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":30,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":222241,"event":"status","mode":"PRE_TEST","battery_mv":888,"current_ma":0,"temp_bat_ccel":-32768,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":60,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":282241,"event":"status","mode":"PRE_TEST","battery_mv":872,"current_ma":0,"temp_bat_ccel":-32768,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":90,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":342241,"event":"status","mode":"PRE_TEST","battery_mv":880,"current_ma":0,"temp_bat_ccel":-32768,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":120,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":402241,"event":"status","mode":"PRE_TEST","battery_mv":892,"current_ma":0,"temp_bat_ccel":-32768,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":150,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":462241,"event":"status","mode":"PRE_TEST","battery_mv":888,"current_ma":0,"temp_bat_ccel":-32768,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":180,"output_failures":0,"ipc_tx_drops":0}

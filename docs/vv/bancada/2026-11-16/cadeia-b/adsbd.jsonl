@@ -1,0 +1,26 @@
+{"mono_ms":1722993,"event":"start","version":"69391c4-dirty","sbs":"127.0.0.1:31003","ipc_path":"/tmp/ttec.sock","ndjson_path":"/home/pi/ttec/docs/vv/bancada/2026-11-16/cadeia-b/adsb.ndjson","record_bytes":0,"dump1090":"external","decoder":"mode","wall_s":1794863794,"wall_note":"system clock until the ground's SET_TIME"}
+{"mono_ms":1722993,"event":"ipc_up","path":"/tmp/ttec.sock"}
+{"mono_ms":1723001,"event":"obc_mode","from":"UNKNOWN","to":"PRE_TEST"}
+{"mono_ms":1742432,"event":"time_anchor","unix_s":1794863813,"nsec":960000000,"step_ms":9}
+{"mono_ms":1778228,"event":"time_anchor","unix_s":1794863849,"nsec":756000000,"step_ms":0}
+{"mono_ms":1778525,"event":"time_anchor","unix_s":1794863850,"nsec":53000000,"step_ms":0}
+{"mono_ms":1778526,"event":"obc_mode","from":"PRE_TEST","to":"MISSION_ADSB"}
+{"mono_ms":1778526,"event":"decoder","on":true,"mode":"MISSION_ADSB"}
+{"mono_ms":1778526,"event":"sbs_up","host":"127.0.0.1","port":31003}
+{"mono_ms":1782993,"event":"stats","lines":45,"decoded":45,"ignored":0,"non_icao":0,"rejected":0,"aircraft":4,"evictions":0,"expired":0,"snapshots":61,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":4,"roster_full":0,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":1842993,"event":"stats","lines":3162,"decoded":3162,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":121,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":1902993,"event":"stats","lines":6762,"decoded":6762,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":181,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":1962993,"event":"stats","lines":10362,"decoded":10362,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":241,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":2022993,"event":"stats","lines":13962,"decoded":13962,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":301,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":2082993,"event":"stats","lines":17562,"decoded":17562,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":361,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":2142993,"event":"stats","lines":21162,"decoded":21162,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":421,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":2202993,"event":"stats","lines":24762,"decoded":24762,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":481,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":2262993,"event":"stats","lines":28362,"decoded":28362,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":541,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":2322993,"event":"stats","lines":31944,"decoded":31944,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":601,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":2378525,"event":"obc_mode","from":"MISSION_ADSB","to":"MISSION_DOWNLINK"}
+{"mono_ms":2378525,"event":"decoder","on":false,"mode":"MISSION_DOWNLINK"}
+{"mono_ms":2378525,"event":"sbs_down","why":"mode"}
+{"mono_ms":2378887,"event":"obc_mode","from":"MISSION_DOWNLINK","to":"PRE_TEST"}
+{"mono_ms":2382993,"event":"stats","lines":32940,"decoded":32940,"ignored":0,"non_icao":0,"rejected":0,"aircraft":18,"evictions":0,"expired":2,"snapshots":661,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":2442993,"event":"stats","lines":32940,"decoded":32940,"ignored":0,"non_icao":0,"rejected":0,"aircraft":0,"evictions":0,"expired":20,"snapshots":721,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true}
+{"mono_ms":2502993,"event":"stats","lines":32940,"decoded":32940,"ignored":0,"non_icao":0,"rejected":0,"aircraft":0,"evictions":0,"expired":20,"snapshots":781,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true}

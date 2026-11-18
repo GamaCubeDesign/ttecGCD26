@@ -4,7 +4,7 @@
  * HLR-ADS-07).
  *
  * The format is the prototype's (adsb_capture.c), byte for byte, for two
- * reasons: the ground's estimator (ground/host/ground-aeronaves) already
+ * reasons: the ground's estimator (ground/host/adsb/estimator) already
  * reads it, and tools/analysis/lora_budget.py sizes the whole data
  * budget from it — 160.4 B per line, 7.34 MiB per mission. tests/test_sbs.c
  * pins the three lines that budget is computed from.

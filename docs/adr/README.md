@@ -58,3 +58,4 @@ Three reasons, in order of importance to the project:
 | [0019](0019-ground-route-pair-fusion.md) | Ground route-pair analysis and phase-aware fusion | Proposed | HLR-ADS-04 |
 | [0020](0020-time-gated-adsb-startup.md) | Require a ground time anchor before ADS-B mission startup | Proposed | HLR-ADS-07, HLR-ADS-08, HLR-SW-02 |
 | [0021](0021-live-ground-adsb-ingestion.md) | Feed the aircraft estimators from the ground's existing event source | Proposed | HLR-ADS-04, HLR-ADS-07, HLR-ADS-08 |
+| [0022](0022-kinematic-aircraft-class-and-climb-back.md) | The ground infers a large aircraft from its kinematics, and the take-off distance from its climb | **Proposed** | rules 4.4.1, HLR-ADS-04 |

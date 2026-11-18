@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """A real bench step on the UDP radio: tools/bench/run_step.sh with ping.txt.
 
-The bench scripts and ground/host/tracks_to_ndjson.py read the ground's JSON
+The bench scripts and ground/host/adsb/tracks_to_ndjson.py read the ground's JSON
 lines byte for byte, and those lines are produced by gs_cli on the bench and
 by the ESP32 ground station on site. This runs the step exactly as
 `make bench-ping RADIO=udp` does, on free ports, and checks what every

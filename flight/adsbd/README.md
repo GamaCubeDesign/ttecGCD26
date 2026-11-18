@@ -34,7 +34,7 @@ O protótipo de 15/09 foi a base. Ficaram o `fork`/`execv` sem shell, a leitura
 das linhas SBS, o carimbo de cada mensagem na chegada, o `fflush` por linha e
 o **formato da linha, byte a byte** — o orçamento de dados é calculado a partir
 dele (160,4 B por linha, 7,34 MiB por missão), e o estimador da ground
-(`ground/host/ground-aeronaves`) já o lê.
+(`ground/host/adsb/estimator`) já o lê.
 
 | No protótipo | Agora |
 |---|---|
@@ -76,13 +76,13 @@ Tudo fica em `build/adsb-chain/<data>-<hora>/`:
 E, no estimador da ground:
 
 ```bash
-cd ground/host/ground-aeronaves
-python -m ground --input ../../../build/adsb-chain/<data>-<hora>/ground.ndjson
+cd ground/host
+python3 -m adsb.estimator --input ../../build/adsb-chain/<data>-<hora>/ground.ndjson
 ```
 
 O instante de cada registro em `ground.ndjson` é `chegada − tempo no ar −
 idade`, no relógio da ground (ADR-0007 §6); o adaptador está em
-`ground/host/tracks_to_ndjson.py`.
+`ground/host/adsb/tracks_to_ndjson.py`.
 
 A missão segue os modos (ADR-0014): a ground manda `mode mission_adsb`, que
 liga o decoder — o replay começa quando o `adsbd` se conecta a ele — e os
@@ -183,11 +183,14 @@ aguarda ACK positivo e só então envia `SET_MODE`. O PC fornece o horário à E
 por `gs_serial.py`; o console recusa iniciar sem relógio. Com firmware antigo,
 use `time`, aguarde ACK `OK`, depois `mode mission_adsb`.
 
-O `ttcd` recusa iniciar a missão sem referência de horário. O `adsbd` aguarda
-modo **e** referência antes de abrir o SDR/SBS, também após reinício. O horário
-aplicado é o dos registros: relógio monotônico + referência da ground; o relógio
-global do Linux não é alterado. `decoder = always` continua sendo uma exceção
-explícita de bancada, que não exige horário da ground.
+O `ttcd` recusa iniciar a missão sem referência de horário, e manda a referência
+ao `adsbd` antes do modo, também após reinício. O `adsbd` não espera por ela: o
+modo sozinho liga o SDR/SBS. Se ele chegar a `MISSION_ADSB` sem referência (o
+`ttcd` e o `adsbd` reiniciados com o OBC ainda na missão), grava com o relógio
+não sincronizado e o log diz (`time_synced` falso): uma data errada se corrige
+depois, uma missão não captada não. O horário aplicado é o dos registros:
+relógio monotônico + referência da ground; o relógio global do Linux não é
+alterado.
 
 Na Pi, atualizar os binários e reiniciar os três serviços durante a preparação
 (em `PRE_TEST`, antes da missão). A instalação existente é feita por `make install`

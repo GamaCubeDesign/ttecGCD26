@@ -12,11 +12,15 @@ __pycache__/
 *.ndjason
 *.log
 *.zip
-ground-aeronaves/data/
-ground-aeronaves/validation/*.json
-ground-aeronaves/validation/*.csv
-ground-aeronaves/validation/baseline-*/
-ground-aeronaves/validation/evaluation-*/
-ground-aeronaves/validation/before_takeoff_anchor/
-banco-aeronaves/fontes/
-banco-aeronaves/relatorio-*.json
+# What a run of the estimator writes (adsb/estimator/config.py).
+adsb/run/
+adsb/validation/*.json
+adsb/validation/*.csv
+adsb/validation/*.html
+adsb/validation/baseline-*/
+adsb/validation/evaluation-*/
+adsb/validation/before_takeoff_anchor/
+adsb/data/referencias/fontes/
+adsb/data/referencias/relatorio-*.json
+# The estimator's NDJSON fixtures are versioned.
+!tests/estimator/fixtures/*.ndjson

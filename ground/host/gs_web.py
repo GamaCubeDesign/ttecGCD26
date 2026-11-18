@@ -32,7 +32,19 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-UI_PATH = os.path.join(HERE, "gs_web_ui.html")
+# The page: plain files and ES modules, no build step (ground/host/web).
+WEB_DIR = os.path.join(HERE, "web")
+STATIC_TYPES = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
+                ".js": "text/javascript; charset=utf-8", ".json": "application/json",
+                ".png": "image/png", ".svg": "image/svg+xml", ".woff2": "font/woff2",
+                ".txt": "text/plain; charset=utf-8"}
+# The map's land: the 26 Latin American units of the pair database's region
+# (Natural Earth, public domain), served as is.
+BASEMAP_PATH = os.path.join(HERE, "adsb", "data", "pares", "geografia", "america_latina.geojson")
+# The repository's root: this file is ground/host/gs_web.py.
+REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
+# The bench ground on the UDP radio, as the top-level build makes it.
+GS_CLI = os.path.join(REPO, "build", "tools", "gs_cli", "gs_cli")
 
 # What the satellite reports for "no data" (common/gama_tc.h).
 NO_DATA = {"battery_mv": 65535, "current_ma": -32768, "temp_bat_ccel": -32768,
@@ -52,6 +64,23 @@ COMMANDS = [
 ]
 
 
+def static_file(url_path):
+    """The file under web/ that a GET path names, or None. Nothing outside
+    web/ is ever served, whatever the path says."""
+    path = url_path.split("?", 1)[0]
+    if path.endswith("/"):
+        path += "index.html"
+    rel = os.path.normpath(path.lstrip("/"))
+    if rel.startswith("..") or os.path.isabs(rel):
+        return None
+    full = os.path.realpath(os.path.join(WEB_DIR, rel))
+    if not full.startswith(os.path.realpath(WEB_DIR) + os.sep):
+        return None
+    if os.path.splitext(full)[1] not in STATIC_TYPES or not os.path.isfile(full):
+        return None
+    return full
+
+
 def check_command(cmd, armed):
     """None if `cmd` may go to the ground, else the reason it may not."""
     if not isinstance(cmd, str):
@@ -68,6 +97,13 @@ class GsState:
 
     LOG_MAX = 300
     SPARK_MAX = 90
+    RUNS_MAX = 20
+    # The mode each `mode` command asks the OBC for (CDR Figure 44).
+    MODE_OF = {"basic_inter": "BASIC_INTERMEDIATE", "aocs": "ADVANCED_AOCS",
+               "mission_adsb": "MISSION_ADSB", "downlink": "MISSION_DOWNLINK",
+               "survival": "ENV_SURVIVAL", "task_done": "PRE_TEST"}
+    # GAMA_HK_F_* (common/gama_tm.h).
+    HK_FLAGS = (("obc_linked", 1), ("adsb_linked", 2), ("time_synced", 4), ("dump1090_up", 8))
 
     def __init__(self, source="", now=time.time):
         self.now = now
@@ -91,6 +127,10 @@ class GsState:
         self.latencies = collections.deque(maxlen=50)
         self.tracks = None
         self.seq = 0
+        # Every `mode` command, followed from its echo to the OBC leaving the
+        # mode it asked for: the evidence of each test, step by step.
+        self.runs = collections.deque(maxlen=self.RUNS_MAX)
+        self.run = None
 
     def _note(self, kind, text):
         self.seq += 1
@@ -123,6 +163,7 @@ class GsState:
             self.contact = bool(obj.get("up"))
             self._note("ok" if self.contact else "bad", "contact " + ("up" if self.contact else "lost"))
         elif ev == "ack":
+            self._run_ack(obj)
             ok = obj.get("status") == "OK"
             if ok:
                 self.ack_ok += 1
@@ -132,11 +173,17 @@ class GsState:
             self._note("ok" if ok else "bad", "%s: %s (%s ms, try %s)" % (
                 obj.get("cmd"), obj.get("status"), obj.get("latency_ms"), obj.get("attempts")))
         elif ev == "tc_failed":
+            self._run_ack(dict(obj, status="NO_ACK"))
             self.tc_failed += 1
             self._note("bad", "%s failed after %s attempts" % (obj.get("cmd"), obj.get("attempts")))
         elif ev == "command":
             self._note("cmd", "> " + str(obj.get("text")))
+            self._command(str(obj.get("text") or ""))
         elif ev == "error":
+            run = self.run
+            if run is not None and run["entered"] is None and run["failed"] is None and run["acks"] == [] \
+                    and "not" in str(obj.get("what", "")):
+                run["failed"] = str(obj.get("what"))      # e.g. no wall clock: nothing sent
             self.error = obj.get("what")
             self._note("bad", "error: %s" % obj.get("what"))
         elif ev == "rx_crc_error":
@@ -145,11 +192,49 @@ class GsState:
         elif ev == "loss":
             self._note("bad", "downlink loss: %s" % json.dumps({k: v for k, v in obj.items() if k not in ("mono_ms", "wall_ms", "ev")}))
         elif ev == "tracks":
+            run = self.run
+            if run is not None and run["target"] == "MISSION_ADSB" and run["left"] is None:
+                run["tracks"] += 1
+                if run["first_tracks"] is None:
+                    run["first_tracks"] = self.now()
             self.tracks = obj.get("n", self.tracks)
             self._note("tm", "tracks: %s records" % obj.get("n"))
         elif ev in ("roster", "rate", "per", "ping_summary", "summary", "auto_time"):
             body = {k: v for k, v in obj.items() if k not in ("mono_ms", "wall_ms", "ev", "payload")}
             self._note("info", "%s %s" % (ev, json.dumps(body, separators=(",", ":"))))
+
+    def _command(self, text):
+        parts = text.split()
+        if len(parts) != 2 or parts[0] != "mode":
+            return
+        self.run = {"n": self.seq, "cmd": text, "target": self.MODE_OF.get(parts[1]),
+                    "sent": self.now(), "acks": [], "failed": None, "entered": None,
+                    "left": None, "left_to": None, "dump1090": None,
+                    "first_tracks": None, "tracks": 0}
+        self.runs.append(self.run)
+
+    def _run_ack(self, obj):
+        run = self.run
+        if run is None or run["entered"] is not None or obj.get("cmd") not in ("SET_TIME", "SET_MODE"):
+            return
+        run["acks"].append({"cmd": obj.get("cmd"), "status": obj.get("status"),
+                            "latency_ms": obj.get("latency_ms"), "attempts": obj.get("attempts"),
+                            "t": self.now()})
+        if obj.get("status") != "OK":
+            run["failed"] = "%s %s" % (obj.get("cmd"), obj.get("status"))
+
+    def _run_mode(self, mode, flags):
+        run = self.run
+        if run is None or run["target"] is None:
+            return
+        now = self.now()
+        if run["entered"] is None and mode == run["target"]:
+            run["entered"] = now
+        elif run["entered"] is not None and run["left"] is None and mode != run["target"]:
+            run["left"], run["left_to"] = now, mode
+        if (run["target"] == "MISSION_ADSB" and run["entered"] is not None and run["left"] is None
+                and run["dump1090"] is None and isinstance(flags, int) and flags & 8):
+            run["dump1090"] = now
 
     def _hk(self, obj):
         self.hk = {k: obj.get(k) for k in (
@@ -163,10 +248,18 @@ class GsState:
                 self._note("mode", "mode %s → %s" % (self.mode, mode))
             self.mode = mode
             self.mode_at = self.now()
-        self._note("tm", "hk: %s, %s mV, %s mA, %s cdeg" % (
-            mode, obj.get("battery_mv"), obj.get("current_ma"), obj.get("temp_bat_ccel")))
+        self._run_mode(mode, obj.get("flags"))
+        parts = [str(mode)]
+        for key, div, unit in (("battery_mv", 1000, "V"), ("current_ma", 1, "mA"),
+                               ("temp_bat_ccel", 100, "°C"), ("temp_soc_ccel", 100, "°C SoC")):
+            v = obj.get(key)
+            if isinstance(v, (int, float)) and NO_DATA.get(key) != v:
+                parts.append(("%.2f %s" if div == 1000 else "%.1f %s" if div == 100 else "%d %s") % (v / div, unit))
+        self._note("tm", "hk: " + " · ".join(parts))
 
-    def snapshot(self):
+    def snapshot(self, since=None):
+        """The page's view. With `since`, only the log entries after that
+        number (the event stream sends deltas); without, the last 120."""
         now = self.now()
 
         def age(t):
@@ -175,7 +268,12 @@ class GsState:
         hk = None
         if self.hk is not None:
             hk = {k: (None if NO_DATA.get(k) == v else v) for k, v in self.hk.items()}
+            flags = self.hk.get("flags")
+            if isinstance(flags, int):
+                hk.update({name: bool(flags & bit) for name, bit in self.HK_FLAGS})
         lat = list(self.latencies)
+        log = list(self.log)
+        log = [e for e in log if e["n"] > since] if since is not None else log[-120:]
         return {
             "source": self.source, "ground": self.ground, "error": self.error,
             "contact": self.contact, "hk": hk, "hk_age": age(self.hk_at),
@@ -185,38 +283,55 @@ class GsState:
             "acks": {"ok": self.ack_ok, "bad": self.ack_bad, "tc_failed": self.tc_failed,
                      "rx_bad": self.rx_bad,
                      "latency_ms": round(sum(lat) / len(lat)) if lat else None},
-            "log": list(self.log)[-120:],
+            "log": log, "log_n": self.seq, "full": since is None,
+            "runs": [dict(r, acks=list(r["acks"])) for r in self.runs],
+            "now": now,
         }
 
 
 class Hub:
-    """The state, the clients following it, and the source that feeds it."""
+    """The state, the clients following it, and the source that feeds it.
+
+    Lines from the ground update the state at once; the pages hear about it
+    at most every PUSH_MIN_S, and only the log entries they have not had
+    yet: a burst of telemetry costs one message, not one per line."""
+
+    PUSH_MIN_S = 0.5
+    IDLE_PUSH_S = 2.0       # the ADS-B counters move on their own
 
     def __init__(self, state, source, pipeline=None):
         self.pipeline = pipeline
         self.state = state
         self.source = source
         self.lock = threading.Lock()
+        self.wake = threading.Condition(self.lock)
         self.clients = set()
+        self.dirty = False
+        self.closed = False
+        self.pushed_n = 0
+        self.pusher = threading.Thread(target=self._pusher, name="gs-web-push", daemon=True)
+        self.pusher.start()
 
     def feed(self, obj):
         if self.pipeline:
             self.pipeline.feed(obj)
         with self.lock:
             self.state.feed(obj)
-            self._push_locked()
+            self.dirty = True
+            self.wake.notify()
 
     def note(self, kind, text):
         with self.lock:
             self.state.note(kind, text)
-            self._push_locked()
+            self.dirty = True
+            self.wake.notify()
 
     def snapshot(self):
         with self.lock:
             return self._snapshot()
 
-    def _snapshot(self):
-        result = self.state.snapshot()
+    def _snapshot(self, since=None):
+        result = self.state.snapshot(since)
         if self.pipeline:
             result["adsb"] = self.pipeline.snapshot()
         return result
@@ -232,8 +347,31 @@ class Hub:
         with self.lock:
             self.clients.discard(q)
 
+    def close(self):
+        with self.lock:
+            self.closed = True
+            self.wake.notify()
+
+    def _pusher(self):
+        last = 0.0
+        while True:
+            with self.lock:
+                while not self.dirty and not self.closed:
+                    if not self.wake.wait(timeout=self.IDLE_PUSH_S) and self.pipeline is not None:
+                        self.dirty = True
+                if self.closed:
+                    return
+            wait = last + self.PUSH_MIN_S - time.monotonic()
+            if wait > 0:
+                time.sleep(wait)
+            with self.lock:
+                self.dirty = False
+                self._push_locked()
+            last = time.monotonic()
+
     def _push_locked(self):
-        text = json.dumps(self._snapshot())
+        text = json.dumps(self._snapshot(since=self.pushed_n))
+        self.pushed_n = self.state.seq
         for q in list(self.clients):
             try:
                 q.put_nowait(text)
@@ -376,21 +514,60 @@ def make_handler(hub):
             self.wfile.write(data)
 
         def do_GET(self):
-            if self.path in ("/", "/index.html"):
-                with open(UI_PATH, "rb") as f:
-                    self._send(HTTPStatus.OK, f.read(), "text/html; charset=utf-8")
-            elif hub.pipeline and self.path.split("?")[0] in ("/adsb/", "/adsb/data", "/adsb/sessions"):
+            path = self.path.split("?", 1)[0]
+            if path == "/api/adsb":
+                self._adsb()
+            elif path == "/api/basemap":
+                self._file(BASEMAP_PATH, "application/geo+json")
+            elif path == "/api/airports":
+                if hub.pipeline is None:
+                    self._send(HTTPStatus.OK, "[]", "application/json")
+                else:
+                    self._send(HTTPStatus.OK, hub.pipeline.airports_json(), "application/json")
+            elif hub.pipeline and path in ("/adsb/", "/adsb/data", "/adsb/sessions"):
                 try:
                     body, ctype = hub.pipeline.page(self.path)
                     self._send(HTTPStatus.OK, body, ctype)
                 except Exception as exc:
                     self._send(HTTPStatus.SERVICE_UNAVAILABLE, str(exc), "text/plain")
-            elif self.path == "/api/state":
+            elif path == "/api/state":
                 self._send(HTTPStatus.OK, json.dumps(hub.snapshot()), "application/json")
-            elif self.path == "/events":
+            elif path == "/events":
                 self._events()
             else:
+                full = static_file(path)
+                if full is None:
+                    self._send(HTTPStatus.NOT_FOUND, "not found", "text/plain")
+                else:
+                    self._file(full, STATIC_TYPES[os.path.splitext(full)[1]])
+
+        def _file(self, full, ctype):
+            try:
+                with open(full, "rb") as f:
+                    self._send(HTTPStatus.OK, f.read(), ctype)
+            except OSError:
                 self._send(HTTPStatus.NOT_FOUND, "not found", "text/plain")
+
+        def _adsb(self):
+            """The aircraft, as the page shows them; 304 while nothing changed."""
+            if hub.pipeline is None:
+                self._send(HTTPStatus.OK, '{"revision":0,"aircraft":[]}', "application/json")
+                return
+            revision, body = hub.pipeline.summary()
+            tag = '"%d"' % revision
+            if self.headers.get("If-None-Match") == tag:
+                self.send_response(HTTPStatus.NOT_MODIFIED)
+                self.send_header("ETag", tag)
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("ETag", tag)
+            self.send_header("Cache-Control", "no-cache")
+            self.end_headers()
+            self.wfile.write(body)
 
         def _events(self):
             self.send_response(HTTPStatus.OK)
@@ -440,8 +617,7 @@ def build_source(args):
             argv += ["--power", str(args.power)]
         return ProcessSource(argv), "serial"
     if args.udp:
-        gs_cli = os.path.join(HERE, "..", "..", "..", "build", "tools", "gs_cli", "gs_cli")
-        return ProcessSource([gs_cli, "--radio", "udp"]), "udp"
+        return ProcessSource([GS_CLI, "--radio", "udp"]), "udp"
     return ProcessSource(args.exec), "exec"
 
 
@@ -459,14 +635,19 @@ def main(argv=None):
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--adsb", action="store_true", help="process received aircraft continuously")
     ap.add_argument("--session-dir", type=Path, default=Path(HERE)/"sessions")
-    sys.path.insert(0, os.path.join(HERE, "ground-aeronaves"))
-    from ground.config import Config, add_pair_arguments, pair_options
+    from adsb.estimator.config import Config, add_pair_arguments, pair_options
     ap.add_argument("--reference-db", type=Path, default=Config().reference_db)
     add_pair_arguments(ap)
+    # The pair method stays off unless asked for (ADR-0022): on real traffic
+    # (17/11) and on straight synthetic flights it was wrong on 43 to 75 % of
+    # its origins, and with it on the combined conclusion never decided.
+    ap.add_argument("--pairs", action="store_true", dest="pairs_enabled",
+                    help="also run the route-pair method of ADR-0019")
+    ap.set_defaults(pairs_enabled=False)
     args = ap.parse_args(argv)
     pipeline = None
     if args.adsb:
-        from adsb_pipeline import AdsbPipeline
+        from adsb.pipeline import AdsbPipeline
         from dataclasses import replace
         try:
             pipeline = AdsbPipeline(args.session_dir, replace(Config(), reference_db=args.reference_db, **pair_options(ap,args)))
@@ -489,6 +670,7 @@ def main(argv=None):
         pass
     finally:
         source.stop()
+        hub.close()
         if pipeline:
             pipeline.close()
         if server:

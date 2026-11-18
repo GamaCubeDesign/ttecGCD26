@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """What the ground receives, emulated from a full ADS-B capture.
 
-The ground's estimator (ground/host/ground-aeronaves) was written
+The ground's estimator (ground/host/adsb/estimator) was written
 against the onboard record: every message, ~4 per aircraft per second. The
 radio carries one record per aircraft per snapshot, every 5 s (ADR-0003).
 This script turns a full capture into what the ground would rebuild from the
@@ -27,8 +27,8 @@ chain really does is the chain itself: make adsb-chain INPUT=<capture>.
 With --compare, runs the estimator on the capture and on the emulated
 downlink and prints both conclusions side by side:
 
-  downlink_emulation.py capture.ndjson --compare ground/host/ground-aeronaves \\
-      --reference-db ground/host/banco-aeronaves/referencias.db
+  downlink_emulation.py capture.ndjson --compare ground/host \\
+      --reference-db ground/host/adsb/data/referencias/referencias.db
 """
 
 import argparse
@@ -117,7 +117,7 @@ def emulate(messages, period_s=5.0, loss=0.0, seed=1, pos_max_age_s=10.0,
                 out.append(o)
         snap += int(period_s * 1e9)
 
-    # The ground writes a repeated update once (ground/host/tracks_to_ndjson.py).
+    # The ground writes a repeated update once (ground/host/adsb/tracks_to_ndjson.py).
     seen, unique = set(), []
     for o in out:
         key = (o["icao"], o["rx_epoch_ns"] // 250_000_000, o.get("lat"), o.get("altitude_ft"))
@@ -139,10 +139,10 @@ def read_capture(path):
 
 
 def conclusions(ground_dir, reference_db, lines, t0):
-    """Runs the ground's estimator (ground-aeronaves) on lines; returns its summary."""
+    """Runs the ground's estimator (adsb.estimator) on lines; returns its summary."""
     sys.path.insert(0, str(ground_dir))
-    from ground.config import Config            # noqa: E402 (the estimator's own package)
-    from ground.__main__ import run
+    from adsb.estimator.config import Config    # noqa: E402 (the estimator's own package)
+    from adsb.estimator.__main__ import run
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d)
         cfg = Config(reference_db=Path(reference_db), telemetry_db=tmp / "t.db",
@@ -171,7 +171,7 @@ def main():
     ap.add_argument("--loss", type=float, default=0.0, help="fraction of frames lost (0)")
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--compare", metavar="GROUND_DIR",
-                    help="ground-aeronaves directory: run its estimator on both")
+                    help="ground/host directory: run its estimator (adsb.estimator) on both")
     ap.add_argument("--reference-db", help="the estimator's referencias.db (with --compare)")
     args = ap.parse_args()
 

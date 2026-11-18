@@ -1,0 +1,466 @@
+{
+ "aircraft": {
+  "A13691": {
+   "callsign": "N1777X",
+   "category": "A1",
+   "evidence": {
+    "origin": null,
+    "destination": null,
+    "track_points": 0
+   },
+   "origin": null,
+   "destination": null
+  },
+  "E03613": {
+   "callsign": "ARG1243",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 64
+   },
+   "origin": "SBGR",
+   "destination": null
+  },
+  "E0645A": {
+   "callsign": "ARG1674",
+   "category": "A3",
+   "evidence": {
+    "origin": "capture",
+    "destination": null,
+    "track_points": 68
+   },
+   "origin": "SABE",
+   "destination": null
+  },
+  "E0648B": {
+   "callsign": "ARG1972",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 52
+   },
+   "origin": "SAEZ",
+   "destination": null
+  },
+  "E06541": {
+   "callsign": "ARG1873",
+   "category": "A3",
+   "evidence": {
+    "origin": null,
+    "destination": "capture",
+    "track_points": 82
+   },
+   "origin": null,
+   "destination": "SABE"
+  },
+  "E06543": {
+   "callsign": "ARG1956",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 37
+   },
+   "origin": "SAEZ",
+   "destination": null
+  },
+  "E0658D": {
+   "callsign": "ARG1656",
+   "category": "A3",
+   "evidence": {
+    "origin": "capture",
+    "destination": null,
+    "track_points": 0
+   },
+   "origin": "SABE",
+   "destination": null
+  },
+  "E0658F": {
+   "callsign": "ARG1671",
+   "category": "A3",
+   "evidence": {
+    "origin": null,
+    "destination": null,
+    "track_points": 19
+   },
+   "origin": null,
+   "destination": null
+  },
+  "E065D3": {
+   "callsign": "ARG1857",
+   "category": "A3",
+   "evidence": {
+    "origin": null,
+    "destination": "capture",
+    "track_points": 0
+   },
+   "origin": null,
+   "destination": "SABE"
+  },
+  "E07191": {
+   "callsign": "ARG1841",
+   "category": "A3",
+   "evidence": {
+    "origin": null,
+    "destination": null,
+    "track_points": 14
+   },
+   "origin": null,
+   "destination": null
+  },
+  "E072D5": {
+   "callsign": "ARG1782",
+   "category": "A3",
+   "evidence": {
+    "origin": "capture",
+    "destination": null,
+    "track_points": 46
+   },
+   "origin": "SABE",
+   "destination": null
+  },
+  "E07581": {
+   "callsign": "ARG1775",
+   "category": "A3",
+   "evidence": {
+    "origin": null,
+    "destination": null,
+    "track_points": 48
+   },
+   "origin": null,
+   "destination": null
+  },
+  "E082D6": {
+   "callsign": "ARG1513",
+   "category": "A3",
+   "evidence": {
+    "origin": null,
+    "destination": null,
+    "track_points": 10
+   },
+   "origin": null,
+   "destination": null
+  },
+  "E082D7": {
+   "callsign": "ARG1261",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 49
+   },
+   "origin": "SBGL",
+   "destination": null
+  },
+  "E0844F": {
+   "callsign": "LVHQO",
+   "category": "A1",
+   "evidence": {
+    "origin": null,
+    "destination": null,
+    "track_points": 85
+   },
+   "origin": null,
+   "destination": null
+  },
+  "E0958F": {
+   "callsign": "JES3182",
+   "category": "A3",
+   "evidence": {
+    "origin": null,
+    "destination": "capture",
+    "track_points": 49
+   },
+   "origin": null,
+   "destination": "SABE"
+  },
+  "E0A5C1": {
+   "callsign": "LVJWA",
+   "category": "A1",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 118
+   },
+   "origin": "SADM",
+   "destination": null
+  },
+  "E0B110": {
+   "callsign": "JES3104",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 47
+   },
+   "origin": "SABE",
+   "destination": null
+  },
+  "E0B198": {
+   "callsign": "JES3236",
+   "category": "A3",
+   "evidence": {
+    "origin": "capture",
+    "destination": null,
+    "track_points": 41
+   },
+   "origin": "SABE",
+   "destination": null
+  },
+  "E0B255": {
+   "callsign": "ARG1669",
+   "category": "A3",
+   "evidence": {
+    "origin": null,
+    "destination": "capture",
+    "track_points": 55
+   },
+   "origin": null,
+   "destination": "SABE"
+  },
+  "E0B2C5": {
+   "callsign": "ARG1264",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 58
+   },
+   "origin": "SABE",
+   "destination": null
+  },
+  "E0B2CF": {
+   "callsign": "LVKKO",
+   "category": "A1",
+   "evidence": {
+    "origin": "capture",
+    "destination": null,
+    "track_points": 41
+   },
+   "origin": "SADF",
+   "destination": null
+  },
+  "E0B308": {
+   "callsign": "LVKLH",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 49
+   },
+   "origin": "SADF",
+   "destination": null
+  },
+  "E20022": {
+   "callsign": "FAG627",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 34
+   },
+   "origin": "SADP",
+   "destination": null
+  },
+  "E20063": {
+   "callsign": "LVS048",
+   "category": "A1",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 65
+   },
+   "origin": "SADM",
+   "destination": null
+  },
+  "E2008A": {
+   "callsign": "LVS074",
+   "category": "A1",
+   "evidence": {
+    "origin": null,
+    "destination": null,
+    "track_points": 0
+   },
+   "origin": null,
+   "destination": null
+  },
+  "E200D7": {
+   "callsign": "SAETTA92",
+   "category": "A1",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 220
+   },
+   "origin": "SADF",
+   "destination": null
+  },
+  "E48135": {
+   "callsign": "TAM8193",
+   "category": "A0",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 45
+   },
+   "origin": "SABE",
+   "destination": null
+  },
+  "E49523": {
+   "callsign": "GLO7640",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": "capture",
+    "track_points": 161
+   },
+   "origin": "SBGR",
+   "destination": "SABE"
+  },
+  "E4952F": {
+   "callsign": "GLO7630",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": "opensky_track",
+    "track_points": 113
+   },
+   "origin": "SBGR",
+   "destination": "SUMU"
+  },
+  "E4953D": {
+   "callsign": "TAM8140",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": "capture",
+    "track_points": 126
+   },
+   "origin": "SBGR",
+   "destination": "SABE"
+  },
+  "E49698": {
+   "callsign": "TAM8117",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 15
+   },
+   "origin": "SUMU",
+   "destination": null
+  },
+  "E4A00C": {
+   "callsign": "TAM8171",
+   "category": "A3",
+   "evidence": {
+    "origin": null,
+    "destination": null,
+    "track_points": 3
+   },
+   "origin": null,
+   "destination": null
+  },
+  "E4A5C9": {
+   "callsign": "PPCRO",
+   "category": "A2",
+   "evidence": {
+    "origin": null,
+    "destination": "opensky_track",
+    "track_points": 30
+   },
+   "origin": null,
+   "destination": "SUMU"
+  },
+  "E8026C": {
+   "callsign": "LAN542",
+   "category": "A5",
+   "evidence": {
+    "origin": "capture",
+    "destination": null,
+    "track_points": 60
+   },
+   "origin": "SAEZ",
+   "destination": null
+  },
+  "E80333": {
+   "callsign": "SKU538",
+   "category": "A3",
+   "evidence": {
+    "origin": "capture",
+    "destination": null,
+    "track_points": 62
+   },
+   "origin": "SABE",
+   "destination": null
+  },
+  "E8040F": {
+   "callsign": "LAN543",
+   "category": "A5",
+   "evidence": {
+    "origin": "capture",
+    "destination": null,
+    "track_points": 0
+   },
+   "origin": "SAEZ",
+   "destination": null
+  },
+  "E8043C": {
+   "callsign": "LAN407",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 60
+   },
+   "origin": "SUMU",
+   "destination": null
+  },
+  "E80613": {
+   "callsign": "JAT764",
+   "category": "A3",
+   "evidence": {
+    "origin": null,
+    "destination": "opensky_track",
+    "track_points": 26
+   },
+   "origin": null,
+   "destination": "SUMU"
+  },
+  "E80618": {
+   "callsign": "JES3741",
+   "category": "A3",
+   "evidence": {
+    "origin": null,
+    "destination": "capture",
+    "track_points": 128
+   },
+   "origin": null,
+   "destination": "SABE"
+  },
+  "E8061F": {
+   "callsign": "JES3330",
+   "category": "A3",
+   "evidence": {
+    "origin": "capture",
+    "destination": null,
+    "track_points": 0
+   },
+   "origin": "SABE",
+   "destination": null
+  },
+  "E8062C": {
+   "callsign": "JES3146",
+   "category": "A3",
+   "evidence": {
+    "origin": "opensky_track",
+    "destination": null,
+    "track_points": 65
+   },
+   "origin": "SAEZ",
+   "destination": null
+  }
+ }
+}

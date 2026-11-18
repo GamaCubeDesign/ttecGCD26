@@ -3,7 +3,7 @@
  *
  * The output format is the one tools/gs_cli has written since the bench of
  * 2026-10-07: the bench scripts (tools/bench/run_step.sh) and the downlink
- * adapter (ground/host/tracks_to_ndjson.py) read it byte for byte, and
+ * adapter (ground/host/adsb/tracks_to_ndjson.py) read it byte for byte, and
  * tests/test_gs_console.c pins it.
  */
 

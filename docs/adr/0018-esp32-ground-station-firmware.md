@@ -12,7 +12,7 @@ The ground station for the on-site tests is an ESP32 DevKit V1 with an RA-02
 now the only ground was `tools/gs_cli` on a Raspberry Pi with a second RA-02,
 which ran every bench step of 2026-10-09. Its output — one JSON object per
 event — is what the bench scripts (`tools/bench/run_step.sh`), the downlink
-adapter (`ground/host/tracks_to_ndjson.py`) and the analyses read, byte for
+adapter (`ground/host/adsb/tracks_to_ndjson.py`) and the analyses read, byte for
 byte.
 
 Constraints:

@@ -1,0 +1,42 @@
+{
+ "combined": {
+  "origin": {
+   "acertos": 6,
+   "erros": 0,
+   "falsos_positivos": 0,
+   "unknown": 20,
+   "casos": 26,
+   "coverage": 0.23076923076923078,
+   "acerto_quando_decidiu": 1.0
+  },
+  "destination": {
+   "acertos": 3,
+   "erros": 0,
+   "falsos_positivos": 2,
+   "unknown": 9,
+   "casos": 12,
+   "coverage": 0.25,
+   "acerto_quando_decidiu": 1.0
+  }
+ },
+ "pairs": {
+  "origin": {
+   "acertos": 0,
+   "erros": 0,
+   "falsos_positivos": 0,
+   "unknown": 26,
+   "casos": 26,
+   "coverage": 0.0,
+   "acerto_quando_decidiu": null
+  },
+  "destination": {
+   "acertos": 0,
+   "erros": 0,
+   "falsos_positivos": 0,
+   "unknown": 12,
+   "casos": 12,
+   "coverage": 0.0,
+   "acerto_quando_decidiu": null
+  }
+ }
+}

@@ -1,0 +1,24 @@
+{"mono_ms":221164,"event":"start","version":"42c1d84-dirty","ipc_path":"/tmp/ttec-bench.sock","i2c_dev":"/dev/i2c-1","ina219_addr":64,"aocs_addr":42,"i2c_lease_path":"/tmp/obcd-i2c.lease","w1_path":"auto","gpio_chip":"/dev/gpiochip0"}
+{"mono_ms":221164,"event":"output","which":"burnwire","chip":"/dev/gpiochip0","line":22}
+{"mono_ms":221164,"event":"output","which":"heater","chip":"/dev/gpiochip0","line":23}
+{"mono_ms":221164,"event":"burnwire","on":false,"why":"boot","driven":true}
+{"mono_ms":221164,"event":"heater","on":false,"why":"boot","temp_ccel":-32768,"driven":true}
+{"mono_ms":221164,"event":"boot","mode":"PRE_TEST","adsb_timeout_ms":600000,"burnwire_ms":5000,"aocs_timeout_ms":300000,"heater_on_below_ccel":1000,"heater_off_above_ccel":1200}
+{"mono_ms":221164,"event":"sensor","which":"ds18b20","found":1,"path":"/sys/bus/w1/devices/28-989fc3356461/w1_slave"}
+{"mono_ms":221164,"event":"ipc_connect_failed","path":"/tmp/ttec-bench.sock","why":"No such file or directory"}
+{"mono_ms":221164,"event":"temp_fault","have":false,"age_ms":0}
+{"mono_ms":221166,"event":"sensor","which":"ina219","ok":true}
+{"mono_ms":221967,"event":"sensor","which":"ds18b20","ok":true}
+{"mono_ms":221967,"event":"temp_ok","temp_ccel":2588}
+{"mono_ms":226164,"event":"ipc_up","path":"/tmp/ttec-bench.sock"}
+{"mono_ms":281164,"event":"status","mode":"PRE_TEST","battery_mv":872,"current_ma":0,"temp_bat_ccel":2588,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":0,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":341164,"event":"status","mode":"PRE_TEST","battery_mv":880,"current_ma":0,"temp_bat_ccel":2575,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":0,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":401164,"event":"status","mode":"PRE_TEST","battery_mv":888,"current_ma":0,"temp_bat_ccel":2575,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":0,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":461164,"event":"status","mode":"PRE_TEST","battery_mv":888,"current_ma":0,"temp_bat_ccel":2575,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":0,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":521164,"event":"status","mode":"PRE_TEST","battery_mv":884,"current_ma":0,"temp_bat_ccel":2575,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":0,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":557071,"event":"heater","on":true,"why":"cold","temp_ccel":0,"driven":true}
+{"mono_ms":559890,"event":"heater","on":false,"why":"warm","temp_ccel":2569,"driven":true}
+{"mono_ms":562702,"event":"heater","on":true,"why":"cold","temp_ccel":0,"driven":true}
+{"mono_ms":565518,"event":"heater","on":false,"why":"warm","temp_ccel":2569,"driven":true}
+{"mono_ms":581164,"event":"status","mode":"PRE_TEST","battery_mv":888,"current_ma":0,"temp_bat_ccel":2569,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":0,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":641164,"event":"status","mode":"PRE_TEST","battery_mv":876,"current_ma":0,"temp_bat_ccel":2569,"heater":false,"events":0,"refused":0,"power_failures":0,"temp_failures":0,"output_failures":0,"ipc_tx_drops":0}

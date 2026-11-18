@@ -1,6 +1,6 @@
 /*
  * The ground console (ground/console/gs_console.h): the lines the bench
- * scripts and ground/host/tracks_to_ndjson.py read byte for byte, whichever
+ * scripts and ground/host/adsb/tracks_to_ndjson.py read byte for byte, whichever
  * ground station prints them (tools/gs_cli or the ESP32).
  *
  * A fake radio: frames the console transmits are captured, frames from the

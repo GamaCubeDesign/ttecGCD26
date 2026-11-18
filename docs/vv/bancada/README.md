@@ -40,11 +40,12 @@ Etapas do roteiro. ✅ feito · ⏳ em andamento · — não começado.
 | 8 · O código novo na Pi | protocolo v2, `obcd`, ground na ESP32: compila e passa no compilador da Pi | ✅ 05/11 — 38/38 nos dois builds (normal e UBSan), citações 71/71, sem warnings; 3 min 54 s | [notas](2026-11-05/notas.md) |
 | 9 · Os rádios em 433,92 MHz | os seis passos na frequência nova (ADR-0015) | — | [roteiro](roteiro-2026-11.md) |
 | 10 · A ESP32 | as suítes portáveis na placa (TTC-16); o firmware da ground | ⏳ 05/11 — as 11 suítes passam na ESP32 com as contagens do PC (TTC-16); o rádio B responde (`reset=14 dio0=27`), depois de um defeito de firmware corrigido (`polling_start`) e de um contato intermitente sem causa identificada | [notas](2026-11-05/notas.md) |
-| 11 · Os rádios com a ESP32 de ground | os seis passos com a ground das provas (ADR-0018) | — | [roteiro](roteiro-2026-11.md) |
-| 12 · Os três daemons pelo modo | a Figura 44 em hardware; o `adsbd` seguindo o modo (ADR-0014, ADR-0016) | — | [roteiro](roteiro-2026-11.md) |
+| 11 · Os rádios com a ESP32 de ground | os seis passos com a ground das provas (ADR-0018) | ⏳ 16/11 — só o ping: 10/10 na 1ª tentativa, 276 ms, na fiação de outubro; com os pinos da placa nessa fiação, 9 de 10 com 2 tentativas (DIO0 errado, sem erro visível) | [notas](2026-11-16/notas.md) |
+| 12 · Os três daemons pelo modo | a Figura 44 em hardware; o `adsbd` seguindo o modo (ADR-0014, ADR-0016) | ⏳ 16/11 — o ramo da missão: `SET_TIME` → `SET_MODE` pelo botão da interface, `MISSION_ADSB` por 600 000 ms, `MISSION_DOWNLINK` com roster e estatísticas, volta a `PRE_TEST`; faltam os outros modos | [notas](2026-11-16/notas.md) |
 | 13 · O `obcd` com sensores e LEDs | V, I e temperatura (OBC-7), termostato, burn-wire, saídas após `kill -9`, NACK do I²C (ADR-0017); a corrente do burn-wire numa réplica (P2) | ⏳ 05/11 — INA219 e DS18B20 detectados; pulso de 5000 ms; entra e sai de `ENV_SURVIVAL`; EIO no I²C vazio (o `obcd` só reconhece `EREMOTEIO`/`ENXIO`); o DS18B20 deixou de responder (DQ sem pull-up), A3–A6, A8 e A10 pendentes | [notas](2026-11-05/notas.md) |
 | 14 · A corrente do RA-02 a 14 dBm | o orçamento de potência (CDR, Tabela 13: 110 mA) | — | [roteiro](roteiro-2026-11.md) |
 | 15 · Os serviços (opcional) | as unidades do systemd e o watchdog na Pi | — | [roteiro](roteiro-2026-11.md) |
+| 16 · A cadeia ADS-B com 20 aeronaves | `adsbd` → `ttcd` → LoRa → ESP32 → interface → estimador, com o SDR trocado pelo `sbs_replay` (HLR-ADS-07, HLR-ADS-08) | ✅ 16/11 — 359 quadros, 0 perdidos; latência p95 2,8 s; trajetória com erro p95 de 23 m e 0,11 s; ⚠️ o estimador erra sem a categoria, que não chega à ground; ❌ a antena não recebe aviões (etapa 5 a refazer) | [notas](2026-11-16/notas.md), [roteiro](roteiro-adsb-2026-11.md) |
 
 ## A Pi da bancada
 

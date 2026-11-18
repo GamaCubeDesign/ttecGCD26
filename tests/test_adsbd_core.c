@@ -335,10 +335,16 @@ int main(void)
         adsbd_on_ipc_frame(&C, T0, f, (size_t)n);
         adsbd_on_ipc_frame(&C, T0, f, (size_t)n);         /* same mode: logged once */
         CHECK_EQ_INT(C.obc_mode, GAMA_OBC_ST_MISSION_ADSB);
-        CHECK(!adsbd_decoder_wanted(&C));
-        time_set(T0, 1793000000u, 1000000000u);
-        CHECK(!adsbd_decoder_wanted(&C));
-        time_set(T0, 1793000000u, 0);
+        /* The mode alone starts the decoder. Without an anchor the record is
+         * stamped unsynchronised, which can be corrected afterwards; a
+         * mission not captured cannot (ADR-0020). */
+        CHECK(!C.time_synced);
+        CHECK(adsbd_decoder_wanted(&C));
+        time_set(T0, 1793000000u, 1000000000u);           /* nsec out of range */
+        CHECK(!C.time_synced);
+        CHECK(adsbd_decoder_wanted(&C));
+        time_set(T0, 1793000000u, 0);                     /* an anchor changes nothing here */
+        CHECK(C.time_synced);
         CHECK(adsbd_decoder_wanted(&C));
         CHECK_EQ_INT(count_log("obc_mode"), 1);
         CHECK_EQ_INT(C.n.ipc_rx_bad, 1);

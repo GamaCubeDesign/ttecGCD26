@@ -148,28 +148,51 @@ if(Python3_Interpreter_FOUND)
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
     # The ground's ADS-B estimator, with its own tests.
     add_test(NAME ground_aeronaves
-             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests
-             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host/ground-aeronaves)
+             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/estimator
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
+    # The route-pair data's city audit (ground/host/adsb/data/pares); its regional
+    # priority test needs Shapely, used only to generate the database, so it is
+    # left to whoever regenerates it.
+    add_test(NAME ground_data
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_auditar_cidades
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host/adsb/data/pares)
     # The ground's adapter from the downlink to the estimator's NDJSON.
     add_test(NAME tracks_to_ndjson
-             COMMAND ${Python3_EXECUTABLE} -m unittest test_tracks_to_ndjson
+             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/host -p test_tracks_to_ndjson.py
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
+    # Real air traffic from adsb.lol and OpenSky, to test the ground without the
+    # satellite: the conversion and the truth, on recorded responses (no network).
+    add_test(NAME live_traffic
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_live_traffic
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/live_traffic)
     # The ESP32 ground station's serial bridge, against a fake board on a pty.
     add_test(NAME gs_serial
-             COMMAND ${Python3_EXECUTABLE} -m unittest test_gs_serial
+             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/host -p test_gs_serial.py
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
     # The ground's browser interface: its state, the commands the page may
     # send, and the server against a fake ground process.
     add_test(NAME adsb_pipeline
-             COMMAND ${Python3_EXECUTABLE} -m unittest test_adsb_pipeline
+             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/host -p test_adsb_pipeline.py
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
     add_test(NAME gs_web
-             COMMAND ${Python3_EXECUTABLE} -m unittest test_gs_web
+             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/host -p test_gs_web.py
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
+    # The page's modules that need no browser (ground/host/web): where Node is.
+    find_program(NODE_EXECUTABLE node)
+    if(NODE_EXECUTABLE)
+        add_test(NAME gs_web_modules
+                 COMMAND ${NODE_EXECUTABLE} ${CMAKE_SOURCE_DIR}/ground/host/web/test_web.mjs)
+    endif()
     # A real bench step (run_step.sh, ping.txt) with the real ttcd and the
     # real ground on the UDP radio: the ground's JSON as the scripts read it.
     add_test(NAME bench_step_udp
              COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_bench_step.py
                      ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR})
     set_tests_properties(bench_step_udp PROPERTIES TIMEOUT 150)
+    # make sim (tools/bench/sim.sh): the satellite on the PC driven from the
+    # ground's page, with recorded real traffic; a ping, a mission, aircraft.
+    add_test(NAME sim_udp
+             COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_sim.py
+                     ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR})
+    set_tests_properties(sim_udp PROPERTIES TIMEOUT 120)
 endif()
