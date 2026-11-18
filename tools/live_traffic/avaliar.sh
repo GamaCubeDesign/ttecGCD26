@@ -24,9 +24,13 @@ root=$(cd "$(dirname "$0")/../.." && pwd)
 python=${PYTHON:-python3}
 mkdir -p "$out"
 
-"$python" "$root/tools/live_traffic/live_traffic.py" convert "$dir" >/dev/null
-"$python" "$root/tools/live_traffic/live_traffic.py" convert "$dir" --no-category >/dev/null
-[[ -f $dir/ground_truth.json ]] || "$python" "$root/tools/live_traffic/live_traffic.py" truth "$dir" >/dev/null
+# A real capture is rebuilt from its raw responses; a synthetic scenario
+# (synthetic.py) already holds its capture and its truth.
+if [[ -f $dir/raw.jsonl.gz ]]; then
+    "$python" "$root/tools/live_traffic/live_traffic.py" convert "$dir" >/dev/null
+    "$python" "$root/tools/live_traffic/live_traffic.py" convert "$dir" --no-category >/dev/null
+    [[ -f $dir/ground_truth.json ]] || "$python" "$root/tools/live_traffic/live_traffic.py" truth "$dir" >/dev/null
+fi
 
 cd "$root/ground/host/ground-aeronaves"
 for kind in capture capture_sem_categoria; do
