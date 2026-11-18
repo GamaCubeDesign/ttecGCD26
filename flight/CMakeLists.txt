@@ -57,6 +57,7 @@ target_compile_definitions(ttcd PRIVATE TTEC_VERSION="${TTEC_VERSION}")
 # it with a virtual clock and recorded SBS lines.
 add_library(adsbd_core STATIC
     adsbd/sbs.c
+    adsbd/avr.c
     adsbd/tracks.c
     adsbd/ndjson.c
     adsbd/core.c

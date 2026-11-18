@@ -24,6 +24,20 @@ static bool append(char *buf, size_t cap, size_t *pos, const char *fmt, ...)
     return true;
 }
 
+int adsbd_ndjson_category(char *buf, size_t cap, uint32_t icao, char set,
+                          uint8_t category, uint64_t rx_epoch_ns)
+{
+    if (buf == NULL || set < 'A' || set > 'D' || category > 7u) {
+        return -1;
+    }
+    size_t pos = 0;
+    bool ok = append(buf, cap, &pos,
+                     "{\"icao\":\"%06" PRIX32 "\",\"rx_epoch_ns\":%" PRIu64
+                     ",\"category\":\"%c%u\"}\n",
+                     icao & 0xFFFFFFu, rx_epoch_ns, set, (unsigned)category);
+    return ok ? (int)pos : -1;
+}
+
 int adsbd_ndjson_format(char *buf, size_t cap, const sbs_msg_t *m, uint64_t rx_epoch_ns)
 {
     if (buf == NULL || m == NULL) {

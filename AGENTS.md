@@ -22,7 +22,7 @@ proposing anything that moves bytes over the radio, check it against
 | `common/` | Shared packet codec: framing, CRC, TM/TC records | compiles on Pi **and** ESP32 |
 | `flight/ttcd/` | Telecom daemon: pure core (`link.c`, `tc_dispatch.c`, `tm_sched.c`) + epoll shell (`main.c`) | Pi |
 | `flight/radio/` | SX1278 driver over an abstract bus; Linux bus (spidev + GPIO chardev); radio backends (sx1278, udp) | Pi |
-| `flight/adsbd/` | Payload daemon: supervises dump1090-fa, parses SBS, track table, NDJSON onboard record, snapshots to `ttcd`; pure core (`sbs.c`, `tracks.c`, `ndjson.c`, `core.c`) + epoll shell (`main.c`) | Pi |
+| `flight/adsbd/` | Payload daemon: supervises dump1090-fa, parses SBS, track table, NDJSON onboard record, snapshots to `ttcd`; optionally the raw AVR port for the emitter category (`avr_port`, ADR-0023); pure core (`sbs.c`, `avr.c`, `tracks.c`, `ndjson.c`, `core.c`) + epoll shell (`main.c`) | Pi |
 | `flight/libipc/` | AF_UNIX SOCK_SEQPACKET transport | Pi |
 | `flight/obcd/` | OBC daemon: mission modes (Figure 44), burn-wire, heaters, the DS18B20 in its own thread, and one thread owning the I²C bus shared with the AOCS ESP32 — the INA219, and the bus lent to the ESP32 during `ADVANCED_AOCS` (ADR-0017); pure core (`core.c`, `i2c_sched.c`) + epoll shell (`main.c`) (ADR-0016) | Pi |
 | `flight/conf/` | Flight configuration per board: `obc-v2/` holds the new OBC board's `ttcd.conf`, `obcd.conf` and `config.txt` lines; `make install CONF_DIR=flight/conf/obc-v2` | Pi |
@@ -108,7 +108,7 @@ change link behaviour, rerun it and update the ADR's verification table.
 
 Keep the `ttcd`, `adsbd` and `obcd` cores free of system calls (ADR-0005):
 no clock reads, no sleeps, no file descriptors in `link.c`, `tc_dispatch.c`,
-`tm_sched.c`, nor in `sbs.c`, `tracks.c`, `ndjson.c`, `core.c`, nor in
+`tm_sched.c`, nor in `sbs.c`, `avr.c`, `tracks.c`, `ndjson.c`, `core.c`, nor in
 `obcd/core.c`. Everything a core needs from the world goes through its ops
 table (`ttcd_ops_t`, `adsbd_ops_t`, and the same for `obcd`).
 
@@ -166,7 +166,9 @@ version bump, and review the diff byte by byte.
 
 Record sizes are load-bearing for the data budget: track 20 B, roster 11 B,
 HK 27 B (protocol v2, ADR-0013), stat 26 B, framing overhead 7 B. Changing
-one means revising `docs/budgets/data-budget.md` and probably an ADR.
+one means revising `docs/budgets/data-budget.md` and probably an ADR. The
+track's `flags` byte is full since ADR-0023: bits 0-5 validity, bits 6-7 the
+aircraft class (`GAMA_TRACK_CLASS_*`, 0 unknown).
 
 ## Where decisions live
 
@@ -218,7 +220,7 @@ risks. As of 2026-11-05:
   the radio bench split between the Pi and the PC (`make bench SPLIT=1`);
   since 2026-11-17 real traffic with a truth (`tools/live_traffic`), the
   satellite on the PC behind the page (`make sim`), and the ground's central
-  page (`ground/host/web`). 43 CTest suites (42 where Node is missing, as in
+  page (`ground/host/web`). 46 CTest suites (45 where Node is missing, as in
   the CI), zero warnings, clean under ASan and UBSan, and under
   ThreadSanitizer for `obcd`'s integration test. **Most of this has not run
   on the bench yet**: the script is
@@ -262,8 +264,12 @@ risks. As of 2026-11-05:
   validate, the same as with the category; 10 of 10 on synthetic straight
   flights, no false positive on invented aircraft; the pair method is off by
   default in the page (`gs_web.py --pairs`). The category on board
-  (`dump1090-fa`'s AVR port, 2 spare bits of the track flags) is the next
-  step, ADR-0023, proposal in `docs/relatorios/2026-11-18-proposta-categoria-adsb.html`.
+  (`dump1090-fa`'s AVR port, 2 spare bits of the track flags) is ADR-0023,
+  done in software on 2026-11-18 behind `avr_port` (0 by default: the flight
+  as before; `make sim` and `make adsb-chain` turn it on, `AVR=0` off); the
+  bench that decides whether it flies is `docs/vv/bancada/2026-11-20/roteiro.md`.
+  The estimator before and after Etapa A, for the team:
+  `docs/relatorios/2026-11-18-estimador-antes-depois-etapa-a.html`.
 - **Priority now: the bench, then the hardware.** (1) ~~protocol version 2,
   mode-driven `ttcd`/`adsbd`, 433.92 MHz and 14 dBm~~ — done in software
   2026-10-24; (2) ~~`flight/obcd/`~~ — done in software, the Pi's side of the

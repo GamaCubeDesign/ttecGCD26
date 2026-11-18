@@ -84,6 +84,34 @@ int main(void)
         CHECK_EQ_INT(back.age_ds, 4321);
     }
 
+    TEST_GROUP("vectors: track record with the aircraft class (ADR-0023)");
+    {
+        /* The record above with class LARGE (10) in bits 6-7: only the last
+         * byte differs, 0x0F -> 0x8F. The record above is the same record
+         * with class UNKNOWN, which is why it needed no change. */
+        static const uint8_t vec_track_large[] = {
+            0xEF, 0xCD, 0xAB, 0x16, 0x6C, 0x01, 0xF5, 0x49, 0xFF, 0xE8, 0x03, 0x94,
+            0x11, 0x28, 0x23, 0x00, 0xFC, 0xE1, 0x10, 0x8F,
+        };
+        gama_track_t t = {
+            .icao = 0xABCDEFu, .latitude = 1.0, .longitude = -1.0,
+            .altitude_ft = 25000, .ground_speed_kt = 450.0, .track_deg = 90.0,
+            .vertical_rate_fpm = -1024, .age_ds = 4321,
+            .flags = GAMA_TRACK_WITH_CLASS(GAMA_TRACK_F_POSITION | GAMA_TRACK_F_ALTITUDE |
+                                           GAMA_TRACK_F_VELOCITY | GAMA_TRACK_F_VRATE,
+                                           GAMA_TRACK_CLASS_LARGE),
+        };
+        CHECK_EQ_INT(gama_track_encode(buf, sizeof(buf), &t), sizeof(vec_track_large));
+        CHECK_MEM_EQ(buf, vec_track_large, sizeof(vec_track_large));
+        gama_track_t back;
+        CHECK_EQ_INT(gama_track_decode(vec_track_large, sizeof(vec_track_large), &back),
+                     GAMA_TRACK_WIRE_LEN);
+        CHECK_EQ_INT(GAMA_TRACK_CLASS(back.flags), GAMA_TRACK_CLASS_LARGE);
+        CHECK_EQ_INT(back.flags & ~GAMA_TRACK_CLASS_MASK,
+                     GAMA_TRACK_F_POSITION | GAMA_TRACK_F_ALTITUDE |
+                     GAMA_TRACK_F_VELOCITY | GAMA_TRACK_F_VRATE);
+    }
+
     TEST_GROUP("vectors: TM_TRACKS frame, header through CRC");
     {
         /* 02        protocol version 2

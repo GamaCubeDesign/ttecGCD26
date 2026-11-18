@@ -81,6 +81,13 @@ typedef struct {
     uint32_t anchors;           /* wall-clock anchors applied                */
     uint32_t roster_full;       /* callsigns not kept: the roster was full   */
     uint16_t dump1090_restarts;
+    /* The AVR port (ADR-0023); all 0 with avr_port = 0. */
+    uint32_t avr_lines;         /* non-empty lines read                      */
+    uint32_t avr_idents;        /* identifications applied to a track        */
+    uint32_t avr_not_ident;     /* well-formed messages of other kinds       */
+    uint32_t avr_non_icao;      /* DF18 identifications without ICAO address */
+    uint32_t avr_no_track;      /* identifications of an aircraft not tracked */
+    uint32_t avr_rejected;      /* malformed lines or bad CRC: never used    */
 } adsbd_counters_t;
 
 /* One aircraft of the roster; `pending` until ttcd has been sent it. */
@@ -116,6 +123,15 @@ void adsbd_on_line(adsbd_core_t *c, uint64_t now_ns, const char *line, size_t le
 
 /* A line longer than the shell's buffer, discarded there: counted here. */
 void adsbd_on_overlong_line(adsbd_core_t *c, uint64_t now_ns);
+
+/* One line of dump1090's raw (AVR) output, without its newline, that
+ * arrived at now_ns (ADR-0023). Only identification messages are used:
+ * their class goes into the aircraft's track, their category into the
+ * onboard record. Everything else is counted by reason. */
+void adsbd_on_avr_line(adsbd_core_t *c, uint64_t now_ns, const char *line, size_t len);
+
+/* An AVR line longer than the shell's buffer: counted as rejected. */
+void adsbd_on_avr_overlong_line(adsbd_core_t *c, uint64_t now_ns);
 
 void adsbd_on_ipc_link(adsbd_core_t *c, uint64_t now_ns, bool up);
 void adsbd_on_ipc_frame(adsbd_core_t *c, uint64_t now_ns, const uint8_t *buf, size_t len);

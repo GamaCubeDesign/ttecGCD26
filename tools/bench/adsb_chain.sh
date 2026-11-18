@@ -34,12 +34,22 @@ python=${PYTHON:-python3}
 sbs_port=${SBS_PORT:-31003}      # not 30003: a real dump1090 may be running
 sat_port=${SAT_PORT:-47101}      # not the bench's 47001/47002
 gnd_port=${GND_PORT:-47102}
+avr_port=${AVR_PORT:-31002}      # not 30002, for the same reason
 
 mkdir -p "$out"
 # Not inside OUT_DIR: an AF_UNIX path must fit in 108 bytes.
 sock=$(mktemp -u "${TMPDIR:-/tmp}/adsb-chain.XXXXXX.sock")
 kind=--ndjson
 [[ $input == *.sbs ]] && kind=--sbs
+# dump1090's raw (AVR) port, where adsbd reads the emitter category
+# (ADR-0023): on here, with an NDJSON input that carries one; AVR=0 plays
+# the flight's default, without it, for comparison.
+avr=()
+replay_avr=()
+if [[ ${AVR:-1} == 1 && $kind == --ndjson ]]; then
+    avr=(-o avr_port="$avr_port")
+    replay_avr=(--avr-port "$avr_port")
+fi
 
 if [[ -z $duration ]]; then
     if [[ $kind == --ndjson ]]; then
@@ -70,13 +80,14 @@ pids+=($!)
 for _ in {1..100}; do [[ -S $sock ]] && break; sleep 0.1; done
 [[ -S $sock ]] || { echo "adsb-chain: ttcd did not start — see $out/ttcd.jsonl" >&2; exit 1; }
 
-"$python" tools/sbs_replay/sbs_replay.py "$kind" "$input" --port "$sbs_port" --exit-at-end \
+"$python" tools/sbs_replay/sbs_replay.py "$kind" "$input" --port "$sbs_port" "${replay_avr[@]}" \
+    --exit-at-end \
     2> "$out/replay.log" &
 pids+=($!)
 
 "$build"/flight/adsbd -c flight/adsbd/adsbd.conf.example -o ipc_path="$sock" \
     -o sbs_port="$sbs_port" -o dump1090_cmd= -o ndjson_path="$out/adsb.ndjson" \
-    -o log_path="$out/adsbd.jsonl" &
+    -o log_path="$out/adsbd.jsonl" "${avr[@]}" &
 pids+=($!)
 
 # The script ends MISSION_ADSB itself; obcd's own 600 s timeout is moved
@@ -98,6 +109,8 @@ grep -c . "$out/adsb.ndjson" | sed 's/^/onboard record:        /; s/$/ messages/
 grep -c '"ev":"tracks"' "$out/ground.jsonl" | sed 's/^/TM_TRACKS received:    /; s/$/ frames/' || true
 grep -o '"ev":"summary".*' "$out/ground.jsonl" | sed 's/^/ground summary:        /' || true
 grep -c . "$out/ground.ndjson" | sed 's/^/for the estimator:     /; s/$/ records/' || true
+grep -o '"category":"[A-D][0-7]"' "$out/adsb.ndjson" | sort | uniq -c | tr '\n' ' ' \
+    | sed 's/^/categories on board:   /; s/$/\n/' || true
 grep -o '"event":"time_anchor".*' "$out/adsbd.jsonl" | head -1 | sed 's/^/adsbd anchored:        /' || true
 grep -o '"event":"mode".*' "$out/obcd.jsonl" | sed 's/^/obcd:                  /' || true
 grep -o '"event":"downlink_done".*' "$out/ttcd.jsonl" | sed 's/^/ttcd:                  /' || true

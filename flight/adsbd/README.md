@@ -9,12 +9,20 @@ lê as mensagens decodificadas na porta SBS e entrega três coisas:
 | **Retrato** — o estado de cada aeronave em 20 bytes (`IPC_TRACKS`) | `ttcd`, que transmite o mais recente a cada 5 s (ADR-0003, ADR-0007) | a cada 1 s |
 | **Contadores** — linhas lidas, decodificadas, aeronaves, reinícios do `dump1090` (`IPC_STAT`) | `ttcd`, para o `TM_STAT` e o `TM_HK` (HLR-ADS-08) | a cada 1 s |
 
+Opcionalmente (`avr_port`, ADR-0023), lê também a saída bruta do
+`dump1090-fa` (AVR, `--net-ro-port`). Dela tira só a categoria ADS-B de cada
+aeronave, que vem na mensagem de identificação: a classe vai nos bits 6–7 dos
+`flags` do retrato, e a categoria exata, numa linha do registro de bordo
+(`{"icao":…,"rx_epoch_ns":…,"category":"A3"}`). Com `avr_port = 0`, o padrão,
+o `adsbd` é o de antes.
+
 | Onde está o quê | |
 |---|---|
 | Quem é dono do SDR, e por quê | ADR-0008 |
 | Processos separados, `ttcd` no centro | ADR-0005 |
 | O tempo de cada mensagem | ADR-0009 |
 | Leitura do SBS-1 | `sbs.c` |
+| Leitura da saída AVR: identificação, CRC-24, classe (ADR-0023) | `avr.c` |
 | Tabela de aeronaves e regras do retrato | `tracks.c` (o comentário de `tracks.h` define cada regra) |
 | Linha do registro de bordo | `ndjson.c` |
 | Núcleo: linhas → tabela → registro, retrato, contadores | `core.c` |
@@ -22,7 +30,7 @@ lê as mensagens decodificadas na porta SBS e entrega três coisas:
 | Configuração | `config.c`, `adsbd.conf.example` |
 
 O núcleo segue o do `ttcd`: nenhuma chamada de sistema, testado com relógio
-virtual (`tests/test_sbs.c`, `test_tracks.c`, `test_adsbd_core.c`); a
+virtual (`tests/test_sbs.c`, `test_avr.c`, `test_tracks.c`, `test_adsbd_core.c`); a
 configuração tem o seu (`test_adsbd_config.c`). A casca é testada com o
 binário real, fazendo o papel do `dump1090` e do `ttcd`
 (`tests/test_adsbd_integration.c`), e a cadeia inteira, com o `ttcd` real e
@@ -152,6 +160,8 @@ mesma base do log do `ttcd`, para os dois se alinharem.
 | `start`, `stop`, `exit` | início e fim, com a versão e o tamanho do registro |
 | `dump1090_start`, `dump1090_exit`, `dump1090_restart_in` | supervisão do `dump1090` |
 | `sbs_up`, `sbs_down`, `sbs_connect_failed` | a conexão com a porta SBS |
+| `avr_up`, `avr_down`, `avr_connect_failed` | a conexão com a porta AVR, quando `avr_port` ≠ 0 |
+| `avr_reject` | uma linha AVR malformada ou com CRC errado (só as 20 primeiras); as outras mensagens, que não são identificação, só são contadas (`avr_not_ident` no `stats`) |
 | `ipc_up`, `ipc_down`, `ipc_connect_failed` | a conexão com o `ttcd` |
 | `time_anchor` | chegou a hora da ground; `step_ms` é o salto que isso deu |
 | `sbs_reject` | uma linha malformada (só as 20 primeiras) |
@@ -160,12 +170,32 @@ mesma base do log do `ttcd`, para os dois se alinharem.
 | `obc_mode`, `decoder` | o modo que o `ttcd` repassou, e o decoder ligando ou desligando por ele |
 | `dump1090_stop` | `SIGTERM` no `dump1090` porque o modo mudou |
 
+## Ligar a categoria (ADR-0023)
+
+No `/etc/gama/adsbd.conf`, as duas coisas juntas (o `adsbd` recusa uma sem a
+outra):
+
+```
+avr_port     = 30002
+dump1090_cmd = /usr/bin/dump1090-fa ... --net-ro-port 30002 ...   # era --net-ro-port 0
+```
+
+O `stats` passa a ter `avr_lines`, `avr_idents` (identificações aplicadas a
+uma aeronave), `avr_not_ident`, `avr_non_icao`, `avr_no_track`
+(identificação de uma aeronave que o SBS ainda não trouxe; a próxima vem em
+~5 s) e `avr_rejected`. Sem SDR, `make sim` e `make adsb-chain` já usam a
+porta (`AVR=0` para comparar), com o `sbs_replay --avr-port` gerando as
+identificações a partir do campo `category` da captura.
+
 ## O que falta
 
 - **Com tráfego de verdade:** em 09/10 o `dump1090-fa` ficou em 21,9% de um
   núcleo com pouco tráfego, e a varredura de ganho foi inconclusiva (0 a 3
   aeronaves). Falta repetir com ~20 aeronaves ou uma fonte conhecida, e medir
   a taxa de decodificação (PLANO etapa 6).
+- **A porta AVR na Pi** (ADR-0023): ligada no `adsbd.conf`, com o
+  `sbs_replay --avr-port` e, se a antena passar, com o SDR real; a CPU do
+  `dump1090-fa` com a saída extra.
 - **O `adsbd` dirigido pelo modo, na Pi:** o `dump1090` subindo e descendo com
   o modo, e o tempo de `SET_MODE MISSION_ADSB` até a primeira mensagem
   decodificada (roteiro de novembro, etapa 12).

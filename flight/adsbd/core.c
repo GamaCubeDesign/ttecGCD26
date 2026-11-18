@@ -11,6 +11,7 @@
  */
 
 #include "core.h"
+#include "avr.h"
 #include "gama_frame.h"
 #include "gama_tc.h"
 #include "ndjson.h"
@@ -44,7 +45,7 @@ static void core_log(adsbd_core_t *c, uint64_t now_ns, const char *event,
     if (c->ops.log == NULL) {
         return;
     }
-    char fields[400];
+    char fields[768];      /* the stats line, every counter at its widest: ~650 */
     va_list ap;
     va_start(ap, fmt);
     vsnprintf(fields, sizeof(fields), fmt, ap);
@@ -161,6 +162,58 @@ void adsbd_on_overlong_line(adsbd_core_t *c, uint64_t now)
     c->n.rejected++;
     if (c->n.rejected <= ADSBD_REJECT_LOG_MAX) {
         core_log(c, now, "sbs_reject", "\"why\":\"overlong\"");
+    }
+}
+
+void adsbd_on_avr_line(adsbd_core_t *c, uint64_t now, const char *line, size_t len)
+{
+    if (len == 0 || (len == 1 && line[0] == '\r')) {
+        return;
+    }
+    c->n.avr_lines++;
+
+    avr_msg_t m;
+    avr_result_t r = avr_parse(line, len, &m);
+    if (r == AVR_NOT_IDENT) {
+        c->n.avr_not_ident++;
+        return;
+    }
+    if (r == AVR_NON_ICAO) {
+        c->n.avr_non_icao++;
+        return;
+    }
+    if (r != AVR_OK) {
+        /* Counted, never used (AGENTS.md, hard rule 6; HLR-ADS-08). */
+        c->n.avr_rejected++;
+        if (c->n.avr_rejected <= ADSBD_REJECT_LOG_MAX) {
+            core_log(c, now, "avr_reject", "\"why\":\"%s\",\"len\":%zu",
+                     avr_result_name(r), len);
+        }
+        return;
+    }
+    /* An identification before the aircraft's first SBS message, or after
+     * it expired, is counted and dropped: the next one comes in ~5 s. */
+    if (!tracks_set_class(&c->table, m.icao, m.cls)) {
+        c->n.avr_no_track++;
+        return;
+    }
+    c->n.avr_idents++;
+
+    /* HLR-ADS-07: the category recorded on board with its arrival. */
+    char out[ADSBD_NDJSON_MAX];
+    int k = adsbd_ndjson_category(out, sizeof(out), m.icao, m.set, m.category,
+                                  adsbd_wall_ns(c, now));
+    if (k > 0 && c->ops.record != NULL) {
+        c->ops.record(c->ops.ctx, out, (size_t)k);
+    }
+}
+
+void adsbd_on_avr_overlong_line(adsbd_core_t *c, uint64_t now)
+{
+    c->n.avr_lines++;
+    c->n.avr_rejected++;
+    if (c->n.avr_rejected <= ADSBD_REJECT_LOG_MAX) {
+        core_log(c, now, "avr_reject", "\"why\":\"overlong\"");
     }
 }
 
@@ -371,12 +424,16 @@ void adsbd_on_tick(adsbd_core_t *c, uint64_t now)
                  ",\"evictions\":%" PRIu32 ",\"expired\":%" PRIu32 ",\"snapshots\":%" PRIu32
                  ",\"left_out\":%" PRIu32 ",\"ipc_tx_drops\":%" PRIu32 ",\"ipc_rx_bad\":%" PRIu32
                  ",\"anchors\":%" PRIu32 ",\"roster\":%" PRIu32 ",\"roster_full\":%" PRIu32
-                 ",\"dump1090_restarts\":%u,\"time_synced\":%s",
+                 ",\"dump1090_restarts\":%u,\"time_synced\":%s"
+                 ",\"avr_lines\":%" PRIu32 ",\"avr_idents\":%" PRIu32 ",\"avr_not_ident\":%" PRIu32
+                 ",\"avr_non_icao\":%" PRIu32 ",\"avr_no_track\":%" PRIu32 ",\"avr_rejected\":%" PRIu32,
                  n->lines, n->decoded, n->ignored, n->non_icao, n->rejected, c->table.count,
                  n->evictions, n->expired, n->snapshots, n->left_out, n->ipc_tx_drops,
                  n->ipc_rx_bad, n->anchors, c->roster_count, n->roster_full,
                  (unsigned)n->dump1090_restarts,
-                 c->time_synced ? "true" : "false");
+                 c->time_synced ? "true" : "false",
+                 n->avr_lines, n->avr_idents, n->avr_not_ident, n->avr_non_icao,
+                 n->avr_no_track, n->avr_rejected);
         c->next_report = advance(c->next_report, now, c->p.report_period);
     }
 }

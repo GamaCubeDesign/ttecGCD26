@@ -75,6 +75,29 @@ int main(void)
         CHECK_EQ_INT(adsbd_config_set(&cfg, "log_path", "/tmp/a\\b", err, sizeof(err)), -1);
     }
 
+    TEST_GROUP("config: the AVR port is off by default and must match dump1090 (ADR-0023)");
+    {
+        adsbd_config_t cfg;
+        adsbd_config_default(&cfg);
+        char err[300] = "";
+        CHECK_EQ_INT(cfg.avr_port, 0);
+        CHECK_EQ_INT(adsbd_config_validate(&cfg, err, sizeof(err)), 0);
+        /* The default command has --net-ro-port 0: a port there is refused. */
+        CHECK_EQ_INT(adsbd_config_set(&cfg, "avr_port", "30002", err, sizeof(err)), 0);
+        CHECK_EQ_INT(adsbd_config_validate(&cfg, err, sizeof(err)), -1);
+        CHECK(strstr(err, "--net-ro-port 30002") != NULL);
+        CHECK_EQ_INT(adsbd_config_set(&cfg, "dump1090_cmd",
+                     "/usr/bin/dump1090-fa --net --net-sbs-port 30003 --net-ro-port 30002",
+                     err, sizeof(err)), 0);
+        CHECK_EQ_INT(adsbd_config_validate(&cfg, err, sizeof(err)), 0);
+        /* An external dump1090 (empty command): nothing to compare with. */
+        CHECK_EQ_INT(adsbd_config_set(&cfg, "dump1090_cmd", "", err, sizeof(err)), 0);
+        CHECK_EQ_INT(adsbd_config_validate(&cfg, err, sizeof(err)), 0);
+        CHECK_EQ_INT(adsbd_config_set(&cfg, "avr_port", "30003", err, sizeof(err)), 0);
+        CHECK_EQ_INT(adsbd_config_validate(&cfg, err, sizeof(err)), -1);   /* = sbs_port */
+        CHECK_EQ_INT(adsbd_config_set(&cfg, "avr_port", "65536", err, sizeof(err)), -1);
+    }
+
     TEST_GROUP("config: fields that must agree with each other");
     {
         char err[300] = "";

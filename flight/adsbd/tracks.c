@@ -101,6 +101,16 @@ bool tracks_apply(adsbd_table_t *t, const sbs_msg_t *m, uint64_t now)
     return kept_all;
 }
 
+bool tracks_set_class(adsbd_table_t *t, uint32_t icao, uint8_t cls)
+{
+    int s = find_slot(t, icao);
+    if (s < 0) {
+        return false;
+    }
+    t->slot[s].cls = (uint8_t)(cls & (GAMA_TRACK_CLASS_MASK >> GAMA_TRACK_CLASS_SHIFT));
+    return true;
+}
+
 uint32_t tracks_expire(adsbd_table_t *t, uint64_t now, uint32_t expiry_ms)
 {
     uint32_t dropped = 0;
@@ -203,7 +213,7 @@ size_t tracks_snapshot(const adsbd_table_t *t, uint64_t now,
         }
         uint64_t age_ds = (now - c[j].at + 50u) / 100u;
         o->age_ds = age_ds > 0xFFFFu ? 0xFFFFu : (uint16_t)age_ds;
-        o->flags = flags;
+        o->flags = GAMA_TRACK_WITH_CLASS(flags, k->cls);
     }
     if (left_out != NULL) {
         *left_out = (uint32_t)(nc - n);

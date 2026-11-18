@@ -37,6 +37,13 @@ extern "C" {
  * without the NUL, or -1 if cap is too small. */
 int adsbd_ndjson_format(char *buf, size_t cap, const sbs_msg_t *m, uint64_t rx_epoch_ns);
 
+/* The line for an emitter category read on the AVR port (ADR-0023):
+ * {"icao":"E0B244","rx_epoch_ns":...,"category":"A3"}. The ground's
+ * estimator reads it as an identification. set is 'A'..'D', category 0..7.
+ * Returns the length without the NUL, or -1 if cap is too small. */
+int adsbd_ndjson_category(char *buf, size_t cap, uint32_t icao, char set,
+                          uint8_t category, uint64_t rx_epoch_ns);
+
 #ifdef __cplusplus
 }
 #endif

@@ -43,6 +43,11 @@ target_link_libraries(test_sbs PRIVATE adsbd_core)
 target_include_directories(test_sbs PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_sbs COMMAND test_sbs)
 
+add_executable(test_avr test_avr.c)
+target_link_libraries(test_avr PRIVATE adsbd_core)
+target_include_directories(test_avr PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME test_avr COMMAND test_avr)
+
 add_executable(test_tracks test_tracks.c)
 target_link_libraries(test_tracks PRIVATE adsbd_core)
 target_include_directories(test_tracks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -165,6 +170,10 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME live_traffic
              COMMAND ${Python3_EXECUTABLE} -m unittest test_live_traffic
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/live_traffic)
+    # sbs_replay's AVR port (ADR-0023): identification messages adsbd accepts.
+    add_test(NAME sbs_replay
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_sbs_replay
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/sbs_replay)
     # The ESP32 ground station's serial bridge, against a fake board on a pty.
     add_test(NAME gs_serial
              COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/host -p test_gs_serial.py

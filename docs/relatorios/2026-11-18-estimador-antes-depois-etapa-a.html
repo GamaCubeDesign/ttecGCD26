@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estimador ADS-B: antes e depois da Etapa A</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+
+svg.diagram .lost{fill:var(--bad-soft);stroke:var(--bad);stroke-width:2}
+svg.diagram .new{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2;stroke-dasharray:5 4}
+svg.diagram .edge.ok{stroke:var(--ok);stroke-width:2}
+svg.diagram .ah-ok{fill:var(--ok)}
+svg.diagram .t-bad{font-size:12px;fill:var(--bad);font-weight:600}
+svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
+.bytes .fl{background:var(--warn-soft)}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#caminho">Do avião à estimativa</a></li>
+    <li><a href="#trajetoria">A trajetória (não mudou)</a></li>
+    <li><a href="#antes">Os aeroportos, antes da Etapa A</a></li>
+    <li><a href="#falha">Por que a origem não saía</a></li>
+    <li><a href="#depois">O que a Etapa A mudou</a></li>
+    <li><a href="#exemplos">Dois voos reais, antes e depois</a></li>
+    <li><a href="#resultados">Os resultados</a></li>
+    <li><a href="#limites">Limites e próximo passo</a></li>
+    <li><a href="#codigo">Onde está no código</a></li>
+  </ol>
+</nav>
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · TT&amp;C · ground · estimador ADS-B</p>
+  <h1>Trajetória e aeroportos: como o estimador decide, antes e depois da Etapa A</h1>
+  <p class="lede">Como a ground transforma os registros que descem pelo LoRa em trajetórias, como escolhe o aeroporto de origem e de destino de cada aeronave, e o que mudou em 18/11 para a origem voltar a ser decidida sem a categoria ADS-B.</p>
+  <div class="meta"><span><b>Data:</b> 18/11/2026</span><span><b>Registro formal:</b> ADR-0022 (<i>Proposed</i>)</span><span><b>Código:</b> <code>ground/host/adsb/</code></span><span><b>Estimador:</b> do Pedro (PR #89); Etapa A no PR #91</span></div>
+</header>
+
+<h2 id="resumo"><span class="n">1</span>Resumo</h2>
+<div class="tiles">
+  <div class="tile"><div class="v">0 → 7 de 7</div><div class="l">origens decididas e certas sem a categoria, 1 h de tráfego real (17/11)</div></div>
+  <div class="tile"><div class="v">4 → 6 de 6</div><div class="l">na captura de validação (18/11), que não foi usada para ajustar nada</div></div>
+  <div class="tile"><div class="v">0</div><div class="l">origens erradas, em todos os conjuntos medidos (real, sintético e fictício)</div></div>
+</div>
+<p>O estimador tem duas partes. A primeira <b>reconstrói a trajetória</b> de cada aeronave: o horário de cada posição, os campos mais recentes, a taxa de subida e a fase do voo. A segunda <b>pontua os aeroportos</b> em volta, com várias evidências geométricas, e só decide quando um candidato se destaca por tempo suficiente.</p>
+<p><b>A Etapa A não mexeu na trajetória.</b> Mexeu em duas entradas da pontuação da origem, e as duas resolvem a falta da categoria da aeronave, que o enlace não leva:</p>
+<ul>
+  <li><b>a classe "grande" pela cinemática:</b> um jato prova o próprio porte pela velocidade, pela altitude ou pela subida, e então os heliportos saem da disputa;</li>
+  <li><b>a distância de decolagem pela subida:</b> a altura, a razão de subida e a velocidade dizem a que distância a pista deve estar.</li>
+</ul>
+<p>O destino já funcionava sem a categoria (9 de 10 e 10 de 12) e continuou igual.</p>
+
+<h2 id="caminho"><span class="n">2</span>Do avião à estimativa</h2>
+<p>Cada aeronave passa pela cadeia abaixo. Do lado do satélite nada mudou. Na ground, a Etapa A entra em dois pontos, marcados em verde.</p>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 880 400" role="img" aria-label="Cadeia do avião até a decisão, com os dois pontos da Etapa A">
+  <defs>
+    <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker>
+  </defs>
+  <rect class="zone" x="10" y="20" width="860" height="100" rx="10"/>
+  <text class="zone-label" x="24" y="40">SATÉLITE (PI ZERO 2 W)</text>
+  <rect class="box hw" x="30" y="54" width="120" height="52" rx="7"/><text class="t-b" x="90" y="78" text-anchor="middle">SDR</text><text class="t-s" x="90" y="96" text-anchor="middle">1090 MHz</text>
+  <rect class="box" x="190" y="54" width="150" height="52" rx="7"/><text class="t-b" x="265" y="78" text-anchor="middle">dump1090-fa</text><text class="t-s" x="265" y="96" text-anchor="middle">SBS, porta 30003</text>
+  <rect class="box" x="380" y="54" width="180" height="52" rx="7"/><text class="t-b" x="470" y="78" text-anchor="middle">adsbd</text><text class="t-s" x="470" y="96" text-anchor="middle">tracks, retrato a cada 5 s</text>
+  <rect class="box" x="600" y="54" width="250" height="52" rx="7"/><text class="t-b" x="725" y="78" text-anchor="middle">ttcd → LoRa 433,92 MHz</text><text class="t-s" x="725" y="96" text-anchor="middle">registro de 20 B, idade em age_ds</text>
+  <path class="edge" d="M150 80H186" marker-end="url(#a1)"/><path class="edge" d="M340 80H376" marker-end="url(#a1)"/><path class="edge" d="M560 80H596" marker-end="url(#a1)"/>
+  <path class="edge" d="M725 106V150" marker-end="url(#a1)"/>
+  <rect class="zone" x="10" y="140" width="860" height="250" rx="10"/>
+  <text class="zone-label" x="24" y="160">GROUND (ESP32 + PC)</text>
+  <rect class="box hw" x="600" y="170" width="250" height="52" rx="7"/><text class="t-b" x="725" y="194" text-anchor="middle">ESP32 → gs_serial / gs_web</text><text class="t-s" x="725" y="212" text-anchor="middle">uma linha JSON por quadro</text>
+  <rect class="box" x="330" y="170" width="230" height="52" rx="7"/><text class="t-b" x="445" y="194" text-anchor="middle">tracks_to_ndjson</text><text class="t-s" x="445" y="212" text-anchor="middle">horário refeito, repetições fora</text>
+  <rect class="box" x="30" y="170" width="260" height="52" rx="7"/><text class="t-b" x="160" y="194" text-anchor="middle">retrato da aeronave</text><text class="t-s" x="160" y="212" text-anchor="middle">trajetória, campos, taxa vertical, fase</text>
+  <path class="edge" d="M600 196H564" marker-end="url(#a1)"/><path class="edge" d="M330 196H294" marker-end="url(#a1)"/>
+  <rect class="new" x="30" y="250" width="260" height="52" rx="7"/><text class="t-b" x="160" y="274" text-anchor="middle">classe pela cinemática</text><text class="t-ok" x="160" y="292" text-anchor="middle">Etapa A · só sem categoria</text>
+  <path class="edge" d="M160 222V246" marker-end="url(#a1)"/>
+  <rect class="box" x="330" y="250" width="230" height="52" rx="7"/><text class="t-b" x="445" y="274" text-anchor="middle">pontuação dos aeroportos</text><text class="t-s" x="445" y="292" text-anchor="middle">filtro de categoria + componentes</text>
+  <path class="edge" d="M290 276H326" marker-end="url(#a1)"/>
+  <rect class="new" x="330" y="322" width="230" height="52" rx="7"/><text class="t-b" x="445" y="346" text-anchor="middle">distância pela subida</text><text class="t-ok" x="445" y="364" text-anchor="middle">Etapa A · só na origem</text>
+  <path class="edge ok" d="M445 322V306" marker-end="url(#a1)"/>
+  <rect class="box" x="600" y="250" width="250" height="52" rx="7"/><text class="t-b" x="725" y="274" text-anchor="middle">decisão no tempo</text><text class="t-s" x="725" y="292" text-anchor="middle">ESTIMATED só com margem e tempo</text>
+  <path class="edge" d="M560 276H596" marker-end="url(#a1)"/>
+</svg></div>
+<figcaption>O mesmo estimador roda sobre capturas (<code>avaliar.sh</code>), no <code>make sim</code> e ao vivo na página (<code>gs_web.py --adsb</code>). Ele lê o mesmo NDJSON nos três casos.</figcaption>
+</figure>
+
+<h2 id="trajetoria"><span class="n">3</span>A trajetória (não mudou)</h2>
+<p>Tudo o que segue já existia e continua igual. É a base sobre a qual os aeroportos são pontuados.</p>
+
+<h3>3.1 O horário de cada posição</h3>
+<p>O satélite não tem relógio de parede confiável, e a ground não sincroniza nada com ele. Cada registro de track leva a sua <b>idade</b> (<code>age_ds</code>, em décimos de segundo): o tempo entre a última atualização daquela aeronave e o início da transmissão do quadro. A ground refaz o instante no próprio relógio (ADR-0007):</p>
+<pre><code>instante = chegada do quadro − tempo no ar (ToA) − 100 ms × age_ds</code></pre>
+<p>Como o satélite manda todas as aeronaves em todo retrato, uma aeronave que não mudou chega duas vezes com o mesmo instante. A repetição é descartada quando dois instantes refeitos ficam a menos de 250 ms um do outro com os mesmos valores. Medido em hardware em 16/11, com 20 aeronaves simuladas: <b>erro de trajetória p95 de 23 m e 0,11 s</b>, e nenhum quadro perdido em 359.</p>
+
+<h3>3.2 O retrato da aeronave</h3>
+<p>A cada observação, o estimador olha a janela da aeronave (até 900 s e 2000 observações) e monta um <b>retrato</b> (<code>build_snapshot</code>):</p>
+<ul>
+  <li><b>Posição:</b> a última recebida. Se tiver mais de 60 s, não há retrato e não há estimativa.</li>
+  <li><b>Campos</b> (altitude, velocidade, rumo, razão vertical, no solo): o valor mais recente de cada um, com a idade e a origem dele (<code>received</code> ou <code>last_known</code>), até 60 s.</li>
+  <li><b>Velocidade e rumo derivados:</b> se faltarem, são calculados entre duas posições distintas (pelo menos 1 s e 20 m de diferença).</li>
+  <li><b>Categoria:</b> a última recebida, válida por 300 s. <b>No enlace ela nunca vem:</b> o SBS que o <code>adsbd</code> lê não tem esse campo.</li>
+</ul>
+
+<h3>3.3 A razão vertical e a fase do voo</h3>
+<p>A razão de subida usa a <b>mediana dos valores recebidos</b> nos últimos 10 s. Se não houver nenhum, usa a inclinação da altitude numa regressão robusta (Theil–Sen) dos últimos 30 a 90 s. Se o valor recebido e o calculado apontam sentidos opostos (mais de 300 ft/min cada), é conflito: a fase fica desconhecida e nada é decidido.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Fase</th><th>Quando</th></tr></thead>
+<tbody>
+<tr><td class="nw"><code>GROUND</code></td><td>o campo "no solo" recebido é 1</td></tr>
+<tr><td class="nw"><code>CLIMB</code></td><td>subindo a mais de 300 ft/min por 10 s; sai quando cai abaixo de 150 ft/min (histerese)</td></tr>
+<tr><td class="nw"><code>DESCENT</code></td><td>o mesmo, descendo</td></tr>
+<tr><td class="nw"><code>LEVEL</code></td><td>entre os dois, por 10 s</td></tr>
+<tr><td class="nw"><code>APPROACH</code></td><td>em descida e alinhada a uma pista de um candidato por 10 s</td></tr>
+<tr><td class="nw"><code>UNKNOWN</code></td><td>sem retrato, sem razão vertical, conflito ou mais de 60 s sem evidência</td></tr>
+</tbody></table></div>
+<p>Antes de pontuar qualquer aeroporto, o estimador confere a <b>qualidade</b> dos últimos 120 s: pelo menos 3 posições, 20 s de trecho, nenhuma lacuna acima de 60 s e nenhum salto de posição impossível. Se faltar algum desses, não há decisão.</p>
+
+<h2 id="antes"><span class="n">4</span>Os aeroportos, antes da Etapa A</h2>
+
+<h3>4.1 Os candidatos e o filtro de categoria</h3>
+<p>São candidatos todos os aeroportos do cadastro OurAirports num raio de 500 km: grandes, médios, pequenos e heliportos. A categoria ADS-B filtra e pesa esses candidatos (<code>aircraft_category.py</code>):</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Categoria</th><th>Heliporto</th><th>Aeródromo pequeno</th><th>Aeroporto médio</th></tr></thead>
+<tbody>
+<tr><td>A1, A2 (leve, pequeno)</td><td><span class="badge b-bad">excluído</span></td><td class="r">× 1,00 (A2: 0,95)</td><td class="r">× 1,00</td></tr>
+<tr><td>A3 (grande)</td><td><span class="badge b-bad">excluído</span></td><td class="r">× 0,85</td><td class="r">× 0,95</td></tr>
+<tr><td>A5 (pesado)</td><td><span class="badge b-bad">excluído</span></td><td class="r">× 0,75</td><td class="r">× 0,90</td></tr>
+<tr><td>A7 (helicóptero)</td><td class="r">× 1,00</td><td class="r">× 1,00</td><td class="r">× 1,00</td></tr>
+<tr class="total"><td><b>sem categoria</b> (o caso real)</td><td class="r">× 0,90</td><td class="r">× 1,00</td><td class="r">× 1,00</td></tr>
+</tbody></table></div>
+<p>Sem a categoria, quase nada é filtrado: os heliportos só perdem 10%, e os aeródromos pequenos concorrem em igualdade com os grandes aeroportos.</p>
+
+<h3>4.2 A pontuação de cada candidato</h3>
+<p>Cada candidato recebe vários <b>componentes</b>, cada um entre 0 e 1. A pontuação é a média ponderada deles, multiplicada pelo fator de categoria da tabela acima. Não é uma probabilidade: é uma compatibilidade heurística.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Componente</th><th>O que mede</th><th class="r">Peso na origem, com âncora no solo</th><th class="r">Peso na origem, sem âncora</th></tr></thead>
+<tbody>
+<tr><td><code>takeoff_anchor</code></td><td>distância do aeroporto à última posição recebida <b>no solo</b>: exp(−d/10 km)</td><td class="r">0,45</td><td class="r">—</td></tr>
+<tr><td><code>distance</code></td><td>distância do aeroporto à aeronave agora: exp(−d/120 km)</td><td class="r">0,05</td><td class="r">0,15</td></tr>
+<tr><td><code>direction</code></td><td>se o aeroporto fica atrás da aeronave (o oposto do rumo)</td><td class="r">0,05</td><td class="r">0,05</td></tr>
+<tr><td><code>trend</code></td><td>se a distância ao aeroporto vem crescendo, por regressão nos últimos 120 s</td><td class="r">0,40</td><td class="r">0,40</td></tr>
+<tr><td><code>vertical</code></td><td>se a altura sobre o aeroporto é plausível para quem saiu dele (até 6000 ft, depois decai)</td><td class="r">0,25</td><td class="r">0,25</td></tr>
+<tr><td><code>runway</code></td><td>se a trajetória sai no eixo de uma das pistas do aeroporto</td><td class="r">0,15</td><td class="r">0,15</td></tr>
+</tbody></table></div>
+<p>Os pesos acima valem para a fase <code>CLIMB</code>, que é a única em que a origem é estimada. <b>A âncora no solo só existe se a ground recebeu uma posição da aeronave no chão.</b> Uma aeronave que aparece já voando fica só com a direção, a tendência e a altura, e essas evidências são parecidas para todos os aeroportos atrás dela.</p>
+<p>O destino usa os mesmos componentes, com o sentido invertido (o aeroporto à frente, a distância diminuindo). A eles se somam:</p>
+<ul>
+  <li>a <b>viabilidade da descida:</b> a razão necessária para perder a altura até lá; acima de 5000 ft/min, zera;</li>
+  <li>na fase final, a <b>convergência acumulada</b> e a <b>desaceleração</b>;</li>
+  <li>na <code>APPROACH</code>, o peso maior do <b>alinhamento à pista</b>.</li>
+</ul>
+
+<h3>4.3 Quando a origem é estimada</h3>
+<ul>
+  <li>Só na fase <code>CLIMB</code>.</li>
+  <li>Só nos <b>primeiros 180 s</b> depois da primeira posição. Para quem foi visto no solo, os 180 s contam a partir da decolagem.</li>
+  <li>Depois disso, a hipótese aceita fica guardada no resumo da aeronave, marcada como histórica.</li>
+</ul>
+
+<h3>4.4 A decisão no tempo</h3>
+<p>Um retrato isolado nunca decide. A fusão (<code>decision_fusion.py</code>) atualiza uma memória por candidato no máximo a cada 10 s, com média exponencial de constante 30 s. Um candidato só vira <span class="badge b-ok">ESTIMATED</span> se cumprir <b>todas</b> as condições:</p>
+<ul>
+  <li>o melhor em pelo menos 3 atualizações seguidas, e há pelo menos 20 s;</li>
+  <li>qualidade dos dados ≥ 0,35 e cobertura de evidência ≥ 0,55;</li>
+  <li>tendência ≥ 0,65 (a distância realmente crescendo, na origem);</li>
+  <li>altura inicial sobre o aeroporto entre −300 e 6000 ft (origem);</li>
+  <li>compatibilidade ≥ 0,65 <b>e margem de pelo menos 0,08 sobre o segundo colocado</b>.</li>
+</ul>
+<p>Sem margem, o resultado é <span class="badge b-warn">AMBIGUO</span>, e a origem fica <span class="badge b-todo">UNKNOWN</span>. A regra é conservadora de propósito: errar com confiança é pior do que não decidir.</p>
+
+<h2 id="falha"><span class="n">5</span>Por que a origem não saía</h2>
+<p>Em 17/11 o estimador rodou sobre 1 h de tráfego real de Buenos Aires, com e sem a categoria. Com a categoria, decidiu 6 origens e acertou 5. Sem ela, que é o que a ground recebe de fato, <b>não decidiu nenhuma</b>. Os motivos aparecem juntos:</p>
+<ol>
+  <li><b>Os heliportos colados nos aeroportos.</b> Aeroparque tem três heliportos a menos de 3 km. Para um jato saindo de lá, eles têm a mesma direção, a mesma tendência, a mesma altura e quase a mesma âncora. A diferença de pontuação fica em 0,04 ou 0,05, abaixo da margem de 0,08, e o resultado é <span class="badge b-warn">AMBIGUO</span>.</li>
+  <li><b>Os aeródromos pequenos sem penalidade.</b> Sem saber que é um jato, Matanza, Morón ou El Palomar valem tanto quanto Ezeiza. Aeródromos sem pistas cadastradas nem levam o componente de pista, que pode puxar um grande aeroporto para baixo quando a geometria não encaixa.</li>
+  <li><b>Quem aparece já subindo não tem âncora.</b> Sem posição no solo, o que distingue os candidatos é fraco, e todos os aeroportos atrás da aeronave pontuam parecido.</li>
+</ol>
+<p>O destino escapava disso porque, num pouso visto, a convergência e o alinhamento à pista já separam o aeroporto certo dos vizinhos.</p>
+
+<h2 id="depois"><span class="n">6</span>O que a Etapa A mudou</h2>
+
+<h3>6.1 A classe "grande" pela cinemática</h3>
+<p>Quando nenhuma categoria chega (ausente, inválida ou A0), a ground marca a aeronave como <b>A3</b> assim que as observações dela mostram, <b>pelo menos duas vezes</b>, qualquer uma destas três coisas:</p>
+<ul>
+  <li>velocidade acima de <b>250 kt</b>;</li>
+  <li>altitude acima de <b>18 000 ft</b>;</li>
+  <li>subida acima de <b>1 800 ft/min a mais de 160 kt</b>.</li>
+</ul>
+<p>Um avião leve ou um helicóptero não consegue fazer nada disso. A classe vale até o fim do episódio de rastreio, então um jato que desacelera na aproximação continua grande. A partir daí, o filtro da seção 4.1 passa a agir: heliportos excluídos, aeródromos pequenos × 0,85, médios × 0,95. Uma categoria recebida sempre prevalece.</p>
+<div class="callout"><p><b>Por que só "grande":</b> um helicóptero a 120 kt e 2000 ft se move como um avião leve. Chamá-lo de asa fixa excluiria justamente os heliportos para onde ele vai. Errar e marcar "desconhecida" não custa nada em relação a antes; errar e marcar "leve" custaria.</p></div>
+<p>Na página, a categoria inferida aparece com um asterisco e a legenda "categoria inferida pela cinemática (ADR-0022)".</p>
+
+<h3>6.2 A distância de decolagem pela subida</h3>
+<p>Para a origem <b>sem âncora no solo</b>, cada candidato ganha um componente novo, <code>climb_back</code>, com peso 0,30. A ideia: uma aeronave h pés acima do aeroporto, subindo a v ft/min, saiu de lá há uns h/v minutos. Na velocidade s, ela percorreu uma distância d<sub>esperada</sub> = s × h / v.</p>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 880 240" role="img" aria-label="Geometria da distância pela subida">
+  <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker></defs>
+  <line class="edge" x1="40" y1="190" x2="840" y2="190"/>
+  <rect class="box hw" x="70" y="184" width="90" height="12" rx="2"/><text class="t-s" x="115" y="216" text-anchor="middle">pista do candidato</text>
+  <path class="edge ok" d="M160 190 L620 60"/>
+  <circle cx="620" cy="60" r="7" fill="var(--accent)"/>
+  <text class="t-b" x="636" y="56">aeronave agora</text><text class="t-s" x="636" y="74">altitude, v (ft/min), s (kt)</text>
+  <path class="edge" d="M620 68V184" stroke-dasharray="4 4"/><text class="t-s" x="630" y="135">h = altitude − elevação</text>
+  <path class="edge" d="M160 172H612" marker-end="url(#a2)"/>
+  <text class="t-b" x="390" y="164" text-anchor="middle">d esperada = s × h / v</text>
+  <text class="t-s" x="390" y="232" text-anchor="middle">pontuação = exp(−((d real − d esperada) / σ)²), σ = máx(3 km; 0,3 × d esperada)</text>
+</svg></div>
+<figcaption>A conta supõe uma subida reta, na razão de agora. Uma subida que muda de razão ou faz curva erra a distância esperada; a tolerância larga (σ) é a proteção. O componente só entra com subida de pelo menos 300 ft/min.</figcaption>
+</figure>
+<div class="callout warn"><p><b>As duas partes andam juntas.</b> Testada sozinha, sem saber que era um jato, a distância pela subida favoreceu heliportos que por acaso estavam à distância certa: 2 de 4 origens erradas em 17/11. Por isso ela só entra quando a classe é conhecida, recebida ou inferida.</p></div>
+
+<h3>6.3 O que ficou como estava, e o que mudou fora do estimador</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Etapa</th><th>Antes</th><th>Depois</th></tr></thead>
+<tbody>
+<tr><td>Horário, retrato, razão vertical, fase</td><td colspan="2">igual</td></tr>
+<tr><td>Categoria</td><td>só a recebida; no enlace, nunca</td><td>a recebida, ou "A3" pela cinemática (<code>source: kinematics</code>)</td></tr>
+<tr><td>Filtro e fatores por tipo</td><td colspan="2">igual, mas agora age sobre os jatos</td></tr>
+<tr><td>Origem com âncora no solo</td><td colspan="2">igual</td></tr>
+<tr><td>Origem sem âncora</td><td>distância, direção, tendência, altura, pista</td><td>os mesmos + <code>climb_back</code> (0,30), só com classe conhecida</td></tr>
+<tr><td>Destino</td><td colspan="2">igual (recebe o mesmo filtro de categoria)</td></tr>
+<tr><td>Decisão no tempo</td><td colspan="2">igual: mesmas margens e tempos</td></tr>
+<tr><td>Método de pares (ADR-0019) na página</td><td>ligado</td><td>desligado por padrão; <code>--pairs</code> liga</td></tr>
+</tbody></table></div>
+<p>Para reproduzir o estimador de antes: <code>python3 -m adsb.estimator --no-kinematic-category --climb-back-weight 0</code>.</p>
+
+<h2 id="exemplos"><span class="n">7</span>Dois voos reais, antes e depois</h2>
+<p>Os dois voos são da captura de validação de 18/11, sem a categoria. Os números são os do próprio estimador, no mesmo instante, nas duas versões.</p>
+
+<h3>7.1 SKX5572, saindo de Aeroparque: o efeito da classe</h3>
+<p>A aeronave foi vista no solo por cerca de 10 min, então há âncora de decolagem. No instante da decisão ela estava a 3 900 ft, a 285 kt, subindo a 2 880 ft/min, e já tinha sido classificada como A3 pela velocidade.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Antes: candidato</th><th>Tipo</th><th class="r">Pontuação</th><th>Depois: candidato</th><th>Tipo</th><th class="r">Pontuação</th></tr></thead>
+<tbody>
+<tr><td><b>SABE</b> Aeroparque</td><td>grande</td><td class="r">0,851</td><td><b>SABE</b> Aeroparque</td><td>grande</td><td class="r">0,851</td></tr>
+<tr><td>Dines (heliporto)</td><td>heliporto</td><td class="r">0,811</td><td>SAEZ Ezeiza</td><td>grande</td><td class="r">0,627</td></tr>
+<tr><td>Swiss Medical</td><td>heliporto</td><td class="r">0,807</td><td>SADP El Palomar</td><td>médio</td><td class="r">0,563</td></tr>
+<tr><td>Prefectura Naval</td><td>heliporto</td><td class="r">0,777</td><td>SADZ Matanza</td><td>pequeno</td><td class="r">0,562</td></tr>
+<tr class="total"><td colspan="3">margem na fusão 0,049 &lt; 0,08 → <span class="badge b-warn">AMBIGUO</span></td><td colspan="3">margem 0,224 → <span class="badge b-ok">ESTIMATED</span> SABE, certo</td></tr>
+</tbody></table></div>
+<p>A pontuação de Aeroparque é a mesma nas duas versões. O que mudou foi a concorrência: os heliportos, que tinham quase a mesma âncora, saíram da disputa por serem incompatíveis com um jato.</p>
+
+<h3>7.2 ARG1842, saindo de Ezeiza: o efeito da subida</h3>
+<p>A aeronave apareceu já no ar, a 625 ft, então <b>não há âncora</b>. No instante da decisão, 175 s depois (dentro da janela de 180 s), ela estava a 6 425 ft, a 263 kt, subindo a 2 816 ft/min.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Antes: candidato</th><th class="r">Pontuação</th><th>Depois: candidato</th><th class="r">Distância</th><th class="r">climb_back</th><th class="r">Pontuação</th></tr></thead>
+<tbody>
+<tr><td>SADZ Matanza (pequeno)</td><td class="r">0,943</td><td><b>SAEZ</b> Ezeiza</td><td class="r">19,9 km</td><td class="r">0,99</td><td class="r">0,848</td></tr>
+<tr><td>SADM Morón (pequeno)</td><td class="r">0,930</td><td>AR-0768 (médio)</td><td class="r">232 km</td><td class="r">—</td><td class="r">0,722</td></tr>
+<tr><td>SADP El Palomar (médio)</td><td class="r">0,926</td><td>SABE Aeroparque</td><td class="r">44,1 km</td><td class="r">0,00</td><td class="r">0,683</td></tr>
+<tr><td>SABE Aeroparque</td><td class="r">0,924</td><td>El Pájaro (pequeno)</td><td class="r">16,1 km</td><td class="r">0,74</td><td class="r">0,676</td></tr>
+<tr class="total"><td colspan="2">margem 0,016 → <span class="badge b-warn">AMBIGUO</span>; Ezeiza nem entre os 5</td><td colspan="4">margem 0,095 → <span class="badge b-ok">ESTIMATED</span> SAEZ, certo</td></tr>
+</tbody></table></div>
+<p>Pela subida, a pista deveria estar a <b>19,2 km</b>, e Ezeiza está a 19,9 km. Aeroparque, a 44 km, fica longe demais e recebe 0. Os aeródromos pequenos perdem 15% por ser um jato. Antes, Ezeiza ficava abaixo deles: a geometria de pista não encaixou (componente 0 com peso 0,15), e os aeródromos sem pistas cadastradas nem levam esse componente.</p>
+<p>Nas duas versões, AR-0768 aparece porque fica na direção certa e se afastando; a distância (232 km) é que o deixa atrás. Os nomes vêm do OurAirports.</p>
+
+<h2 id="resultados"><span class="n">8</span>Os resultados</h2>
+<p>Origem pelo método local, <b>sem a categoria</b>, contra o gabarito de cada conjunto. "6 de 6" quer dizer 6 decididas, 6 certas; um caso sem decisão não conta como erro.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Conjunto</th><th class="r">Antes</th><th class="r">Depois</th><th class="r">Antes, com a categoria verdadeira</th></tr></thead>
+<tbody>
+<tr><td>Real 17/11, 27 origens conhecidas (limites ajustados aqui)</td><td class="r">0</td><td class="r"><b>7 de 7</b></td><td class="r">5 de 6</td></tr>
+<tr><td>Real 18/11, 26 origens (<b>validação</b>)</td><td class="r">4 de 4</td><td class="r"><b>6 de 6</b></td><td class="r">6 de 6</td></tr>
+<tr><td>Sintético <code>rotas</code>, 23 voos retos entre aeroportos</td><td class="r">3 de 3</td><td class="r"><b>10 de 10</b></td><td class="r">7 de 7</td></tr>
+<tr><td>Sintético <code>ficticio</code>, 12 aeronaves inventadas (o certo é não decidir)</td><td class="r">0 decididas</td><td class="r">0 decididas</td><td class="r">—</td></tr>
+</tbody></table></div>
+<ul>
+  <li><b>Destino:</b> sem mudança, 9 de 10 em 17/11 e 10 de 12 em 18/11.</li>
+  <li><b>Conclusão combinada</b> (ADR-0019, sem pares): em 17/11, de 0 para 4 origens e 3 destinos; em 18/11, de 4 para 6 origens e de 1 para 3 destinos. Nenhuma errada.</li>
+  <li><b>Com a categoria verdadeira e a Etapa A:</b> em 18/11, de 6 para 10 origens, todas certas. É o que a Etapa B (a categoria a bordo) pode acrescentar.</li>
+</ul>
+<p><b>O classificador contra a categoria verdadeira</b> (17/11, 47 aeronaves):</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Categoria real</th><th class="r">Inferida "grande"</th><th class="r">Desconhecida</th></tr></thead>
+<tbody>
+<tr><td>A3, grande (31)</td><td class="r">29</td><td class="r">2</td></tr>
+<tr><td>A1, leve (7)</td><td class="r"><b>0</b></td><td class="r">7</td></tr>
+<tr><td>A2, pequeno (1, um jato executivo rápido)</td><td class="r">1</td><td class="r">—</td></tr>
+<tr><td>A0 ou sem categoria (6)</td><td class="r">5</td><td class="r">1</td></tr>
+</tbody></table></div>
+<p>O critério era nenhum avião leve classificado como grande, e ele foi cumprido. Com o A2 marcado como grande, o único efeito é um peso menor nos aeródromos pequenos para ele.</p>
+<p><b>O método de pares</b>, nos mesmos conjuntos, acertou 3 de 12 origens no real e 12 de 21 nos voos retos, e deu 11 falsos positivos nas aeronaves inventadas. Com ele ligado, a conclusão combinada não decidiu nenhum voo. Por isso ficou desligado por padrão na página.</p>
+
+<h2 id="limites"><span class="n">9</span>Limites e próximo passo</h2>
+<ul>
+  <li><b>Amostra pequena:</b> 80 voos reais em duas horas de um mesmo espaço aéreo, mais dois cenários sintéticos. Os limites foram ajustados à mão numa captura e conferidos na outra.</li>
+  <li><b>Leves e helicópteros continuam sem classe.</b> Eles não ganham com a Etapa A; só a categoria recebida resolve.</li>
+  <li><b>A classe demora:</b> ela só aparece depois de duas observações rápidas, altas ou de subida forte. No início da decolagem, a aeronave ainda é "desconhecida".</li>
+  <li><b>A subida é aproximada:</b> uma subida em curva ou que muda de razão erra a distância esperada.</li>
+  <li><b>Ainda não rodou em hardware:</b> o roteiro de 19/11 passa a captura de Buenos Aires pela cadeia Pi → LoRa → ESP32 → página (<code>docs/vv/bancada/2026-11-19/roteiro.md</code>).</li>
+</ul>
+<p>O próximo passo é a <b>Etapa B</b> (ADR-0023, em revisão): levar a categoria de verdade, lida da saída bruta do <code>dump1090-fa</code>, em 2 bits livres do registro de track, sem mudar o tamanho de nada que vai pelo rádio. A Etapa A fica como reserva para quando a categoria não vier. O relatório da proposta é o <code>2026-11-18-proposta-categoria-adsb.html</code>.</p>
+
+<h2 id="codigo"><span class="n">10</span>Onde está no código</h2>
+<p>Caminhos da organização nova de <code>ground/host</code> (18/11). A tabela de caminhos antigos está em <code>ground/host/README.md</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>O quê</th><th>Onde</th></tr></thead>
+<tbody>
+<tr><td>Horário de cada registro, repetições</td><td><code>adsb/tracks_to_ndjson.py</code></td></tr>
+<tr><td>Retrato, campos e idades</td><td><code>adsb/estimator/trajectory.py</code></td></tr>
+<tr><td>Razão vertical, qualidade, contexto de aproximação</td><td><code>adsb/estimator/temporal.py</code></td></tr>
+<tr><td>Fase do voo</td><td><code>adsb/estimator/flight_state.py</code></td></tr>
+<tr><td>Categoria, filtro por tipo, <b>classe pela cinemática</b></td><td><code>adsb/estimator/aircraft_category.py</code> (<code>infer_class</code>)</td></tr>
+<tr><td>Pontuação dos aeroportos, <b>distância pela subida</b></td><td><code>adsb/estimator/airport_estimator.py</code> (<code>climb_back</code>)</td></tr>
+<tr><td>Âncora no solo, janela de 180 s, aplicação da classe</td><td><code>adsb/estimator/aircraft_manager.py</code></td></tr>
+<tr><td>Decisão no tempo</td><td><code>adsb/estimator/decision_fusion.py</code></td></tr>
+<tr><td>Testes da Etapa A</td><td><code>tests/estimator/test_kinematic_category.py</code>, <code>test_climb_back.py</code></td></tr>
+<tr><td>Capturas, gabaritos e avaliação</td><td><code>docs/vv/trafego-real/</code>, <code>tools/live_traffic/avaliar.sh</code></td></tr>
+</tbody></table></div>
+<p>Os caminhos acima são relativos a <code>ground/host/</code>, exceto as duas últimas linhas, que partem da raiz do repositório.</p>
+
+<footer>GCD26 · TT&amp;C · Relatório de 18/11/2026. Números de <code>tools/live_traffic/avaliar.sh</code> e <code>avaliar_combinada.py</code> sobre as capturas de <code>docs/vv/trafego-real/</code>; exemplos tirados do banco de estimativas de cada rodada. As pontuações são compatibilidades heurísticas, não probabilidades.</footer>
+</main>
+</div>
+</body>
+
+</html>
