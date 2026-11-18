@@ -47,8 +47,10 @@ class InEstimator(unittest.TestCase):
         for t in (0, 10, 20, 30):
             result = manager.process(test_ground.observation(
                 t, lat=0, lon=-0.17 + t * 0.0008, altitude_ft=1500 + t * 30, vertical_rate_fpm=1800,
-                ground_speed_kt=160, track_deg=90, on_ground=0))
+                ground_speed_kt=160, track_deg=90, on_ground=0, **self.extra))
         return result
+
+    extra = {'category': 'A3'}
 
     def test_the_origin_carries_the_climb_back_evidence_without_an_anchor(self):
         result = self.climb_from_west(self.fixture.config)
@@ -60,6 +62,12 @@ class InEstimator(unittest.TestCase):
         # The destination never uses it.
         for c in result['destination_candidates']:
             self.assertNotIn('climb_back', c['evidence'])
+
+    def test_not_without_a_known_class(self):
+        self.extra = {}
+        result = self.climb_from_west(replace(self.fixture.config, kinematic_category=False))
+        for c in result['origin_candidates']:
+            self.assertNotIn('climb_back', c['components'])
 
     def test_weight_zero_turns_it_off(self):
         result = self.climb_from_west(replace(self.fixture.config, climb_back_weight=0))

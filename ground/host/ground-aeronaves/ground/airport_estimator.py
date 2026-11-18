@@ -110,7 +110,11 @@ class AirportEstimator:
                          'distance':(math.exp(-distance/120),.05)}
             else:
                 parts = {'distance':(math.exp(-distance/(120 if phase else radius)),.15)}
-                climb = climb_back(fields, vr, airport['elevation_ft'], distance) if origin else None
+                # Only with a known class (received or inferred, ADR-0022): on
+                # its own it lifted heliports that happened to sit at the
+                # right distance from a jet (17/11: 2 of 4 origins wrong).
+                climb = (climb_back(fields, vr, airport['elevation_ft'], distance)
+                         if origin and category['code'] else None)
                 if climb and self.config.climb_back_weight > 0:
                     parts['climb_back'] = (climb['score'], self.config.climb_back_weight)
                     evidence['climb_back'] = climb
