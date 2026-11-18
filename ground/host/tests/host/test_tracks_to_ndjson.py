@@ -69,6 +69,16 @@ class Adapter(unittest.TestCase):
             self.assertEqual(obs.timestamp_source, "rx_epoch_ns")
             self.assertEqual(obs.event_ns, json.loads(raw)["rx_epoch_ns"])
 
+    def test_the_class_bits_become_the_category(self):
+        # ADR-0023: bits 6-7 of the flags; 0 adds nothing, as before.
+        for cls, cat in ((0, None), (1, "A1"), (2, "A3"), (3, "A7")):
+            event = json.loads(json.dumps(EVENT))
+            event["records"] = [dict(EVENT["records"][0], flags=15 | cls << 6)]
+            (o,), _, _ = run(event)
+            self.assertEqual(o.get("category"), cat)
+            self.assertEqual(o["altitude_ft"], 20000)
+            parse_line(json.dumps(o), o["rx_epoch_ns"])
+
     def test_a_repeated_update_is_written_once(self):
         # Next snapshot, 5 s later: the same update, 5 s older.
         again = dict(EVENT, wall_ms=EVENT["wall_ms"] + 5000, seq=42,

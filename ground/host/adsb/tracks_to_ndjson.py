@@ -29,6 +29,11 @@ import sys
 
 # common/gama_tm.h
 F_POSITION, F_ALTITUDE, F_VELOCITY, F_VRATE, F_ON_GROUND = 1, 2, 4, 8, 16
+# Bits 6-7: the aircraft class the satellite read from the identification
+# message (ADR-0023), as the ADS-B category the estimator filters airports
+# by. 0, unknown, says nothing: the estimator then infers (ADR-0022).
+CLASS_SHIFT = 6
+CLASS_CATEGORY = {1: "A1", 2: "A3", 3: "A7"}
 
 # Two receptions of one update rebuild the same instant to within the age's
 # 100 ms step; a genuinely new update is at least a snapshot period later.
@@ -56,6 +61,9 @@ def records(event):
             o["vertical_rate_fpm"] = r["vr_fpm"]
         if flags & F_ON_GROUND:
             o["on_ground"] = 1
+        category = CLASS_CATEGORY.get((flags >> CLASS_SHIFT) & 3)
+        if category:
+            o["category"] = category
         if len(o) == 2:
             continue                       # nothing valid to say
         o.update(source="lora", seq=event.get("seq"), age_ds=r.get("age_ds"),
