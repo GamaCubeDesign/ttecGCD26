@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — Os comandos do dia a dia (17/11/2026)</title>
+<style>
+:root{
+  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
+  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
+  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
+  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
+  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
+    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
+    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
+    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
+    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+<style>
+.small{font-size:13px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+table.cmds td:first-child{width:46%}
+table.cmds td:first-child code{white-space:pre-wrap;word-break:break-word}
+body.training table.cmds td:first-child{cursor:pointer}
+body.training table.cmds td:first-child:not(.shown) code{filter:blur(6px);user-select:none}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:0 0 20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;min-height:112px}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card .q{font-weight:600;margin:0 0 10px}
+.card .a{margin:0;color:var(--muted);font-size:14px}
+.card:not(.open) .a{visibility:hidden}
+.card:not(.open)::after{content:"clique para ver";display:block;font-size:12px;color:var(--muted);margin-top:-22px}
+.card.open{border-color:var(--accent);background:var(--accent-soft)}
+.card .a code{word-break:break-word}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#como">Como usar esta página</a></li>
+    <li><a href="#mapa">Onde cada comando roda</a></li>
+    <li><a href="#conectar">Conectar na Pi</a></li>
+    <li><a href="#testes">Compilar e testar</a></li>
+    <li><a href="#enlace">O enlace: ping e companhia</a></li>
+    <li><a href="#console">Dentro da ground</a></li>
+    <li><a href="#esp32">A ESP32 da ground</a></li>
+    <li><a href="#obc">OBC e sensores na Pi</a></li>
+    <li><a href="#adsb">ADS-B e a página da ground</a></li>
+    <li><a href="#servicos">Os serviços na Pi</a></li>
+    <li><a href="#analise">Análise e orçamento</a></li>
+    <li><a href="#armadilhas">Armadilhas comuns</a></li>
+    <li><a href="#cartoes">Cartões para decorar</a></li>
+  </ol>
+  <p class="small"><label><input type="checkbox" id="treino"> Modo treino: esconder os comandos</label></p>
+</nav>
+
+<main>
+
+<header class="doc">
+  <p class="eyebrow">Gama Cube Design · CubeDesign 2026 · TT&amp;C, OBC e ground</p>
+  <h1>Os comandos do dia a dia</h1>
+  <p class="lede">Uma folha de consulta para decorar: entrar na Pi, compilar e testar, fazer um ping pelo rádio, gravar a ESP32, ler os sensores do OBC, rodar o ADS-B e cuidar dos serviços. Todos os comandos foram tirados do <code>Makefile</code>, dos roteiros de bancada e do código da ground. Nada aqui é inventado.</p>
+  <div class="meta">
+    <span>Data: <b>17/11/2026</b></span>
+    <span>Branch: <b><code>feat/interface-central</code></b></span>
+    <span>Fonte: <b><code>make help</code></b>, <a href="2026-11-05-roteiro-bancada.html">roteiro de 05/11</a>, <code>docs/vv/bancada/README.md</code></span>
+  </div>
+</header>
+
+<h2 id="como"><span class="n">1</span>Como usar esta página</h2>
+<p>Vale decorar a <b>regra</b>, mais do que cada linha: quase tudo é <code>make &lt;alvo&gt;</code> na raiz do repositório, e <code>make pi-&lt;alvo&gt;</code> roda o mesmo alvo na Pi pelo ssh, sincronizando antes. Se você esquecer um nome, <code>make help</code> lista todos, com a explicação de cada um.</p>
+<div class="callout">
+  <p><b>Três ideias que resolvem metade das dúvidas.</b></p>
+  <ul>
+    <li><code>make X</code> roda no PC; <code>make pi-X</code> copia a árvore para a Pi (<code>rsync</code>) e roda <code>make X</code> lá.</li>
+    <li><code>RADIO=udp</code> troca os dois RA-02 por um enlace simulado no próprio computador. Quase todo teste de rádio pode ser ensaiado assim antes da bancada.</li>
+    <li>As variáveis vão depois do alvo: <code>make test T=obcd</code>, <code>make esp32-flash ESP32_PORT=/dev/ttyUSB0</code>. As fixas (como <code>PI_HOST</code>) ficam em <code>local.mk</code>.</li>
+  </ul>
+</div>
+<p>Para treinar, marque <b>Modo treino</b> no sumário. A coluna de comandos fica borrada; tente lembrar o comando e clique na célula para conferir. No fim (seção 13), há cartões de pergunta e resposta.</p>
+
+<h2 id="mapa"><span class="n">2</span>Onde cada comando roda</h2>
+<div class="table-wrap"><table>
+<tr><th>Máquina</th><th>Quem é</th><th>Como você chega nela</th></tr>
+<tr><td class="nw"><b>PC</b></td><td>A sua máquina: compila, testa, grava a ESP32 (ESP-IDF em Docker), roda a página da ground</td><td>O terminal, na raiz do repositório</td></tr>
+<tr><td class="nw"><b>Pi</b></td><td>O satélite: Pi Zero 2 W com o rádio A, o INA219, o DS18B20. Roda <code>ttcd</code>, <code>obcd</code>, <code>adsbd</code></td><td><code>ssh pi@gamapi.local</code>, ou <code>make pi-&lt;alvo&gt;</code></td></tr>
+<tr><td class="nw"><b>ESP32</b></td><td>A ground: DevKit com o rádio B, no USB do PC</td><td><code>/dev/ttyUSB0</code>, pelo <code>gs_serial.py</code> ou pela página</td></tr>
+</table></div>
+
+<h2 id="conectar"><span class="n">3</span>Conectar na Pi</h2>
+<p>Na bancada, o Wi-Fi do PC vira um ponto de acesso (<code>gama-bancada</code>) e a Pi entra nele. O cabo ethernet do PC continua dando internet aos dois. O nome <code>gamapi.local</code> resolve por mDNS em qualquer rede, por isso <code>local.mk</code> não muda.</p>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>nmcli con up bancada-ap</code></td><td>No PC, no começo da sessão: liga o ponto de acesso. O Wi-Fi do PC sai da rede em que estava.</td></tr>
+<tr><td><code>nmcli con down bancada-ap</code></td><td>No PC, no fim: o Wi-Fi volta para a rede de costume.</td></tr>
+<tr><td><code>iw dev wlp2s0 station dump | grep -E 'Station|signal:'</code></td><td>A Pi se associou? Lista os aparelhos conectados ao ponto de acesso, com o sinal.</td></tr>
+<tr><td><code>ssh pi@gamapi.local</code></td><td>Entra na Pi.</td></tr>
+<tr><td><code>ssh pi@gamapi.local hostname -I</code></td><td>Roda um comando só, sem abrir sessão: o IP da Pi (10.42.0.x na rede da bancada).</td></tr>
+<tr><td><code>ssh -t pi@gamapi.local tmux new -A -s bench</code></td><td>Entra numa sessão <code>tmux</code> chamada <code>bench</code>, criando-a se ainda não existir. Se o Wi-Fi cair, os programas seguem rodando: basta rodar o mesmo comando de novo para voltar.</td></tr>
+<tr><td><code>make pi-sync</code></td><td>Copia a árvore do PC para <code>~/ttec</code> na Pi pelo <code>rsync</code>. Vai só o que mudou, inclusive o que ainda não foi commitado.</td></tr>
+<tr><td><code>make pi-fetch</code></td><td>Traz da Pi os logs da bancada para <code>docs/vv/bancada/</code>.</td></tr>
+<tr><td><code>cat local.mk</code></td><td>Confere o destino: <code>PI_HOST = pi@gamapi.local</code>.</td></tr>
+</table></div>
+<h4>Dentro do tmux</h4>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Tecla</th><th>O que faz</th></tr>
+<tr><td><code>Ctrl-b c</code></td><td>Nova janela (os roteiros usam uma para o <code>ttcd</code>, uma para o <code>obcd</code>, uma para a ground)</td></tr>
+<tr><td><code>Ctrl-b n</code> / <code>Ctrl-b p</code></td><td>Próxima janela / janela anterior</td></tr>
+<tr><td><code>Ctrl-b 0</code>…<code>9</code></td><td>Vai direto à janela pelo número</td></tr>
+<tr><td><code>Ctrl-b d</code></td><td>Sai do tmux sem parar nada; <code>tmux new -A -s bench</code> volta</td></tr>
+</table></div>
+<p class="small">As teclas do tmux são conhecimento geral, não vêm do repositório. Elas são o padrão de qualquer instalação.</p>
+<div class="callout warn"><p><b>A Pi não aparece?</b> Ela guarda a rede do celular. Ligue o hotspot do celular e rode <code>nmcli con down bancada-ap</code> no PC: os dois voltam para o celular, e o ssh volta a funcionar (<code>docs/vv/bancada/README.md</code>).</p></div>
+
+<h2 id="testes"><span class="n">4</span>Compilar e testar</h2>
+<p>Os mesmos alvos servem no PC e na Pi. Hoje são <b>43 suítes</b> no CTest (42 sem Node, como na CI).</p>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>make</code></td><td>Configura e compila tudo em <code>build/</code>. O alvo padrão é <code>build</code>.</td></tr>
+<tr><td><code>make test</code></td><td>Roda as 43 suítes (<code>ctest --output-on-failure</code>).</td></tr>
+<tr><td><code>make test T=obcd</code></td><td>Só as suítes cujo nome casa com a expressão: <code>T=link_sim</code>, <code>T=gs_web</code>, <code>T=integration</code>…</td></tr>
+<tr><td><code>make check</code></td><td>Antes de qualquer merge: testes, sanitizers (ASan+UBSan, warnings viram erro) e as citações de <code>docs/requisitos.md</code>.</td></tr>
+<tr><td><code>make check-debian</code></td><td>O mesmo <code>make check</code> num container Debian 13 com o GCC 14 da Pi, como a CI roda.</td></tr>
+<tr><td><code>make pi-test</code></td><td>Sincroniza e roda os testes na Pi. Funciona igual com <code>make pi-check</code> e <code>make pi-build</code>.</td></tr>
+<tr><td><code>make clean</code></td><td>Apaga as árvores de build, com os logs da bancada simulada que ficam dentro delas.</td></tr>
+<tr><td><code>git describe --always --dirty</code></td><td>Qual versão está rodando. Todo log do <code>ttcd</code> grava esse valor no evento <code>start</code>.</td></tr>
+</table></div>
+<p>Sem o make, o equivalente é <code>cmake -S . -B build &amp;&amp; cmake --build build</code> e depois <code>ctest --test-dir build --output-on-failure</code>. O <code>Makefile</code> só encadeia esses comandos, então qualquer falha se reproduz sem ele.</p>
+
+<h2 id="enlace"><span class="n">5</span>O enlace: ping e companhia</h2>
+<p>A bancada de rádio tem seis passos. Cada um é um script de comandos da ground em <code>tools/bench/*.txt</code>; o <code>run_step.sh</code> sobe um <code>ttcd</code> novo para cada passo e o derruba no fim. O passo 1, por exemplo, é só <code>ping 10</code>, e passa com <code>"acked":10</code> no <code>ping_summary</code>.</p>
+<h3>Sem hardware (no PC)</h3>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>make bench-ping RADIO=udp</code></td><td>Passo 1 no enlace simulado: 10 PINGs, todos com ACK.</td></tr>
+<tr><td><code>make bench RADIO=udp</code></td><td>Os seis passos em ordem: ping, toa, per, rates, lost-ack, lbt.</td></tr>
+<tr><td><code>make bench-ttcd RADIO=udp</code></td><td>À mão, terminal 1: o satélite, com o log na tela. <code>Ctrl-C</code> para.</td></tr>
+<tr><td><code>make bench-gs RADIO=udp</code></td><td>À mão, terminal 2: a ground (<code>gs_cli</code>). Você digita os comandos da seção 6; <code>quit</code> sai.</td></tr>
+</table></div>
+<h3>Com os dois RA-02 (Pi + ESP32)</h3>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>make pi-sync pi-build</code></td><td>Antes de tudo: a árvore na Pi, compilada lá. <code>SPLIT=1</code> exige as duas coisas.</td></tr>
+<tr><td><code>make bench-ping SPLIT=1 GS=esp32 ESP32_PORT=/dev/ttyUSB0</code></td><td>O ping pelo ar: o <code>ttcd</code> sobe na Pi pelo ssh e a ground é a ESP32 no PC. O log da Pi volta sozinho.</td></tr>
+<tr><td><code>make -k bench SPLIT=1 GS=esp32 ESP32_PORT=/dev/ttyUSB0</code></td><td>Os seis passos. O <code>-k</code> segue para o próximo passo quando um falha.</td></tr>
+<tr><td><code>… TTCD_CONF=flight/conf/obc-v2/ttcd.conf</code></td><td>Acrescentado a qualquer um dos dois acima: roda com os pinos da placa nova (B2), e não com a fiação de outubro.</td></tr>
+<tr><td><code>make bench-per SPLIT=1 GS=esp32 ESP32_PORT=/dev/ttyUSB0 POWER=14</code></td><td>Um passo isolado com outra potência (14 dBm, a de voo).</td></tr>
+</table></div>
+<p>Os logs dos dois lados ficam em <code>docs/vv/bancada/AAAA-MM-DD/</code>, como <code>175657-ping-ground.jsonl</code> e <code>175657-ping-ttcd.jsonl</code> de 16/11.</p>
+
+<h2 id="console"><span class="n">6</span>Dentro da ground</h2>
+<p>A <code>gs_cli</code>, a ESP32 (<code>gs_serial.py</code>) e a página falam a mesma linguagem: o console de <code>ground/console/gs_console.c</code>. Cada comando é uma linha, e cada resposta é uma linha JSON (<code>"ev":"ack"</code>, <code>"ev":"hk"</code>…).</p>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>ping 5</code></td><td>5 PINGs; no fim vem um <code>ping_summary</code> com <code>sent</code>, <code>acked</code>, <code>failed</code>.</td></tr>
+<tr><td><code>per 1000</code></td><td>Taxa de erro de pacote com 1000 PINGs.</td></tr>
+<tr><td><code>hk</code></td><td>Pede a telemetria de housekeeping (bateria, V, I, T, contadores).</td></tr>
+<tr><td><code>roster</code> / <code>stat</code></td><td>Pede a lista de aeronaves / as estatísticas do ADS-B.</td></tr>
+<tr><td><code>rate safe|nominal|fast</code></td><td>Muda o perfil do rádio (SF e banda) nos dois lados.</td></tr>
+<tr><td><code>power 14</code></td><td>Potência do <b>satélite</b>, em dBm (o satélite confere a faixa).</td></tr>
+<tr><td><code>ground_power 14</code></td><td>Potência da <b>ground</b>, de 2 a 20 dBm.</td></tr>
+<tr><td><code>time</code></td><td>Manda <code>SET_TIME</code>: a Pi não tem RTC, então a hora vem da ground.</td></tr>
+<tr><td><code>mode &lt;evento&gt;</code></td><td>Evento de modo para o OBC: <code>basic_inter</code>, <code>aocs</code>, <code>mission_adsb</code> (manda a hora antes), <code>downlink</code>, <code>survival</code>, <code>task_done</code>, <code>adsb_timeout</code>.</td></tr>
+<tr><td><code>stream 600</code> / <code>stop</code></td><td>Inicia o streaming por N segundos / para.</td></tr>
+<tr><td><code>shutdown confirm</code></td><td>Desliga o satélite. Sem o <code>confirm</code>, o console recusa.</td></tr>
+<tr><td><code>wait 5</code> / <code>deafen 5</code></td><td>Espera 5 s / ignora o que chegar por 5 s (usados nos scripts de passo).</td></tr>
+<tr><td><code>set auto_time on</code></td><td>Configuração: manda a hora sozinho a cada contato.</td></tr>
+<tr><td><code>quit</code></td><td>Sai.</td></tr>
+</table></div>
+
+<h2 id="esp32"><span class="n">7</span>A ESP32 da ground</h2>
+<p>O ESP-IDF roda em Docker (<code>tools/esp32/idf.sh</code>), então não é preciso instalá-lo no PC.</p>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>ls /dev/ttyUSB*</code></td><td>Em que porta a ESP32 apareceu.</td></tr>
+<tr><td><code>make esp32-build</code></td><td>Compila o firmware da ground (<code>ground/esp32</code>).</td></tr>
+<tr><td><code>make esp32-flash ESP32_PORT=/dev/ttyUSB0</code></td><td>Grava a ground na ESP32.</td></tr>
+<tr><td><code>make esp32-tests-qemu</code></td><td>As suítes portáteis numa ESP32 emulada, sem placa (TTC-16).</td></tr>
+<tr><td><code>make esp32-tests-flash ESP32_PORT=/dev/ttyUSB0</code></td><td>As mesmas suítes na placa. Atenção: esse alvo grava a imagem de teste por cima da ground, então rode <code>esp32-flash</code> depois.</td></tr>
+<tr><td><code>python3 ground/host/gs_serial.py --port /dev/ttyUSB0 --power 2</code></td><td>A ground pela linha de comando: digite os comandos da seção 6.</td></tr>
+<tr><td><code>grep DIO0 ground/esp32/sdkconfig</code></td><td>Confere o pino: a bancada usa <code>CONFIG_GAMA_GS_PIN_DIO0=27</code> (o padrão 26 é o das PCBs).</td></tr>
+</table></div>
+
+<h2 id="obc"><span class="n">8</span>OBC e sensores na Pi</h2>
+<p>Estes comandos rodam <b>dentro da Pi</b>, depois de <code>ssh pi@gamapi.local</code> e <code>cd ~/ttec</code>.</p>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>i2cdetect -y 1</code></td><td>Varre o barramento I²C 1: o <code>40</code> é o INA219.</td></tr>
+<tr><td><code>cat /sys/bus/w1/devices/28-*/w1_slave</code></td><td>Lê o DS18B20: <code>crc=.. YES</code> e <code>t=25375</code> (25,375 °C).</td></tr>
+<tr><td><code>i2ctransfer -y 1 w1@0x2a 0x00</code></td><td>Tenta falar com a ESP32 do AOCS (0x2A). Sem ela, tem que falhar.</td></tr>
+<tr><td><code>pinctrl get 22,23</code></td><td>Estado dos pinos do burn-wire (22) e do aquecedor (23).</td></tr>
+<tr><td><code>pgrep -a -x 'obcd|ttcd|adsbd'</code></td><td>Que daemons estão rodando agora.</td></tr>
+<tr><td><code>ls -l /dev/spidev0.0 /dev/i2c-1 /dev/gpiochip0</code></td><td>O SPI do rádio, o I²C e os GPIOs existem?</td></tr>
+<tr><td><code>groups</code></td><td>O usuário <code>pi</code> está em <code>i2c</code>, <code>gpio</code> e <code>spi</code>?</td></tr>
+</table></div>
+<h4>O obcd à mão (janela 2 do tmux)</h4>
+<pre><code>build/flight/obcd -c flight/conf/obc-v2/obcd.conf -o ipc_path=/tmp/ttec-bench.sock \
+    -o log_path=- -o i2c_lease_path=/tmp/obcd-i2c.lease | tee -a docs/vv/bancada/$(date +%F)/obcd-A.jsonl</code></pre>
+<p>O padrão vale para os três daemons: <code>-c</code> aponta o arquivo de configuração, e cada <code>-o chave=valor</code> sobrescreve uma linha dele (regra 4 do <code>AGENTS.md</code>: nenhum caminho fixo no binário). <code>log_path=-</code> manda o log para a tela, e o <code>tee</code> guarda uma cópia na pasta do dia.</p>
+
+<h2 id="adsb"><span class="n">9</span>ADS-B e a página da ground</h2>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>make sim INPUT=docs/vv/bancada/2026-11-16/cadeia-b/adsb.ndjson</code></td><td>O satélite inteiro no PC (rádio UDP, os três daemons, o <code>sbs_replay</code> no lugar do SDR), com a página na frente: abra <code>http://127.0.0.1:8080</code>.</td></tr>
+<tr><td><code>make adsb-chain INPUT=&lt;captura.sbs | registro.ndjson&gt;</code></td><td>Uma missão pela cadeia <code>adsbd</code> → <code>ttcd</code> → ground, sem página, em tempo real (10 min de missão levam 10 min).</td></tr>
+<tr><td><code>make gs-web</code></td><td>A página da ground com a ESP32 em <code>/dev/ttyUSB0</code>.</td></tr>
+<tr><td><code>make gs-web UDP=1</code></td><td>A página sobre a <code>gs_cli</code> no rádio UDP.</td></tr>
+<tr><td><code>make gs-web REPLAY=&lt;log.jsonl&gt; SPEED=10</code></td><td>Reproduz um log gravado da ground, 10× mais rápido.</td></tr>
+<tr><td><code>python3 tools/live_traffic/live_traffic.py capture --out DIR --duration 3600</code></td><td>1 h de tráfego real ao redor da UNSAM, com o gabarito de origem e destino.</td></tr>
+</table></div>
+
+<h2 id="servicos"><span class="n">10</span>Os serviços na Pi</h2>
+<p>Em voo, os daemons rodam como serviços do systemd. Na bancada, o <code>ttcd</code> do serviço segura o rádio A, por isso ele precisa ser parado antes dos passos de rádio. Todos os alvos têm a forma <code>pi-</code>, que roda do PC.</p>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>make pi-install CONF_DIR=flight/conf/obc-v2</code></td><td>Instala os daemons e as units e, se ainda não existirem, os arquivos de <code>/etc/gama/</code> da placa nova.</td></tr>
+<tr><td><code>make pi-service-enable</code></td><td>Sobe o <code>ttcd</code> agora e a cada boot.</td></tr>
+<tr><td><code>make pi-obcd-enable pi-adsbd-enable</code></td><td>O mesmo para o <code>obcd</code> e o <code>adsbd</code>.</td></tr>
+<tr><td><code>make pi-service-status</code></td><td>O estado do <code>ttcd</code> segundo o systemd, e o fim do log. Há também <code>obcd-status</code> e <code>adsbd-status</code>.</td></tr>
+<tr><td><code>make pi-service-logs</code></td><td>Acompanha o log do <code>ttcd</code>; <code>Ctrl-C</code> sai.</td></tr>
+<tr><td><code>make pi-service-stop pi-obcd-stop pi-adsbd-stop</code></td><td>Para os três até o próximo boot (libera o rádio A e o SDR).</td></tr>
+<tr><td><code>ssh pi@gamapi.local "systemctl status ttcd obcd adsbd --no-pager"</code></td><td>Os três de uma vez, direto no systemd.</td></tr>
+<tr><td><code>tail -F /var/lib/gama/ttcd.jsonl</code></td><td>Na Pi: o log do <code>ttcd</code> ao vivo (o que <code>service-logs</code> faz por baixo). Cada linha é um objeto JSON.</td></tr>
+</table></div>
+
+<h2 id="analise"><span class="n">11</span>Análise e orçamento</h2>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>make budget</code></td><td>As tabelas de enlace e de dados (<code>lora_budget.py</code>): os 58 KB da missão.</td></tr>
+<tr><td><code>make budget-check</code></td><td>Confere se os números citados nos ADRs batem com o script.</td></tr>
+<tr><td><code>make boards</code></td><td>Confere a configuração de voo contra os layouts das placas, fio por fio.</td></tr>
+<tr><td><code>make toa LOG=&lt;ttcd.jsonl&gt;</code></td><td>Tempo no ar medido num log do <code>ttcd</code>, comparado com o modelo.</td></tr>
+<tr><td><code>make requirements</code></td><td>Confere se <code>docs/requisitos.md</code> cita as regras palavra por palavra.</td></tr>
+</table></div>
+
+<h2 id="armadilhas"><span class="n">12</span>Armadilhas comuns</h2>
+<div class="table-wrap"><table>
+<tr><th>Sintoma</th><th>Causa e saída</th></tr>
+<tr><td>“a ttcd is already running and holds radio A”</td><td>O serviço ou um <code>bench-ttcd</code> esquecido estão com o rádio. Rode <code>make pi-service-stop</code>, ou dê <code>Ctrl-C</code> na janela do <code>bench-ttcd</code>.</td></tr>
+<tr><td>Na Pi roda código velho</td><td>Faltou <code>make pi-sync</code>. <code>pi-&lt;alvo&gt;</code> sincroniza sozinho, mas o ssh direto não.</td></tr>
+<tr><td><code>SPLIT=1</code> falha no começo</td><td>A Pi precisa da árvore sincronizada <b>e compilada</b>: <code>make pi-sync pi-build</code>.</td></tr>
+<tr><td>O ping passa, mas com retentativas</td><td>DIO0 visto só pelo poll de 250 ms: confira o fio do DIO0 contra a configuração (16/11, rádio A na fiação de outubro).</td></tr>
+<tr><td>A ESP32 não responde depois do teste das suítes</td><td><code>esp32-tests-flash</code> deixou a imagem de teste na placa. Grave a ground de novo com <code>make esp32-flash</code>.</td></tr>
+<tr><td>Esqueci um alvo</td><td><code>make help</code>.</td></tr>
+</table></div>
+
+<h2 id="cartoes"><span class="n">13</span>Cartões para decorar</h2>
+<p>Leia a pergunta, diga o comando em voz alta e clique para conferir. O botão embaralha a ordem.</p>
+<p><button class="btn" id="shuffle" type="button">Embaralhar</button> <button class="btn" id="hideall" type="button">Esconder todas</button></p>
+<div class="cards" id="cards">
+  <div class="card"><p class="q">Entrar na Pi</p><p class="a"><code>ssh pi@gamapi.local</code></p></div>
+  <div class="card"><p class="q">Ligar a rede da bancada no PC</p><p class="a"><code>nmcli con up bancada-ap</code></p></div>
+  <div class="card"><p class="q">Uma sessão na Pi que sobrevive à queda do Wi-Fi</p><p class="a"><code>ssh -t pi@gamapi.local tmux new -A -s bench</code></p></div>
+  <div class="card"><p class="q">Copiar o código para a Pi</p><p class="a"><code>make pi-sync</code></p></div>
+  <div class="card"><p class="q">Trazer os logs da Pi</p><p class="a"><code>make pi-fetch</code></p></div>
+  <div class="card"><p class="q">Rodar todos os testes</p><p class="a"><code>make test</code></p></div>
+  <div class="card"><p class="q">Rodar só os testes do obcd</p><p class="a"><code>make test T=obcd</code></p></div>
+  <div class="card"><p class="q">A verificação antes do merge</p><p class="a"><code>make check</code></p></div>
+  <div class="card"><p class="q">Os testes na Pi, a partir do PC</p><p class="a"><code>make pi-test</code></p></div>
+  <div class="card"><p class="q">Um ping sem hardware</p><p class="a"><code>make bench-ping RADIO=udp</code></p></div>
+  <div class="card"><p class="q">Um ping pelo ar, Pi + ESP32</p><p class="a"><code>make bench-ping SPLIT=1 GS=esp32 ESP32_PORT=/dev/ttyUSB0</code></p></div>
+  <div class="card"><p class="q">Satélite e ground à mão, sem hardware (2 terminais)</p><p class="a"><code>make bench-ttcd RADIO=udp</code> e <code>make bench-gs RADIO=udp</code></p></div>
+  <div class="card"><p class="q">Na ground: 5 pings</p><p class="a"><code>ping 5</code></p></div>
+  <div class="card"><p class="q">Na ground: a telemetria</p><p class="a"><code>hk</code></p></div>
+  <div class="card"><p class="q">Na ground: entrar na missão ADS-B</p><p class="a"><code>mode mission_adsb</code></p></div>
+  <div class="card"><p class="q">Gravar a ground na ESP32</p><p class="a"><code>make esp32-flash ESP32_PORT=/dev/ttyUSB0</code></p></div>
+  <div class="card"><p class="q">A ground pela linha de comando</p><p class="a"><code>python3 ground/host/gs_serial.py --port /dev/ttyUSB0</code></p></div>
+  <div class="card"><p class="q">O INA219 responde?</p><p class="a"><code>i2cdetect -y 1</code> → <code>40</code></p></div>
+  <div class="card"><p class="q">Ler o DS18B20</p><p class="a"><code>cat /sys/bus/w1/devices/28-*/w1_slave</code></p></div>
+  <div class="card"><p class="q">O satélite inteiro no PC, com a página</p><p class="a"><code>make sim INPUT=&lt;captura&gt;</code></p></div>
+  <div class="card"><p class="q">A página da ground com a ESP32</p><p class="a"><code>make gs-web</code></p></div>
+  <div class="card"><p class="q">Parar o ttcd do serviço (liberar o rádio A)</p><p class="a"><code>make pi-service-stop</code></p></div>
+  <div class="card"><p class="q">O log do ttcd ao vivo</p><p class="a"><code>make pi-service-logs</code></p></div>
+  <div class="card"><p class="q">Esqueci o nome do alvo</p><p class="a"><code>make help</code></p></div>
+</div>
+
+</main>
+</div>
+<script>
+(function(){
+  var KEY='gcd26-comandos-treino';
+  var box=document.getElementById('treino');
+  function setTraining(on){
+    document.body.classList.toggle('training',on);
+    document.querySelectorAll('table.cmds td:first-child').forEach(function(td){td.classList.remove('shown');});
+    try{localStorage.setItem(KEY,on?'1':'0');}catch(e){}
+  }
+  try{box.checked=localStorage.getItem(KEY)==='1';}catch(e){}
+  setTraining(box.checked);
+  box.addEventListener('change',function(){setTraining(box.checked);});
+  document.querySelectorAll('table.cmds td:first-child').forEach(function(td){
+    td.addEventListener('click',function(){td.classList.toggle('shown');});
+  });
+  var cards=document.getElementById('cards');
+  cards.querySelectorAll('.card').forEach(function(c){
+    c.setAttribute('tabindex','0');
+    function flip(){c.classList.toggle('open');}
+    c.addEventListener('click',flip);
+    c.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();flip();}});
+  });
+  document.getElementById('shuffle').addEventListener('click',function(){
+    var a=Array.prototype.slice.call(cards.children);
+    for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+    a.forEach(function(c){c.classList.remove('open');cards.appendChild(c);});
+  });
+  document.getElementById('hideall').addEventListener('click',function(){
+    cards.querySelectorAll('.card').forEach(function(c){c.classList.remove('open');});
+  });
+})();
+</script>
+</body>
+</html>
