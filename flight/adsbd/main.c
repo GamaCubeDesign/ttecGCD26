@@ -53,6 +53,24 @@
 #define STOP_GRACE_MS 3000u    /* dump1090's time to exit before SIGKILL    */
 #define RAN_LONG_MS   60000u   /* a run this long resets the restart backoff */
 
+/* One of dump1090's TCP outputs, read line by line: the SBS port, and the
+ * raw AVR port that only the emitter category is read from (ADR-0023).
+ * Both connect to sbs_host, retry every retry_ms, and close with the mode. */
+typedef struct {
+    const char *name;             /* "sbs" or "avr": the events' prefix     */
+    uint16_t port;                /* 0: this output is not read             */
+    void   (*on_line)(adsbd_core_t *, uint64_t, const char *, size_t);
+    void   (*on_overlong)(adsbd_core_t *, uint64_t);
+    bool     is_sbs;              /* its state is dump1090's, for IPC_STAT  */
+    int      fd;
+    bool     connecting;
+    bool     complained;          /* one "cannot connect" per outage        */
+    uint64_t retry_at;
+    char     buf[SBS_BUF];
+    size_t   have;
+    bool     skipping;            /* inside a line longer than the buffer   */
+} line_conn_t;
+
 static struct {
     adsbd_config_t cfg;
     adsbd_core_t   core;
@@ -67,14 +85,8 @@ static struct {
     uint64_t restart_at;          /* 0: nothing scheduled                   */
     uint32_t backoff_ms;
 
-    /* the SBS connection */
-    int      sbs_fd;
-    bool     sbs_connecting;
-    bool     sbs_complained;      /* one "cannot connect" per outage        */
-    uint64_t sbs_retry_at;
-    char     sbs_buf[SBS_BUF];
-    size_t   sbs_have;
-    bool     sbs_skipping;        /* inside a line longer than the buffer   */
+    /* dump1090's line outputs: SBS always, AVR when avr_port is set */
+    line_conn_t sbs, avr;
 
     /* the connection to ttcd */
     int      ipc_fd;
@@ -98,6 +110,13 @@ static struct {
     int      exit_code;
 } A;
 
+/* Whether this output should be connected now: the decoder runs, and the
+ * output is configured. */
+static bool conn_wanted(const line_conn_t *k)
+{
+    return k->port != 0 && adsbd_decoder_wanted(&A.core);
+}
+
 static uint64_t now_ns(void)
 {
     struct timespec ts;
@@ -116,7 +135,7 @@ static void write_log(uint64_t now, const char *event, const char *fmt, ...)
     if (A.log == NULL || A.log_full) {
         return;
     }
-    char fields[512];
+    char fields[800];
     va_list ap;
     va_start(ap, fmt);
     vsnprintf(fields, sizeof(fields), fmt, ap);
@@ -190,8 +209,11 @@ static void rewatch(int fd, uint32_t events)
 static void arm_timer(uint64_t now)
 {
     uint64_t d = adsbd_next_deadline(&A.core);
-    if (A.sbs_fd < 0 && adsbd_decoder_wanted(&A.core) && A.sbs_retry_at < d) {
-        d = A.sbs_retry_at;
+    if (A.sbs.fd < 0 && conn_wanted(&A.sbs) && A.sbs.retry_at < d) {
+        d = A.sbs.retry_at;
+    }
+    if (A.avr.fd < 0 && conn_wanted(&A.avr) && A.avr.retry_at < d) {
+        d = A.avr.retry_at;
     }
     if (A.ipc_fd < 0 && A.ipc_retry_at < d) {
         d = A.ipc_retry_at;
@@ -284,77 +306,87 @@ static void reap(uint64_t now)
     }
 }
 
-/* ---- the SBS connection ---- */
+/* ---- dump1090's line outputs ---- */
 
-static void sbs_close(uint64_t now, const char *why)
+static void conn_close(line_conn_t *k, uint64_t now, const char *why)
 {
-    if (A.sbs_fd >= 0) {
-        epoll_ctl(A.ep, EPOLL_CTL_DEL, A.sbs_fd, NULL);
-        close(A.sbs_fd);
-        if (!A.sbs_connecting) {
-            write_log(now, "sbs_down", "\"why\":\"%s\"", why);
-            adsbd_on_dump1090_link(&A.core, now, false);
-        } else if (!A.sbs_complained) {
-            write_log(now, "sbs_connect_failed", "\"why\":\"%s\"", why);
-            A.sbs_complained = true;
+    if (k->fd >= 0) {
+        epoll_ctl(A.ep, EPOLL_CTL_DEL, k->fd, NULL);
+        close(k->fd);
+        if (!k->connecting) {
+            char ev[32];
+            snprintf(ev, sizeof(ev), "%s_down", k->name);
+            write_log(now, ev, "\"why\":\"%s\"", why);
+            if (k->is_sbs) {
+                adsbd_on_dump1090_link(&A.core, now, false);
+            }
+        } else if (!k->complained) {
+            char ev[32];
+            snprintf(ev, sizeof(ev), "%s_connect_failed", k->name);
+            write_log(now, ev, "\"why\":\"%s\"", why);
+            k->complained = true;
         }
     }
-    A.sbs_fd = -1;
-    A.sbs_connecting = false;
-    A.sbs_have = 0;
-    A.sbs_skipping = false;
-    A.sbs_retry_at = now + (uint64_t)A.cfg.retry_ms * NS_PER_MS;
+    k->fd = -1;
+    k->connecting = false;
+    k->have = 0;
+    k->skipping = false;
+    k->retry_at = now + (uint64_t)A.cfg.retry_ms * NS_PER_MS;
 }
 
-static void sbs_up(uint64_t now)
+static void conn_up(line_conn_t *k, uint64_t now)
 {
-    A.sbs_connecting = false;
-    A.sbs_complained = false;
-    write_log(now, "sbs_up", "\"host\":\"%s\",\"port\":%u", A.cfg.sbs_host, A.cfg.sbs_port);
-    adsbd_on_dump1090_link(&A.core, now, true);
+    k->connecting = false;
+    k->complained = false;
+    char ev[32];
+    snprintf(ev, sizeof(ev), "%s_up", k->name);
+    write_log(now, ev, "\"host\":\"%s\",\"port\":%u", A.cfg.sbs_host, (unsigned)k->port);
+    if (k->is_sbs) {
+        adsbd_on_dump1090_link(&A.core, now, true);
+    }
 }
 
-static void sbs_try_connect(uint64_t now)
+static void conn_try_connect(line_conn_t *k, uint64_t now)
 {
     struct sockaddr_in a;
     memset(&a, 0, sizeof(a));
     a.sin_family = AF_INET;
-    a.sin_port = htons(A.cfg.sbs_port);
+    a.sin_port = htons(k->port);
     inet_pton(AF_INET, A.cfg.sbs_host, &a.sin_addr);     /* validated at start */
 
     int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
     if (fd < 0) {
-        A.sbs_retry_at = now + (uint64_t)A.cfg.retry_ms * NS_PER_MS;
+        k->retry_at = now + (uint64_t)A.cfg.retry_ms * NS_PER_MS;
         return;
     }
-    A.sbs_fd = fd;
-    A.sbs_connecting = true;
+    k->fd = fd;
+    k->connecting = true;
     if (connect(fd, (struct sockaddr *)&a, sizeof(a)) == 0) {
         watch(fd, EPOLLIN);
-        sbs_up(now);
+        conn_up(k, now);
     } else if (errno == EINPROGRESS) {
-        watch(fd, EPOLLOUT);      /* sbs_on_event() finishes the connection */
+        watch(fd, EPOLLOUT);      /* conn_on_event() finishes the connection */
     } else {
-        sbs_close(now, strerror(errno));
+        conn_close(k, now, strerror(errno));
     }
 }
 
-static void sbs_read(void)
+static void conn_read(line_conn_t *k)
 {
     for (;;) {
-        if (A.sbs_have == SBS_BUF) {
-            /* A full buffer and no newline: not an SBS line. Drop it, and
-             * everything up to the next newline. */
-            A.sbs_have = 0;
-            A.sbs_skipping = true;
-            adsbd_on_overlong_line(&A.core, now_ns());
+        if (k->have == SBS_BUF) {
+            /* A full buffer and no newline: not a line of this output.
+             * Drop it, and everything up to the next newline. */
+            k->have = 0;
+            k->skipping = true;
+            k->on_overlong(&A.core, now_ns());
         }
-        ssize_t n = recv(A.sbs_fd, A.sbs_buf + A.sbs_have, SBS_BUF - A.sbs_have, 0);
+        ssize_t n = recv(k->fd, k->buf + k->have, SBS_BUF - k->have, 0);
         /* HLR-ADS-07: the arrival time, taken as the bytes come in. Every
          * line completed by this read arrived together. */
         uint64_t now = now_ns();
         if (n == 0) {
-            sbs_close(now, "closed by dump1090");
+            conn_close(k, now, "closed by dump1090");
             return;
         }
         if (n < 0) {
@@ -364,46 +396,46 @@ static void sbs_read(void)
             if (errno == EINTR) {
                 continue;
             }
-            sbs_close(now, strerror(errno));
+            conn_close(k, now, strerror(errno));
             return;
         }
-        size_t end = A.sbs_have + (size_t)n, start = 0;
-        for (size_t i = A.sbs_have; i < end; i++) {
-            if (A.sbs_buf[i] != '\n') {
+        size_t end = k->have + (size_t)n, start = 0;
+        for (size_t i = k->have; i < end; i++) {
+            if (k->buf[i] != '\n') {
                 continue;
             }
-            if (A.sbs_skipping) {
-                A.sbs_skipping = false;       /* the tail of the long line */
+            if (k->skipping) {
+                k->skipping = false;          /* the tail of the long line */
             } else {
-                adsbd_on_line(&A.core, now, A.sbs_buf + start, i - start);
+                k->on_line(&A.core, now, k->buf + start, i - start);
             }
             start = i + 1;
         }
-        if (A.sbs_skipping) {
-            A.sbs_have = 0;
+        if (k->skipping) {
+            k->have = 0;
         } else {
-            memmove(A.sbs_buf, A.sbs_buf + start, end - start);
-            A.sbs_have = end - start;
+            memmove(k->buf, k->buf + start, end - start);
+            k->have = end - start;
         }
     }
 }
 
-static void sbs_on_event(uint32_t events)
+static void conn_on_event(line_conn_t *k, uint32_t events)
 {
-    if (!A.sbs_connecting) {
-        sbs_read();
+    if (!k->connecting) {
+        conn_read(k);
         return;
     }
     uint64_t now = now_ns();
     int err = 0;
     socklen_t l = sizeof(err);
     if (!(events & EPOLLOUT) ||
-        getsockopt(A.sbs_fd, SOL_SOCKET, SO_ERROR, &err, &l) != 0 || err != 0) {
-        sbs_close(now, err != 0 ? strerror(err) : "connect");
+        getsockopt(k->fd, SOL_SOCKET, SO_ERROR, &err, &l) != 0 || err != 0) {
+        conn_close(k, now, err != 0 ? strerror(err) : "connect");
         return;
     }
-    rewatch(A.sbs_fd, EPOLLIN);
-    sbs_up(now);
+    rewatch(k->fd, EPOLLIN);
+    conn_up(k, now);
 }
 
 /* ---- the connection to ttcd ---- */
@@ -511,8 +543,11 @@ static void reconcile(uint64_t now)
         write_log(now, "dump1090_killed", "\"pid\":%d", (int)A.child);
         A.decoder_stop_deadline = UINT64_MAX;
     }
-    if (A.sbs_fd >= 0) {
-        sbs_close(now, "mode");
+    if (A.sbs.fd >= 0) {
+        conn_close(&A.sbs, now, "mode");
+    }
+    if (A.avr.fd >= 0) {
+        conn_close(&A.avr, now, "mode");
     }
 }
 
@@ -533,8 +568,11 @@ static void service(uint64_t now)
         start_dump1090(now);
         adsbd_on_dump1090_restart(&A.core, now);
     }
-    if (A.sbs_fd < 0 && adsbd_decoder_wanted(&A.core) && now >= A.sbs_retry_at) {
-        sbs_try_connect(now);
+    if (A.sbs.fd < 0 && conn_wanted(&A.sbs) && now >= A.sbs.retry_at) {
+        conn_try_connect(&A.sbs, now);
+    }
+    if (A.avr.fd < 0 && conn_wanted(&A.avr) && now >= A.avr.retry_at) {
+        conn_try_connect(&A.avr, now);
     }
     if (A.ipc_fd < 0 && now >= A.ipc_retry_at) {
         ipc_try_connect(now);
@@ -624,16 +662,21 @@ static FILE *open_append(const char *path, uint64_t *bytes)
 int main(int argc, char **argv)
 {
     memset(&A, 0, sizeof(A));
-    A.sbs_fd = -1;
+    A.sbs = (line_conn_t){ .name = "sbs", .on_line = adsbd_on_line,
+                           .on_overlong = adsbd_on_overlong_line, .is_sbs = true, .fd = -1 };
+    A.avr = (line_conn_t){ .name = "avr", .on_line = adsbd_on_avr_line,
+                           .on_overlong = adsbd_on_avr_overlong_line, .fd = -1 };
     A.ipc_fd = -1;
     A.child = -1;
     bool check_only;
     if (configure(argc, argv, &check_only) != 0) {
         return 2;
     }
+    A.sbs.port = A.cfg.sbs_port;
+    A.avr.port = A.cfg.avr_port;
     if (check_only) {
-        printf("configuration valid: sbs=%s:%u ipc_path=%s ndjson_path=%s dump1090=%s\n",
-               A.cfg.sbs_host, A.cfg.sbs_port, A.cfg.ipc_path, A.cfg.ndjson_path,
+        printf("configuration valid: sbs=%s:%u avr_port=%u ipc_path=%s ndjson_path=%s dump1090=%s\n",
+               A.cfg.sbs_host, A.cfg.sbs_port, A.cfg.avr_port, A.cfg.ipc_path, A.cfg.ndjson_path,
                A.argc > 0 ? A.argv[0] : "(external: not started by adsbd)");
         return 0;
     }
@@ -659,10 +702,11 @@ int main(int argc, char **argv)
     clock_gettime(CLOCK_REALTIME, &wall);
     int64_t offset = (int64_t)wall.tv_sec * 1000000000 + (int64_t)wall.tv_nsec - (int64_t)now;
     write_log(now, "start",
-              "\"version\":\"%s\",\"sbs\":\"%s:%u\",\"ipc_path\":\"%s\",\"ndjson_path\":\"%s\","
+              "\"version\":\"%s\",\"sbs\":\"%s:%u\",\"avr_port\":%u,\"ipc_path\":\"%s\",\"ndjson_path\":\"%s\","
               "\"record_bytes\":%" PRIu64 ",\"dump1090\":\"%s\",\"decoder\":\"%s\",\"wall_s\":%lld,"
               "\"wall_note\":\"system clock until the ground's SET_TIME\"",
-              TTEC_VERSION, A.cfg.sbs_host, A.cfg.sbs_port, A.cfg.ipc_path, A.cfg.ndjson_path,
+              TTEC_VERSION, A.cfg.sbs_host, A.cfg.sbs_port, A.cfg.avr_port, A.cfg.ipc_path,
+              A.cfg.ndjson_path,
               A.rec_bytes, A.argc > 0 ? A.argv[0] : "external",
               A.cfg.p.decoder_always ? "always" : "mode", (long long)wall.tv_sec);
     if (A.rec_full) {
@@ -688,7 +732,8 @@ int main(int argc, char **argv)
     adsbd_ops_t ops = { .ctx = NULL, .ipc_send = op_ipc_send, .record = op_record,
                         .log = op_log };
     adsbd_init(&A.core, &A.cfg.p, &ops, now, offset);
-    A.sbs_retry_at = now;
+    A.sbs.retry_at = now;
+    A.avr.retry_at = now;
     A.ipc_retry_at = now;
     service(now);
 
@@ -720,8 +765,10 @@ int main(int argc, char **argv)
                 if (read(A.timer_fd, &expirations, sizeof(expirations)) < 0) {
                     /* spurious wake-up; service() below still runs */
                 }
-            } else if (fd == A.sbs_fd) {
-                sbs_on_event(evs[i].events);
+            } else if (fd == A.sbs.fd) {
+                conn_on_event(&A.sbs, evs[i].events);
+            } else if (fd == A.avr.fd) {
+                conn_on_event(&A.avr, evs[i].events);
             } else if (fd == A.ipc_fd) {
                 ipc_read();
             }
@@ -732,8 +779,11 @@ int main(int argc, char **argv)
     }
 
     now = now_ns();
-    if (A.sbs_fd >= 0) {
-        close(A.sbs_fd);
+    if (A.avr.fd >= 0) {
+        close(A.avr.fd);
+    }
+    if (A.sbs.fd >= 0) {
+        close(A.sbs.fd);
     }
     if (A.ipc_fd >= 0) {
         close(A.ipc_fd);

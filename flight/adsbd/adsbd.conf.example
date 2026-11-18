@@ -19,6 +19,12 @@ log_max_bytes    = 67108864
 dump1090_cmd = /usr/bin/dump1090-fa --device-index 0 --gain -10 --net --net-bind-address 127.0.0.1 --net-sbs-port 30003 --net-ro-port 0 --net-bo-port 0 --net-bi-port 0 --net-ri-port 0 --quiet
 sbs_host       = 127.0.0.1
 sbs_port       = 30003
+# The raw (AVR) output, read only for the aircraft's emitter category, which
+# goes to the ground in 2 spare bits of each track record (ADR-0023). 0: off,
+# the flight as before. To turn it on, set 30002 here AND change
+# --net-ro-port 0 to --net-ro-port 30002 above; adsbd refuses one without
+# the other.
+avr_port       = 0
 retry_ms       = 1000     # reconnection to dump1090 and to ttcd
 restart_min_ms = 1000     # dump1090 died: the first wait before starting it again
 restart_max_ms = 1000     # ... doubling up to this; 1 s: without its SDR, dump1090
