@@ -4,24 +4,34 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GCD26 — Relatórios do TT&amp;C</title>
+<link rel="icon" href="assets/favicon.png">
 <style>
+@font-face{
+  font-family:"Open Sans"; src:url("assets/OpenSans.woff2") format("woff2");
+  font-weight:300 800; font-style:normal; font-display:swap;
+}
 :root{
-  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#f0eee8; --fg:#1c1c1e; --muted:#5c5b57;
-  --line:#dcd9d1; --line-strong:#8c897f; --accent:#1d5fc4; --accent-soft:#e7eefa;
-  --ok:#1b7443; --ok-soft:#e2f2e8; --warn:#8f5a00; --warn-soft:#faefd9;
-  --todo:#5f5f67; --todo-soft:#ebebee; --bad:#ae2a20; --bad-soft:#fae6e3;
-  --code-bg:#f0eee8; --node:#ffffff; --node-hw:#efece5; --node-ext:#e9eef5;
-  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+  /* Gama Cube Design (identidade_visual_gama.pdf; the same tokens as
+   * ground/host/web/css/gama.css): black, British Racing Green #034a2c and
+   * white; Forest Green, Yellow Orange and Terra Cotta for ok, warning and
+   * failure, in darker shades for text on a light background. */
+  --brand:#034a2c; --brand-band:#000000;
+  --bg:#f3f5f4; --surface:#ffffff; --surface-2:#eaefec; --fg:#111312; --muted:#56605b;
+  --line:#d0d6d3; --line-strong:#7f8a84; --accent:#034a2c; --accent-soft:#e3eee8;
+  --ok:#2f6b3a; --ok-soft:#e6f1e7; --warn:#8a5300; --warn-soft:#fbf0df;
+  --todo:#56605b; --todo-soft:#eceeed; --bad:#a8321f; --bad-soft:#fbe7e3;
+  --code-bg:#eef1ef; --node:#ffffff; --node-hw:#eef1ef; --node-ext:#e3eee8;
+  --sans:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
   --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
   color-scheme:light dark;
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#141518; --surface:#1b1d21; --surface-2:#23262b; --fg:#e7e5e0; --muted:#a19f99;
-    --line:#33363c; --line-strong:#7b7973; --accent:#80b1ff; --accent-soft:#1b2940;
-    --ok:#6dd39b; --ok-soft:#15301f; --warn:#f0ba5d; --warn-soft:#33280e;
-    --todo:#a8a8b0; --todo-soft:#292a2f; --bad:#ff8b80; --bad-soft:#3a1b19;
-    --code-bg:#23262b; --node:#1b1d21; --node-hw:#23262b; --node-ext:#1c2431;
+    --bg:#0a0c0b; --surface:#121614; --surface-2:#19201c; --fg:#f2f5f3; --muted:#9aa7a0;
+    --line:#26302b; --line-strong:#6f7c75; --accent:#8cc391; --accent-soft:#10251a;
+    --ok:#8cc391; --ok-soft:#15301f; --warn:#f3b866; --warn-soft:#33280e;
+    --todo:#a8b0ac; --todo-soft:#222826; --bad:#ef8d80; --bad-soft:#3a1b19;
+    --code-bg:#19201c; --node:#121614; --node-hw:#19201c; --node-ext:#10251a;
   }
 }
 *{box-sizing:border-box}
@@ -151,9 +161,20 @@ svg.diagram .ah-ok{fill:var(--ok)}
 svg.diagram .t-bad{font-size:12px;fill:var(--bad);font-weight:600}
 svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
 .bytes .fl{background:var(--warn-soft)}
+
+/* Gama: the band on top, as on the ground's page; ExtraBold titles. */
+.brand-bar{background:var(--brand-band);border-bottom:3px solid var(--brand);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:8px 20px;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.brand-bar img{width:28px;height:28px;display:block}
+.brand-bar b{font-weight:800;letter-spacing:.04em}
+.brand-bar span{opacity:.75}
+h1,h2{font-weight:800}
+.eyebrow{color:var(--accent);font-weight:700}
+@media print{.brand-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
 </style>
 </head>
 <body>
+<div class="brand-bar"><img src="assets/favicon.png" alt=""><b>Gama Cube Design</b><span>CubeDesign 2026 · TT&amp;C</span></div>
 <div class="layout">
 <nav class="toc" aria-label="Sumário">
   <p class="toc-title">Sumário</p>
@@ -246,7 +267,7 @@ svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
 
 <footer>
   <p>Índice de 18/11/2026. Os relatórios são HTML autocontidos, em português, para a equipe; cada um diz no topo de que data é e do que trata.</p>
-  <p>Para um relatório novo: copie o <a href="modelo.html">modelo</a>, na identidade visual da Gama, e ponha-o neste índice. Os relatórios até 18/11 ficam no visual antigo.</p>
+  <p>Para um relatório novo: copie o <a href="modelo.html">modelo</a>, na identidade visual da Gama, e ponha-o neste índice. Já estão nele este índice e os três de "Por onde começar"; os demais, até 18/11, ficam no visual antigo.</p>
 </footer>
 </main>
 </div>
