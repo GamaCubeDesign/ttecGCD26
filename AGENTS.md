@@ -255,7 +255,15 @@ risks. As of 2026-11-05:
   destinations and decides no origin (5 of 6 with it); the pair method of
   ADR-0019 gets 3 of 12 origins and 0 of 3 destinations, and with it the
   combined conclusion abstains on every flight. To discuss with the
-  estimator's author before PR #89 merges.
+  estimator's author before PR #89 merges. On 2026-11-18 (ADR-0022, ground
+  only): the "large" class inferred from kinematics and the take-off
+  distance from the climb take the origin, without the category, from 0 to
+  7 of 7 (17/11) and from 4 to 6 of 6 on a second capture used only to
+  validate, the same as with the category; 10 of 10 on synthetic straight
+  flights, no false positive on invented aircraft; the pair method is off by
+  default in the page (`gs_web.py --pairs`). The category on board
+  (`dump1090-fa`'s AVR port, 2 spare bits of the track flags) is the next
+  step, ADR-0023, proposal in `docs/relatorios/2026-11-18-proposta-categoria-adsb.html`.
 - **Priority now: the bench, then the hardware.** (1) ~~protocol version 2,
   mode-driven `ttcd`/`adsbd`, 433.92 MHz and 14 dBm~~ — done in software
   2026-10-24; (2) ~~`flight/obcd/`~~ — done in software, the Pi's side of the
