@@ -28,7 +28,7 @@ O `capture_sem_categoria.ndjson` tira também a categoria, que o enlace não lev
 (o SBS do `dump1090-fa` não a tem). É a entrada que a ground de fato recebe.
 
 O gabarito (`ground_truth.json`, no formato do
-`ground-aeronaves/validation/avaliar_estimativas.py`) só afirma origem ou
+`ground/host/adsb/validation/avaliar_estimativas.py`) só afirma origem ou
 destino quando os dados mostram:
 
 - **Origem:** a aeronave no solo, ou baixa e subindo, num aeroporto que a
@@ -44,7 +44,7 @@ adsb.lol (ODbL 1.0) e OpenSky Network (pesquisa não comercial).
 ```bash
 python3 tools/live_traffic/live_traffic.py capture --out docs/vv/trafego-real/AAAA-MM-DD-unsam --duration 3600
 tools/live_traffic/avaliar.sh docs/vv/trafego-real/AAAA-MM-DD-unsam            # só o método local
-tools/live_traffic/avaliar.sh docs/vv/trafego-real/AAAA-MM-DD-unsam --pairs-db ground/host/pares/pares_aeroportos.db
+tools/live_traffic/avaliar.sh docs/vv/trafego-real/AAAA-MM-DD-unsam --pairs-db ground/host/adsb/data/pares/pares_aeroportos.db
 make sim INPUT=docs/vv/trafego-real/AAAA-MM-DD-unsam/capture_sem_categoria.ndjson
 ```
 
@@ -92,7 +92,7 @@ O que isso diz, com a ressalva de que é 1 h e 42 voos:
 2. **O método de pares erra a maioria com tráfego real**, e a discordância dele
    com o método local faz a **conclusão combinada se abster sempre**. Sem pares,
    ela decidia pouco, mas acertava tudo o que decidia.
-3. O avaliador do estimador (`validation/avaliar_estimativas.py`) só pontua o
+3. O avaliador do estimador (`adsb/validation/avaliar_estimativas.py`) só pontua o
    método local. A conclusão combinada e o melhor par são pontuados por
    `tools/live_traffic/avaliar_combinada.py`, com a mesma regra.
 
@@ -178,5 +178,5 @@ a conclusão combinada não decidiu nenhum voo em nenhum conjunto. E ele mesmo:
 
 Os relatórios de 17/11 em `2026-11-17-unsam/avaliacao-*` são do estimador **antes**
 da Etapa A; os de 18/11, depois. Para comparar as duas versões no mesmo conjunto:
-`--no-kinematic-category --climb-back-weight 0` no `python -m ground` reproduz o
+`--no-kinematic-category --climb-back-weight 0` no `python3 -m adsb.estimator` reproduz o
 antes.

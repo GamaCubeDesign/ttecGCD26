@@ -217,17 +217,17 @@ durante as etapas 1 a 5, num ambiente Python à parte:
 
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
-python3 -m pip install -r ground/host/ground-aeronaves/requirements.txt -r ground/host/pares/requirements-regional.txt
-python3 ground/host/pares/gerar_pares.py --source ground/host/banco-aeronaves/referencias.db \
-    --output ground/host/pares/pares_aeroportos.db
-python3 ground/host/pares/prioridade_regional.py
+python3 -m pip install -r ground/host/adsb/requirements.txt -r ground/host/adsb/data/pares/requirements-regional.txt
+python3 ground/host/adsb/data/pares/gerar_pares.py --source ground/host/adsb/data/referencias/referencias.db \
+    --output ground/host/adsb/data/pares/pares_aeroportos.db
+python3 ground/host/adsb/data/pares/prioridade_regional.py
 ```
 
 Depois, reproduzir a missão da etapa 5 com os dois métodos:
 
 ```bash
 python3 ground/host/gs_web.py --replay ground/host/sessions/mission-XXXX/ground.jsonl \
-    --adsb --pairs-db ground/host/pares/pares_aeroportos.db
+    --adsb --pairs --pairs-db ground/host/adsb/data/pares/pares_aeroportos.db
 ```
 
 **Anotar:** tempo da geração e da migração regional; tamanho do banco; tempo

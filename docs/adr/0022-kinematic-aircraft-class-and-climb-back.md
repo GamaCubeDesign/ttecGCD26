@@ -8,7 +8,7 @@
 
 ## Context
 
-The ground's origin and destination estimator (`ground/host/ground-aeronaves`,
+The ground's origin and destination estimator (`ground/host/adsb/estimator`,
 ADR-0019) filters airports by the ADS-B emitter category: a jet (A3) cannot
 come from a heliport and rarely from a small strip. That category never
 reaches the ground. The satellite's `adsbd` reads `dump1090-fa`'s SBS feed,
@@ -70,7 +70,7 @@ Nothing crosses the radio; the satellite is unchanged.
 
 Measured on four sets, the estimator's local method, before and after, without
 the category. "Decided / right" counts cases with a known truth; scored by the
-estimator's `validation/avaliar_estimativas.py`, and the combined conclusion
+estimator's `adsb/validation/avaliar_estimativas.py`, and the combined conclusion
 by `tools/live_traffic/avaliar_combinada.py`, with the same rule.
 
 | Set | Origin before | Origin after | Destination before → after |
@@ -151,5 +151,5 @@ costs nothing over today.
 
 - `docs/vv/trafego-real/README.md`: the captures, the truth, the evaluations
 - `tools/live_traffic/synthetic.py`, `avaliar.sh`, `avaliar_combinada.py`
-- `ground/host/ground-aeronaves/tests/test_kinematic_category.py`, `test_climb_back.py`
+- `ground/host/tests/estimator/test_kinematic_category.py`, `test_climb_back.py`
 - `docs/relatorios/2026-11-18-proposta-categoria-adsb.html`

@@ -41,8 +41,8 @@ python3 ground/host/gs_web.py --serial /dev/ttyUSB0 --power 2 --adsb --no-pairs
 # abrir http://127.0.0.1:8080, aba ADS-B, "Iniciar missão ADS-B"
 ```
 
-O `--no-pairs` vale até a decisão sobre o método de pares (fim de 18/11). Se a decisão
-for manter os pares, troque por `--pairs-db ground/host/pares/pares_aeroportos.db`.
+Os pares ficam desligados, o padrão desde o ADR-0022 (o `--no-pairs` só o deixa
+explícito). Para ligá-los: `--pairs --pairs-db ground/host/adsb/data/pares/pares_aeroportos.db`.
 
 **Anotar:**
 
@@ -64,7 +64,7 @@ for manter os pares, troque por `--pairs-db ground/host/pares/pares_aeroportos.d
 
 ```bash
 S=$(ls -td ground/host/sessions/mission-* | head -1)
-python3 ground/host/ground-aeronaves/validation/avaliar_estimativas.py --state $S/estado.json \
+python3 ground/host/adsb/validation/avaliar_estimativas.py --state $S/estado.json \
     --truth docs/vv/trafego-real/2026-11-17-unsam/ground_truth.json | sed -n '/^RESUMO/,/^TOTAL/p'
 python3 tools/live_traffic/avaliar_combinada.py $S/estado.json docs/vv/trafego-real/2026-11-17-unsam/ground_truth.json
 ```
