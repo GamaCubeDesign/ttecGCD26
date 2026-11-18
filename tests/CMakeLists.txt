@@ -170,6 +170,10 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME live_traffic
              COMMAND ${Python3_EXECUTABLE} -m unittest test_live_traffic
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/live_traffic)
+    # sbs_replay's AVR port (ADR-0023): identification messages adsbd accepts.
+    add_test(NAME sbs_replay
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_sbs_replay
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/sbs_replay)
     # The ESP32 ground station's serial bridge, against a fake board on a pty.
     add_test(NAME gs_serial
              COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/host -p test_gs_serial.py
