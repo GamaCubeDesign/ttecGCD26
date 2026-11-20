@@ -84,10 +84,18 @@ for _ in {1..100}; do [[ -S $sock ]] && break; sleep 0.1; done
 [[ -S $sock ]] || { echo "sim: ttcd did not start — see $out/ttcd.jsonl" >&2; exit 1; }
 
 # One replay per mission: a new one waits as soon as the last client leaves.
-( trap 'exit 0' TERM
+# It runs in the background of its loop, so that the TERM of cleanup reaches
+# it: as a foreground child it kept the loop deaf to the signal while it
+# waited for a client, and Ctrl-C left sim.sh hung with the replay holding
+# its ports (an asynchronous command ignores SIGINT, so the replay never
+# saw the Ctrl-C itself).
+( c=
+  trap '[[ -n $c ]] && kill "$c" 2>/dev/null; exit 0' TERM
   while true; do
       "$python" tools/sbs_replay/sbs_replay.py "$kind" "$input" --port "$sbs_port" "${replay_avr[@]}" \
-          2>> "$out/replay.log" || sleep 1
+          2>> "$out/replay.log" &
+      c=$!
+      wait "$c" || sleep 1
   done ) &
 pids+=($!)
 
