@@ -1,0 +1,96 @@
+DF:32 Mode A/C Reply
+  Other Address: 000000 (Mode A)
+  Squawk:        0000
+
+
+
+Statistics: Wed Nov 18 17:39:46 2026 -03 - Wed Nov 18 17:39:56 2026 -03
+Local receiver:
+      24248320 samples processed
+             0 samples dropped
+           356 Mode A/C messages received
+        159025 Mode-S message preambles received
+          633999 with bad message format or invalid CRC
+           70137 with unrecognized ICAO address
+              18 accepted with correct CRC
+  -38.0 dBFS noise power
+  -26.3 dBFS mean signal power
+  -24.2 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  49.6dB current SDR gain
+Decoder:
+       374 total usable messages
+           5 DF11 messages
+          13 DF17 messages
+         0 surface position messages received
+         6 airborne position messages received
+         3 global CPR attempts with valid positions
+         0 global CPR attempts with bad data
+           0 global CPR attempts that failed the range check
+           0 global CPR attempts that failed the speed check
+         0 global CPR attempts with insufficient data
+         1 local CPR attempts with valid positions
+           0 aircraft-relative positions
+           0 receiver-relative positions
+         2 local CPR attempts that did not produce useful positions
+           2 local CPR attempts that failed the range check
+           0 local CPR attempts that failed the speed check
+         0 CPR messages that look like transponder failures filtered
+         0 non-ES altitude messages from ES-equipped aircraft ignored
+         3 unique aircraft tracks
+         0 aircraft tracks where only one message was seen
+         0 aircraft tracks which were not marked reliable
+CPU load:  14.6%
+   1365 ms for demodulation
+    111 ms for reading from USB
+      1 ms for network input and background tasks
+*0000;
+Time: 10124889.50us
+DF:32 Mode A/C Reply
+  Other Address: 000000 (Mode A)
+  Squawk:        0000
+Statistics: Wed Nov 18 17:39:56 2026 -03 - Wed Nov 18 17:40:06 2026 -03
+Local receiver:
+      23986176 samples processed
+             0 samples dropped
+           353 Mode A/C messages received
+        168617 Mode-S message preambles received
+          676132 with bad message format or invalid CRC
+           73288 with unrecognized ICAO address
+              59 accepted with correct CRC
+  -37.6 dBFS noise power
+  -24.1 dBFS mean signal power
+  -20.9 dBFS peak signal power
+      0 messages with signal power above -3dBFS
+  49.6dB current SDR gain
+Decoder:
+       412 total usable messages
+           2 DF0 messages
+          13 DF11 messages
+          44 DF17 messages
+         0 surface position messages received
+        17 airborne position messages received
+        17 global CPR attempts with valid positions
+         0 global CPR attempts with bad data
+           0 global CPR attempts that failed the range check
+           0 global CPR attempts that failed the speed check
+         0 global CPR attempts with insufficient data
+         0 local CPR attempts with valid positions
+           0 aircraft-relative positions
+           0 receiver-relative positions
+         0 local CPR attempts that did not produce useful positions
+           0 local CPR attempts that failed the range check
+           0 local CPR attempts that failed the speed check
+         0 CPR messages that look like transponder failures filtered
+         0 non-ES altitude messages from ES-equipped aircraft ignored
+         1 unique aircraft tracks
+         0 aircraft tracks where only one message was seen
+         0 aircraft tracks which were not marked reliable
+CPU load:  14.2%
+   1312 ms for demodulation
+    104 ms for reading from USB
+      1 ms for network input and background tasks
+*0000;
+Time: 20133843.00us
+DF:32 Mode A/C Reply
+  Other Address: 000000 (Mode A)

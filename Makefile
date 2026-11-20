@@ -246,6 +246,29 @@ sim: build ## The satellite on this PC, operated from the ground's page: INPUT=<
 	BUILD_DIR=$(BUILD_DIR) PYTHON=$(PYTHON) WEB_HOST=$(WEB_HOST) WEB_PORT=$(WEB_PORT) \
 	    tools/bench/sim.sh '$(INPUT)' $(SIM_DIR)/$(BENCH_DATE)-$(BENCH_TIME)
 
+##@ SDR and antenna — the 1090 MHz receiver alone, on the PC or the Pi
+
+# dump1090 for SDR_SECS seconds with the antenna on the SDR; the aircraft the
+# OpenSky Network sees around the receiver, when there is internet, say
+# whether a silent run means a bad antenna or an empty sky. Everything is
+# kept in the repository, in the day's bench folder: SDR_DIR/<antenna>-<time>/
+# (tools/bench/sdr_check.py). On the Pi, adsbd must not hold the SDR
+# (make pi-adsbd-stop). SDR_OPTS adds options, e.g. --lat/--lon away from FGA.
+ANTENNA    ?= antena
+SDR_SECS   ?= 60
+SDR_GAIN   ?= 49.6
+SDR_DIR    ?= docs/vv/bancada/$(BENCH_DATE)/antena
+SDR_OPTS   ?=
+
+.PHONY: sdr-check sdr-compare
+
+sdr-check: ## Is the antenna delivering aircraft? ANTENNA=cots|gama, SDR_SECS=60; logs in docs/vv/bancada/<date>/antena/
+	$(PYTHON) tools/bench/sdr_check.py run --antenna '$(ANTENNA)' --secs $(SDR_SECS) \
+	    --gain $(SDR_GAIN) --out '$(SDR_DIR)' $(SDR_OPTS)
+
+sdr-compare: ## Every antenna check in docs/vv/bancada side by side (SDR_DIR=<folder> for one day)
+	$(PYTHON) tools/bench/sdr_check.py compare $(if $(filter command line,$(origin SDR_DIR)),'$(SDR_DIR)',docs/vv/bancada)
+
 ##@ ESP32 ground station — ESP-IDF in Docker (tools/esp32/idf.sh), on the PC
 
 # The DevKit's USB serial port. Not PORT: that name is often set in the
@@ -424,3 +447,4 @@ help: ## This list
 	@echo "  PI_HOST=$(or $(PI_HOST),(unset))  PI_DIR=$(PI_DIR)"
 	@echo "  T=<regex> for test and asan, LOG=<file> for toa, TTCD_OPTS and GS_OPTS for extra options"
 	@echo "  INPUT=<ndjson|.sbs> for adsb-chain, which writes under $(CHAIN_DIR)/"
+	@echo "  ANTENNA=$(ANTENNA)  SDR_SECS=$(SDR_SECS)  SDR_GAIN=$(SDR_GAIN) for sdr-check, which writes under $(SDR_DIR)/"
