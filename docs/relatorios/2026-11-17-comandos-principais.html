@@ -364,7 +364,7 @@ body.training table.cmds td:first-child:not(.shown) code{filter:blur(6px);user-s
 <tr><td><code>make gs-web REPLAY=&lt;log.jsonl&gt; SPEED=10</code></td><td>Reproduz um log gravado da ground, 10× mais rápido.</td></tr>
 <tr><td><code>python3 tools/live_traffic/live_traffic.py capture --out DIR --duration 3600</code></td><td>1 h de tráfego real ao redor da UNSAM, com o gabarito de origem e destino.</td></tr>
 <tr><td><code>make sim MISSION_S=120 INPUT=…</code></td><td>O <code>make sim</code> com a missão de 2 min em vez de 10: o <code>obcd</code> e a página recebem o mesmo tempo. Serve para ensaiar no PC antes da Pi.</td></tr>
-<tr><td><code>make sdr-check ANTENNA=cots</code> · <code>make pi-sdr-check ANTENNA=gama</code></td><td>A antena de 1090 MHz sozinha no SDR, 60 s, contra o que a OpenSky vê; ao ar livre. Com o <code>adsbd</code> parado na Pi (<code>make pi-adsbd-stop</code>).</td></tr>
+<tr><td><code>make sdr-check ANTENNA=cots</code> · <code>make pi-sdr-check ANTENNA=gama</code></td><td>A antena de 1090 MHz sozinha no SDR, 60 s, contra o que a OpenSky vê; ao ar livre. Com o <code>adsbd</code> parado na Pi (<code>make pi-adsbd-stop</code>). Flags e veredito na subseção <a href="#sdr">"A antena de 1090 MHz"</a>, abaixo.</td></tr>
 </table></div>
 
 <h3>A missão ADS-B na Pi, pela página, em 2 min (desde 20/11)</h3>
@@ -395,6 +395,37 @@ make gs-web ADSB=1 MISSION_S=120
 <tr><td>3 · o custo na Pi</td><td>o <code>cpu.txt</code> do teste 1 ou 2, com e sem <code>AVR=1</code></td><td><code>adsbd</code> &lt; 5% de um núcleo; <code>dump1090-fa</code> até 2 pontos acima dos 21,9% de 09/10</td></tr>
 </table></div>
 <p class="small">Na página, o terminal 2 é sempre <code>make gs-web ADSB=1 MISSION_S=120</code>. Com 2 min o replay passa só pelo começo da captura: as estatísticas saem a cada 60 s (<code>report_period_ms</code>), então uma missão mais curta que isso pode terminar sem nenhum número.</p>
+
+<h3 id="sdr">A antena de 1090 MHz: <code>make sdr-check</code></h3>
+<p>Só o SDR e a antena, sem o satélite (<code>tools/bench/sdr_check.py</code>). Ele faz três coisas: pergunta à <b>OpenSky</b>, uma vez, que aviões há a até 150 km do receptor (<code>referencia.json</code>); roda o <code>dump1090</code> no seu SDR por <code>SDR_SECS</code>; e escreve o resumo com o veredito. Quem decide é <b>o que a antena recebeu</b>. A OpenSky só serve para interpretar o silêncio (antena ruim ou céu vazio?), sem cruzar avião por avião. No PC, <code>make sdr-check</code>; na Pi, <code>make pi-sdr-check</code>, com o <code>adsbd</code> parado (ele segura o SDR) e internet pela rede da bancada.</p>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Flag</th><th>Padrão</th><th>O que faz</th></tr>
+<tr><td><code>ANTENNA=cots</code></td><td><code>antena</code></td><td>O nome da antena, que vira o nome da pasta: <code>cots</code>, <code>gama</code>…</td></tr>
+<tr><td><code>SDR_SECS=120</code></td><td><code>60</code></td><td>Quanto tempo o <code>dump1090</code> escuta, em segundos.</td></tr>
+<tr><td><code>SDR_GAIN=40</code></td><td><code>49.6</code></td><td>Ganho do SDR em dB; 49,6 é o máximo do R820T.</td></tr>
+<tr><td><code>SDR_DIR=&lt;pasta&gt;</code></td><td><code>docs/vv/bancada/&lt;data&gt;/antena</code></td><td>Onde gravar; cada execução vira <code>&lt;antena&gt;-&lt;hora&gt;/</code>, com <code>referencia.json</code>, <code>dump1090.txt.gz</code>, <code>aeronaves/</code> (o <code>aircraft.json</code> a cada 5 s) e <code>resumo.txt</code>/<code>resumo.json</code>.</td></tr>
+<tr><td><code>SDR_OPTS="--lat -15.99 --lon -48.04"</code></td><td>a FGA</td><td>A posição do receptor, para a consulta à OpenSky e para as distâncias. Só essa posição, arredondada, sai da máquina.</td></tr>
+<tr><td><code>SDR_OPTS=--no-reference</code></td><td>—</td><td>Não consulta a OpenSky (sem internet, ou para não depender dela). Um silêncio passa a dar INCONCLUSIVO.</td></tr>
+<tr><td><code>SDR_OPTS="--dump1090 /caminho/dump1090"</code></td><td><code>dump1090-fa</code>, senão <code>dump1090</code></td><td>Outro programa <code>dump1090</code>.</td></tr>
+</table></div>
+<pre><code># no PC, ao ar livre: as duas antenas, 60 s cada, no mesmo lugar
+make sdr-check ANTENNA=cots
+make sdr-check ANTENNA=gama
+make sdr-compare                 # uma linha por execução, todas as datas
+
+# na Pi, do PC: 2 min, longe da FGA
+make pi-adsbd-stop
+make pi-sdr-check ANTENNA=gama SDR_SECS=120 SDR_OPTS="--lat -15.87 --lon -47.92"
+make pi-fetch &amp;&amp; make sdr-compare SDR_DIR=docs/vv/bancada/2026-11-20</code></pre>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Veredito</th><th>Quando</th></tr>
+<tr><td><span class="badge b-ok">APROVADA</span></td><td>pelo menos 1 avião com posição, de mensagens com CRC certo</td></tr>
+<tr><td><span class="badge b-warn">RECEBE</span></td><td>mensagens com CRC certo, mas nenhuma posição: repita por mais tempo ou num lugar mais aberto</td></tr>
+<tr><td><span class="badge b-bad">REPROVADA</span></td><td>nada recebido, e a OpenSky via avião no ar a até 100 km: confira a antena, o cabo e o conector</td></tr>
+<tr><td><span class="badge b-todo">INCONCLUSIVO</span></td><td>nada recebido, e não havia avião no ar a até 100 km (ou não havia internet para saber)</td></tr>
+<tr><td><span class="badge b-bad">ERRO</span></td><td>o <code>dump1090</code> não imprimiu estatísticas: o SDR está desconectado ou ocupado (na Pi, pelo <code>adsbd</code>)</td></tr>
+</table></div>
+<p class="small"><code>make sdr-compare</code> compara as execuções entre si (ruído, mensagens, aviões com posição, alcance, veredito), não com a OpenSky. <code>SDR_DIR</code> limita a uma pasta; sem ele, lê <code>docs/vv/bancada</code> inteiro. A diferença de ~4–5 dB entre as antenas, de 20/11, veio de uma análise à mão do RSSI corrigido pela distância (<code>docs/vv/bancada/2026-11-20/notas.md</code>), não do script. Contar preâmbulos não prova nada: com ganho máximo, o ruído do próprio receptor gera preâmbulos falsos.</p>
 
 <h2 id="servicos"><span class="n">10</span>Os serviços na Pi</h2>
 <p>Em voo, os daemons rodam como serviços do systemd. Na bancada, o <code>ttcd</code> do serviço segura o rádio A, por isso ele precisa ser parado antes dos passos de rádio. Todos os alvos têm a forma <code>pi-</code>, que roda do PC.</p>
