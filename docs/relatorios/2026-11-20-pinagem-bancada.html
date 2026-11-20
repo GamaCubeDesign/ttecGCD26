@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — Mapa de pinagem da bancada (20/11/2026)</title>
+<link rel="icon" href="assets/favicon.png">
+<style>
+@font-face{
+  font-family:"Open Sans"; src:url("assets/OpenSans.woff2") format("woff2");
+  font-weight:300 800; font-style:normal; font-display:swap;
+}
+:root{
+  /* Gama Cube Design: the same tokens as modelo.html. */
+  --brand:#034a2c; --brand-band:#000000;
+  --bg:#f3f5f4; --surface:#ffffff; --surface-2:#eaefec; --fg:#111312; --muted:#56605b;
+  --line:#d0d6d3; --line-strong:#7f8a84; --accent:#034a2c; --accent-soft:#e3eee8;
+  --ok:#2f6b3a; --ok-soft:#e6f1e7; --warn:#8a5300; --warn-soft:#fbf0df;
+  --todo:#56605b; --todo-soft:#eceeed; --bad:#a8321f; --bad-soft:#fbe7e3;
+  --code-bg:#eef1ef;
+  /* One colour per part on the connector. */
+  --c-radio:#2563a8; --c-i2c:#6d4aa8; --c-w1:#b0600f; --c-led:#a8321f;
+  --c-3v3:#2f6b3a; --c-gnd:#2b302d; --c-5v:#a8321f; --pin-ink:#ffffff;
+  --sans:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0a0c0b; --surface:#121614; --surface-2:#19201c; --fg:#f2f5f3; --muted:#9aa7a0;
+    --line:#26302b; --line-strong:#6f7c75; --accent:#8cc391; --accent-soft:#10251a;
+    --ok:#8cc391; --ok-soft:#15301f; --warn:#f3b866; --warn-soft:#33280e;
+    --todo:#a8b0ac; --todo-soft:#222826; --bad:#ef8d80; --bad-soft:#3a1b19;
+    --code-bg:#19201c;
+    --c-radio:#7fb1e8; --c-i2c:#b9a2e6; --c-w1:#f0a868; --c-led:#ef8d80;
+    --c-3v3:#8cc391; --c-gnd:#c9d1cc; --c-5v:#ef8d80; --pin-ink:#0a0c0b;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 16px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em;font-weight:800}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px;font-weight:800}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+p{margin:0 0 12px}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:26px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 10px}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.small{font-size:14px;color:var(--muted)}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600}
+.switch{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:0 0 14px;font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+
+/* The connector: a label, the two pins of a row on the header, a label. */
+.hdr{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);column-gap:10px;max-width:760px;margin:0 auto}
+.hdr .lab{display:flex;flex-direction:column;justify-content:center;min-height:38px;font-size:13.5px;line-height:1.25}
+.hdr .lab.l{text-align:right;align-items:flex-end}
+.hdr .lab b{font-weight:700}
+.hdr .lab small{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.hdr .pair{display:flex;gap:8px;align-items:center;padding:4px 10px;background:var(--surface-2);border-left:2px solid var(--line-strong);border-right:2px solid var(--line-strong)}
+.hdr .pair.first{border-top:2px solid var(--line-strong);border-radius:10px 10px 0 0;padding-top:10px}
+.hdr .pair.last{border-bottom:2px solid var(--line-strong);border-radius:0 0 10px 10px;padding-bottom:10px}
+.pin{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line-strong);background:var(--surface);color:var(--muted);
+  display:grid;place-items:center;font:600 12px/1 var(--mono);font-variant-numeric:tabular-nums;font-style:normal}
+.pin.sq{border-radius:5px}
+.pin.radio{background:var(--c-radio);border-color:var(--c-radio);color:var(--pin-ink)}
+.pin.i2c{background:var(--c-i2c);border-color:var(--c-i2c);color:var(--pin-ink)}
+.pin.w1{background:var(--c-w1);border-color:var(--c-w1);color:var(--pin-ink)}
+.pin.led{background:var(--c-led);border-color:var(--c-led);color:var(--pin-ink)}
+.pin.v3{background:var(--c-3v3);border-color:var(--c-3v3);color:var(--pin-ink)}
+.pin.gnd{background:var(--c-gnd);border-color:var(--c-gnd);color:var(--pin-ink)}
+.pin.v5{border:2.5px solid var(--c-5v);color:var(--c-5v);background:var(--bad-soft)}
+.pin.w{font-size:9.5px}
+.t-radio{color:var(--c-radio)} .t-i2c{color:var(--c-i2c)} .t-w1{color:var(--c-w1)} .t-led{color:var(--c-led)}
+.t-v3{color:var(--c-3v3)} .t-gnd{color:var(--fg)} .t-v5{color:var(--c-5v)} .t-free{color:var(--muted)}
+.hdr .lab.t-free{font-size:12.5px}
+/* B1 = October's wiring, B2 = the board's: only one pair is wired. */
+.hdr[data-w="b2"] .only-b1, .hdr[data-w="b1"] .only-b2{opacity:.28;filter:grayscale(1)}
+.hdr[data-w="b2"] .lab.only-b1 b::after, .hdr[data-w="b1"] .lab.only-b2 b::after{content:" — sem fio"}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;font-size:13px;color:var(--muted);margin-top:14px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend .pin{width:16px;height:16px;font-size:0;border-width:2px}
+@media (max-width:560px){
+  .hdr{column-gap:6px}
+  .hdr .lab{font-size:12px}
+  .hdr .lab small{font-size:10.5px}
+  .hdr .pair{gap:5px;padding-left:6px;padding-right:6px}
+  .pin{width:26px;height:26px;font-size:11px}
+  .pin.w{font-size:8.5px}
+}
+.brand-bar{background:var(--brand-band);border-bottom:3px solid var(--brand);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:8px 16px;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.brand-bar img{width:28px;height:28px;display:block}
+.brand-bar b{font-weight:800;letter-spacing:.04em}
+.brand-bar span{opacity:.75}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.switch{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2{break-after:avoid}
+  figure,.tile,pre,tr{break-inside:avoid}
+  .brand-bar,.pin{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  a{color:inherit;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="brand-bar"><img src="assets/favicon.png" alt=""><b>Gama Cube Design</b><span>CubeDesign 2026 · TT&amp;C</span></div>
+<div class="layout">
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Qual fiação usar hoje</a></li>
+    <li><a href="#pi">A Pi: o conector de 40 pinos</a></li>
+    <li><a href="#pecas">Peça por peça</a></li>
+    <li><a href="#esp32">A ground: ESP32 e rádio B</a></li>
+    <li><a href="#conferir">Conferir antes de ligar</a></li>
+    <li><a href="#armadilhas">O que já deu errado</a></li>
+  </ol>
+</nav>
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · TT&amp;C · bancada</p>
+  <h1>Mapa de pinagem da bancada</h1>
+  <p class="lede">Onde vai cada fio do satélite de bancada (Pi Zero 2 W, rádio LoRa A, INA219, DS18B20, LEDs e SDR) e da ground (ESP32 com o rádio B), para os roteiros de 19 e 20/11. Para deixar aberto na mesa, no celular.</p>
+  <div class="meta"><span><b>Data:</b> 20/11/2026</span><span><b>Estado:</b> referência de bancada</span><span><b>Fontes:</b> <code>flight/conf/obc-v2/</code>, <code>ground/esp32/sdkconfig</code>, roteiro de 05/11 §3</span></div>
+</header>
+
+<h2 id="resumo"><span class="n">1</span>Qual fiação usar hoje</h2>
+<div class="tiles">
+  <div class="tile"><div class="v">pino 22</div><div class="l">RESET do rádio A, GPIO25, na fiação da placa (B2). Na de outubro era o pino 38, GPIO20</div></div>
+  <div class="tile"><div class="v">pino 7</div><div class="l">DIO0 do rádio A, GPIO4, na fiação da placa (B2). Na de outubro era o pino 40, GPIO21</div></div>
+  <div class="tile"><div class="v">2 fios</div><div class="l">é tudo o que muda entre as duas fiações; SPI, sensores e LEDs ficam onde estão</div></div>
+</div>
+<p>A fiação que vale para as placas é a <b>B2</b>, a de <code>flight/conf/obc-v2/ttcd.conf</code> (RESET no GPIO25, DIO0 no GPIO4). O teste 3 do <a href="../vv/bancada/2026-11-19/roteiro.md">roteiro de 19/11</a> passa o rádio A para ela. Até 16/11 o rádio A estava na fiação de outubro (<b>B1</b>: GPIO20 e GPIO21), que é a do <code>ttcd.conf.example</code>. <b>Só um dos dois pares fica ligado de cada vez</b>, e o <code>/etc/gama/ttcd.conf</code> da Pi tem de dizer o mesmo que os fios (<a href="#conferir">seção 5</a>).</p>
+<div class="callout warn"><p><b>O DIO0 no pino errado não dá erro.</b> Em 16/11, com o DIO0 no GPIO21 e o <code>ttcd</code> esperando no GPIO4, o ping deu 10/10, mas 9 com 2 tentativas: o fim de transmissão só era visto pela varredura de 250 ms. Por isso o critério do teste 3 é <b>10/10 na 1ª tentativa</b>.</p></div>
+
+<h2 id="pi"><span class="n">2</span>A Pi: o conector de 40 pinos</h2>
+<p><b>Ímpares numa fileira, pares na outra.</b> O <b>pino 1</b> é o de solda quadrada, na ponta do conector do lado do cartão SD; o 2, ao lado dele, já é 5 V. Abaixo de cada nome vêm o GPIO (numeração BCM, a dos <code>.conf</code>) e, quando existe, o pino do barramento <b>J1</b> da placa nova do OBC.</p>
+<figure><div class="frame">
+<div class="switch" role="group" aria-label="Fiação do rádio A">
+  <span>Rádio A na fiação:</span>
+  <button class="btn" type="button" data-w="b2" aria-pressed="true">da placa (B2)</button>
+  <button class="btn" type="button" data-w="b1" aria-pressed="false">de outubro (B1)</button>
+</div>
+<div class="hdr" id="hdr" data-w="b2">
+  <div class="lab l t-v3"><b>3,3 V</b><small>rádio A · INA219 VCC</small></div>
+  <div class="pair first"><span class="pin v3 sq">1</span><span class="pin v5">2</span></div>
+  <div class="lab t-v5"><b>5 V — nunca</b><small>queima o RA-02</small></div>
+
+  <div class="lab l t-i2c"><b>INA219 · SDA</b><small>GPIO2 · J1.10</small></div>
+  <div class="pair"><span class="pin i2c">3</span><span class="pin v5">4</span></div>
+  <div class="lab t-v5"><b>5 V — nunca</b></div>
+
+  <div class="lab l t-i2c"><b>INA219 · SCL</b><small>GPIO3 · J1.12</small></div>
+  <div class="pair"><span class="pin i2c">5</span><span class="pin gnd">6</span></div>
+  <div class="lab t-gnd"><b>GND</b><small>rádio A · INA219</small></div>
+
+  <div class="lab l t-radio only-b2"><b>Rádio A · DIO0</b><small>GPIO4 · J1.31 · B2</small></div>
+  <div class="pair"><span class="pin radio only-b2">7</span><span class="pin">8</span></div>
+  <div class="lab t-free">GPIO14 · livre</div>
+
+  <div class="lab l t-free">GND · livre</div>
+  <div class="pair"><span class="pin">9</span><span class="pin">10</span></div>
+  <div class="lab t-free">GPIO15 · livre</div>
+
+  <div class="lab l t-w1"><b>DS18B20 · DQ</b><small>GPIO17 · 1-Wire</small></div>
+  <div class="pair"><span class="pin w1">11</span><span class="pin">12</span></div>
+  <div class="lab t-free">GPIO18 · livre</div>
+
+  <div class="lab l t-free">GPIO27 · livre</div>
+  <div class="pair"><span class="pin">13</span><span class="pin gnd">14</span></div>
+  <div class="lab t-gnd"><b>GND</b><small>cátodos dos 2 LEDs</small></div>
+
+  <div class="lab l t-led"><b>LED burn-wire</b><small>GPIO22 · J1.13 · vermelho</small></div>
+  <div class="pair"><span class="pin led">15</span><span class="pin led">16</span></div>
+  <div class="lab t-led"><b>LED aquecedor</b><small>GPIO23 · J1.11 · azul</small></div>
+
+  <div class="lab l t-w1"><b>3,3 V · DS18B20 VDD</b><small>e o 4,7 kΩ até o DQ</small></div>
+  <div class="pair"><span class="pin w1">17</span><span class="pin">18</span></div>
+  <div class="lab t-free">GPIO24 · livre</div>
+
+  <div class="lab l t-radio"><b>Rádio A · MOSI</b><small>GPIO10 · J1.25</small></div>
+  <div class="pair"><span class="pin radio">19</span><span class="pin">20</span></div>
+  <div class="lab t-free">GND · livre</div>
+
+  <div class="lab l t-radio"><b>Rádio A · MISO</b><small>GPIO9 · J1.23</small></div>
+  <div class="pair"><span class="pin radio">21</span><span class="pin radio only-b2">22</span></div>
+  <div class="lab t-radio only-b2"><b>Rádio A · RESET</b><small>GPIO25 · J1.29 · B2</small></div>
+
+  <div class="lab l t-radio"><b>Rádio A · SCK</b><small>GPIO11 · J1.21</small></div>
+  <div class="pair"><span class="pin radio">23</span><span class="pin radio">24</span></div>
+  <div class="lab t-radio"><b>Rádio A · NSS</b><small>GPIO8 · CE0 · J1.27</small></div>
+
+  <div class="lab l t-free">GND · livre</div>
+  <div class="pair"><span class="pin">25</span><span class="pin">26</span></div>
+  <div class="lab t-free">GPIO7 · CE1 · livre</div>
+
+  <div class="lab l t-free">ID_SD · não usar</div>
+  <div class="pair"><span class="pin">27</span><span class="pin">28</span></div>
+  <div class="lab t-free">ID_SC · não usar</div>
+
+  <div class="lab l t-free">GPIO5 · livre</div>
+  <div class="pair"><span class="pin">29</span><span class="pin">30</span></div>
+  <div class="lab t-free">GND · livre</div>
+
+  <div class="lab l t-free">GPIO6 · livre</div>
+  <div class="pair"><span class="pin">31</span><span class="pin">32</span></div>
+  <div class="lab t-free">GPIO12 · livre</div>
+
+  <div class="lab l t-free">GPIO13 · livre</div>
+  <div class="pair"><span class="pin">33</span><span class="pin">34</span></div>
+  <div class="lab t-free">GND · livre</div>
+
+  <div class="lab l t-free">GPIO19 · livre</div>
+  <div class="pair"><span class="pin">35</span><span class="pin">36</span></div>
+  <div class="lab t-free">GPIO16 · livre</div>
+
+  <div class="lab l t-free">GPIO26 · livre</div>
+  <div class="pair"><span class="pin">37</span><span class="pin radio only-b1">38</span></div>
+  <div class="lab t-radio only-b1"><b>Rádio A · RESET</b><small>GPIO20 · B1 (outubro)</small></div>
+
+  <div class="lab l t-w1"><b>GND · DS18B20 GND</b><small>era o 9; GND do mesmo jeito</small></div>
+  <div class="pair last"><span class="pin w1">39</span><span class="pin radio only-b1">40</span></div>
+  <div class="lab t-radio only-b1"><b>Rádio A · DIO0</b><small>GPIO21 · B1 (outubro)</small></div>
+</div>
+<div class="legend">
+  <span><i class="pin radio"></i>rádio A (LoRa)</span>
+  <span><i class="pin i2c"></i>INA219 (I²C)</span>
+  <span><i class="pin w1"></i>DS18B20 (1-Wire)</span>
+  <span><i class="pin led"></i>LEDs no lugar dos TIP120</span>
+  <span><i class="pin v3"></i>3,3 V</span>
+  <span><i class="pin gnd"></i>GND</span>
+  <span><i class="pin v5"></i>5 V: não usar</span>
+</div>
+</div>
+<figcaption>Figura 1 — O conector da Pi com a bancada inteira. Os botões trocam o par RESET/DIO0 do rádio A entre a fiação da placa (pinos 22 e 7) e a de outubro (38 e 40); o par apagado fica sem fio. Os pinos 1 (o quadrado) e 6 alimentam o rádio A e o INA219 juntos; o 17 e o 39, o DS18B20. Pinos de <code>flight/conf/obc-v2/*.conf</code> e da §3.1 do roteiro de 05/11; "J1" é o barramento da placa nova do OBC, conferido por <code>tools/analysis/board_check.py</code>.</figcaption>
+</figure>
+<p class="small">O SDR (NESDR Nano 3) não usa o conector: vai na micro-USB marcada <b>USB</b> (a do meio), por um adaptador OTG. A outra, <b>PWR IN</b>, é só a fonte de 5 V / 2,5 A.</p>
+
+<h2 id="pecas"><span class="n">3</span>Peça por peça</h2>
+<p>A mesma informação da figura, organizada pelo terminal de cada peça: é a tabela para seguir com o jumper na mão. A última coluna diz que arquivo precisa dizer o mesmo que o fio.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Peça · terminal</th><th class="r">Pino</th><th>GPIO</th><th>J1 (placa)</th><th>Onde se configura · observação</th></tr></thead>
+  <tbody>
+    <tr><td><b class="t-radio">RA-02 A</b> · 3,3 V · GND</td><td class="r">1 · 6</td><td>—</td><td>—</td><td>junto com o INA219; <b>nunca 2 ou 4</b></td></tr>
+    <tr><td><b class="t-radio">RA-02 A</b> · SCK</td><td class="r">23</td><td>GPIO11</td><td>J1.21</td><td rowspan="4"><code>spi_dev = /dev/spidev0.0</code> no <code>ttcd.conf</code>; <code>dtparam=spi=on</code> no <code>config.txt</code></td></tr>
+    <tr><td><b class="t-radio">RA-02 A</b> · MISO</td><td class="r">21</td><td>GPIO9</td><td>J1.23</td></tr>
+    <tr><td><b class="t-radio">RA-02 A</b> · MOSI</td><td class="r">19</td><td>GPIO10</td><td>J1.25</td></tr>
+    <tr><td><b class="t-radio">RA-02 A</b> · NSS</td><td class="r">24</td><td>GPIO8 (CE0)</td><td>J1.27</td></tr>
+    <tr><td><b class="t-radio">RA-02 A</b> · RESET</td><td class="r">22 <span class="small">(B1: 38)</span></td><td>GPIO25 <span class="small">(B1: 20)</span></td><td>J1.29</td><td><code>reset_line</code> no <code>ttcd.conf</code></td></tr>
+    <tr><td><b class="t-radio">RA-02 A</b> · DIO0</td><td class="r">7 <span class="small">(B1: 40)</span></td><td>GPIO4 <span class="small">(B1: 21)</span></td><td>J1.31</td><td><code>dio0_line</code> no <code>ttcd.conf</code>; o 1-Wire <b>não</b> pode estar no GPIO4</td></tr>
+    <tr><td><b class="t-radio">RA-02 A</b> · antena</td><td class="r">—</td><td>—</td><td>—</td><td>antena de 433 MHz ou carga de 50 Ω <b>antes</b> de transmitir</td></tr>
+    <tr><td><b class="t-i2c">INA219</b> · VCC · GND</td><td class="r">1 · 6</td><td>—</td><td>—</td><td>3,3 V da Pi</td></tr>
+    <tr><td><b class="t-i2c">INA219</b> · SDA · SCL</td><td class="r">3 · 5</td><td>GPIO2 · GPIO3</td><td>J1.10 · J1.12</td><td><code>ina219_addr = 0x40</code> no <code>obcd.conf</code>; I²C1 a 100 kHz no <code>config.txt</code></td></tr>
+    <tr><td><b class="t-i2c">INA219</b> · VIN+ · VIN−</td><td class="r">—</td><td>—</td><td>—</td><td>VIN+ no + da fonte de bancada; VIN− na carga de 100 Ω / 2 W, e dela ao −; o − da fonte também no GND da Pi. <b>VIN− nunca direto ao GND</b></td></tr>
+    <tr><td><b class="t-w1">DS18B20</b> · VDD</td><td class="r">17</td><td>—</td><td>—</td><td>3,3 V; o 4,7 kΩ vai do DQ ao VDD, <b>nunca em série</b> com o DQ</td></tr>
+    <tr><td><b class="t-w1">DS18B20</b> · DQ</td><td class="r">11</td><td>GPIO17</td><td>—</td><td><code>dtoverlay=w1-gpio,gpiopin=17</code> no <code>config.txt</code>; <code>w1_path = auto</code> no <code>obcd.conf</code></td></tr>
+    <tr><td><b class="t-w1">DS18B20</b> · GND</td><td class="r">39</td><td>—</td><td>—</td><td>face plana para você, pernas para baixo: <b>GND, DQ, VDD</b> da esquerda para a direita</td></tr>
+    <tr><td><b class="t-led">LED burn-wire</b> (vermelho)</td><td class="r">15</td><td>GPIO22</td><td>J1.13</td><td><code>burnwire_line = 22</code>; ânodo por 1 kΩ; cátodo (perna curta) no pino 14</td></tr>
+    <tr><td><b class="t-led">LED aquecedor</b> (azul)</td><td class="r">16</td><td>GPIO23</td><td>J1.11</td><td><code>heater_line = 23</code>; ânodo por 1 kΩ; cátodo no pino 14</td></tr>
+    <tr><td><b>SDR</b> NESDR Nano 3</td><td class="r">—</td><td>—</td><td>—</td><td>micro-USB "USB" da Pi, por OTG; antena de 1090 MHz; ao ar livre (roteiro de 19/11, teste 2)</td></tr>
+  </tbody>
+</table></div>
+<p class="small">Os nomes dos terminais do RA-02 (SCK, MISO, MOSI, NSS, RESET, DIO0, 3.3V, GND) são os da serigrafia do módulo. Os <code>.conf</code> e o <code>config.txt</code> estão em <code>flight/conf/obc-v2/</code>; na Pi, em <code>/etc/gama/</code> e em <code>/boot/firmware/config.txt</code>.</p>
+
+<h2 id="esp32"><span class="n">4</span>A ground: ESP32 e rádio B</h2>
+<p>A ESP32 DevKit V1 fica no USB do PC (energia e dados) e não se liga à Pi: as duas montagens só se falam pelo ar. Vista de cima, com a antena da ESP32 para cima e o USB para baixo; os nomes são os da serigrafia (<code>D18</code> = GPIO18). <b>Confira na sua placa</b>: há DevKits de 30 e de 38 pinos, com ordens diferentes.</p>
+<figure><div class="frame">
+<div class="hdr" style="max-width:620px">
+  <div class="lab l t-free">EN</div><div class="pair first"><span class="pin w">EN</span><span class="pin">23</span></div><div class="lab t-radio"><b>Rádio B · MOSI</b><small>D23</small></div>
+  <div class="lab l t-free">VP · GPIO36</div><div class="pair"><span class="pin">36</span><span class="pin">22</span></div><div class="lab t-free">D22</div>
+  <div class="lab l t-free">VN · GPIO39</div><div class="pair"><span class="pin">39</span><span class="pin">1</span></div><div class="lab t-free">TX0 · console USB</div>
+  <div class="lab l t-free">D34</div><div class="pair"><span class="pin">34</span><span class="pin">3</span></div><div class="lab t-free">RX0 · console USB</div>
+  <div class="lab l t-free">D35</div><div class="pair"><span class="pin">35</span><span class="pin">21</span></div><div class="lab t-free">D21</div>
+  <div class="lab l t-free">D32</div><div class="pair"><span class="pin">32</span><span class="pin radio">19</span></div><div class="lab t-radio"><b>Rádio B · MISO</b><small>D19</small></div>
+  <div class="lab l t-free">D33</div><div class="pair"><span class="pin">33</span><span class="pin radio">18</span></div><div class="lab t-radio"><b>Rádio B · SCK</b><small>D18</small></div>
+  <div class="lab l t-free">D25</div><div class="pair"><span class="pin">25</span><span class="pin radio">5</span></div><div class="lab t-radio"><b>Rádio B · NSS</b><small>D5</small></div>
+  <div class="lab l t-free">D26 · padrão das PCBs, sem fio aqui</div><div class="pair"><span class="pin">26</span><span class="pin">17</span></div><div class="lab t-free">TX2</div>
+  <div class="lab l t-radio"><b>Rádio B · DIO0</b><small>D27 · só na bancada</small></div><div class="pair"><span class="pin radio">27</span><span class="pin">16</span></div><div class="lab t-free">RX2</div>
+  <div class="lab l t-radio"><b>Rádio B · RESET</b><small>D14</small></div><div class="pair"><span class="pin radio">14</span><span class="pin">4</span></div><div class="lab t-free">D4</div>
+  <div class="lab l t-v5"><b>D12 — não usar</b><small>pino de boot</small></div><div class="pair"><span class="pin v5">12</span><span class="pin">2</span></div><div class="lab t-free">D2 · LED da placa</div>
+  <div class="lab l t-free">D13</div><div class="pair"><span class="pin">13</span><span class="pin">15</span></div><div class="lab t-free">D15</div>
+  <div class="lab l t-gnd"><b>GND</b></div><div class="pair"><span class="pin gnd w">GND</span><span class="pin gnd w">GND</span></div><div class="lab t-gnd"><b>GND · rádio B</b></div>
+  <div class="lab l t-v5"><b>VIN (5 V) — nunca</b></div><div class="pair last"><span class="pin v5 w">VIN</span><span class="pin v3 w">3V3</span></div><div class="lab t-v3"><b>3,3 V · rádio B</b></div>
+</div>
+</div>
+<figcaption>Figura 2 — A ESP32 DevKit V1 de 30 pinos com o rádio B. O DIO0 está soldado no D27, e o firmware desta bancada é gravado com <code>CONFIG_GAMA_GS_PIN_DIO0=27</code> (<code>ground/esp32/sdkconfig</code>); o padrão do repositório, D26, é o das PCBs. Os outros cinco são os padrões de <code>ground/esp32/main/Kconfig.projbuild</code>.</figcaption>
+</figure>
+<div class="table-wrap"><table>
+  <thead><tr><th>RA-02 B</th><th>ESP32</th><th>No firmware</th><th>Observação</th></tr></thead>
+  <tbody>
+    <tr><td>SCK</td><td>D18</td><td><code>CONFIG_GAMA_GS_PIN_SCK=18</code></td><td></td></tr>
+    <tr><td>MISO</td><td>D19</td><td><code>CONFIG_GAMA_GS_PIN_MISO=19</code></td><td></td></tr>
+    <tr><td>MOSI</td><td>D23</td><td><code>CONFIG_GAMA_GS_PIN_MOSI=23</code></td><td></td></tr>
+    <tr><td>NSS</td><td>D5</td><td><code>CONFIG_GAMA_GS_PIN_NSS=5</code></td><td></td></tr>
+    <tr><td>RESET</td><td>D14</td><td><code>CONFIG_GAMA_GS_PIN_RESET=14</code></td><td>estava no D12 até 05/11 e foi ressoldado</td></tr>
+    <tr><td>DIO0</td><td>D27</td><td><code>CONFIG_GAMA_GS_PIN_DIO0=27</code></td><td>bancada; o padrão do repositório é 26</td></tr>
+    <tr><td>3,3 V · GND</td><td>3V3 · GND</td><td>—</td><td>nunca o VIN</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="conferir"><span class="n">5</span>Conferir antes de ligar</h2>
+<p>Fios mudados <b>com tudo desligado</b>: Pi sem fonte, ESP32 sem USB, fonte de bancada desligada. Depois de ligar, na Pi, o que cada comando deve mostrar:</p>
+<pre><code># o ttcd.conf diz o mesmo que os fios? B2: 25 e 4; B1: 20 e 21
+grep -E 'reset_line|dio0_line' /etc/gama/ttcd.conf
+ttcd -c /etc/gama/ttcd.conf --check-config
+
+# o 1-Wire está no GPIO17, e só nele? (sem gpiopin=17 ele toma o GPIO4, o DIO0)
+grep -n w1-gpio /boot/firmware/config.txt        # uma linha só: dtoverlay=w1-gpio,gpiopin=17
+
+# os barramentos existem? um 28-* é o DS18B20
+ls /dev/spidev0.0 /dev/i2c-1 /sys/bus/w1/devices/
+
+# o INA219 responde em 0x40? com o obcd parado (make obcd-stop)
+i2cdetect -y 1
+
+# o estado dos pinos, sem daemon: os LEDs e o par do rádio
+pinctrl get 4,17,22,23,25
+pinctrl set 22 op dh; pinctrl set 22 op dl      # acende e apaga o LED vermelho
+
+# o SDR está no USB? (RTL2838)
+lsusb | grep -i rtl</code></pre>
+<p>Para trocar o <code>ttcd.conf</code> da Pi pelo da placa, como no teste 3 do roteiro de 19/11: <code>sudo cp /etc/gama/ttcd.conf.obc-v2 /etc/gama/ttcd.conf</code>. Nos passos rodados do PC com <code>SPLIT=1</code>, <code>TTCD_CONF=flight/conf/obc-v2/ttcd.conf</code> faz o mesmo naquele passo.</p>
+
+<h2 id="armadilhas"><span class="n">6</span>O que já deu errado</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Quando</th><th>O que aconteceu</th><th>Como evitar</th><th>Situação</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">05/11</td><td>Um DS18B20 ligado <b>ao contrário</b> esquentou e queimou a protoboard</td><td>face plana para você: GND, DQ, VDD; ligar com a Pi desligada</td><td><span class="badge b-ok">trocado</span></td></tr>
+    <tr><td class="nw">05/11</td><td>O DS18B20 novo sumiu depois de mexer nos LEDs: o DQ não sobe, embora o 4,7 kΩ meça certo. Hipótese: fio no pino errado (contagem trocada) ou contato na área queimada</td><td>contar os pinos pela figura 1, a partir do quadrado; medir VDD e DQ com a Pi ligada (<a href="../vv/bancada/2026-11-05/diagnostico-1wire.html">diagnóstico</a>)</td><td><span class="badge b-warn">aberto</span></td></tr>
+    <tr><td class="nw">05/11</td><td>RESET do rádio B soldado no D12 da ESP32, pino de boot</td><td>D14; o D12 fica sem nada</td><td><span class="badge b-ok">ressoldado</span></td></tr>
+    <tr><td class="nw">05/11</td><td>Falha de SPI intermitente na ESP32 (<code>expected 0x12</code>), que sumiu ao revisar os fios</td><td>reencaixar a placa; repetir ciclos de ligar e desligar o USB</td><td><span class="badge b-warn">sem causa</span></td></tr>
+    <tr><td class="nw">16/11</td><td>DIO0 no GPIO21 com o <code>ttcd</code> esperando no GPIO4: 10/10 pings, 9 com 2 tentativas, sem erro</td><td>fio e <code>dio0_line</code> iguais; critério: 1ª tentativa</td><td><span class="badge b-todo">teste 3 de 19/11</span></td></tr>
+  </tbody>
+</table></div>
+
+<footer>
+  <p>GCD26 · TT&amp;C · 20/11/2026. Pinos da Pi de <code>flight/conf/obc-v2/</code> (<code>ttcd.conf</code>, <code>obcd.conf</code>, <code>config.txt</code>) e da §3 do <a href="2026-11-05-roteiro-bancada.html">roteiro de 05/11</a>; o barramento J1, dos comentários desses arquivos, conferidos por <code>board_check.py</code>; a ESP32, de <code>ground/esp32/main/Kconfig.projbuild</code> e <code>ground/esp32/sdkconfig</code>; os incidentes, das notas de 05 e 16/11 em <code>docs/vv/bancada/</code>. A ordem física dos pinos da DevKit é a da versão de 30 pinos e não está no repositório: confira na serigrafia.</p>
+</footer>
+</main>
+</div>
+<script>
+(function(){
+  var hdr=document.getElementById('hdr');
+  var btns=document.querySelectorAll('.switch .btn');
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      hdr.setAttribute('data-w',b.dataset.w);
+      btns.forEach(function(o){o.setAttribute('aria-pressed',String(o===b));});
+    });
+  });
+})();
+</script>
+</body>
+</html>
