@@ -1,0 +1,109 @@
+{
+ "antenna": "cots",
+ "started": "2026-11-20T10:11:05",
+ "secs": 60,
+ "gain": 49.6,
+ "dump1090": "/usr/bin/dump1090",
+ "receiver": [
+  -15.99,
+  -48.04
+ ],
+ "stats": {
+  "samples_processed": 262668288,
+  "samples_dropped": 0,
+  "modeac": 3080,
+  "preambles": 1680007,
+  "bad": 6685188,
+  "unknown_icao": 745941,
+  "accepted": 763,
+  "noise_dbfs": -39.4,
+  "signal_dbfs": -19.2,
+  "peak_dbfs": -7.5,
+  "strong": 0,
+  "usable": 3843,
+  "airborne_positions": 217,
+  "tracks": 6,
+  "blocks": 6
+ },
+ "aircraft": [
+  {
+   "hex": "e4956f",
+   "flight": "GLO1792",
+   "messages": 224,
+   "rssi_max": -12.6,
+   "position": true,
+   "max_km": 6.4
+  },
+  {
+   "hex": "c02ec7",
+   "flight": "ACA84",
+   "messages": 98,
+   "rssi_max": -25.7,
+   "position": true,
+   "max_km": 62.5
+  },
+  {
+   "hex": "e48c2f",
+   "flight": "GLO1742",
+   "messages": 64,
+   "rssi_max": -26.7,
+   "position": true,
+   "max_km": 20.6
+  }
+ ],
+ "reference": [
+  {
+   "hex": "E4956F",
+   "flight": "GLO1792",
+   "km": 13.2,
+   "on_ground": false,
+   "alt_ft": 11951
+  },
+  {
+   "hex": "E49220",
+   "flight": "TAM3004",
+   "km": 13.5,
+   "on_ground": false,
+   "alt_ft": 4125
+  },
+  {
+   "hex": "E491AE",
+   "flight": "TAM4648",
+   "km": 17.1,
+   "on_ground": true,
+   "alt_ft": 0
+  },
+  {
+   "hex": "E49F3C",
+   "flight": "PRMRE",
+   "km": 17.6,
+   "on_ground": true,
+   "alt_ft": 0
+  },
+  {
+   "hex": "E48E07",
+   "flight": "PPMPB",
+   "km": 17.7,
+   "on_ground": true,
+   "alt_ft": 0
+  },
+  {
+   "hex": "E49EEC",
+   "flight": "GLO7748",
+   "km": 18.9,
+   "on_ground": false,
+   "alt_ft": 4100
+  },
+  {
+   "hex": "C02EC7",
+   "flight": "ACA84",
+   "km": 37.0,
+   "on_ground": false,
+   "alt_ft": 39002
+  }
+ ],
+ "verdict": [
+  "APROVADA",
+  "3 aeronave(s) com posição, a até 62 km"
+ ]
+}

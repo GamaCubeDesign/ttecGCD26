@@ -1,0 +1,15 @@
+sdr_check · antena gama · 2026-11-20T10:22:13 · 30 s · ganho 49.6 dB
+  /usr/bin/dump1090 · receptor em -15.99, -48.04
+  ruído -42.6 dBFS · sinal médio None dBFS · pico None dBFS · amostras descartadas 0
+  mensagens com CRC certo 0 · úteis 2 · posições 0 · preâmbulos 425618 · Mode A/C 2
+  aeronaves ouvidas: 0 (com posição: 0)
+  referência (OpenSky, até 150 km): 8 aeronave(s)
+    E4956F GLO1792    17.1 km  no solo
+    E48C2F GLO1742    17.5 km  7550 ft
+    E486C1 TAM4738    20.0 km  4325 ft
+    E49F3C PRMRE      22.6 km  4025 ft
+    E4A60A            34.6 km  3975 ft
+    E48F04 GLO1622    35.7 km  9850 ft
+    E49EEB GLO1407    43.0 km  15676 ft
+    E49D7D            52.7 km  16351 ft
+  VEREDITO: REPROVADA — nenhuma mensagem, mas a OpenSky via 7 aeronave(s) no ar a até 100 km (a mais próxima a 18 km): confira a antena, o cabo e o conector

@@ -1,0 +1,96 @@
+{
+ "antenna": "gama",
+ "started": "2026-11-20T10:15:44",
+ "secs": 120,
+ "gain": 49.6,
+ "dump1090": "/usr/bin/dump1090",
+ "receiver": [
+  -15.99,
+  -48.04
+ ],
+ "stats": {
+  "samples_processed": 208142336,
+  "samples_dropped": 0,
+  "modeac": 313,
+  "preambles": 869157,
+  "bad": 3377228,
+  "unknown_icao": 403150,
+  "accepted": 0,
+  "noise_dbfs": -41.7,
+  "strong": 0,
+  "usable": 313,
+  "airborne_positions": 0,
+  "tracks": 0,
+  "blocks": 5
+ },
+ "aircraft": [],
+ "reference": [
+  {
+   "hex": "E4956F",
+   "flight": "GLO1792",
+   "km": 9.6,
+   "on_ground": false,
+   "alt_ft": 7700
+  },
+  {
+   "hex": "E49EEB",
+   "flight": "",
+   "km": 17.1,
+   "on_ground": true,
+   "alt_ft": 0
+  },
+  {
+   "hex": "E48F04",
+   "flight": "GLO1622",
+   "km": 17.1,
+   "on_ground": false,
+   "alt_ft": 0
+  },
+  {
+   "hex": "E49220",
+   "flight": "TAM3004",
+   "km": 17.1,
+   "on_ground": true,
+   "alt_ft": 0
+  },
+  {
+   "hex": "E49F3C",
+   "flight": "PRMRE",
+   "km": 18.4,
+   "on_ground": true,
+   "alt_ft": 0
+  },
+  {
+   "hex": "E49D7D",
+   "flight": "PSJGU",
+   "km": 20.8,
+   "on_ground": false,
+   "alt_ft": 8775
+  },
+  {
+   "hex": "E4A60A",
+   "flight": "",
+   "km": 28.4,
+   "on_ground": false,
+   "alt_ft": 4150
+  },
+  {
+   "hex": "E49EEC",
+   "flight": "GLO7748",
+   "km": 51.0,
+   "on_ground": false,
+   "alt_ft": 13576
+  },
+  {
+   "hex": "C02EC7",
+   "flight": "ACA84",
+   "km": 72.6,
+   "on_ground": false,
+   "alt_ft": 38977
+  }
+ ],
+ "verdict": [
+  "REPROVADA",
+  "nenhuma mensagem, mas a OpenSky via 6 aeronave(s) no ar a até 100 km (a mais próxima a 10 km): confira a antena, o cabo e o conector"
+ ]
+}

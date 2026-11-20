@@ -1,0 +1,73 @@
+{
+ "antenna": "gama",
+ "started": "2026-11-20T10:28:37",
+ "secs": 60,
+ "gain": 49.6,
+ "dump1090": "/usr/bin/dump1090",
+ "receiver": [
+  -15.99,
+  -48.04
+ ],
+ "stats": {
+  "samples_processed": 262668288,
+  "samples_dropped": 0,
+  "modeac": 30,
+  "preambles": 1354920,
+  "bad": 5324467,
+  "unknown_icao": 619288,
+  "accepted": 141,
+  "noise_dbfs": -41.5,
+  "signal_dbfs": -28.8,
+  "peak_dbfs": -23.4,
+  "strong": 0,
+  "usable": 171,
+  "airborne_positions": 44,
+  "tracks": 4,
+  "blocks": 6
+ },
+ "aircraft": [
+  {
+   "hex": "e490f0",
+   "flight": "",
+   "messages": 58,
+   "rssi_max": -26.1,
+   "position": true,
+   "max_km": 24.8
+  },
+  {
+   "hex": "e486c1",
+   "flight": "TAM4738",
+   "messages": 13,
+   "rssi_max": -30.7,
+   "position": true,
+   "max_km": 74.1
+  }
+ ],
+ "reference": [
+  {
+   "hex": "E4A580",
+   "flight": "PPVEV",
+   "km": 18.3,
+   "on_ground": true,
+   "alt_ft": 0
+  },
+  {
+   "hex": "E49F09",
+   "flight": "PATRUL31",
+   "km": 18.8,
+   "on_ground": false,
+   "alt_ft": 3325
+  },
+  {
+   "hex": "E486C1",
+   "flight": "TAM4738",
+   "km": 33.0,
+   "on_ground": false,
+   "alt_ft": 12001
+  }
+ ],
+ "verdict": [
+  "APROVADA",
+  "2 aeronave(s) com posição, a até 74 km"
+ ]
+}

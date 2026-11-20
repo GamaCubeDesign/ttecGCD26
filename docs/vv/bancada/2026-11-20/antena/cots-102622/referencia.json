@@ -1,0 +1,30 @@
+[
+ {
+  "hex": "E4A580",
+  "flight": "PPVEV",
+  "km": 18.1,
+  "on_ground": true,
+  "alt_ft": 0
+ },
+ {
+  "hex": "E49F09",
+  "flight": "PATRUL31",
+  "km": 18.8,
+  "on_ground": false,
+  "alt_ft": 3325
+ },
+ {
+  "hex": "E486C1",
+  "flight": "TAM4738",
+  "km": 33.0,
+  "on_ground": false,
+  "alt_ft": 12001
+ },
+ {
+  "hex": "E4A60A",
+  "flight": "",
+  "km": 34.6,
+  "on_ground": false,
+  "alt_ft": 3975
+ }
+]

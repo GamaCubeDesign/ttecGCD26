@@ -1,0 +1,13 @@
+sdr_check · antena cots · 2026-11-20T10:26:22 · 60 s · ganho 49.6 dB
+  /usr/bin/dump1090 · receptor em -15.99, -48.04
+  ruído -37.3 dBFS · sinal médio -22.0 dBFS · pico -10.3 dBFS · amostras descartadas 0
+  mensagens com CRC certo 472 · úteis 3482 · posições 151 · preâmbulos 1929488 · Mode A/C 3010
+  aeronaves ouvidas: 2 (com posição: 2)
+    e486c1 TAM4738    136 mensagens, RSSI -22.3 dBFS, posição a até 50.6 km
+    e490f0 TAM3432     97 mensagens, RSSI -16.9 dBFS, posição a até 16.4 km
+  referência (OpenSky, até 150 km): 4 aeronave(s)
+    E4A580 PPVEV      18.1 km  no solo
+    E49F09 PATRUL31   18.8 km  3325 ft
+    E486C1 TAM4738    33.0 km  12001 ft
+    E4A60A            34.6 km  3975 ft
+  VEREDITO: APROVADA — 2 aeronave(s) com posição, a até 51 km

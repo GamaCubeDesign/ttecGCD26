@@ -1,0 +1,58 @@
+[
+ {
+  "hex": "E4956F",
+  "flight": "GLO1792",
+  "km": 17.1,
+  "on_ground": true,
+  "alt_ft": 0
+ },
+ {
+  "hex": "E48C2F",
+  "flight": "GLO1742",
+  "km": 17.5,
+  "on_ground": false,
+  "alt_ft": 7550
+ },
+ {
+  "hex": "E486C1",
+  "flight": "TAM4738",
+  "km": 20.0,
+  "on_ground": false,
+  "alt_ft": 4325
+ },
+ {
+  "hex": "E49F3C",
+  "flight": "PRMRE",
+  "km": 22.6,
+  "on_ground": false,
+  "alt_ft": 4025
+ },
+ {
+  "hex": "E4A60A",
+  "flight": "",
+  "km": 34.6,
+  "on_ground": false,
+  "alt_ft": 3975
+ },
+ {
+  "hex": "E48F04",
+  "flight": "GLO1622",
+  "km": 35.7,
+  "on_ground": false,
+  "alt_ft": 9850
+ },
+ {
+  "hex": "E49EEB",
+  "flight": "GLO1407",
+  "km": 43.0,
+  "on_ground": false,
+  "alt_ft": 15676
+ },
+ {
+  "hex": "E49D7D",
+  "flight": "",
+  "km": 52.7,
+  "on_ground": false,
+  "alt_ft": 16351
+ }
+]

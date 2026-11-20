@@ -1,0 +1,72 @@
+{
+ "antenna": "gama",
+ "started": "2026-11-20T10:32:27",
+ "secs": 60,
+ "gain": 49.6,
+ "dump1090": "/usr/bin/dump1090",
+ "receiver": [
+  -15.99,
+  -48.04
+ ],
+ "stats": {
+  "samples_processed": 262668288,
+  "samples_dropped": 0,
+  "modeac": 87,
+  "preambles": 1079020,
+  "bad": 4191278,
+  "unknown_icao": 500883,
+  "accepted": 12,
+  "noise_dbfs": -42.2,
+  "signal_dbfs": -32.5,
+  "peak_dbfs": -31.2,
+  "strong": 0,
+  "usable": 99,
+  "airborne_positions": 2,
+  "tracks": 2,
+  "blocks": 6
+ },
+ "aircraft": [
+  {
+   "hex": "e490f0",
+   "flight": "",
+   "messages": 6,
+   "rssi_max": -33.4,
+   "position": true,
+   "max_km": 55.5
+  }
+ ],
+ "reference": [
+  {
+   "hex": "E49F09",
+   "flight": "PATRUL31",
+   "km": 17.6,
+   "on_ground": true,
+   "alt_ft": 0
+  },
+  {
+   "hex": "E4A580",
+   "flight": "PPVEV",
+   "km": 18.3,
+   "on_ground": true,
+   "alt_ft": 0
+  },
+  {
+   "hex": "E495DE",
+   "flight": "",
+   "km": 18.4,
+   "on_ground": false,
+   "alt_ft": 3450
+  },
+  {
+   "hex": "E490F0",
+   "flight": "TAM3432",
+   "km": 18.8,
+   "on_ground": false,
+   "alt_ft": 3775
+  }
+ ],
+ "verdict": [
+  "APROVADA",
+  "1 aeronave(s) com posição, a até 56 km"
+ ]
+}

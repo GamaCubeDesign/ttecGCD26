@@ -1,0 +1,17 @@
+sdr_check · antena cots · 2026-11-20T10:11:05 · 60 s · ganho 49.6 dB
+  /usr/bin/dump1090 · receptor em -15.99, -48.04
+  ruído -39.4 dBFS · sinal médio -19.2 dBFS · pico -7.5 dBFS · amostras descartadas 0
+  mensagens com CRC certo 763 · úteis 3843 · posições 217 · preâmbulos 1680007 · Mode A/C 3080
+  aeronaves ouvidas: 3 (com posição: 3)
+    e4956f GLO1792    224 mensagens, RSSI -12.6 dBFS, posição a até 6.4 km
+    c02ec7 ACA84       98 mensagens, RSSI -25.7 dBFS, posição a até 62.5 km
+    e48c2f GLO1742     64 mensagens, RSSI -26.7 dBFS, posição a até 20.6 km
+  referência (OpenSky, até 150 km): 7 aeronave(s)
+    E4956F GLO1792    13.2 km  11951 ft
+    E49220 TAM3004    13.5 km  4125 ft
+    E491AE TAM4648    17.1 km  no solo
+    E49F3C PRMRE      17.6 km  no solo
+    E48E07 PPMPB      17.7 km  no solo
+    E49EEC GLO7748    18.9 km  4100 ft
+    C02EC7 ACA84      37.0 km  39002 ft
+  VEREDITO: APROVADA — 3 aeronave(s) com posição, a até 62 km

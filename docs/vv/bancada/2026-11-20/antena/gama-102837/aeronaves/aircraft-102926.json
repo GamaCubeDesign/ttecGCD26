@@ -1,0 +1,1 @@
+{"now": 1795181362.3, "messages": 39, "aircraft": [{"hex": "e490f0", "alt_baro": 11625, "alt_geom": 12275, "gs": 357.1, "track": 217.8, "geom_rate": 2304, "lat": -16.192125, "lon": -48.044047, "nic": 8, "rc": 186, "seen_pos": 0.5, "version": 0, "nac_p": 8, "nac_v": 0, "sil": 2, "sil_type": "unknown", "mlat": [], "tisb": [], "messages": 34, "seen": 0.2, "rssi": -27.2}]}

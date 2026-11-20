@@ -1,0 +1,12 @@
+sdr_check · antena gama · 2026-11-20T10:28:37 · 60 s · ganho 49.6 dB
+  /usr/bin/dump1090 · receptor em -15.99, -48.04
+  ruído -41.5 dBFS · sinal médio -28.8 dBFS · pico -23.4 dBFS · amostras descartadas 0
+  mensagens com CRC certo 141 · úteis 171 · posições 44 · preâmbulos 1354920 · Mode A/C 30
+  aeronaves ouvidas: 2 (com posição: 2)
+    e490f0             58 mensagens, RSSI -26.1 dBFS, posição a até 24.8 km
+    e486c1 TAM4738     13 mensagens, RSSI -30.7 dBFS, posição a até 74.1 km
+  referência (OpenSky, até 150 km): 3 aeronave(s)
+    E4A580 PPVEV      18.3 km  no solo
+    E49F09 PATRUL31   18.8 km  3325 ft
+    E486C1 TAM4738    33.0 km  12001 ft
+  VEREDITO: APROVADA — 2 aeronave(s) com posição, a até 74 km
