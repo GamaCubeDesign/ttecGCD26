@@ -9,7 +9,7 @@ import { serverNow } from '../state.js';
 import { latestRun, ack, step, after } from '../runs.js';
 import { AdsbMap } from '../map.js';
 
-const MISSION_S = 600;      // obcd's adsb_timeout (OBC-6)
+const MISSION_S = 600;      // obcd's adsb_timeout (OBC-6), unless gs_web.py says otherwise
 const POLL_MS = 2000;
 
 let view = { revision: 0, aircraft: [], airports: {} };
@@ -62,7 +62,8 @@ function drawMission(state) {
   const el = document.getElementById('adsb-timer');
   if (running) {
     const gone = serverNow() - run.entered;
-    el.innerHTML = `<span class="timer">${esc(fmtClock(MISSION_S - gone))}</span>
+    const total = (st && st.mission_s) || MISSION_S;      // gs_web.py --mission-s
+    el.innerHTML = `<span class="timer">${esc(fmtClock(Math.max(0, total - gone)))}</span>
       <span class="muted"> ${esc(t('remaining'))} · ${esc(fmtClock(gone))} ${esc(t('elapsed'))}</span>`;
   } else {
     el.textContent = '';

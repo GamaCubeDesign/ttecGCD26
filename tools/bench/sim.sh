@@ -13,7 +13,8 @@
 # MISSION_ADSB starts the capture again from its beginning: adsbd connects to
 # the replay when the mode starts it (ADR-0014), and the replay serves one
 # connection, so it is started again for the next one. obcd ends the mission
-# after its own adsb_timeout (600 s, OBC-6), as in flight.
+# after its own adsb_timeout (600 s, OBC-6), as in flight; MISSION_S=<s>
+# shortens it, and tells the page the same.
 #
 # INPUT is an NDJSON file (tools/live_traffic, the onboard record, or the
 # ground's simulator) or an SBS capture (*.sbs). OUT_DIR receives every
@@ -36,6 +37,8 @@ sbs_port=${SBS_PORT:-31013}
 sat_port=${SAT_PORT:-47011}
 gnd_port=${GND_PORT:-47012}
 avr_port=${AVR_PORT:-31012}
+mission_s=${MISSION_S:-600}
+[[ $mission_s =~ ^[0-9]+$ && $mission_s -gt 0 ]] || { echo "sim: MISSION_S must be a positive number of seconds" >&2; exit 1; }
 
 for b in ttcd adsbd obcd; do
     [[ -x $build/flight/$b ]] || { echo "sim: $build/flight/$b is missing; run make first" >&2; exit 1; }
@@ -94,12 +97,13 @@ pids+=($!)
 pids+=($!)
 
 "$build"/flight/obcd -c flight/obcd/obcd.conf.example -o ipc_path="$sock" \
-    -o log_path="$out/obcd.jsonl" -o i2c_dev= -o w1_path= \
+    -o log_path="$out/obcd.jsonl" -o adsb_timeout_ms=$(( mission_s * 1000 )) -o i2c_dev= -o w1_path= \
     -o burnwire_line=none -o heater_line=none &
 pids+=($!)
 
 echo "sim: $input — logs in $out"
 "$python" ground/host/gs_web.py --host "$web_host" --port "$web_port" --adsb "${pairs[@]}" \
+    --mission-s "$mission_s" \
     --session-dir "$out/sessions" \
     --exec "$build"/tools/gs_cli/gs_cli --radio udp --port "$gnd_port" --peer-port "$sat_port" \
         --auto-time on &

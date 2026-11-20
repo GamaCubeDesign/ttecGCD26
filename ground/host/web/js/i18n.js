@@ -24,7 +24,7 @@ const T = {
     s_sent: 'Comando enviado', s_time: 'Hora sincronizada (SET_TIME)', s_mode: 'Modo aceito (SET_MODE)',
     s_entered: 'OBC no modo', s_dump: 'Decodificador ligado', s_tracks: 'Primeiros retratos', s_end: 'Fim da missão e downlink',
     s_back: 'De volta a PRE_TEST', s_burn: 'Burn-wire acionado (5 s)',
-    adsb_lead: 'Um clique: a ground manda a hora, espera o ACK e só então pede MISSION_ADSB (ADR-0020). O OBC encerra a missão sozinho em 10 min e passa ao downlink.',
+    adsb_lead: 'Um clique: a ground manda a hora, espera o ACK e só então pede MISSION_ADSB (ADR-0020). O OBC encerra a missão sozinho no fim do tempo dela (10 min em voo; menos na bancada, com MISSION_S) e passa ao downlink.',
     start_adsb: 'Iniciar missão ADS-B', end_adsb: 'Encerrar agora (downlink)', mission: 'Missão', elapsed: 'decorrido', remaining: 'restante',
     stats: 'Estatísticas', aircraft: 'Aeronaves', messages: 'Mensagens', p95: 'Latência p95', snap_recs: 'No último retrato',
     est_proc: 'Estimador', processed: 'processadas', rejected: 'rejeitadas', repeats: 'repetidas',

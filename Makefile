@@ -193,16 +193,21 @@ bench-gs: build ## By hand, terminal 2: gs_cli on radio B, commands typed in; qu
 # the ESP32 on ESP32_PORT by default, gs_cli on the UDP radio with UDP=1, or a
 # recorded ground log with REPLAY=<file.jsonl> (SPEED=10 plays it faster).
 # POWER is the ground's dBm, as in the bench; WEB_HOST=0.0.0.0 opens the page
-# to the network (there is no password).
+# to the network (there is no password). ADSB=1 processes the aircraft as they
+# arrive (the ADS-B tab's map and estimates). MISSION_S is MISSION_ADSB's
+# length in seconds, 600 in flight (OBC-6): the page counts down from it, and
+# a shorter bench mission (make mission-sat MISSION_S=120) tells it the same.
 WEB_HOST   ?= 127.0.0.1
 WEB_PORT   ?= 8080
 SPEED      ?= 1
-GS_WEB      = $(PYTHON) ground/host/gs_web.py --host $(WEB_HOST) --port $(WEB_PORT) \
+MISSION_S  ?= 600
+GS_WEB      = $(PYTHON) ground/host/gs_web.py --host $(WEB_HOST) --port $(WEB_PORT) --mission-s $(MISSION_S) \
+              $(if $(ADSB),--adsb) \
               $(if $(REPLAY),--replay '$(REPLAY)' --speed $(SPEED),$(if $(UDP),--udp,--serial $(ESP32_PORT) --power $(POWER)))
 
 .PHONY: gs-web
 
-gs-web: $(if $(UDP),build) ## The ground's browser page: ESP32_PORT=/dev/ttyUSB0, or UDP=1, or REPLAY=<log>
+gs-web: $(if $(UDP),build) ## The ground's browser page: ESP32_PORT=/dev/ttyUSB0, or UDP=1, or REPLAY=<log>; ADSB=1, MISSION_S=600
 	@echo "gs-web: open http://$(WEB_HOST):$(WEB_PORT)"
 	$(GS_WEB)
 
@@ -243,8 +248,37 @@ SIM_DIR    ?= $(BUILD_DIR)/sim
 sim: build ## The satellite on this PC, operated from the ground's page: INPUT=<ndjson|.sbs>
 	@test -f '$(INPUT)' || { echo "sim: name the traffic with INPUT=<ndjson or .sbs file>" >&2; exit 1; }
 	@echo "sim: open http://$(WEB_HOST):$(WEB_PORT)"
-	BUILD_DIR=$(BUILD_DIR) PYTHON=$(PYTHON) WEB_HOST=$(WEB_HOST) WEB_PORT=$(WEB_PORT) \
+	BUILD_DIR=$(BUILD_DIR) PYTHON=$(PYTHON) WEB_HOST=$(WEB_HOST) WEB_PORT=$(WEB_PORT) MISSION_S=$(MISSION_S) \
 	    tools/bench/sim.sh '$(INPUT)' $(SIM_DIR)/$(BENCH_DATE)-$(BENCH_TIME)
+
+##@ ADS-B mission on the bench Pi — operated from the ground's page
+
+# The satellite on the Pi for a mission driven from the page on the PC
+# (tools/bench/pi_mission.sh): ttcd on radio A, obcd, adsbd, with the
+# installed /etc/gama configurations. INPUT plays a capture as dump1090
+# (empty: the real SDR); MISSION_S shortens MISSION_ADSB (obcd's
+# adsb_timeout_ms); AVR=1 adds the category port; TX_POWER is radio A's dBm.
+# The logs go to the day's bench folder, which make pi-fetch brings back.
+# On the PC, the page with the same length: make gs-web ADSB=1 MISSION_S=...
+TX_POWER   ?= 2
+MISSION_DIR = docs/vv/bancada/$(BENCH_DATE)/missao-$(BENCH_TIME)
+# pi-sync leaves *.ndjson behind: pi-mission copies INPUT to this path.
+PI_INPUT    = /tmp/gama-mission$(suffix $(INPUT))
+
+.PHONY: mission-sat pi-mission
+
+mission-sat: build ## On the Pi: the satellite for a mission from the page; MISSION_S=120, INPUT=<capture> (empty: the SDR)
+	$(need-pi)
+	BUILD_DIR=$(BUILD_DIR) PYTHON=$(PYTHON) MISSION_S=$(MISSION_S) INPUT='$(INPUT)' AVR=$(AVR) TX_POWER=$(TX_POWER) \
+	    tools/bench/pi_mission.sh $(MISSION_DIR)
+
+pi-mission: pi-sync ## From the PC: copy INPUT to the Pi, run mission-sat there (Ctrl-C stops it), bring the logs back
+	$(if $(INPUT),@test -f '$(INPUT)' || { echo "pi-mission: no $(INPUT)" >&2; exit 1; })
+	$(if $(INPUT),scp -q '$(INPUT)' $(PI_HOST):$(PI_INPUT))
+	status=0; \
+	ssh -t $(PI_HOST) 'make -C $(PI_DIR) mission-sat MISSION_S=$(MISSION_S) TX_POWER=$(TX_POWER) AVR=$(AVR) $(if $(INPUT),INPUT=$(PI_INPUT))' || status=$$?; \
+	$(FETCH) || true; \
+	exit $$status
 
 ##@ SDR and antenna — the 1090 MHz receiver alone, on the PC or the Pi
 
@@ -390,6 +424,37 @@ obcd-status: ## systemd's view of obcd, and the end of its log
 	$(need-pi)
 	systemctl status obcd --no-pager || true
 	tail -n 20 $(OBCD_LOG)
+
+##@ Bench network — the PC's Wi-Fi as the Pi's access point
+
+# The PC's NetworkManager connection bancada-ap (created once, in
+# docs/vv/bancada/README.md) turns its Wi-Fi into the access point
+# gama-bancada and shares the cable's internet; the Pi knows that network
+# with priority 20. net-up waits until the Pi answers over ssh (~40 s
+# after it boots).
+AP_CON     ?= bancada-ap
+NET_WAIT   ?= 90
+
+.PHONY: net-up net-down net-check
+
+net-up: ## Bring the bench network up and wait for the Pi (PI_HOST) to answer
+	$(need-pi-host)
+	nmcli con up $(AP_CON)
+	@echo "net-up: waiting up to $(NET_WAIT) s for $(PI_HOST)..."
+	@for i in $$(seq 1 $$(( $(NET_WAIT) / 3 ))); do \
+	    if ssh -o BatchMode=yes -o ConnectTimeout=3 $(PI_HOST) true 2>/dev/null; then \
+	        echo "net-up: $(PI_HOST) answers: $$(ssh $(PI_HOST) hostname -I)"; exit 0; fi; \
+	    sleep 3; \
+	done; \
+	echo "net-up: $(PI_HOST) did not answer; is it on? did it join the phone's hotspot instead? (make net-check)" >&2; exit 1
+
+net-check: ## The network as seen from both ends: the PC's devices, the Pi's address and its internet
+	$(need-pi-host)
+	nmcli -f DEVICE,TYPE,STATE,CONNECTION device status
+	ssh -o ConnectTimeout=5 $(PI_HOST) 'hostname -I; curl -sI --max-time 5 https://deb.debian.org | head -1 || echo "no internet on the Pi"'
+
+net-down: ## Take the bench network down (the Wi-Fi goes back to normal)
+	nmcli con down $(AP_CON)
 
 ##@ From the PC — the same targets, run on the Pi over ssh
 

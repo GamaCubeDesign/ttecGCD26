@@ -299,8 +299,12 @@ class Hub:
     PUSH_MIN_S = 0.5
     IDLE_PUSH_S = 2.0       # the ADS-B counters move on their own
 
-    def __init__(self, state, source, pipeline=None):
+    def __init__(self, state, source, pipeline=None, mission_s=600):
         self.pipeline = pipeline
+        # How long obcd's MISSION_ADSB lasts (its adsb_timeout_ms, OBC-6): the
+        # page counts down from it. 600 s in flight; a bench run may be
+        # shorter, and then both sides are told the same number.
+        self.mission_s = mission_s
         self.state = state
         self.source = source
         self.lock = threading.Lock()
@@ -332,6 +336,7 @@ class Hub:
 
     def _snapshot(self, since=None):
         result = self.state.snapshot(since)
+        result["mission_s"] = self.mission_s
         if self.pipeline:
             result["adsb"] = self.pipeline.snapshot()
         return result
@@ -634,6 +639,8 @@ def main(argv=None):
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8080)
     ap.add_argument("--adsb", action="store_true", help="process received aircraft continuously")
+    ap.add_argument("--mission-s", type=int, default=600,
+                    help="MISSION_ADSB's length, s: obcd's adsb_timeout_ms / 1000 (600 in flight)")
     ap.add_argument("--session-dir", type=Path, default=Path(HERE)/"sessions")
     from adsb.estimator.config import Config, add_pair_arguments, pair_options
     ap.add_argument("--reference-db", type=Path, default=Config().reference_db)
@@ -655,7 +662,9 @@ def main(argv=None):
             ap.exit(1, f"ADS-B startup failed: {exc}\n")
 
     source, name = build_source(args)
-    hub = Hub(GsState(source=name), source, pipeline)
+    if args.mission_s <= 0:
+        ap.error("--mission-s must be positive")
+    hub = Hub(GsState(source=name), source, pipeline, mission_s=args.mission_s)
     server = None
     def interrupt(signum, frame):
         raise KeyboardInterrupt

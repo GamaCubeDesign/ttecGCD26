@@ -194,6 +194,14 @@ class TestHub(unittest.TestCase):
         texts = [e["text"] for m in msgs for e in m["log"]]
         self.assertEqual(texts, ["line %d" % i for i in range(200)])
 
+    def test_the_page_is_told_how_long_the_mission_lasts(self):
+        hub = gs_web.Hub(gs_web.GsState(), source=None)
+        self.addCleanup(hub.close)
+        self.assertEqual(hub.snapshot()["mission_s"], 600)       # the flight's adsb_timeout
+        short = gs_web.Hub(gs_web.GsState(), source=None, mission_s=120)
+        self.addCleanup(short.close)
+        self.assertEqual(short.snapshot()["mission_s"], 120)
+
 
 FAKE_GROUND = textwrap.dedent("""
     import json, sys
