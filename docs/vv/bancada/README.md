@@ -19,10 +19,47 @@ Uma pasta por dia de bancada, `AAAA-MM-DD/`, com:
 | `HHMMSS-toa.txt` | tempo no ar medido × modelo (passo 2) |
 | `ganho.txt`, `cpu.txt` | varredura de ganho e CPU do `dump1090` (etapa 5) |
 | `adsb.ndjson`, `adsbd.jsonl`, `manual-*.jsonl` | `adsbd` com o SDR e a cadeia completa (etapas 6 e 7) |
+| `antena/<antena>-HHMMSS/` | `make sdr-check`: a antena de 1090 MHz no SDR, sem o satélite (abaixo) |
 
 Os logs são gravados na Pi, em `~/ttec/docs/vv/bancada/`, e chegam aqui com
 `make pi-fetch` (os alvos `make pi-bench-…` já fazem isso no fim). O
 `make pi-sync` nunca toca nesta pasta na Pi, então os logs de lá não se perdem.
+
+## Teste da antena de 1090 MHz (`make sdr-check`)
+
+Responde uma pergunta só: **a antena entrega aeronaves ao SDR?** Roda no PC ou na
+Pi, sem satélite e sem o `adsbd` (na Pi, `make pi-adsbd-stop` antes, para liberar o
+SDR).
+
+```bash
+make sdr-check ANTENNA=cots               # 60 s com a antena COTS
+make sdr-check ANTENNA=gama SDR_SECS=120  # a nossa, por 2 min
+make sdr-compare                          # todas as medições lado a lado
+```
+
+1. **A referência:** com internet, as aeronaves que a OpenSky vê num raio de
+   150 km do receptor naquele momento. Sem internet, o teste roda igual e o
+   veredito diz que não houve referência.
+2. **O `dump1090`** por `SDR_SECS` segundos, ganho máximo (49,6 dB), Mode A/C ligado.
+3. **O veredito**, pelo que prova a antena: mensagens com CRC certo e aeronaves com
+   posição.
+
+| Veredito | Quando |
+|---|---|
+| **APROVADA** | pelo menos uma aeronave com posição; o resumo diz o alcance |
+| **RECEBE** | mensagens com CRC certo, mas nenhuma posição: repetir por mais tempo ou num lugar mais aberto |
+| **REPROVADA** | nenhuma mensagem, com a OpenSky vendo uma aeronave no ar a até 100 km: antena, cabo ou conector |
+| **INCONCLUSIVO** | nenhuma mensagem, e nenhuma aeronave perto na referência, ou sem referência |
+
+Os preâmbulos e as respostas Mode A/C **não** contam como prova: com ganho máximo,
+o ruído do próprio receptor gera preâmbulos falsos (em 18/11, 159 025 preâmbulos
+para 18 mensagens com CRC certo em 10 s). Não há medida com a antena retirada: uma
+entrada sem carga não é uma referência confiável.
+
+Tudo fica em `AAAA-MM-DD/antena/<antena>-HHMMSS/`: `resumo.txt` e `resumo.json`,
+a referência (`referencia.json`), as aeronaves a cada 5 s (`aeronaves/`) e a saída
+do `dump1090` compactada (`dump1090.txt.gz`). As distâncias supõem o receptor na FGA
+(−15,99, −48,04); em outro lugar, `SDR_OPTS="--lat … --lon …"`.
 
 ## Progresso
 

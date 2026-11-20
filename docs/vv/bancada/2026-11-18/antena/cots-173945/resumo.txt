@@ -1,0 +1,12 @@
+sdr_check · antena cots · 2026-11-18T17:39:45 · 60 s · ganho 49.6 dB
+  /usr/bin/dump1090 · receptor em -15.99, -48.04
+  ruído -39.0 dBFS · sinal médio -24.6 dBFS · pico -18.1 dBFS · amostras descartadas 0
+  mensagens com CRC certo 299 · úteis 2456 · posições 81 · preâmbulos 740259 · Mode A/C 2157
+  aeronaves ouvidas: 4 (com posição: 3)
+    e4a54f GLO1458    223 mensagens, RSSI -21.5 dBFS, posição a até 117.6 km
+    e49f0a PSFGH       55 mensagens, RSSI -26.5 dBFS, posição a até 56.5 km
+    e48011 TAM3015     21 mensagens, RSSI -28.8 dBFS, posição a até 87.0 km
+    a37b10              3 mensagens, RSSI -33.5 dBFS
+  referência: sem resposta da OpenSky (sem internet?)
+  VEREDITO: APROVADA — 3 aeronave(s) com posição, a até 118 km
+  nota: rodado com o script provisório ~/teste-antena.sh (PC, ao ar livre, sem internet) e trazido para o formato do sdr_check.py; a referência da OpenSky foi consultada às 17h30, 9 min antes: referencia-1730-opensky.json

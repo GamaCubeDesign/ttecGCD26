@@ -31,7 +31,7 @@ proposing anything that moves bytes over the radio, check it against
 | `ground/host/` | Serial bridge to the ESP32 ground, also the operator CLI (`gs_serial.py`); the ground's ADS-B in `adsb/`: the downlink → estimator adapter (`adsb/tracks_to_ndjson.py`), the live pipeline (`adsb/pipeline.py`), the origin/destination estimator and dashboard (`adsb/estimator/`, package `adsb.estimator`, a teammate's project, merged 2026-09-28), the airport DB and the route pairs (`adsb/data/`), validation (`adsb/validation/`); tests in `tests/` (reorganised 2026-11-18, old → new paths in its README); the ground station's central page — the satellite always in view, one tab per evaluated test (ADS-B, deployment, AOCS, survival), the AOCS team's page in a slot (`web/aocs/`), in the Gama visual identity (`gs_web.py` + `web/`, `make gs-web`, `make sim`) | PC, Python |
 | `tools/analysis/` | Budget calculator (`lora_budget.py`), time-on-air from logs (`toa_from_log.py`), requirement quote check, downlink emulation over full captures (`downlink_emulation.py`), the flight configuration checked wire by wire against the boards' layouts (`board_check.py`, also in CTest), what the ground's page costs the PC (`gs_web_load.py`) | PC |
 | `tools/gs_cli/` | Bench ground station: the ground console on a second RA-02 or the UDP radio | Pi / PC |
-| `tools/bench/` | Bench procedure: one `gs_cli` command script per step, and `run_step.sh`, which starts `ttcd` afresh for each; `adsb_chain.sh`; `sim.sh` (`make sim`): the whole satellite on the PC, driven from the ground's page | Pi / PC |
+| `tools/bench/` | Bench procedure: one `gs_cli` command script per step, and `run_step.sh`, which starts `ttcd` afresh for each; `adsb_chain.sh`; `sim.sh` (`make sim`): the whole satellite on the PC, driven from the ground's page; `sdr_check.py` (`make sdr-check`): the 1090 MHz antenna on the SDR alone, against the OpenSky's view, logs in `docs/vv/bancada/<date>/antena/` | Pi / PC |
 | `tools/ci/` | `check_debian.sh`: `make check` on Debian 13 with the Pi's GCC 14, run by the CI (`.github/workflows/check.yml`) and by `make check-debian` | PC / CI |
 | `tools/sbs_replay/` | Plays dump1090: serves SBS lines from a capture or a simulation, so `adsbd` runs without an SDR | Pi / PC |
 | `tools/live_traffic/` | Real air traffic from adsb.lol (with the emitter category) around a point — UNSAM by default — in the onboard record's format, and a truth of origin and destination from OpenSky tracks; `avaliar.sh` scores the ground's estimator against it | PC |
@@ -220,7 +220,7 @@ risks. As of 2026-11-05:
   the radio bench split between the Pi and the PC (`make bench SPLIT=1`);
   since 2026-11-17 real traffic with a truth (`tools/live_traffic`), the
   satellite on the PC behind the page (`make sim`), and the ground's central
-  page (`ground/host/web`). 46 CTest suites (45 where Node is missing, as in
+  page (`ground/host/web`). 48 CTest suites (47 where Node is missing, as in
   the CI), zero warnings, clean under ASan and UBSan, and under
   ThreadSanitizer for `obcd`'s integration test. **Most of this has not run
   on the bench yet**: the script is

@@ -1,0 +1,68 @@
+{
+ "antenna": "cots",
+ "started": "2026-11-18T17:39:45",
+ "secs": 60,
+ "gain": 49.6,
+ "dump1090": "/usr/bin/dump1090",
+ "receiver": [
+  -15.99,
+  -48.04
+ ],
+ "stats": {
+  "samples_processed": 120193024,
+  "samples_dropped": 0,
+  "modeac": 2157,
+  "preambles": 740259,
+  "bad": 2942936,
+  "unknown_icao": 328506,
+  "accepted": 299,
+  "noise_dbfs": -39.0,
+  "signal_dbfs": -24.6,
+  "peak_dbfs": -18.1,
+  "strong": 0,
+  "usable": 2456,
+  "airborne_positions": 81,
+  "tracks": 5,
+  "blocks": 5
+ },
+ "aircraft": [
+  {
+   "hex": "e4a54f",
+   "flight": "GLO1458",
+   "messages": 223,
+   "rssi_max": -21.5,
+   "position": true,
+   "max_km": 117.6
+  },
+  {
+   "hex": "e49f0a",
+   "flight": "PSFGH",
+   "messages": 55,
+   "rssi_max": -26.5,
+   "position": true,
+   "max_km": 56.5
+  },
+  {
+   "hex": "e48011",
+   "flight": "TAM3015",
+   "messages": 21,
+   "rssi_max": -28.8,
+   "position": true,
+   "max_km": 87.0
+  },
+  {
+   "hex": "a37b10",
+   "flight": "",
+   "messages": 3,
+   "rssi_max": -33.5,
+   "position": false,
+   "max_km": null
+  }
+ ],
+ "reference": null,
+ "note": "rodado com o script provisório ~/teste-antena.sh (PC, ao ar livre, sem internet) e trazido para o formato do sdr_check.py; a referência da OpenSky foi consultada às 17h30, 9 min antes: referencia-1730-opensky.json",
+ "verdict": [
+  "APROVADA",
+  "3 aeronave(s) com posição, a até 118 km"
+ ]
+}
