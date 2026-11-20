@@ -18,6 +18,20 @@ Antes de ir para a bancada:
   `ssh pi@gamapi.local 'pgrep -a -f "ttcd -c|obcd -c|adsbd -c|sbs_replay"'` e
   matar antes de começar.
 
+**Atalho (desde 20/11), com a missão de 2 min:** os testes 1 e 2 sem os comandos
+à mão, a partir do PC, sem editar o `/etc/gama/adsbd.conf` da Pi. No fim (Ctrl-C), o
+`pi-mission` imprime `avr_idents`, `avr_no_track`, `avr_rejected` e as linhas com
+categoria, e traz os logs (com o `cpu.txt` do teste 3):
+
+```bash
+make net-up
+make pi-mission MISSION_S=120 AVR=1 INPUT=docs/vv/trafego-real/2026-11-18-unsam/capture.ndjson  # teste 1
+make pi-mission MISSION_S=120 AVR=1                                                               # teste 2, ao ar livre
+make gs-web ADSB=1 MISSION_S=120     # outro terminal; "Iniciar missão ADS-B"
+```
+
+Detalhes em `docs/relatorios/2026-11-17-comandos-principais.html`, seção 9.
+
 ---
 
 ## 1. A categoria pelo LoRa: Buenos Aires real, com o `sbs_replay` nas duas portas

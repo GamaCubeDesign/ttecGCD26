@@ -244,7 +244,10 @@ body.training table.cmds td:first-child:not(.shown) code{filter:blur(6px);user-s
 <p>Na bancada, o Wi-Fi do PC vira um ponto de acesso (<code>gama-bancada</code>) e a Pi entra nele. O cabo ethernet do PC continua dando internet aos dois. O nome <code>gamapi.local</code> resolve por mDNS em qualquer rede, por isso <code>local.mk</code> não muda.</p>
 <div class="table-wrap"><table class="cmds">
 <tr><th>Comando</th><th>O que faz</th></tr>
-<tr><td><code>nmcli con up bancada-ap</code></td><td>No PC, no começo da sessão: liga o ponto de acesso. O Wi-Fi do PC sai da rede em que estava.</td></tr>
+<tr><td><code>make net-up</code></td><td>No PC, no começo da sessão (desde 20/11): liga o ponto de acesso (<code>nmcli con up bancada-ap</code>) e espera até 90 s a Pi responder pelo ssh; mostra o IP dela. Ligue a Pi antes ou logo depois.</td></tr>
+<tr><td><code>make net-check</code></td><td>A rede dos dois lados: os dispositivos do PC, o IP da Pi e se ela tem internet pelo cabo do PC.</td></tr>
+<tr><td><code>make net-down</code></td><td>No fim: desliga o ponto de acesso (<code>nmcli con down bancada-ap</code>).</td></tr>
+<tr><td><code>nmcli con up bancada-ap</code></td><td>O mesmo que o <code>make net-up</code>, sem esperar a Pi. O Wi-Fi do PC sai da rede em que estava.</td></tr>
 <tr><td><code>nmcli con down bancada-ap</code></td><td>No PC, no fim: o Wi-Fi volta para a rede de costume.</td></tr>
 <tr><td><code>iw dev wlp2s0 station dump | grep -E 'Station|signal:'</code></td><td>A Pi se associou? Lista os aparelhos conectados ao ponto de acesso, com o sinal.</td></tr>
 <tr><td><code>ssh pi@gamapi.local</code></td><td>Entra na Pi.</td></tr>
@@ -360,7 +363,38 @@ body.training table.cmds td:first-child:not(.shown) code{filter:blur(6px);user-s
 <tr><td><code>make gs-web UDP=1</code></td><td>A página sobre a <code>gs_cli</code> no rádio UDP.</td></tr>
 <tr><td><code>make gs-web REPLAY=&lt;log.jsonl&gt; SPEED=10</code></td><td>Reproduz um log gravado da ground, 10× mais rápido.</td></tr>
 <tr><td><code>python3 tools/live_traffic/live_traffic.py capture --out DIR --duration 3600</code></td><td>1 h de tráfego real ao redor da UNSAM, com o gabarito de origem e destino.</td></tr>
+<tr><td><code>make sim MISSION_S=120 INPUT=…</code></td><td>O <code>make sim</code> com a missão de 2 min em vez de 10: o <code>obcd</code> e a página recebem o mesmo tempo. Serve para ensaiar no PC antes da Pi.</td></tr>
+<tr><td><code>make sdr-check ANTENNA=cots</code> · <code>make pi-sdr-check ANTENNA=gama</code></td><td>A antena de 1090 MHz sozinha no SDR, 60 s, contra o que a OpenSky vê; ao ar livre. Com o <code>adsbd</code> parado na Pi (<code>make pi-adsbd-stop</code>).</td></tr>
 </table></div>
+
+<h3>A missão ADS-B na Pi, pela página, em 2 min (desde 20/11)</h3>
+<p>O satélite roda na Pi (rádio A, <code>obcd</code>, <code>adsbd</code>, as configurações de <code>/etc/gama</code>); a ground é a ESP32 no PC, com a página. <code>MISSION_S</code> encurta a <code>MISSION_ADSB</code> (o <code>adsb_timeout_ms</code> do <code>obcd</code>, 600 s no voo), e os dois lados precisam receber o <b>mesmo</b> número. Dois terminais no PC:</p>
+<pre><code># terminal 1, no PC: a rede, e o satélite na Pi (Ctrl-C para tudo e traz os logs)
+make net-up
+make pi-mission MISSION_S=120 INPUT=docs/vv/trafego-real/2026-11-17-unsam/capture_sem_categoria.ndjson
+
+# terminal 2, no PC: a página, com o mesmo tempo
+make gs-web ADSB=1 MISSION_S=120
+# http://127.0.0.1:8080, aba ADS-B, "Iniciar missão ADS-B"</code></pre>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>make pi-mission MISSION_S=120 INPUT=&lt;captura&gt;</code></td><td>Do PC: <code>pi-sync</code>, copia a captura para a Pi (o <code>pi-sync</code> não leva <code>*.ndjson</code>), sobe o satélite com o <code>sbs_replay</code> no lugar do SDR e, no Ctrl-C, traz os logs de <code>docs/vv/bancada/&lt;data&gt;/missao-&lt;hora&gt;/</code>.</td></tr>
+<tr><td><code>make pi-mission MISSION_S=120</code></td><td>O mesmo com o SDR de verdade (sem <code>INPUT</code>): o <code>adsbd</code> sobe o <code>dump1090-fa</code>. Ao ar livre.</td></tr>
+<tr><td><code>make mission-sat MISSION_S=120</code></td><td>O mesmo, rodado dentro da Pi (num <code>tmux</code>, por exemplo); <code>INPUT</code> é um caminho na Pi.</td></tr>
+<tr><td><code>make gs-web ADSB=1 MISSION_S=120</code></td><td>A página com o processamento ADS-B e a contagem regressiva de 2 min. Sem <code>MISSION_S</code>, conta 10 min.</td></tr>
+<tr><td><code>TX_POWER=2</code></td><td>A potência do rádio A em dBm (2, o padrão da bancada, a ~1 m).</td></tr>
+</table></div>
+<p class="small">O <code>pi-mission</code> recusa começar se já houver <code>ttcd</code>, <code>obcd</code> ou <code>adsbd</code> rodando na Pi (o serviço ou uma sobra): <code>make pi-service-stop pi-adsbd-stop pi-obcd-stop</code>, ou mate os manuais. Ele dá <code>--check-config</code> no <code>adsbd</code> antes de subir qualquer coisa e grava o uso de CPU do <code>dump1090</code> e do <code>adsbd</code> em <code>cpu.txt</code>.</p>
+
+<h3>A Etapa B: a porta AVR (ADR-0023), roteiro de 20/11</h3>
+<p><code>AVR=1</code> liga a categoria da aeronave lida a bordo, <b>só nesta execução</b>: o <code>/etc/gama/adsbd.conf</code> não é editado, e o voo continua com <code>avr_port = 0</code> até a equipe decidir. No Ctrl-C, o <code>pi-mission</code> imprime os números que decidem: <code>avr_idents</code>, <code>avr_no_track</code>, <code>avr_rejected</code> e quantos registros do <code>adsb.ndjson</code> têm categoria.</p>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Teste de 20/11</th><th>Comando (terminal 1)</th><th>Aprovado se</th></tr>
+<tr><td>1 · a categoria pelo LoRa, com replay</td><td><code>make pi-mission MISSION_S=120 AVR=1 INPUT=docs/vv/trafego-real/2026-11-18-unsam/capture.ndjson</code></td><td><code>avr_rejected = 0</code>, <code>avr_idents &gt; 0</code>; categorias (A1, A3, A7) na página <b>sem</b> asterisco</td></tr>
+<tr><td>2 · o <code>dump1090-fa</code> de verdade, ao ar livre</td><td><code>make pi-mission MISSION_S=120 AVR=1</code> (abre <code>--net-ro-port 30002</code> e <code>avr_port=30002</code>)</td><td>pelo menos uma aeronave real com categoria (<code>avr_idents &gt; 0</code>); sem tráfego, o teste não vale</td></tr>
+<tr><td>3 · o custo na Pi</td><td>o <code>cpu.txt</code> do teste 1 ou 2, com e sem <code>AVR=1</code></td><td><code>adsbd</code> &lt; 5% de um núcleo; <code>dump1090-fa</code> até 2 pontos acima dos 21,9% de 09/10</td></tr>
+</table></div>
+<p class="small">Na página, o terminal 2 é sempre <code>make gs-web ADSB=1 MISSION_S=120</code>. Com 2 min o replay passa só pelo começo da captura: as estatísticas saem a cada 60 s (<code>report_period_ms</code>), então uma missão mais curta que isso pode terminar sem nenhum número.</p>
 
 <h2 id="servicos"><span class="n">10</span>Os serviços na Pi</h2>
 <p>Em voo, os daemons rodam como serviços do systemd. Na bancada, o <code>ttcd</code> do serviço segura o rádio A, por isso ele precisa ser parado antes dos passos de rádio. Todos os alvos têm a forma <code>pi-</code>, que roda do PC.</p>
@@ -402,7 +436,8 @@ body.training table.cmds td:first-child:not(.shown) code{filter:blur(6px);user-s
 <p><button class="btn" id="shuffle" type="button">Embaralhar</button> <button class="btn" id="hideall" type="button">Esconder todas</button></p>
 <div class="cards" id="cards">
   <div class="card"><p class="q">Entrar na Pi</p><p class="a"><code>ssh pi@gamapi.local</code></p></div>
-  <div class="card"><p class="q">Ligar a rede da bancada no PC</p><p class="a"><code>nmcli con up bancada-ap</code></p></div>
+  <div class="card"><p class="q">Ligar a rede da bancada no PC e esperar a Pi</p><p class="a"><code>make net-up</code></p></div>
+  <div class="card"><p class="q">A missão ADS-B de 2 min na Pi, pela página</p><p class="a"><code>make pi-mission MISSION_S=120</code> + <code>make gs-web ADSB=1 MISSION_S=120</code></p></div>
   <div class="card"><p class="q">Uma sessão na Pi que sobrevive à queda do Wi-Fi</p><p class="a"><code>ssh -t pi@gamapi.local tmux new -A -s bench</code></p></div>
   <div class="card"><p class="q">Copiar o código para a Pi</p><p class="a"><code>make pi-sync</code></p></div>
   <div class="card"><p class="q">Trazer os logs da Pi</p><p class="a"><code>make pi-fetch</code></p></div>
