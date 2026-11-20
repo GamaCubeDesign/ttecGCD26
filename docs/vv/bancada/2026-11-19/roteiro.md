@@ -76,15 +76,20 @@ dentro da sala, 8 na janela).
 
 1. Identificar a antena: o dipolo de 1090 MHz, não o de 433. Cada braço deve ter ~6,9 cm,
    montado na vertical, e a rosca firme no NESDR.
-2. Ao ar livre, ou com a janela aberta voltada para Aeroparque.
-3. Rodar 60 s de `dump1090-fa`, como em 16/11:
+2. **Ao ar livre**, de preferência do lado do aeroporto de Brasília (SBBR). Nunca dentro
+   do container nem da sala: em 20/11, dentro do container, a antena da equipe não recebeu nada
+   (`../2026-11-20/notas.md`).
+3. Na Pi, com o `adsbd` parado (ele ocupa o SDR), 60 s com cada antena:
 
    ```bash
-   timeout 60 /usr/bin/dump1090-fa --device-index 0 --gain -10 --write-json /tmp/d1090 --write-json-every 5 --quiet \
-       --net-ro-port 0 --net-sbs-port 0 --net-bo-port 0 --net-bi-port 0 --net-ri-port 0
+   make pi-adsbd-stop
+   make pi-sdr-check ANTENNA=cots
+   make pi-sdr-check ANTENNA=gama
+   make pi-fetch && make sdr-compare
    ```
 
-**Aprovado se:** pelo menos uma aeronave com posição em 60 s. Se passar, repetir o
+**Aprovado se:** veredito APROVADA (pelo menos uma aeronave com posição). No PC, em 20/11,
+as duas antenas passaram ao ar livre. Se passar, repetir o
 teste 1 com o SDR no lugar do `sbs_replay` (`dump1090_cmd` padrão), por 10 min.
 
 ## 3. O rádio A nos pinos da placa
