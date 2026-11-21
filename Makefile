@@ -498,9 +498,16 @@ pi-provision: ## Once: make provision on a Pi that has only ssh so far
 
 ##@ Help
 
-.PHONY: help
+.PHONY: help doctor
+
+# Operating the bench — the network, the Pi, the radio check, a mission —
+# moves to ./gama (tools/gama/, 21/11): one command per scenario, which knows
+# whether it runs on the PC or the Pi and checks before starting.
+doctor: ## The whole bench at once: PC, network, Pi, clock, configuration, SDR, radio A (./gama doctor)
+	./gama doctor
 
 help: ## This list
+	@echo "To operate the bench (network, Pi, radio, a mission): ./gama --help"
 	@awk 'BEGIN { FS = ":.*## " } \
 	     /^##@/ { printf "\n%s\n", substr($$0, 5) } \
 	     /^[a-zA-Z0-9_%-]+:.*## / { t = $$1; sub(/%/, "<target>", t); printf "  %-18s %s\n", t, $$2 }' \

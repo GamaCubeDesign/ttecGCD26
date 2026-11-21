@@ -178,6 +178,11 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME sdr_check
              COMMAND ${Python3_EXECUTABLE} -m unittest test_sdr_check
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/bench)
+    # gama, the bench's operating CLI: the radio check, doctor and a
+    # mission's order of steps, against fakes (no Pi, no radio, no ssh).
+    add_test(NAME gama_cli
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_gama
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/gama)
     # sbs_replay's AVR port (ADR-0023): identification messages adsbd accepts.
     add_test(NAME sbs_replay
              COMMAND ${Python3_EXECUTABLE} -m unittest test_sbs_replay

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# gama — operar a bancada e o satélite (tools/gama/cli.py). ./gama --help
+exec python3 "$(dirname "$(readlink -f "$0")")/tools/gama/cli.py" "$@"
