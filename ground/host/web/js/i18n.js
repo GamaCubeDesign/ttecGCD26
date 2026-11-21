@@ -5,14 +5,14 @@ import { store } from './util.js';
 
 const T = {
   pt: {
-    title: 'GCD26 · Estação de solo', lang: 'PT', theme_dark: 'escuro', theme_light: 'claro', big: 'projetar',
+    title: 'GCD26 · Estação de solo', lang: 'PT', theme_dark: 'tema escuro', theme_light: 'tema claro', big: 'projetar: letras maiores',
     contact: 'EM CONTATO', nocontact: 'SEM CONTATO', wait: 'AGUARDANDO', offline: 'SEM SERVIDOR',
     mode_none: 'modo desconhecido', for: 'há', last_frame: 'último quadro',
     battery: 'Bateria', current: 'Corrente', tbat: 'T. bateria', text: 'T. externa', tsoc: 'T. processador',
     uptime: 'Ligado', time_sync: 'Hora', adsb_msgs: 'ADS-B', synced: 'sincronizada', unsynced: 'sem hora',
     nodata: 'sem dado', demo: 'MODO REPLAY: os comandos não chegam a nenhum satélite.',
     tab_ops: 'Operação', tab_adsb: 'ADS-B', tab_deploy: 'Implantação', tab_aocs: 'AOCS', tab_surv: 'Sobrevivência', tab_link: 'Enlace',
-    utilities: 'Utilitários', g_link: 'Enlace e telemetria', g_rate: 'Taxa do enlace', g_stream: 'Retratos de ADS-B',
+    utilities: 'Utilitários', util_hint: 'ping, hk, taxa, stream', side_hide: 'ocultar eventos e utilitários', side_show: 'mostrar eventos e utilitários', g_link: 'Enlace e telemetria', g_rate: 'Taxa do enlace', g_stream: 'Retratos de ADS-B',
     b_time: 'sincronizar hora', b_stream: 'stream 5 s', b_stop: 'parar',
     arm: 'Armar: burn-wire e AOCS (desarma em 15 s)', sent: 'enviado', no_server: 'sem conexão com o servidor',
     events: 'Eventos', f_all: 'todos', f_cmd: 'comandos', f_bad: 'falhas', f_mode: 'modos', f_tm: 'telemetria',
@@ -25,8 +25,8 @@ const T = {
     s_entered: 'OBC no modo', s_dump: 'Decodificador ligado', s_tracks: 'Primeiros retratos', s_end: 'Fim da missão e downlink',
     s_back: 'De volta a PRE_TEST', s_burn: 'Burn-wire acionado (5 s)',
     adsb_lead: 'Um clique: a ground manda a hora, espera o ACK e só então pede MISSION_ADSB (ADR-0020). O OBC encerra a missão sozinho no fim do tempo dela (10 min em voo; menos na bancada, com MISSION_S) e passa ao downlink.',
-    start_adsb: 'Iniciar missão ADS-B', end_adsb: 'Encerrar agora (downlink)', mission: 'Missão', elapsed: 'decorrido', remaining: 'restante',
-    stats: 'Estatísticas', aircraft: 'Aeronaves', messages: 'Mensagens', p95: 'Latência p95', snap_recs: 'No último retrato',
+    start_adsb: 'Iniciar missão ADS-B', end_adsb: 'Encerrar agora (downlink)', mission: 'Missão', elapsed: 'decorrido', remaining: 'restante', starting: 'iniciando a missão…', step: 'passo',
+    stats: 'Estatísticas', legend_ac: 'aeronave', legend_ref: 'aeroporto citado pelo estimador', legend_apt: 'aeroporto', legend_city: 'área urbana', fit: 'enquadrar', fit_hint: 'aceso: o mapa acompanha as aeronaves sozinho; mover ou dar zoom desliga', show_steps: 'ver os passos da missão', map_hint: 'arraste para mover, roda para zoom, duplo clique enquadra', aircraft: 'Aeronaves', messages: 'Mensagens', p95: 'Latência p95', snap_recs: 'Registros no último retrato', snap_short: 'Último retrato',
     est_proc: 'Estimador', processed: 'processadas', rejected: 'rejeitadas', repeats: 'repetidas',
     map: 'Mapa', table: 'Aeronaves', detail: 'Detalhe da aeronave', pick: 'Clique numa aeronave no mapa ou na tabela.',
     c_icao: 'ICAO', c_cs: 'Indicativo', c_cat: 'Cat.', c_phase: 'Fase', c_alt: 'Alt. (ft)', c_gs: 'Vel. (kt)',
@@ -43,7 +43,7 @@ const T = {
     ping_res: 'Último ping', ok: 'ok', fail: 'falhou', waiting: 'aguardando',
   },
   es: {
-    title: 'GCD26 · Estación terrena', lang: 'ES', theme_dark: 'oscuro', theme_light: 'claro', big: 'proyectar',
+    title: 'GCD26 · Estación terrena', lang: 'ES', theme_dark: 'tema oscuro', theme_light: 'tema claro', side_hide: 'ocultar eventos y utilidades', side_show: 'mostrar eventos y utilidades', big: 'proyectar: letras más grandes',
     contact: 'EN CONTACTO', nocontact: 'SIN CONTACTO', wait: 'ESPERANDO', offline: 'SIN SERVIDOR',
     mode_none: 'modo desconocido', for: 'hace', last_frame: 'último cuadro',
     battery: 'Batería', current: 'Corriente', tbat: 'T. batería', text: 'T. externa', tsoc: 'T. procesador',
@@ -54,14 +54,14 @@ const T = {
     b_time: 'sincronizar hora', b_stop: 'detener', arm: 'Armar: burn-wire y AOCS (se desarma en 15 s)', sent: 'enviado',
     events: 'Eventos', f_all: 'todos', f_cmd: 'comandos', f_bad: 'fallas', f_mode: 'modos', f_tm: 'telemetría',
     modes: 'Modos del OBC (Figura 44)', in_mode: 'en este modo hace', runs: 'Ejecuciones',
-    start_adsb: 'Iniciar misión ADS-B', end_adsb: 'Terminar ahora (downlink)', mission: 'Misión', elapsed: 'transcurrido', remaining: 'restante',
-    stats: 'Estadísticas', aircraft: 'Aeronaves', messages: 'Mensajes', map: 'Mapa', detail: 'Detalle de la aeronave',
+    start_adsb: 'Iniciar misión ADS-B', end_adsb: 'Terminar ahora (downlink)', mission: 'Misión', elapsed: 'transcurrido', remaining: 'restante', starting: 'iniciando la misión…', step: 'paso',
+    stats: 'Estadísticas', aircraft: 'Aeronaves', messages: 'Mensajes', map: 'Mapa', detail: 'Detalle de la aeronave', legend_ac: 'aeronave', legend_ref: 'aeropuerto citado por el estimador', legend_apt: 'aeropuerto', legend_city: 'área urbana', fit: 'encuadrar',
     c_cs: 'Indicativo', c_phase: 'Fase', c_origin: 'Origen', c_dest: 'Destino', c_comb: 'Combinada', cat_inferred: 'categoría inferida por la cinemática (ADR-0022)',
     start_deploy: 'Activar despliegue', start_aocs: 'Iniciar tarea del AOCS', start_surv: 'Entrar en supervivencia',
     attitude: 'Actitud (HK)', temps: 'Temperaturas', power: 'Energía y temperatura', link: 'Enlace',
   },
   en: {
-    title: 'GCD26 · Ground station', lang: 'EN', theme_dark: 'dark', theme_light: 'light', big: 'projector',
+    title: 'GCD26 · Ground station', lang: 'EN', theme_dark: 'dark theme', theme_light: 'light theme', side_hide: 'hide events and utilities', side_show: 'show events and utilities', big: 'projector: larger text',
     contact: 'IN CONTACT', nocontact: 'NO CONTACT', wait: 'WAITING', offline: 'NO SERVER',
     mode_none: 'unknown mode', for: 'for', last_frame: 'last frame',
     battery: 'Battery', current: 'Current', tbat: 'Battery T', text: 'External T', tsoc: 'Processor T',
@@ -72,8 +72,8 @@ const T = {
     b_time: 'sync time', b_stop: 'stop', arm: 'Arm: burn-wire and AOCS (disarms in 15 s)', sent: 'sent',
     events: 'Events', f_all: 'all', f_cmd: 'commands', f_bad: 'failures', f_mode: 'modes', f_tm: 'telemetry',
     modes: 'OBC modes (Figure 44)', in_mode: 'in this mode for', runs: 'Runs',
-    start_adsb: 'Start ADS-B mission', end_adsb: 'End now (downlink)', mission: 'Mission', elapsed: 'elapsed', remaining: 'remaining',
-    stats: 'Statistics', aircraft: 'Aircraft', messages: 'Messages', map: 'Map', detail: 'Aircraft detail',
+    start_adsb: 'Start ADS-B mission', end_adsb: 'End now (downlink)', mission: 'Mission', elapsed: 'elapsed', remaining: 'remaining', starting: 'starting the mission…', step: 'step',
+    stats: 'Statistics', aircraft: 'Aircraft', messages: 'Messages', map: 'Map', detail: 'Aircraft detail', legend_ac: 'aircraft', legend_ref: 'airport the estimator cites', legend_apt: 'airport', legend_city: 'urban area', fit: 'fit', map_hint: 'drag to pan, wheel to zoom, double-click fits',
     c_cs: 'Callsign', c_phase: 'Phase', c_origin: 'Origin', c_dest: 'Destination', c_comb: 'Combined', cat_inferred: 'category inferred from kinematics (ADR-0022)',
     start_deploy: 'Fire deployment', start_aocs: 'Start AOCS task', start_surv: 'Enter survival',
     attitude: 'Attitude (HK)', temps: 'Temperatures', power: 'Power and temperature', link: 'Link',
@@ -89,6 +89,14 @@ export function t(key) {
 }
 
 export function currentLang() { return lang; }
+
+export function setLang(l) {
+  if (!LANGS.includes(l)) return lang;
+  lang = l;
+  store('gs-lang', lang);
+  document.documentElement.lang = lang === 'pt' ? 'pt-BR' : lang;
+  return lang;
+}
 
 export function nextLang() {
   lang = LANGS[(LANGS.indexOf(lang) + 1) % LANGS.length];

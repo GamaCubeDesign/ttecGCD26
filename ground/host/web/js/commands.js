@@ -1,4 +1,5 @@
-// Sending commands to the ground, the arm switch and the utilities card.
+// Sending commands to the ground, the arm switch and the utilities card
+// (folded away until opened: the tests' tabs hold the commands of a run).
 // gs_web.py checks every command again (check_command): the page can only
 // make sending easier, never let more through.
 
@@ -58,7 +59,7 @@ export function wire(root) {
 export function renderUtilities() {
   const box = $('utilities');
   setHTML(box, `
-    <h2 data-t="utilities">${esc(t('utilities'))}</h2>
+    <summary><h2>${esc(t('utilities'))}</h2><span class="muted">${esc(t('util_hint'))}</span></summary>
     <label class="arm" id="armbox"><input type="checkbox" id="arm"><span>${esc(t('arm'))}</span></label>
     <div class="grp"><span class="lbl">${esc(t('g_link'))}</span><div class="row">
       <button class="btn" data-cmd="ping 3">ping ×3</button>

@@ -59,28 +59,42 @@ function drawMission(state) {
   const st = state.st;
   const run = latestRun(st, 'MISSION_ADSB');
   const running = run && run.entered != null && run.left == null;
-  const el = document.getElementById('adsb-timer');
-  if (running) {
-    const gone = serverNow() - run.entered;
-    const total = (st && st.mission_s) || MISSION_S;      // gs_web.py --mission-s
-    el.innerHTML = `<span class="timer">${esc(fmtClock(Math.max(0, total - gone)))}</span>
-      <span class="muted"> ${esc(t('remaining'))} · ${esc(fmtClock(gone))} ${esc(t('elapsed'))}</span>`;
+  // From the click to the end of the mission, while nothing failed, the
+  // mission card steps aside for the map: the map's header keeps the
+  // clock, the step reached and the button that ends it. A failure, or
+  // the end, brings the card back with every step.
+  const active = run && !run.failed && run.left == null;
+  const steps = missionSteps(run);
+  document.getElementById('adsb-mission').hidden = !!active;
+  const live = document.getElementById('adsb-live');
+  live.hidden = !active;
+  if (active) {
+    const done = (steps.match(/class="done"/g) || []).length;
+    let clock = `<span class="muted">${esc(t('starting'))}</span>`;
+    if (running) {
+      const gone = serverNow() - run.entered;
+      const total = (st && st.mission_s) || MISSION_S;      // gs_web.py --mission-s
+      clock = `<b class="timer-s">${esc(fmtClock(Math.max(0, total - gone)))}</b> <span class="muted">${esc(t('remaining'))}</span>`;
+    }
+    setHTML(document.getElementById('adsb-live-info'),
+      `${clock} <span class="muted">· ${esc(t('step'))} ${done}/7</span> <span class="caret">▾</span>`);
+    setHTML(document.getElementById('adsb-live-steps'), steps);
   } else {
-    el.textContent = '';
+    showSteps(false);
   }
-  setHTML(document.getElementById('adsb-steps'), missionSteps(run));
+  setHTML(document.getElementById('adsb-steps'), steps);
   const s = (st && st.stat) || {};
   const a = (st && st.adsb) || null;
   const p95 = s.latency_p95_ms;
-  setHTML(document.getElementById('adsb-figs'), `
+  setHTML(document.getElementById('adsb-figs'), `<div class="figs mini">
     <div class="fig"><span class="lbl">${esc(t('aircraft'))}</span><b>${esc(fmtNum(s.aircraft))}</b></div>
     <div class="fig"><span class="lbl">${esc(t('messages'))}</span><b>${esc(fmtNum(s.msgs_received))}</b></div>
     <div class="fig ${p95 == null ? '' : p95 <= 5000 ? 'ok' : 'bad'}"><span class="lbl">${esc(t('p95'))}</span>
       <b>${p95 == null ? '—' : esc(fmtNum(p95 / 1000, 1))}<small>s</small></b></div>
-    <div class="fig"><span class="lbl">${esc(t('snap_recs'))}</span><b>${esc(fmtNum(st && st.tracks))}</b></div>
-    <div class="fig ${a && a.error ? 'bad' : ''}"><span class="lbl">${esc(t('est_proc'))}</span>
-      <b>${a ? esc(fmtNum(a.processed)) : '—'}<small>${a ? esc(t('processed')) : ''}</small></b>
-      <span class="muted">${a ? `${esc(fmtNum(a.rejected))} ${esc(t('rejected'))} · ${esc(fmtNum(a.repeats))} ${esc(t('repeats'))}` : esc(t('adsb_off'))}</span></div>`);
+    <div class="fig" title="${esc(t('snap_recs'))}"><span class="lbl">${esc(t('snap_short'))}</span><b>${esc(fmtNum(st && st.tracks))}</b></div></div>
+    <p class="muted" style="margin:8px 0 0;font-size:.82em">${esc(t('est_proc'))}: ${a
+      ? `${esc(fmtNum(a.processed))} ${esc(t('processed'))} · ${esc(fmtNum(a.rejected))} ${esc(t('rejected'))} · ${esc(fmtNum(a.repeats))} ${esc(t('repeats'))}${a.error ? ' · <b style="color:var(--bad-fg)">' + esc(a.error) + '</b>' : ''}`
+      : esc(t('adsb_off'))}</p>`);
 }
 
 function drawAircraft() {
@@ -121,32 +135,67 @@ function drawDetail() {
     </div>`);
 }
 
-function pick(icao) {
-  selected = selected === icao ? null : icao;
+// The step list behind "step 6/7" in the map's header, open on a click.
+function showSteps(on) {
+  const pop = document.getElementById('adsb-live-steps'), b = document.getElementById('adsb-live-info');
+  if (!pop) return;
+  pop.hidden = !on;
+  b.setAttribute('aria-expanded', String(on));
+}
+
+// The table toggles; the map always selects (a click near the aircraft
+// already picked keeps it).
+function pick(icao, keep) {
+  selected = keep ? icao : selected === icao ? null : icao;
   drawAircraft();
 }
 
 export const tab = {
   id: 'adsb', label: 'tab_adsb',
   mount(panel) {
+    // The map takes the tab; the mission, the figures and the aircraft
+    // picked go in a column beside it, the table below.
     panel.innerHTML = `
-      <section class="card span-5"><h2>${esc(t('mission'))}</h2>
-        <p class="lead">${esc(t('adsb_lead'))}</p>
-        <div class="row" style="margin-bottom:12px">
-          <button class="btn primary" data-cmd="mode mission_adsb">${esc(t('start_adsb'))}</button>
-          <button class="btn" data-cmd="mode downlink">${esc(t('end_adsb'))}</button></div>
-        <div id="adsb-timer"></div><div id="adsb-steps"></div></section>
-      <section class="card span-7"><h2>${esc(t('stats'))}</h2><div class="figs" id="adsb-figs"></div></section>
-      <section class="card span-8"><h2>${esc(t('map'))}</h2><svg class="map" id="adsb-map" role="img"></svg></section>
-      <section class="card span-4" id="adsb-detail"></section>
+      <section class="card span-8 map-card">
+        <div class="map-head"><h2>${esc(t('map'))}</h2>
+          <span class="live" id="adsb-live" hidden><button class="live-info" type="button" id="adsb-live-info" aria-expanded="false" title="${esc(t('show_steps'))}"></button>
+            <button class="btn" data-cmd="mode downlink">${esc(t('end_adsb'))}</button></span>
+          <button class="btn" type="button" id="adsb-fit" aria-pressed="true" title="${esc(t('fit_hint'))}">${esc(t('fit'))}</button></div>
+        <div class="live-steps mission" id="adsb-live-steps" hidden></div>
+        <svg class="map" id="adsb-map" role="img"></svg>
+        <div class="legend">
+          <span><i class="l-ac"></i>${esc(t('legend_ac'))}</span>
+          <span><i class="l-ref"></i>${esc(t('legend_ref'))}</span>
+          <span><i class="l-apt"></i>${esc(t('legend_apt'))}</span>
+          <span><i class="l-city"></i>${esc(t('legend_city'))}</span>
+          <span class="hint">${esc(t('map_hint'))}</span></div></section>
+      <div class="stack span-4">
+        <section class="card mission" id="adsb-mission"><h2>${esc(t('mission'))}</h2>
+          <div class="row" style="margin-bottom:10px">
+            <button class="btn primary" data-cmd="mode mission_adsb" title="${esc(t('adsb_lead'))}">${esc(t('start_adsb'))}</button>
+            <button class="btn" data-cmd="mode downlink">${esc(t('end_adsb'))}</button></div>
+          <div id="adsb-steps"></div></section>
+        <section class="card"><h2>${esc(t('stats'))}</h2><div id="adsb-figs"></div></section>
+        <section class="card" id="adsb-detail"></section>
+      </div>
       <section class="card"><h2>${esc(t('table'))}</h2><div class="scroll"><table class="tbl"><thead><tr>
         <th>${esc(t('c_icao'))}</th><th>${esc(t('c_cs'))}</th><th>${esc(t('c_cat'))}</th><th>${esc(t('c_phase'))}</th>
         <th>${esc(t('c_alt'))}</th><th>${esc(t('c_gs'))}</th><th>${esc(t('c_origin'))}</th><th>${esc(t('c_dest'))}</th>
         <th>${esc(t('c_comb'))}</th></tr></thead><tbody id="adsb-rows"></tbody></table></div></section>`;
-    map = new AdsbMap(panel.querySelector('#adsb-map'), pick);
+    map = new AdsbMap(panel.querySelector('#adsb-map'), (icao) => pick(icao, true));
+    panel.querySelector('#adsb-fit').addEventListener('click', () => map.fit());
+    map.onFollow = (on) => panel.querySelector('#adsb-fit').setAttribute('aria-pressed', String(on));
+    panel.querySelector('#adsb-live-info').addEventListener('click', () =>
+      showSteps(panel.querySelector('#adsb-live-steps').hidden));
     panel.querySelector('#adsb-rows').addEventListener('click', (e) => {
       const tr = e.target.closest('tr[data-icao]');
-      if (tr) pick(tr.dataset.icao);
+      if (!tr) return;
+      pick(tr.dataset.icao);
+      // Up to the map, which shows the aircraft picked (and its detail).
+      if (selected) {
+        panel.querySelector('.map-card').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+        map.reveal(selected);
+      }
     });
     drawAircraft();
   },
