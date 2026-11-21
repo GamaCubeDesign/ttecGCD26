@@ -22,6 +22,18 @@ o exemplo dele. O `make test` valida os dois arquivos com `--check-config`.
 
 ## Instalar na Pi
 
+Desde 21/11, um comando faz os passos 1 e 2, mostrando antes o que muda e
+guardando cada arquivo trocado num `.bak-<hora>`:
+
+```bash
+./gama board check      # o que difere entre a Pi e esta pasta; nada muda
+./gama board install    # pergunta, instala, e diz se é preciso reiniciar
+./gama pi reboot        # se o config.txt mudou
+./gama doctor           # "ttcd.conf na fiação da placa (B2: RESET 25, DIO0 4)"
+```
+
+À mão:
+
 1. Acrescentar o `config.txt` daqui ao `/boot/firmware/config.txt` e
    reiniciar. Não pode sobrar outra linha `dtoverlay=w1-gpio`: sem o
    `gpiopin=17`, o 1-Wire pega o GPIO4, que nesta placa é o DIO0 do RA-02.

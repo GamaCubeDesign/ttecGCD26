@@ -106,6 +106,19 @@ make pi-fetch                                      # no fim, de volta no PC: tra
 
 ## Instalar na Pi
 
+Desde 21/11, pelo `./gama` (do PC ou na Pi; o `sudo` pede a senha no seu
+terminal):
+
+```bash
+./gama board install      # daemons, unidades e a configuração da placa nova (flight/conf/obc-v2), com backup
+./gama service install    # só daemons e unidades, mantendo /etc/gama
+./gama service enable     # ttcd, obcd e adsbd agora e em todo boot (./gama service enable ttcd: só um)
+./gama service status     # o que o systemd diz, e a última linha de cada log
+./gama service logs ttcd -f   # acompanha o log de operação, /var/lib/gama/ttcd.jsonl
+```
+
+Os alvos de antes continuam valendo até depois de 24/11, com um aviso:
+
 ```bash
 make pi-install           # ttcd, adsbd e obcd, as unidades e, se ainda não existirem, /etc/gama/*.conf
 make pi-install CONF_DIR=flight/conf/obc-v2   # o mesmo, com os arquivos da placa nova do OBC

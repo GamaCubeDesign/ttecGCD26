@@ -29,7 +29,9 @@ Os logs são gravados na Pi, em `~/ttec/docs/vv/bancada/`, e chegam aqui com
 
 Responde uma pergunta só: **a antena entrega aeronaves ao SDR?** Roda no PC ou na
 Pi, sem satélite e sem o `adsbd` (na Pi, `make pi-adsbd-stop` antes, para liberar o
-SDR).
+SDR). Desde 21/11, `./gama antenna check` no PC e `./gama antenna check --pi` na
+Pi, que recusa enquanto o `adsbd` segura o SDR, grava com a data do PC e traz os
+logs (`--antenna`, `--secs`, `--gain`, `--lat`/`--lon`, `--no-reference`).
 
 ```bash
 make sdr-check ANTENNA=cots               # 60 s com a antena COTS
