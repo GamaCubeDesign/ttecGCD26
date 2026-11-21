@@ -41,6 +41,9 @@ STATIC_TYPES = {".html": "text/html; charset=utf-8", ".css": "text/css; charset=
 # The map's land: the 26 Latin American units of the pair database's region
 # (Natural Earth, public domain), served as is.
 BASEMAP_PATH = os.path.join(HERE, "adsb", "data", "pares", "geografia", "america_latina.geojson")
+# The map's detail over the land, same region and source at 1:10m: urban
+# areas, city names, province lines (adsb/data/mapa/gerar.py builds it).
+MAPDETAIL_PATH = os.path.join(HERE, "adsb", "data", "mapa", "mapa.json")
 # The repository's root: this file is ground/host/gs_web.py.
 REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
 # The bench ground on the UDP radio, as the top-level build makes it.
@@ -524,6 +527,8 @@ def make_handler(hub):
                 self._adsb()
             elif path == "/api/basemap":
                 self._file(BASEMAP_PATH, "application/geo+json")
+            elif path == "/api/mapdetail":
+                self._file(MAPDETAIL_PATH, "application/json")
             elif path == "/api/airports":
                 if hub.pipeline is None:
                     self._send(HTTPStatus.OK, "[]", "application/json")

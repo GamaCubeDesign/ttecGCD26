@@ -1,0 +1,31 @@
+{
+  "provider": "Natural Earth",
+  "release": "v5.1.2",
+  "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/",
+  "license": "public domain",
+  "datasets": {
+    "urban": {
+      "file": "ne_10m_urban_areas.geojson",
+      "sha256": "5136ffd816a9b28c0f295e6797b4c03eaa421be80d78b90f542db4a932dd4497"
+    },
+    "places": {
+      "file": "ne_10m_populated_places_simple.geojson",
+      "sha256": "fd3fa867a320cbd5c5b6bb5bc550afeec2939fb2cef688e508007282a55ac42f"
+    },
+    "admin1": {
+      "file": "ne_10m_admin_1_states_provinces_lines.geojson",
+      "sha256": "1a1f30ccaaf4cc9c4bde34266f0b8cbb955d3a4cf254b756912255f2ec7c75b6"
+    }
+  },
+  "bbox": [
+    -118.401,
+    -55.892,
+    -34.805,
+    32.715
+  ],
+  "counts": {
+    "urban": 1172,
+    "places": 1587,
+    "admin1": 5398
+  }
+}
