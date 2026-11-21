@@ -10,6 +10,7 @@ import json
 import time
 from pathlib import Path
 
+import board as boardconf
 import common as c
 
 PINMAP = 'docs/relatorios/2026-11-20-pinagem-bancada.html'
@@ -37,7 +38,7 @@ def radio_finding(radio):
         return 'warn', 'o ttcd está rodando e segura o rádio A: não li o chip', './gama pi stop'
     if st == 'no_conf':
         return ('fail', 'não há /etc/gama/ttcd.conf na Pi',
-                'make pi-install CONF_DIR=flight/conf/obc-v2')
+                './gama board install')
     if st == 'no_spidev':
         return ('fail', f'{radio.get("spi_dev")} não existe na Pi',
                 'dtparam=spi=on em /boot/firmware/config.txt e reiniciar')
@@ -74,7 +75,7 @@ def pi_findings(p, pc_epoch=None):
     conf = p.get('ttcd_conf')
     files = p.get('conf_files')
     if conf is None:
-        out.append(('fail', 'não há /etc/gama/ttcd.conf', 'make pi-install CONF_DIR=flight/conf/obc-v2'))
+        out.append(('fail', 'não há /etc/gama/ttcd.conf', './gama board install'))
     else:
         missing = [f for f in ('ttcd.conf', 'obcd.conf', 'adsbd.conf') if files is not None and f not in files]
         w = p.get('wiring')
@@ -83,14 +84,15 @@ def pi_findings(p, pc_epoch=None):
             out.append(('ok', f'ttcd.conf na fiação da placa (B2: {pins})', None))
         elif w == 'B1':
             out.append(('warn', f'ttcd.conf na fiação de outubro (B1: {pins})',
-                        'vale se os fios estão nos pinos 38/40; a da placa é 22/7 (B2), '
-                        'com sudo cp /etc/gama/ttcd.conf.obc-v2 /etc/gama/ttcd.conf'))
+                        'vale se os fios estão nos pinos 38/40; a da placa é 22/7 (B2): '
+                        './gama board install'))
         else:
             out.append(('warn', f'ttcd.conf com pinos que não são nem B1 nem B2 ({pins})',
                         f'confira contra os fios ({PINMAP})'))
         if missing:
             out.append(('fail', 'faltam em /etc/gama: ' + ', '.join(missing),
-                        'make pi-install CONF_DIR=flight/conf/obc-v2'))
+                        './gama board install'))
+    out += board_findings(p.get('installed'))
 
     w1 = p.get('w1_lines')
     if w1 is not None:
@@ -98,7 +100,8 @@ def pi_findings(p, pc_epoch=None):
             out.append(('ok', '1-Wire só no GPIO17', None))
         else:
             out.append(('fail', '1-Wire mal configurado: ' + (', '.join(w1) or 'nenhuma linha w1-gpio'),
-                        'uma só linha dtoverlay=w1-gpio,gpiopin=17 em /boot/firmware/config.txt; '
+                        'uma só linha dtoverlay=w1-gpio,gpiopin=17 em /boot/firmware/config.txt '
+                        '(./gama board install, depois ./gama pi reboot); '
                         'sem o gpiopin, o 1-Wire toma o GPIO4 (DIO0 do rádio na placa)'))
 
     if 'sdr' in p:
@@ -107,6 +110,25 @@ def pi_findings(p, pc_epoch=None):
 
     if 'radio' in p:
         out.append(radio_finding(p['radio']))
+    return out
+
+
+def board_findings(installed, board='obc-v2'):
+    """obcd.conf against the board's: the pins and addresses the board sets
+    (ttcd.conf's pins are the wiring line above). Extra keys are not
+    differences: the board's file carries only what the board changes."""
+    out = []
+    conf = (installed or {}).get('obcd')
+    src = c.ROOT / 'flight' / 'conf' / board / 'obcd.conf'
+    if conf is None or not src.exists():
+        return out
+    want = boardconf.settings(src.read_text())
+    diff = [f'{k} {conf.get(k) or "—"} ≠ {v}' for k, v in want.items() if not boardconf.same(conf.get(k), v)]
+    if diff:
+        out.append(('warn', f'obcd.conf difere do da placa {board}: ' + ', '.join(diff),
+                    'vale para a bancada sem a placa; para a placa: ./gama board install'))
+    else:
+        out.append(('ok', f'obcd.conf com os pinos da placa {board}', None))
     return out
 
 

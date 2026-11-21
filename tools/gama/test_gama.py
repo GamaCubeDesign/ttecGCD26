@@ -1,6 +1,7 @@
 """gama: the configuration, the radio check in each case the bench has seen,
 doctor's evaluation of a recorded probe, and a mission's order of steps —
-all against fakes (no Pi, no radio, no ssh).
+and, since phase 2, a board's installation, the services, the link's
+steps and the antenna check — all against fakes (no Pi, no radio, no ssh).
 
 Run by CTest (gama_cli); also: python3 -m unittest test_gama
 """
@@ -11,17 +12,22 @@ import os
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from contextlib import redirect_stdout
 from pathlib import Path
 from types import SimpleNamespace
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import antenna  # noqa: E402
+import board    # noqa: E402
 import cli      # noqa: E402
 import common   # noqa: E402
 import doctor   # noqa: E402
+import link     # noqa: E402
 import mission  # noqa: E402
 import probe_pi  # noqa: E402
+import service  # noqa: E402
 
 
 def quiet(fn, *a, **kw):
@@ -316,7 +322,7 @@ class Mission(unittest.TestCase):
 class Cli(unittest.TestCase):
     def test_help_lists_the_commands(self):
         _, out = quiet(lambda: cli.build_parser().print_help())
-        for word in ('doctor', 'net', 'pi', 'radio', 'mission'):
+        for word in ('doctor', 'net', 'pi', 'radio', 'mission', 'board', 'service', 'link', 'antenna', 'esp32'):
             self.assertIn(word, out)
 
     def test_a_mission_needs_to_know_where_aircraft_come_from(self):
@@ -328,6 +334,242 @@ class Cli(unittest.TestCase):
         code, out = quiet(cli.main, ['mission', '--input', '/nonexistent.ndjson'])
         self.assertEqual(code, 2)
         self.assertIn('não existe', out)
+
+
+    def test_the_new_groups_parse(self):
+        ap = cli.build_parser()
+        self.assertEqual(ap.parse_args(['service', 'enable']).daemons, [])
+        self.assertEqual(ap.parse_args(['service', 'stop', 'adsbd']).daemons, ['adsbd'])
+        self.assertEqual(ap.parse_args(['link', 'lost-ack', '--udp']).step, 'lost-ack')
+        self.assertEqual(ap.parse_args(['board', 'install', '-y']).board, 'obc-v2')
+        self.assertTrue(ap.parse_args(['antenna', 'check', '--pi']).pi)
+        with self.assertRaises(SystemExit), redirect_stdout(io.StringIO()), \
+                unittest.mock.patch('sys.stderr', io.StringIO()):
+            ap.parse_args(['link', 'pong'])
+
+
+# ---- phase 2 ---------------------------------------------------------------
+
+class FakePi:
+    """common.Pi without a Pi: records what would run there."""
+
+    def __init__(self, files=None, probe=None, sudo_ok=True, answers=True):
+        self.local, self.host, self.dir, self.name = False, 'pi@test', 'ttec', 'pi@test'
+        self.files, self._probe, self.sudo_ok, self.answers = files or {}, probe, sudo_ok, answers
+        self.ran, self.sudos, self.copies = [], [], []
+
+    def reachable(self):
+        return self.answers
+
+    def sync(self):
+        self.ran.append('<sync>')
+        return True
+
+    def read_files(self, paths):
+        return {p: self.files.get(p) for p in paths}
+
+    def probe(self, flags=''):
+        return self._probe
+
+    def run(self, command, tty=False, capture=True, timeout=None):
+        self.ran.append(command)
+        return SimpleNamespace(returncode=0, stdout=self.files.get('<stdout>', ''), stderr='')
+
+    def copy_to(self, local_path, remote_path):
+        self.copies.append((Path(local_path).read_text(), remote_path))
+        return True
+
+    def sudo(self, command, why):
+        self.sudos.append(command)
+        return self.sudo_ok
+
+    def fetch(self):
+        return []
+
+
+# /etc/gama/ttcd.conf as the bench Pi had it on 20/11: October's pins under
+# the new board's comments.
+TTCD_20_11 = """spi_dev    = /dev/spidev0.0
+reset_line = 20                # GPIO25 -> RA-02 NRESET, bus J1.29
+dio0_line  = 21                # GPIO4 <- RA-02 DIO0
+log_path   = /var/lib/gama/ttcd.jsonl
+"""
+BOOT_20_11 = """# Raspberry Pi OS
+dtparam=audio=on
+[cm4]
+otg_mode=1
+[all]
+dtparam=spi=on
+dtoverlay=w1-gpio
+"""
+OBC_V2 = HERE.parents[1] / 'flight' / 'conf' / 'obc-v2'
+
+
+class Board(unittest.TestCase):
+    def test_the_pins_of_20_11_differ_from_the_boards(self):
+        ch = board.conf_changes(TTCD_20_11, (OBC_V2 / 'ttcd.conf').read_text())
+        self.assertIn(('reset_line', '20', '25'), ch)
+        self.assertIn(('dio0_line', '21', '4'), ch)
+        self.assertIn(('log_path', '/var/lib/gama/ttcd.jsonl', None), ch)   # back to the code's default
+        self.assertNotIn('spi_dev', [k for k, _, _ in ch])
+
+    def test_hex_case_is_not_a_difference(self):
+        self.assertEqual(board.conf_changes('aocs_addr = 0x2a\n', 'aocs_addr = 0x2A  # ICD\n'), [])
+
+    def test_config_txt_gets_the_boards_lines_under_all(self):
+        new, changes = board.plan_boot(BOOT_20_11, (OBC_V2 / 'config.txt').read_text(), 'T')
+        lines = new.splitlines()
+        self.assertIn('# gama board install T: dtoverlay=w1-gpio', lines)     # commented, not deleted
+        self.assertNotIn('dtoverlay=w1-gpio', lines)
+        tail = lines[len(lines) - 1 - lines[::-1].index('[all]'):]           # appended after [cm4], under [all]
+        self.assertGreater(len(lines) - len(tail), lines.index('[cm4]'))
+        self.assertEqual([l for l in tail if not l.startswith('#')][1:],
+                         ['dtparam=i2c_arm=on', 'dtparam=i2c_arm_baudrate=100000', 'dtoverlay=w1-gpio,gpiopin=17'])
+        self.assertEqual(lines.count('dtparam=spi=on'), 1)                     # already there
+        self.assertEqual(len(changes), 4)
+        self.assertEqual(board.plan_boot(new, (OBC_V2 / 'config.txt').read_text(), 'T2'), (None, []))
+
+    def test_another_baudrate_is_replaced(self):
+        new, changes = board.plan_boot('dtparam=i2c_arm_baudrate=400000\n', 'dtparam=i2c_arm_baudrate=100000\n', 'T')
+        self.assertTrue(new.startswith('# gama board install T: dtparam=i2c_arm_baudrate=400000'))
+        self.assertTrue(new.rstrip().endswith('dtparam=i2c_arm_baudrate=100000'))
+
+    def files_20_11(self):
+        return {'/etc/gama/ttcd.conf': TTCD_20_11, '/etc/gama/obcd.conf': (OBC_V2 / 'obcd.conf').read_text(),
+                '/etc/gama/adsbd.conf': 'x = 1\n', '/boot/firmware/config.txt': BOOT_20_11}
+
+    def test_the_plan_and_its_command(self):
+        plan = board.make_plan(OBC_V2, self.files_20_11(), 'T')
+        self.assertEqual({d: v['state'] for d, v in plan['confs'].items()},
+                         {'ttcd': 'differs', 'obcd': 'same', 'adsbd': 'kept'})
+        cmd = board.install_command('obc-v2', plan, 'T')
+        self.assertIn('sudo cp -a /etc/gama/ttcd.conf /etc/gama/ttcd.conf.bak-T && sudo rm /etc/gama/ttcd.conf', cmd)
+        self.assertNotIn('obcd.conf.bak', cmd)                   # the same as the board's: left alone
+        self.assertLess(cmd.index('ttcd.conf.bak-T'), cmd.index('make install CONF_DIR=flight/conf/obc-v2'))
+        self.assertIn('/boot/firmware/config.txt.bak-T && sudo cp /tmp/gama-config.txt', cmd)
+
+    def test_install_backs_up_builds_and_installs(self):
+        pi = FakePi(files=self.files_20_11())
+        code, out = quiet(board.cmd_install, SimpleNamespace(board='obc-v2', yes=True, no_build=False), pi)
+        self.assertEqual(code, 0, out)
+        self.assertEqual(pi.ran[:2], ['<sync>', 'make build'])
+        self.assertEqual(len(pi.sudos), 1)
+        self.assertIn('dtoverlay=w1-gpio,gpiopin=17', pi.copies[0][0])
+        self.assertIn('./gama pi reboot', out)
+
+    def test_nothing_changes_without_a_yes(self):
+        pi = FakePi(files=self.files_20_11())
+        with unittest.mock.patch('sys.stdin', io.StringIO()):          # no terminal to ask on
+            code, out = quiet(board.cmd_install, SimpleNamespace(board='obc-v2', yes=False, no_build=False), pi)
+        self.assertEqual(code, 1)
+        self.assertEqual(pi.sudos, [])
+        self.assertIn('--yes', out)
+
+    def test_check_says_whether_anything_is_pending(self):
+        pi = FakePi(files=self.files_20_11())
+        code, out = quiet(board.cmd_check, SimpleNamespace(board='obc-v2'), pi)
+        self.assertEqual(code, 1)
+        self.assertIn('reset_line', out)
+        self.assertIn('acrescentada: dtoverlay=w1-gpio,gpiopin=17', out)
+
+    def test_an_unknown_board(self):
+        code, out = quiet(board.cmd_check, SimpleNamespace(board='obc-v9'), FakePi())
+        self.assertEqual(code, 1)
+        self.assertIn('obc-v2', out)
+
+    def test_doctor_compares_obcd_with_the_board(self):
+        f = doctor.board_findings({'obcd': {'burnwire_line': '27', 'heater_line': '23', 'i2c_dev': '/dev/i2c-1',
+                                            'ina219_addr': '0x40', 'aocs_addr': '0x2a', 'w1_path': 'auto'}})
+        self.assertEqual(f[0][0], 'warn')
+        self.assertIn('burnwire_line 27 ≠ 22', f[0][1])
+        self.assertNotIn('aocs_addr', f[0][1])
+
+
+class Service(unittest.TestCase):
+    def test_sudo_and_the_order_of_start(self):
+        pi = FakePi()
+        code, _ = quiet(service.cmd_action, SimpleNamespace(action='enable', daemons=['adsbd', 'ttcd']), pi)
+        self.assertEqual(code, 0)
+        self.assertEqual(pi.sudos, ['sudo systemctl enable --now ttcd adsbd'])      # ttcd first
+        quiet(service.cmd_action, SimpleNamespace(action='stop', daemons=[]), pi)
+        self.assertEqual(pi.sudos[-1], 'sudo systemctl stop ttcd obcd adsbd')
+
+    def test_status_reads_each_daemon(self):
+        pi = FakePi(files={'<stdout>': '@@ ttcd active enabled /var/lib/gama/ttcd.jsonl\n{"event":"hk"}\n'
+                                       '@@ obcd inactive disabled /var/lib/gama/obcd.jsonl\n'
+                                       '@@ adsbd failed enabled /var/lib/gama/adsbd.jsonl\n'})
+        code, out = quiet(service.cmd_status, SimpleNamespace(), pi)
+        self.assertEqual(code, 0)
+        self.assertIn('✔ ttcd   active', out)
+        self.assertIn('{"event":"hk"}', out)
+        self.assertIn('⚠ obcd   inactive  fora do boot', out)
+
+    def test_without_a_terminal_sudo_says_what_to_type(self):
+        pi = common.Pi(host='pi@test', directory='ttec', local=False)
+        with unittest.mock.patch('sys.stdin', io.StringIO()):
+            ok, out = quiet(pi.sudo, 'sudo systemctl stop ttcd', 'parando')
+        self.assertFalse(ok)
+        self.assertIn("ssh -t pi@test 'cd ttec && sudo systemctl stop ttcd'", out)
+
+
+class Link(unittest.TestCase):
+    def test_the_make_lines(self):
+        root = str(common.ROOT)
+        self.assertEqual(link.make_argv('ping', 'udp'), ['make', '-C', root, 'bench-ping', 'POWER=2', 'RADIO=udp'])
+        self.assertEqual(link.make_argv('all', 'split', '/dev/ttyUSB0', 5),
+                         ['make', '-C', root, 'bench', 'POWER=5', 'TTCD_CONF=/etc/gama/ttcd.conf',
+                          'SPLIT=1', 'GS=esp32', 'ESP32_PORT=/dev/ttyUSB0'])
+        self.assertEqual(link.make_argv('toa', 'pi', conf='/tmp/x.conf')[-1], 'TTCD_CONF=/tmp/x.conf')
+
+    def args(self, **kw):
+        base = dict(step='ping', udp=False, port=None, power=2, conf=None, no_build=False, skip_radio_check=False)
+        base.update(kw)
+        return SimpleNamespace(**base)
+
+    def test_from_the_pc_it_checks_builds_then_steps(self):
+        remote, local, calls = FakeRemote(READY_PROBE), FakeLocal(), []
+        with unittest.mock.patch.object(common, 'on_pi', lambda: False):
+            code, out = quiet(link.cmd_link, self.args(), remote, local, lambda argv: calls.append(argv) or 0)
+        self.assertEqual(code, 0, out)
+        self.assertEqual([x for x in remote.calls if x in ('sync', 'probe', 'build')], ['sync', 'probe', 'build'])
+        self.assertIn('ESP32_PORT=/dev/ttyUSB0', calls[0])
+
+    def test_refused_when_radio_a_does_not_answer(self):
+        remote, calls = FakeRemote(PROBE_20_11), []
+        with unittest.mock.patch.object(common, 'on_pi', lambda: False):
+            code, out = quiet(link.cmd_link, self.args(), remote, FakeLocal(), lambda argv: calls.append(argv) or 0)
+        self.assertEqual(code, 1)
+        self.assertEqual(calls, [])
+        self.assertIn('pino 21', out)
+
+
+class Antenna(unittest.TestCase):
+    def args(self, **kw):
+        base = dict(pi=True, antenna='cots', secs=60, gain=49.6, lat=None, lon=None, no_reference=False)
+        base.update(kw)
+        return SimpleNamespace(**base)
+
+    def test_the_folder_has_the_pcs_date(self):
+        import datetime
+        a = antenna.run_args(self.args(), datetime.date(2026, 11, 20))
+        self.assertEqual(a[a.index('--out') + 1], 'docs/vv/bancada/2026-11-20/antena')
+        self.assertNotIn('--lat', a)
+
+    def test_refused_while_adsbd_holds_the_sdr(self):
+        pi = FakePi(probe={'running': {'dump1090-fa': [9]}, 'services': {'adsbd': 'active'}, 'sdr': True})
+        with unittest.mock.patch.object(common, 'on_pi', lambda: False):
+            code, out = quiet(antenna.cmd_check, self.args(), pi)
+        self.assertEqual(code, 1)
+        self.assertIn('adsbd (serviço)', out)
+        self.assertIn('./gama pi stop', out)
+        self.assertNotIn('sdr_check', ' '.join(pi.ran))
+
+    def test_on_the_pi(self):
+        pi = FakePi(probe={'running': {}, 'services': {}, 'sdr': True, 'internet': True})
+        with unittest.mock.patch.object(common, 'on_pi', lambda: False):
+            code, _ = quiet(antenna.cmd_check, self.args(), pi)
+        self.assertEqual(code, 0)
+        self.assertTrue(pi.ran[-1].startswith('python3 tools/bench/sdr_check.py run --antenna cots --secs 60'))
 
 
 if __name__ == '__main__':

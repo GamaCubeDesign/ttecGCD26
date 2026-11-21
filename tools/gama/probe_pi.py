@@ -5,6 +5,7 @@ the internet, what is running, the installed configuration and the wiring it
 describes, the SDR, and whether radio A answers on SPI.
 
     python3 tools/gama/probe_pi.py [--radio-only] [--no-radio]
+    python3 tools/gama/probe_pi.py --cat FILE...   {file: text or null}, for gama board
 
 The radio check reads the SX1278's RegVersion (0x42), which is 0x12. When it
 reads 0x00, it turns the Pi's pull-up on MISO and reads again: 0xff means
@@ -188,6 +189,13 @@ def sdr_present():
     return '0bda:2838' in out or '0bda:2832' in out
 
 
+def cat(path):
+    try:
+        return Path(path).read_text()
+    except OSError:
+        return None
+
+
 def probe(radio=True, others=True, hw=None):
     result = {}
     procs = running()
@@ -196,6 +204,8 @@ def probe(radio=True, others=True, hw=None):
                            if ttcd_conf is not None else None)
     if ttcd_conf is not None:
         result['wiring'] = wiring(ttcd_conf.get('reset_line'), ttcd_conf.get('dio0_line'))
+    # What gama doctor compares with the board's configuration (gama board).
+    result['installed'] = {d: read_conf(CONF_DIR / f'{d}.conf') for d in ('ttcd', 'obcd')}
     if others:
         result['running'] = procs
         result['services'] = services()
@@ -213,7 +223,11 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('--radio-only', action='store_true')
     ap.add_argument('--no-radio', action='store_true')
+    ap.add_argument('--cat', nargs='+', metavar='FILE')
     args = ap.parse_args(argv)
+    if args.cat:
+        print(json.dumps({f: cat(f) for f in args.cat}))
+        return 0
     print(json.dumps(probe(radio=not args.no_radio, others=not args.radio_only)))
     return 0
 

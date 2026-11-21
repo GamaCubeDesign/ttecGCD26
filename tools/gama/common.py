@@ -7,6 +7,7 @@ identifiers and comments in English (AGENTS.md).
 """
 
 import glob
+import json
 import os
 import shlex
 import subprocess
@@ -190,3 +191,92 @@ def esp32_port(given=None):
         return None, 'o conversor USB-serial aparece no lsusb, mas sem /dev/ttyUSB*: o módulo cp210x/ch341 não carregou?'
     return None, ('a ESP32 não aparece no USB (nem no lsusb): cabo só de carga, '
                   'mau contato ou outra porta USB')
+
+
+# ---- the Pi, wherever this runs -------------------------------------------
+
+class Pi:
+    """Where a command for the Pi runs: right here when this is the Pi, over
+    ssh from the PC otherwise. Commands run inside the tree (the repository
+    here, PI_DIR there). Tests replace it."""
+
+    def __init__(self, host=None, directory=None, local=None):
+        self.local = on_pi() if local is None else local
+        self.host = None if self.local else (host or need_pi_host())
+        self.dir = str(ROOT) if self.local else (directory or pi_dir())
+
+    @property
+    def name(self):
+        return 'esta Pi' if self.local else self.host
+
+    def argv(self, command, tty=False):
+        command = in_dir(self.dir, command)
+        return ['bash', '-c', command] if self.local else ssh_argv(self.host, command, tty=tty)
+
+    def run(self, command, tty=False, capture=True, timeout=None):
+        return run(self.argv(command, tty=tty), capture=capture, timeout=timeout)
+
+    def reachable(self):
+        return self.local or reachable(self.host)
+
+    def sync(self):
+        return self.local or sync(self.host, self.dir, quiet=True)
+
+    def copy_to(self, local_path, remote_path):
+        if self.local:
+            return run(['cp', str(local_path), remote_path]).returncode == 0
+        return run(['scp', '-q', str(local_path), f'{self.host}:{remote_path}']).returncode == 0
+
+    def fetch(self):
+        return [] if self.local else fetch(self.host, self.dir)
+
+    def typed(self, command):
+        """What the operator types to run the command by hand."""
+        return command if self.local else f'ssh -t {self.host} {shlex.quote(in_dir(self.dir, command))}'
+
+    def sudo(self, command, why):
+        """A command with sudo in it. sudo asks for its password, which needs
+        a terminal: with one, the command runs with -t; without, the exact
+        line to type is printed instead (make pi-service-stop's failure of
+        20/11)."""
+        if sys.stdin.isatty():
+            say(f'{why}; o sudo da Pi pode pedir a senha')
+            return self.run(command, tty=True, capture=False).returncode == 0
+        fail('o sudo precisa de um terminal para pedir a senha', 'rode num terminal seu:\n' + self.typed(command))
+        return False
+
+    def probe(self, flags=''):
+        """probe_pi.py's JSON (the tree must be synced), or None."""
+        r = self.run(f'python3 tools/gama/probe_pi.py {flags}', timeout=60)
+        try:
+            return json.loads(r.stdout.strip().splitlines()[-1])
+        except (ValueError, IndexError):
+            return None
+
+    def read_files(self, paths):
+        """{path: text or None} of files on the Pi (probe_pi.py --cat)."""
+        quoted = ' '.join(shlex.quote(p) for p in paths)
+        r = self.run(f'python3 tools/gama/probe_pi.py --cat {quoted}', timeout=30)
+        try:
+            return json.loads(r.stdout.strip().splitlines()[-1])
+        except (ValueError, IndexError):
+            return None
+
+
+def reachable_pi(pi):
+    """The Pi object if it answers, else None after saying so."""
+    if not pi.reachable():
+        fail(f'a Pi ({pi.name}) não responde pelo ssh', 'está ligada? na mesma rede? ./gama net up')
+        return False
+    return True
+
+
+def confirm(question, assume_yes=False):
+    if assume_yes:
+        return True
+    if not sys.stdin.isatty():
+        return False
+    try:
+        return input(f'? {question} [s/N] ').strip().lower() in ('s', 'sim', 'y', 'yes')
+    except EOFError:
+        return False

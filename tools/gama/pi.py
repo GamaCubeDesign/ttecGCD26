@@ -77,3 +77,15 @@ def cmd_stop(args):
         c.fail(f'a Pi ({host}) não responde pelo ssh', './gama net up')
         return 1
     return 0 if stop(host) else 1
+
+
+def cmd_reboot(args):
+    host = c.need_pi_host()
+    if not c.reachable(host):
+        c.fail(f'a Pi ({host}) não responde pelo ssh', './gama net up')
+        return 1
+    pi = c.Pi(host)
+    # The ssh drops as the Pi goes down: that is not a failure.
+    pi.sudo('sudo systemctl reboot', 'reiniciando a Pi')
+    c.say('a Pi volta em ~40 s; ./gama net check, depois ./gama doctor')
+    return 0
