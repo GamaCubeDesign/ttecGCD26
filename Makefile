@@ -41,6 +41,10 @@ SUDO       ?= sudo
 
 need-pi = $(if $(ON_PI),,$(error $@ is for the Raspberry Pi — from the PC, make pi-$@ (ON_PI=1 forces it here)))
 
+# Operating the bench moved to ./gama (tools/gama/, 21/11). The targets it
+# replaces still work, with this note, until after the on-site tests (24/11).
+superseded = @echo "note: make $@ is superseded by $(1) (./gama --help); it still works until after 24/11" >&2
+
 ##@ Build and test — on the PC and on the Pi
 
 .PHONY: build test asan check check-debian clean vectors
@@ -273,6 +277,7 @@ mission-sat: build ## On the Pi: the satellite for a mission from the page; MISS
 	    tools/bench/pi_mission.sh $(MISSION_DIR)
 
 pi-mission: pi-sync ## From the PC: copy INPUT to the Pi, run mission-sat there (Ctrl-C stops it), bring the logs back
+	$(call superseded,./gama mission --secs N --input F)
 	$(if $(INPUT),@test -f '$(INPUT)' || { echo "pi-mission: no $(INPUT)" >&2; exit 1; })
 	$(if $(INPUT),scp -q '$(INPUT)' $(PI_HOST):$(PI_INPUT))
 	status=0; \
@@ -297,10 +302,12 @@ SDR_OPTS   ?=
 .PHONY: sdr-check sdr-compare
 
 sdr-check: ## Is the antenna delivering aircraft? ANTENNA=cots|gama, SDR_SECS=60; logs in docs/vv/bancada/<date>/antena/
+	$(call superseded,./gama antenna check)
 	$(PYTHON) tools/bench/sdr_check.py run --antenna '$(ANTENNA)' --secs $(SDR_SECS) \
 	    --gain $(SDR_GAIN) --out '$(SDR_DIR)' $(SDR_OPTS)
 
 sdr-compare: ## Every antenna check in docs/vv/bancada side by side (SDR_DIR=<folder> for one day)
+	$(call superseded,./gama antenna compare)
 	$(PYTHON) tools/bench/sdr_check.py compare $(if $(filter command line,$(origin SDR_DIR)),'$(SDR_DIR)',docs/vv/bancada)
 
 ##@ ESP32 ground station — ESP-IDF in Docker (tools/esp32/idf.sh), on the PC
@@ -376,19 +383,23 @@ install: build ## Install the daemons, their units and, if absent, /etc/gama fil
 	done
 
 service-enable: ## Start ttcd now and at every boot — the flight configuration
+	$(call superseded,./gama service enable ttcd)
 	$(need-pi)
 	$(SUDO) systemctl enable --now ttcd
 
 service-stop: ## Stop ttcd until the next boot: the bench needs radio A
+	$(call superseded,./gama service stop ttcd)
 	$(need-pi)
 	$(SUDO) systemctl stop ttcd
 
 service-status: ## systemd's view of ttcd, and the end of its log
+	$(call superseded,./gama service status)
 	$(need-pi)
 	systemctl status ttcd --no-pager || true
 	tail -n 20 $(SERVICE_LOG)
 
 service-logs: ## Follow ttcd's log; Ctrl-C leaves
+	$(call superseded,./gama service logs ttcd -f)
 	$(need-pi)
 	tail -F $(SERVICE_LOG)
 
@@ -396,15 +407,18 @@ service-logs: ## Follow ttcd's log; Ctrl-C leaves
 ADSBD_LOG   ?= /var/lib/gama/adsbd.jsonl
 
 adsbd-enable: ## Start adsbd now and at every boot (dump1090-fa must be installed)
+	$(call superseded,./gama service enable adsbd)
 	$(need-pi)
 	@test -x /usr/bin/dump1090-fa || echo "warning: /usr/bin/dump1090-fa not found; adsbd will keep retrying it" >&2
 	$(SUDO) systemctl enable --now adsbd
 
 adsbd-stop: ## Stop adsbd until the next boot: frees the SDR
+	$(call superseded,./gama service stop adsbd)
 	$(need-pi)
 	$(SUDO) systemctl stop adsbd
 
 adsbd-status: ## systemd's view of adsbd, and the end of its log
+	$(call superseded,./gama service status)
 	$(need-pi)
 	systemctl status adsbd --no-pager || true
 	tail -n 20 $(ADSBD_LOG)
@@ -413,14 +427,17 @@ adsbd-status: ## systemd's view of adsbd, and the end of its log
 OBCD_LOG    ?= /var/lib/gama/obcd.jsonl
 
 obcd-enable: ## Start obcd now and at every boot (pins and sensors in /etc/gama/obcd.conf)
+	$(call superseded,./gama service enable obcd)
 	$(need-pi)
 	$(SUDO) systemctl enable --now obcd
 
 obcd-stop: ## Stop obcd until the next boot: the modes stop, the outputs go off
+	$(call superseded,./gama service stop obcd)
 	$(need-pi)
 	$(SUDO) systemctl stop obcd
 
 obcd-status: ## systemd's view of obcd, and the end of its log
+	$(call superseded,./gama service status)
 	$(need-pi)
 	systemctl status obcd --no-pager || true
 	tail -n 20 $(OBCD_LOG)
@@ -430,31 +447,19 @@ obcd-status: ## systemd's view of obcd, and the end of its log
 # The PC's NetworkManager connection bancada-ap (created once, in
 # docs/vv/bancada/README.md) turns its Wi-Fi into the access point
 # gama-bancada and shares the cable's internet; the Pi knows that network
-# with priority 20. net-up waits until the Pi answers over ssh (~40 s
-# after it boots).
-AP_CON     ?= bancada-ap
-NET_WAIT   ?= 90
+# with priority 20. Since 21/11 these are ./gama net (tools/gama/net.py),
+# which waits until the Pi answers over ssh (~40 s after it boots).
 
 .PHONY: net-up net-down net-check
 
-net-up: ## Bring the bench network up and wait for the Pi (PI_HOST) to answer
-	$(need-pi-host)
-	nmcli con up $(AP_CON)
-	@echo "net-up: waiting up to $(NET_WAIT) s for $(PI_HOST)..."
-	@for i in $$(seq 1 $$(( $(NET_WAIT) / 3 ))); do \
-	    if ssh -o BatchMode=yes -o ConnectTimeout=3 $(PI_HOST) true 2>/dev/null; then \
-	        echo "net-up: $(PI_HOST) answers: $$(ssh $(PI_HOST) hostname -I)"; exit 0; fi; \
-	    sleep 3; \
-	done; \
-	echo "net-up: $(PI_HOST) did not answer; is it on? did it join the phone's hotspot instead? (make net-check)" >&2; exit 1
+net-up: ## Bring the bench network up and wait for the Pi (./gama net up; refuses without the ethernet cable)
+	./gama net up
 
-net-check: ## The network as seen from both ends: the PC's devices, the Pi's address and its internet
-	$(need-pi-host)
-	nmcli -f DEVICE,TYPE,STATE,CONNECTION device status
-	ssh -o ConnectTimeout=5 $(PI_HOST) 'hostname -I; curl -sI --max-time 5 https://deb.debian.org | head -1 || echo "no internet on the Pi"'
+net-check: ## The network as seen from both ends (./gama net check)
+	./gama net check
 
-net-down: ## Take the bench network down (the Wi-Fi goes back to normal)
-	nmcli con down $(AP_CON)
+net-down: ## Take the bench network down (./gama net down)
+	./gama net down
 
 ##@ From the PC — the same targets, run on the Pi over ssh
 
@@ -507,7 +512,7 @@ doctor: ## The whole bench at once: PC, network, Pi, clock, configuration, SDR, 
 	./gama doctor
 
 help: ## This list
-	@echo "To operate the bench (network, Pi, radio, a mission): ./gama --help"
+	@echo "To operate the bench (network, Pi, board, services, radio, link, antenna, ESP32, a mission): ./gama --help"
 	@awk 'BEGIN { FS = ":.*## " } \
 	     /^##@/ { printf "\n%s\n", substr($$0, 5) } \
 	     /^[a-zA-Z0-9_%-]+:.*## / { t = $$1; sub(/%/, "<target>", t); printf "  %-18s %s\n", t, $$2 }' \
