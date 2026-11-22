@@ -1,0 +1,7 @@
+sdr_check · antena antena · 2026-11-16T19:13:08 · 60 s · ganho 49.6 dB
+  /usr/bin/dump1090-fa · receptor em -15.99, -48.04
+  ruído -34.8 dBFS · sinal médio None dBFS · pico None dBFS · amostras descartadas 0
+  mensagens com CRC certo 0 · úteis 0 · posições 0 · preâmbulos 1553843 · Mode A/C 0
+  aeronaves ouvidas: 0 (com posição: 0)
+  referência: sem resposta da OpenSky (sem internet?)
+  VEREDITO: INCONCLUSIVO — nenhuma mensagem e sem referência (sem internet): repita com rede para saber se havia aviões

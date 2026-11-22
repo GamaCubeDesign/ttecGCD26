@@ -1,0 +1,8 @@
+sdr_check · antena antena · 2026-11-16T19:15:23 · 60 s · ganho 49.6 dB
+  /usr/bin/dump1090-fa · receptor em -15.99, -48.04
+  ruído -39.2 dBFS · sinal médio -19.9 dBFS · pico -13.7 dBFS · amostras descartadas 0
+  mensagens com CRC certo 94 · úteis 1142 · posições 25 · preâmbulos 408364 · Mode A/C 1048
+  aeronaves ouvidas: 1 (com posição: 1)
+    e48985 GLO1803     32 mensagens, RSSI -19.8 dBFS, posição a até 3.5 km
+  referência: sem resposta da OpenSky (sem internet?)
+  VEREDITO: APROVADA — 1 aeronave(s) com posição, a até 4 km

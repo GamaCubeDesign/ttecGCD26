@@ -1,0 +1,43 @@
+{
+ "antenna": "antena",
+ "started": "2026-11-16T19:15:23",
+ "secs": 60,
+ "gain": 49.6,
+ "dump1090": "/usr/bin/dump1090-fa",
+ "receiver": [
+  -15.99,
+  -48.04
+ ],
+ "stats": {
+  "samples_processed": 61997056,
+  "samples_dropped": 0,
+  "modeac": 1048,
+  "preambles": 408364,
+  "bad": 1612661,
+  "unknown_icao": 181384,
+  "accepted": 94,
+  "noise_dbfs": -39.2,
+  "signal_dbfs": -19.9,
+  "peak_dbfs": -13.7,
+  "strong": 0,
+  "usable": 1142,
+  "airborne_positions": 25,
+  "tracks": 2,
+  "blocks": 2
+ },
+ "aircraft": [
+  {
+   "hex": "e48985",
+   "flight": "GLO1803",
+   "messages": 32,
+   "rssi_max": -19.8,
+   "position": true,
+   "max_km": 3.5
+  }
+ ],
+ "reference": null,
+ "verdict": [
+  "APROVADA",
+  "1 aeronave(s) com posição, a até 4 km"
+ ]
+}

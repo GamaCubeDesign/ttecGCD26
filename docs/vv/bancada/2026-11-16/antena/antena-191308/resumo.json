@@ -1,0 +1,32 @@
+{
+ "antenna": "antena",
+ "started": "2026-11-16T19:13:08",
+ "secs": 60,
+ "gain": 49.6,
+ "dump1090": "/usr/bin/dump1090-fa",
+ "receiver": [
+  -15.99,
+  -48.04
+ ],
+ "stats": {
+  "samples_processed": 262668288,
+  "samples_dropped": 0,
+  "modeac": 0,
+  "preambles": 1553843,
+  "bad": 6133521,
+  "unknown_icao": 711041,
+  "accepted": 0,
+  "noise_dbfs": -34.8,
+  "strong": 0,
+  "usable": 0,
+  "airborne_positions": 0,
+  "tracks": 0,
+  "blocks": 6
+ },
+ "aircraft": [],
+ "reference": null,
+ "verdict": [
+  "INCONCLUSIVO",
+  "nenhuma mensagem e sem referência (sem internet): repita com rede para saber se havia aviões"
+ ]
+}
