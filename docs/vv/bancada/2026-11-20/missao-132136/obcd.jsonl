@@ -1,0 +1,23 @@
+{"mono_ms":1063694,"event":"start","version":"antes-gama-fase2-8-g8f54a30-dirty","ipc_path":"/tmp/mission.Y2mMWQ.sock","i2c_dev":"/dev/i2c-1","ina219_addr":64,"aocs_addr":42,"i2c_lease_path":"/var/lib/gama/obcd-i2c.lease","w1_path":"auto","gpio_chip":"/dev/gpiochip0"}
+{"mono_ms":1063694,"event":"output","which":"burnwire","chip":"/dev/gpiochip0","line":22}
+{"mono_ms":1063694,"event":"output","which":"heater","chip":"/dev/gpiochip0","line":23}
+{"mono_ms":1063694,"event":"burnwire","on":false,"why":"boot","driven":true}
+{"mono_ms":1063694,"event":"heater","on":false,"why":"boot","temp_ccel":-32768,"driven":true}
+{"mono_ms":1063694,"event":"boot","mode":"PRE_TEST","adsb_timeout_ms":120000,"burnwire_ms":5000,"aocs_timeout_ms":300000,"heater_on_below_ccel":1000,"heater_off_above_ccel":1200}
+{"mono_ms":1063694,"event":"sensor","which":"ds18b20","found":0,"dir":"/sys/bus/w1/devices"}
+{"mono_ms":1063694,"event":"ipc_up","path":"/tmp/mission.Y2mMWQ.sock"}
+{"mono_ms":1063697,"event":"sensor","which":"ds18b20","ok":false,"why":"NOT_FOUND"}
+{"mono_ms":1063697,"event":"temp_fault","have":false,"age_ms":0}
+{"mono_ms":1064732,"event":"sensor","which":"ina219","ok":false,"why":"Connection timed out"}
+{"mono_ms":1064732,"event":"power_fault","first":true}
+{"mono_ms":1074011,"event":"time_anchor","unix_s":1795375609,"nsec":853000000}
+{"mono_ms":1123694,"event":"status","mode":"PRE_TEST","battery_mv":65535,"current_ma":-32768,"temp_bat_ccel":-32768,"heater":false,"events":0,"refused":0,"power_failures":30,"temp_failures":30,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":1176380,"event":"time_anchor","unix_s":1795375712,"nsec":222000000}
+{"mono_ms":1176680,"event":"mode","from":"PRE_TEST","to":"MISSION_ADSB","event":"TC_MISSION_ADSB","by":"ttcd","after_ms":112986}
+{"mono_ms":1183694,"event":"status","mode":"MISSION_ADSB","battery_mv":65535,"current_ma":-32768,"temp_bat_ccel":-32768,"heater":false,"events":1,"refused":0,"power_failures":60,"temp_failures":60,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":1243694,"event":"status","mode":"MISSION_ADSB","battery_mv":65535,"current_ma":-32768,"temp_bat_ccel":-32768,"heater":false,"events":1,"refused":0,"power_failures":89,"temp_failures":90,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":1296680,"event":"mode","from":"MISSION_ADSB","to":"MISSION_DOWNLINK","event":"ADSB_TIMEOUT","by":"timer","after_ms":120000}
+{"mono_ms":1297042,"event":"mode","from":"MISSION_DOWNLINK","to":"PRE_TEST","event":"TASK_DONE","by":"ttcd","after_ms":362}
+{"mono_ms":1303694,"event":"status","mode":"PRE_TEST","battery_mv":65535,"current_ma":-32768,"temp_bat_ccel":-32768,"heater":false,"events":3,"refused":0,"power_failures":119,"temp_failures":120,"output_failures":0,"ipc_tx_drops":0}
+{"mono_ms":1341451,"event":"stop","signal":15}
+{"mono_ms":1341451,"event":"exit","code":0,"transitions":3,"refused":0}

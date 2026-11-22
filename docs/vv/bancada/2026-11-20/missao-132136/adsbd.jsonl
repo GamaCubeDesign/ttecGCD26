@@ -1,0 +1,19 @@
+{"mono_ms":1063696,"event":"start","version":"antes-gama-fase2-8-g8f54a30-dirty","sbs":"127.0.0.1:31003","avr_port":0,"ipc_path":"/tmp/mission.Y2mMWQ.sock","ndjson_path":"docs/vv/bancada/2026-11-20/missao-132136/adsb.ndjson","record_bytes":0,"dump1090":"external","decoder":"mode","wall_s":1795191704,"wall_note":"system clock until the ground's SET_TIME"}
+{"mono_ms":1063696,"event":"ipc_up","path":"/tmp/mission.Y2mMWQ.sock"}
+{"mono_ms":1063700,"event":"obc_mode","from":"UNKNOWN","to":"PRE_TEST"}
+{"mono_ms":1074011,"event":"time_anchor","unix_s":1795375609,"nsec":853000000,"step_ms":183894722}
+{"mono_ms":1123696,"event":"stats","lines":0,"decoded":0,"ignored":0,"non_icao":0,"rejected":0,"aircraft":0,"evictions":0,"expired":0,"snapshots":61,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":1,"roster":0,"roster_full":0,"dump1090_restarts":0,"time_synced":true,"avr_lines":0,"avr_idents":0,"avr_not_ident":0,"avr_non_icao":0,"avr_no_track":0,"avr_rejected":0}
+{"mono_ms":1176380,"event":"time_anchor","unix_s":1795375712,"nsec":222000000,"step_ms":0}
+{"mono_ms":1176680,"event":"time_anchor","unix_s":1795375712,"nsec":522000000,"step_ms":0}
+{"mono_ms":1176681,"event":"obc_mode","from":"PRE_TEST","to":"MISSION_ADSB"}
+{"mono_ms":1176681,"event":"decoder","on":true,"mode":"MISSION_ADSB"}
+{"mono_ms":1176681,"event":"sbs_up","host":"127.0.0.1","port":31003}
+{"mono_ms":1183696,"event":"stats","lines":99,"decoded":99,"ignored":0,"non_icao":0,"rejected":0,"aircraft":7,"evictions":0,"expired":0,"snapshots":121,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":7,"roster_full":0,"dump1090_restarts":0,"time_synced":true,"avr_lines":0,"avr_idents":0,"avr_not_ident":0,"avr_non_icao":0,"avr_no_track":0,"avr_rejected":0}
+{"mono_ms":1243696,"event":"stats","lines":3342,"decoded":3342,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":181,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true,"avr_lines":0,"avr_idents":0,"avr_not_ident":0,"avr_non_icao":0,"avr_no_track":0,"avr_rejected":0}
+{"mono_ms":1296680,"event":"obc_mode","from":"MISSION_ADSB","to":"MISSION_DOWNLINK"}
+{"mono_ms":1296680,"event":"decoder","on":false,"mode":"MISSION_DOWNLINK"}
+{"mono_ms":1296680,"event":"sbs_down","why":"mode"}
+{"mono_ms":1297042,"event":"obc_mode","from":"MISSION_DOWNLINK","to":"PRE_TEST"}
+{"mono_ms":1303696,"event":"stats","lines":6462,"decoded":6462,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":241,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true,"avr_lines":0,"avr_idents":0,"avr_not_ident":0,"avr_non_icao":0,"avr_no_track":0,"avr_rejected":0}
+{"mono_ms":1341449,"event":"stop","signal":15}
+{"mono_ms":1341449,"event":"exit","code":0,"record_bytes":929270,"record_dropped":0}

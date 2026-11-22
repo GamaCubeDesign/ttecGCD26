@@ -1,0 +1,10 @@
+sdr_check · antena pi-sala · 2026-11-20T12:43:58 · 60 s · ganho 49.6 dB
+  /usr/bin/dump1090-fa · receptor em -15.99, -48.04
+  ruído -33.8 dBFS · sinal médio -31.9 dBFS · pico -28.9 dBFS · amostras descartadas 0
+  mensagens com CRC certo 4 · úteis 6 · posições 0 · preâmbulos 1882291 · Mode A/C 2
+  aeronaves ouvidas: 0 (com posição: 0)
+  referência (OpenSky, até 150 km): 3 aeronave(s)
+    E48799 TAM4587     8.0 km  6975 ft
+    E49697 TAM3025    26.3 km  10976 ft
+    E4A787            26.4 km  8300 ft
+  VEREDITO: RECEBE — 4 mensagens com CRC certo de 0 aeronave(s), mas nenhuma posição: repita por mais tempo ou num lugar mais aberto

@@ -1,0 +1,4 @@
+sbs_replay: waiting for a client on 127.0.0.1:31003
+sbs_replay: 127.0.0.1:60104 connected
+sbs_replay: client left after 6465 lines
+sbs_replay: waiting for a client on 127.0.0.1:31003

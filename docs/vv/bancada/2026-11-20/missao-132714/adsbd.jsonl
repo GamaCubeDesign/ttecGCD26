@@ -1,0 +1,17 @@
+{"mono_ms":1402938,"event":"start","version":"antes-gama-fase2-8-g8f54a30-dirty","sbs":"127.0.0.1:31003","avr_port":0,"ipc_path":"/tmp/mission.68q7do.sock","ndjson_path":"docs/vv/bancada/2026-11-20/missao-132714/adsb.ndjson","record_bytes":0,"dump1090":"external","decoder":"mode","wall_s":1795192044,"wall_note":"system clock until the ground's SET_TIME"}
+{"mono_ms":1402938,"event":"ipc_up","path":"/tmp/mission.68q7do.sock"}
+{"mono_ms":1402956,"event":"obc_mode","from":"UNKNOWN","to":"PRE_TEST"}
+{"mono_ms":1413279,"event":"time_anchor","unix_s":1795375949,"nsec":121000000,"step_ms":183894722}
+{"mono_ms":1417821,"event":"time_anchor","unix_s":1795375953,"nsec":662000000,"step_ms":0}
+{"mono_ms":1418120,"event":"time_anchor","unix_s":1795375953,"nsec":962000000,"step_ms":0}
+{"mono_ms":1418121,"event":"obc_mode","from":"PRE_TEST","to":"MISSION_ADSB"}
+{"mono_ms":1418121,"event":"decoder","on":true,"mode":"MISSION_ADSB"}
+{"mono_ms":1418121,"event":"sbs_up","host":"127.0.0.1","port":31003}
+{"mono_ms":1462938,"event":"stats","lines":1962,"decoded":1962,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":61,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true,"avr_lines":0,"avr_idents":0,"avr_not_ident":0,"avr_non_icao":0,"avr_no_track":0,"avr_rejected":0}
+{"mono_ms":1504612,"event":"obc_mode","from":"MISSION_ADSB","to":"MISSION_DOWNLINK"}
+{"mono_ms":1504612,"event":"decoder","on":false,"mode":"MISSION_DOWNLINK"}
+{"mono_ms":1504612,"event":"sbs_down","why":"mode"}
+{"mono_ms":1505230,"event":"obc_mode","from":"MISSION_DOWNLINK","to":"PRE_TEST"}
+{"mono_ms":1522938,"event":"stats","lines":4482,"decoded":4482,"ignored":0,"non_icao":0,"rejected":0,"aircraft":20,"evictions":0,"expired":0,"snapshots":121,"left_out":0,"ipc_tx_drops":0,"ipc_rx_bad":0,"anchors":3,"roster":20,"roster_full":0,"dump1090_restarts":0,"time_synced":true,"avr_lines":0,"avr_idents":0,"avr_not_ident":0,"avr_non_icao":0,"avr_no_track":0,"avr_rejected":0}
+{"mono_ms":1536322,"event":"stop","signal":15}
+{"mono_ms":1536322,"event":"exit","code":0,"record_bytes":644524,"record_dropped":0}

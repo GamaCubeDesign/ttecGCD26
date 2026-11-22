@@ -252,7 +252,17 @@ risks. As of 2026-11-05:
   emitter category, which the downlink does not carry (the SBS feed has
   none). Radio A of the bench is still on October's wiring (RESET 20, DIO0
   21); with the board's pins the ping passes but with retries (DIO0 seen
-  only by the 250 ms poll). On 2026-11-17, against 1 h of real traffic
+  only by the 250 ms poll). On 2026-11-22, on the assembled satellite
+  (`obc-v2`, the team's antennas, no AOCS, `docs/vv/bancada/2026-11-22/notas.md`),
+  radio A on the board's pins: ping 10/10 at the first attempt (281 ms),
+  lost ACK recovered in 20.9 s, and two missions from the page with every
+  TC acknowledged at the first attempt, 20 of 20 simulated aircraft at the
+  ground, position error p95 14 m and 10 m; the flight services run the
+  mission from the telecommand alone. Open: the OBC's I²C SCL reads 0 V
+  even with `obcd` stopped (a short to GND, to confirm with a multimeter;
+  `docs/relatorios/2026-11-22-i2c-scl-em-curto.html`), so the INA219 gives no
+  data; the SDR's noise inside the room with the stack powered (−23.7 dBFS).
+  On 2026-11-17, against 1 h of real traffic
   around UNSAM with a truth (`docs/vv/trafego-real/`): without the category
   — what the ground really gets — the local method gets 9 of 10
   destinations and decides no origin (5 of 6 with it); the pair method of

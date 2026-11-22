@@ -1,0 +1,56 @@
+{
+ "antenna": "pi-sala",
+ "started": "2026-11-20T12:43:58",
+ "secs": 60,
+ "gain": 49.6,
+ "dump1090": "/usr/bin/dump1090-fa",
+ "receiver": [
+  -15.99,
+  -48.04
+ ],
+ "stats": {
+  "samples_processed": 262668288,
+  "samples_dropped": 0,
+  "modeac": 2,
+  "preambles": 1882291,
+  "bad": 7541839,
+  "unknown_icao": 823739,
+  "accepted": 4,
+  "noise_dbfs": -33.8,
+  "signal_dbfs": -31.9,
+  "peak_dbfs": -28.9,
+  "strong": 0,
+  "usable": 6,
+  "airborne_positions": 0,
+  "tracks": 2,
+  "blocks": 6
+ },
+ "aircraft": [],
+ "reference": [
+  {
+   "hex": "E48799",
+   "flight": "TAM4587",
+   "km": 8.0,
+   "on_ground": false,
+   "alt_ft": 6975
+  },
+  {
+   "hex": "E49697",
+   "flight": "TAM3025",
+   "km": 26.3,
+   "on_ground": false,
+   "alt_ft": 10976
+  },
+  {
+   "hex": "E4A787",
+   "flight": "",
+   "km": 26.4,
+   "on_ground": false,
+   "alt_ft": 8300
+  }
+ ],
+ "verdict": [
+  "RECEBE",
+  "4 mensagens com CRC certo de 0 aeronave(s), mas nenhuma posição: repita por mais tempo ou num lugar mais aberto"
+ ]
+}

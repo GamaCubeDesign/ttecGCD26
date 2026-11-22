@@ -1,0 +1,20 @@
+{"mono_ms":116,"wall_ms":1795375504810,"ev":"start","radio":"esp32","profile":"NOMINAL"}
+{"mono_ms":136,"wall_ms":1795375504830,"ev":"command","text":"deafen 3"}
+{"mono_ms":156,"wall_ms":1795375504850,"ev":"command","text":"rate fast"}
+{"mono_ms":457,"wall_ms":1795375505151,"ev":"deaf_drop","type":"TC_ACK"}
+{"mono_ms":21097,"wall_ms":1795375525791,"ev":"contact","up":true}
+{"mono_ms":21097,"wall_ms":1795375525791,"ev":"frame","type":"TC_ACK","seq":4,"rssi":-97,"snr":13,"payload":"20000100"}
+{"mono_ms":21097,"wall_ms":1795375525791,"ev":"ack","id":1,"cmd":"SET_RATE","status":"OK","latency_ms":20941,"attempts":11}
+{"mono_ms":21097,"wall_ms":1795375525791,"ev":"rate","from":"NOMINAL","to":"FAST","reason":"commanded"}
+{"mono_ms":21117,"wall_ms":1795375525811,"ev":"command","text":"ping 3"}
+{"mono_ms":21248,"wall_ms":1795375525942,"ev":"frame","type":"TC_ACK","seq":5,"rssi":-95,"snr":9,"payload":"01000200"}
+{"mono_ms":21248,"wall_ms":1795375525942,"ev":"ack","id":0,"cmd":"PING","status":"OK","latency_ms":151,"attempts":1}
+{"mono_ms":21349,"wall_ms":1795375526043,"ev":"frame","type":"TC_ACK","seq":6,"rssi":-96,"snr":9,"payload":"01000300"}
+{"mono_ms":21349,"wall_ms":1795375526043,"ev":"ack","id":2,"cmd":"PING","status":"OK","latency_ms":232,"attempts":1}
+{"mono_ms":21450,"wall_ms":1795375526144,"ev":"frame","type":"TC_ACK","seq":7,"rssi":-96,"snr":9,"payload":"01000400"}
+{"mono_ms":21450,"wall_ms":1795375526144,"ev":"ack","id":3,"cmd":"PING","status":"OK","latency_ms":101,"attempts":1}
+{"mono_ms":21551,"wall_ms":1795375526245,"ev":"frame","type":"TC_ACK","seq":8,"rssi":-95,"snr":9,"payload":"01000500"}
+{"mono_ms":21551,"wall_ms":1795375526245,"ev":"ack","id":4,"cmd":"PING","status":"OK","latency_ms":101,"attempts":1}
+{"mono_ms":21551,"wall_ms":1795375526245,"ev":"ping_summary","sent":3,"acked":3,"failed":0,"attempts":3,"latency_min_ms":101,"latency_mean_ms":144,"latency_max_ms":232}
+{"mono_ms":21570,"wall_ms":1795375526264,"ev":"command","text":"quit"}
+{"mono_ms":21571,"wall_ms":1795375526265,"ev":"summary","dl_frames":5,"dl_lost":0,"dl_bad":0,"tc_sent":15,"tc_acked":5,"tc_failed":0,"lbt_defers":0}
