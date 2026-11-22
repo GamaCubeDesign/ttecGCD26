@@ -163,6 +163,15 @@ figure img.scan{max-width:100%;background:#fff}
 </style>
 </head>
 <body>
+<style>/* Back to the index of the reports, one tap away anywhere in the page. */
+a.to-index{position:fixed;right:16px;bottom:16px;z-index:30;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:#034a2c;color:#fff;font:600 14px/1.2 "Open Sans",system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+a.to-index:hover{text-decoration:underline}
+.brand-bar a.home{margin-left:auto;white-space:nowrap;color:#fff;text-decoration:none;font-weight:600;opacity:.9}
+.brand-bar a.home:hover{opacity:1;text-decoration:underline}
+@media print{a.to-index,.brand-bar a.home{display:none}}
+</style>
+<a class="to-index" href="index.html" aria-label="Voltar ao índice dos relatórios">← Índice</a>
+
 <div class="layout">
 
 <nav class="toc" aria-label="Sumário">

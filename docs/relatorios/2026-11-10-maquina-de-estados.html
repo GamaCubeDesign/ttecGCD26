@@ -216,10 +216,19 @@ td.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
+<style>/* Back to the index of the reports, one tap away anywhere in the page. */
+/* here a link in the top bar: the page is an app, with fixed controls at the top and a dock at the bottom */
+.brand a.to-index{color:var(--accent);font-weight:700;text-decoration:none;white-space:nowrap}
+.brand a.to-index:hover{text-decoration:underline}
+.brand-bar a.home{margin-left:auto;white-space:nowrap;color:#fff;text-decoration:none;font-weight:600;opacity:.9}
+.brand-bar a.home:hover{opacity:1;text-decoration:underline}
+@media print{a.to-index,.brand-bar a.home{display:none}}
+</style>
+
 <div class="app">
 
 <header class="bar">
-  <div class="brand"><b>A máquina de estados do satélite</b><span>GCD26 · modos do <code>obcd</code>, rádio do <code>ttcd</code> e a arquitetura · commit <code>fbe09f0</code></span></div>
+  <div class="brand"><b>A máquina de estados do satélite</b><span><a class="to-index" href="index.html" aria-label="Voltar ao índice dos relatórios">← Índice</a> · GCD26 · modos do <code>obcd</code>, rádio do <code>ttcd</code> e a arquitetura · commit <code>fbe09f0</code></span></div>
   <div class="transport">
     <span class="clock" id="clock">00:00,0</span>
     <button class="btn primary" id="play">▶ Rodar</button>
