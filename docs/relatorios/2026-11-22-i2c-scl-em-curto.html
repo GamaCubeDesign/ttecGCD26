@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — O SCL do I²C da OBC preso em nível baixo — 22/11/2026</title>
+<link rel="icon" href="assets/favicon.png">
+<style>
+@font-face{
+  font-family:"Open Sans"; src:url("assets/OpenSans.woff2") format("woff2");
+  font-weight:300 800; font-style:normal; font-display:swap;
+}
+:root{
+  /* Gama Cube Design (identidade_visual_gama.pdf; the same tokens as
+   * ground/host/web/css/gama.css): black, British Racing Green #034a2c and
+   * white; Forest Green, Yellow Orange and Terra Cotta for ok, warning and
+   * failure, in darker shades for text on a light background. */
+  --brand:#034a2c; --brand-band:#000000;
+  --bg:#f3f5f4; --surface:#ffffff; --surface-2:#eaefec; --fg:#111312; --muted:#56605b;
+  --line:#d0d6d3; --line-strong:#7f8a84; --accent:#034a2c; --accent-soft:#e3eee8;
+  --ok:#2f6b3a; --ok-soft:#e6f1e7; --warn:#8a5300; --warn-soft:#fbf0df;
+  --todo:#56605b; --todo-soft:#eceeed; --bad:#a8321f; --bad-soft:#fbe7e3;
+  --code-bg:#eef1ef; --node:#ffffff; --node-hw:#eef1ef; --node-ext:#e3eee8;
+  --sans:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0a0c0b; --surface:#121614; --surface-2:#19201c; --fg:#f2f5f3; --muted:#9aa7a0;
+    --line:#26302b; --line-strong:#6f7c75; --accent:#8cc391; --accent-soft:#10251a;
+    --ok:#8cc391; --ok-soft:#15301f; --warn:#f3b866; --warn-soft:#33280e;
+    --todo:#a8b0ac; --todo-soft:#222826; --bad:#ef8d80; --bad-soft:#3a1b19;
+    --code-bg:#19201c; --node:#121614; --node-hw:#19201c; --node-ext:#10251a;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+
+svg.diagram .lost{fill:var(--bad-soft);stroke:var(--bad);stroke-width:2}
+svg.diagram .new{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2;stroke-dasharray:5 4}
+svg.diagram .edge.ok{stroke:var(--ok);stroke-width:2}
+svg.diagram .ah-ok{fill:var(--ok)}
+svg.diagram .t-bad{font-size:12px;fill:var(--bad);font-weight:600}
+svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
+.bytes .fl{background:var(--warn-soft)}
+
+/* Gama: the band on top, as on the ground's page; ExtraBold titles. */
+.brand-bar{background:var(--brand-band);border-bottom:3px solid var(--brand);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:8px 20px;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.brand-bar img{width:28px;height:28px;display:block}
+.brand-bar b{font-weight:800;letter-spacing:.04em}
+.brand-bar span{opacity:.75}
+h1,h2{font-weight:800}
+.eyebrow{color:var(--accent);font-weight:700}
+@media print{.brand-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+/* Back to the index: in the brand bar, and floating, so it is one tap away anywhere in the report. */
+.brand-bar a.home{margin-left:auto;white-space:nowrap;color:#fff;text-decoration:none;font-weight:600;opacity:.9}
+.brand-bar a.home:hover{opacity:1;text-decoration:underline}
+a.to-index{position:fixed;right:16px;bottom:16px;z-index:10;display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:999px;background:var(--accent);color:var(--bg);font-size:14px;font-weight:600;
+  text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+a.to-index:hover{text-decoration:underline}
+@media print{a.to-index,.brand-bar a.home{display:none}}
+</style>
+
+<style>
+/* 22/11: the board map and the circuit, drawn from hardware/obc-v2/PCB_OBC.kicad_pcb. */
+svg.diagram .pcb{fill:var(--ok-soft);stroke:var(--ok);stroke-width:1.5}
+svg.diagram .part{fill:var(--surface);fill-opacity:.55;stroke:var(--line-strong);stroke-width:1.1;stroke-dasharray:4 3}
+svg.diagram .pad{fill:var(--surface-2);stroke:var(--line-strong);stroke-width:.8}
+svg.diagram .pad.scl{fill:var(--bad);stroke:var(--bad)}
+svg.diagram .pad.gnd{fill:var(--fg);stroke:var(--fg)}
+svg.diagram .pad.sda{fill:var(--accent);stroke:var(--accent)}
+svg.diagram .trk{stroke:var(--bad);stroke-width:6.6;stroke-linecap:round;opacity:.9}
+svg.diagram .trk.back{stroke-dasharray:7 6;opacity:.7}
+svg.diagram .via{fill:var(--surface);stroke:var(--bad);stroke-width:2.5}
+svg.diagram .ring{fill:none;stroke:var(--warn);stroke-width:2.5}
+svg.diagram .lead{stroke:var(--warn);stroke-width:1.5}
+svg.diagram .tag{fill:var(--warn)}
+svg.diagram .tag-n{font-size:14px;font-weight:800;fill:var(--surface)}
+svg.diagram .t-scl{font-size:12.5px;font-weight:700;fill:var(--bad)}
+svg.diagram .t-gnd{font-size:12.5px;font-weight:700;fill:var(--fg)}
+svg.diagram .wire{fill:none;stroke:var(--line-strong);stroke-width:2}
+svg.diagram .wire.scl{stroke:var(--bad);stroke-width:2.5}
+svg.diagram .wire.sda{stroke:var(--accent);stroke-width:2.5}
+svg.diagram .short{fill:none;stroke:var(--bad);stroke-width:3;stroke-linejoin:round}
+svg.diagram .gnd{stroke:var(--fg);stroke-width:2}
+svg.diagram .res{fill:var(--surface);stroke:var(--fg);stroke-width:1.6}
+svg.diagram .dot{fill:var(--bad)}
+svg.diagram .dot.sda{fill:var(--accent)}
+svg.diagram .meas{fill:var(--bad-soft);stroke:var(--bad);stroke-width:1.2}
+svg.diagram .meas.ok{fill:var(--ok-soft);stroke:var(--ok)}
+main p code{overflow-wrap:anywhere}
+.mapkey{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.mapkey span{display:inline-flex;align-items:center;gap:6px}
+.mapkey i{display:inline-block;width:22px;height:0;border-top:5px solid var(--bad)}
+.mapkey i.back{border-top-style:dashed}
+.mapkey b{display:inline-block;width:12px;height:12px;border-radius:50%}
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps>li{counter-increment:s;position:relative;padding:12px 16px 12px 54px;margin:0 0 10px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.steps>li::before{content:counter(s);position:absolute;left:14px;top:12px;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--surface);font-weight:800;display:flex;align-items:center;justify-content:center}
+.steps>li p:last-child{margin-bottom:0}
+</style>
+
+</head>
+<body>
+<div class="brand-bar"><img src="assets/favicon.png" alt=""><b>Gama Cube Design</b><span>CubeDesign 2026 · TT&amp;C</span><a class="home" href="index.html">← Relatórios</a></div>
+<a class="to-index" href="index.html" aria-label="Voltar ao índice dos relatórios">← Índice</a>
+<div class="layout">
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#medido">O que foi medido</a></li>
+    <li><a href="#circuito">A hipótese A no circuito</a></li>
+    <li><a href="#placa">Onde procurar na placa</a></li>
+    <li><a href="#confirmar">Como confirmar</a></li>
+    <li><a href="#depois">Depois do conserto</a></li>
+  </ol>
+</nav>
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · OBC · I²C</p>
+  <h1>O SCL do I²C da OBC está preso em nível baixo</h1>
+  <p class="lede">Por que o INA219 não responde no satélite montado, por que não é software, e onde procurar o curto na placa do OBC.</p>
+  <div class="meta"><span><b>Data:</b> 22/11/2026</span><span><b>Estado:</b> hipótese, a confirmar com multímetro</span><span><b>Placa:</b> <code>hardware/obc-v2/</code> (revisão TF de 02/11)</span></div>
+</header>
+
+<h2 id="resumo"><span class="n">1</span>Resumo</h2>
+<div class="tiles">
+  <div class="tile"><div class="v">0 de 41</div><div class="l">leituras do SCL em nível alto; 11 delas com o <code>obcd</code> parado, sem nenhum software nosso no barramento</div></div>
+  <div class="tile"><div class="v">0,76 mm</div><div class="l">entre o pad 2 (GND) e o pad 3 (SCL) do INA219: a folga mais estreita até um GND em toda a rede</div></div>
+  <div class="tile"><div class="v">134 mm</div><div class="l">de trilha do SCL, nas duas faces, com 5 vias, atravessando o plano de GND</div></div>
+</div>
+<p>No satélite montado, o INA219 não responde: o <code>obcd</code> registra <code>Connection timed out</code> a cada leitura, e a tensão e a corrente descem como "sem dado". <b>Não é software.</b> Com o <code>obcd</code> parado, a linha SCL do I²C fica em 0 V. Os resistores de pull-up da própria Pi deveriam levá-la a 3,3 V. Algo, então, liga o SCL ao GND (hipótese A). Sem o SCL subir, nenhum dispositivo do barramento consegue dar o clock, e cada transação termina em timeout.</p>
+<p>A rede do SCL tem só três pontos: a Pi, o barramento J1.12 e o INA219. Para o curto, o layout aponta três suspeitos, em ordem de probabilidade: uma ponte de solda no INA219, uma ponte no conector da Pi, e a trilha encostando no plano de GND numa placa feita pela equipe. Um multímetro, com tudo desligado, distingue os três em poucos minutos (<a href="#confirmar">seção 5</a>).</p>
+
+<h2 id="medido"><span class="n">2</span>O que foi medido</h2>
+<p>Medidas de 22/11, no satélite montado (OBC <code>obc-v2</code>, EPS, TT&amp;C e antenas; sem o AOCS e sem o DS18B20), pela Pi, por ssh.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Teste</th><th>Resultado</th><th>O que descarta</th></tr></thead>
+  <tbody>
+    <tr><td><code>pinctrl lev 2,3</code> com o <code>obcd</code> rodando</td><td>SDA = 1, SCL = 0, em 30 de 30 leituras</td><td>—</td></tr>
+    <tr><td>o mesmo com o <code>obcd</code> <b>parado</b></td><td>SCL = 0 em 10 de 10 leituras</td><td><span class="badge b-ok">o software</span>: nenhum programa nosso usava o barramento</td></tr>
+    <tr><td><code>i2cdetect -y 1</code>, <code>obcd</code> parado</td><td>trava a partir do endereço 0x1A: cada endereço espera um clock que não vem</td><td>—</td></tr>
+    <tr><td>a ESP32 do AOCS</td><td>não está ligada ao stack</td><td><span class="badge b-ok">o AOCS</span>: o outro mestre do barramento (ADR-0017) está fora</td></tr>
+    <tr><td>tensão no pad 1 (VCC) do INA219</td><td>3,3 V</td><td><span class="badge b-ok">a alimentação</span> do INA219, que vem do J1.39 e não da Pi</td></tr>
+    <tr><td>GPIO23 (aquecedor, no J1.11, vizinho do J1.12) solto como entrada, <code>obcd</code> parado</td><td>SCL continua em 0 (1 leitura)</td><td><span class="badge b-ok">hipótese B</span>: o SCL não está em curto com a linha do aquecedor</td></tr>
+    <tr><td>outras placas do stack no J1.12</td><td>nenhuma liga nada nesse pino; só a OBC e o AOCS (layouts em <code>hardware/</code>)</td><td>um curto em outra placa, pelo barramento</td></tr>
+  </tbody>
+</table></div>
+<p>A placa montada é a do repositório: os arquivos <code>PCB_OBC.kicad_pcb</code> e <code>.kicad_sch</code> do <code>PCBS_GAMA_AOCS_EPS1_OBC_TF.zip</code> são idênticos aos de <code>hardware/obc-v2/</code> (o mesmo SHA-1), e a configuração de voo na Pi foi conferida contra eles fio a fio (<code>tools/analysis/board_check.py</code>). O resto do satélite está bom: no mesmo dia, a telecomunicação teve todos os telecomandos com ACK na 1ª tentativa, e os 20 aviões simulados chegaram à ground com erro de posição p95 de 14 m.</p>
+
+<h2 id="circuito"><span class="n">3</span>A hipótese A no circuito</h2>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 760 330" role="img" aria-label="Esquema elétrico do SCL com um curto ao GND">
+  <!-- 3V3 rail and the Pi's pull-ups -->
+  <text class="t-b" x="40" y="34">3,3 V da Pi</text>
+  <line class="wire" x1="40" y1="46" x2="250" y2="46"/>
+  <line class="wire" x1="110" y1="46" x2="110" y2="66"/><rect class="res" x="100" y="66" width="20" height="46" rx="3"/>
+  <line class="wire" x1="190" y1="46" x2="190" y2="66"/><rect class="res" x="180" y="66" width="20" height="46" rx="3"/>
+  <text class="t-s" x="40" y="94" text-anchor="start">1,8 kΩ</text>
+  <text class="t-s" x="208" y="86">1,8 kΩ</text>
+  <text class="t-e" x="208" y="104">pull-ups dentro da Pi</text>
+  <!-- SDA, fine -->
+  <line class="wire sda" x1="110" y1="112" x2="110" y2="160"/>
+  <line class="wire sda" x1="110" y1="160" x2="720" y2="160"/>
+  <circle class="dot sda" cx="110" cy="160" r="4"/>
+  <text class="t-b" x="726" y="165" style="fill:var(--accent)" text-anchor="end"></text>
+  <rect class="meas ok" x="20" y="148" width="72" height="24" rx="5"/><text class="t-ok" x="56" y="165" text-anchor="middle">SDA = 1</text>
+  <!-- SCL, held low -->
+  <line class="wire scl" x1="190" y1="112" x2="190" y2="220"/>
+  <line class="wire scl" x1="190" y1="220" x2="720" y2="220"/>
+  <circle class="dot" cx="190" cy="220" r="4"/>
+  <rect class="meas" x="20" y="208" width="72" height="24" rx="5"/><text class="t-bad" x="56" y="225" text-anchor="middle">SCL = 0</text>
+  <line class="wire" x1="92" y1="220" x2="190" y2="220" style="stroke-dasharray:3 3"/>
+  <!-- the three things on the net -->
+  <rect class="box hw" x="270" y="140" width="130" height="100" rx="7"/>
+  <text class="t-b" x="335" y="190" text-anchor="middle">Pi · pinos 3 e 5</text><text class="t-s" x="335" y="208" text-anchor="middle">GPIO2 e GPIO3</text>
+  <rect class="box hw" x="430" y="140" width="130" height="100" rx="7"/>
+  <text class="t-b" x="495" y="190" text-anchor="middle">J1.10 e J1.12</text><text class="t-s" x="495" y="208" text-anchor="middle">nada mais ligado</text><text class="t-s" x="495" y="224" text-anchor="middle">(AOCS fora)</text>
+  <rect class="box hw" x="590" y="140" width="130" height="100" rx="7"/>
+  <text class="t-b" x="655" y="190" text-anchor="middle">INA219 (U2)</text><text class="t-s" x="655" y="208" text-anchor="middle">pad 4 SDA · pad 3 SCL</text><text class="t-s" x="655" y="224" text-anchor="middle">VCC: 3,3 V medidos</text>
+  <!-- the short -->
+  <path class="short" d="M240 220 L240 236 L230 242 L250 254 L230 266 L250 278 L240 284 L240 296"/>
+  <line class="gnd" x1="222" y1="296" x2="258" y2="296"/><line class="gnd" x1="228" y1="303" x2="252" y2="303"/><line class="gnd" x1="234" y1="310" x2="246" y2="310"/>
+  <text class="t-bad" x="262" y="262">hipótese A: um curto do SCL ao GND</text>
+  <text class="t-s" x="262" y="280">em algum ponto da rede: ~0 Ω contra o pull-up de 1,8 kΩ</text>
+  <text class="t-s" x="262" y="296">3,3 V / 1,8 kΩ ≈ 1,8 mA pelo curto; o SCL nunca sobe</text>
+</svg>
+</div>
+<figcaption>As duas linhas do I²C saem da Pi com um pull-up de 1,8 kΩ cada e passam pelos mesmos três pontos. O SDA lê 1, como deve; o SCL lê 0. Um curto de resistência baixa ao GND em qualquer ponto da rede do SCL vence o pull-up e mantém a linha em 0 V.</figcaption>
+</figure>
+<p>O I²C só funciona com as linhas em repouso no nível alto: cada dispositivo apenas as puxa para baixo, e o pull-up as devolve ao 3,3 V. Com o SCL preso em 0, a controladora da Pi não consegue gerar a condição de início. O kernel desiste por timeout, e o <code>obcd</code> conta cada leitura perdida como <code>power_fault</code>, sem travar o resto do OBC (regra 3 do <code>AGENTS.md</code>). Foi isso que se viu nos logs: <code>"which":"ina219","ok":false,"why":"Connection timed out"</code>.</p>
+
+<h2 id="placa"><span class="n">4</span>Onde procurar na placa</h2>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 634 594" role="img" aria-label="Mapa da placa do OBC com o trajeto do SCL e os três pontos suspeitos">
+  <rect class="pcb" x="22.5" y="25.1" width="547.8" height="547.8" rx="19.8"/>
+  <text class="t-e" x="32.5" y="562.9">plano de GND nas duas faces (GND PLANE_1) · 83 × 83 mm</text>
+  <rect class="part" x="353.9" y="85.4" width="198.0" height="429.0" rx="6"/>
+  <text class="t-b" x="363.9" y="107.4">Raspberry Pi</text>
+  <text class="t-s" x="363.9" y="123.4">Zero 2 W (U1)</text>
+  <rect class="part" x="47.8" y="192.5" width="133.6" height="167.1" rx="6"/>
+  <text class="t-b" x="55.8" y="379.6">INA219 (U2)</text>
+  <rect class="part" x="123.9" y="33.2" width="344.9" height="43.2" rx="4"/>
+  <text class="t-s" x="123.9" y="92.3">barramento J1 (2 × 20)</text>
+  <circle class="pad" cx="455.6" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="438.9" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="422.1" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="405.4" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="355.1" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="338.3" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="321.5" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="304.8" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="288.0" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="271.2" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="254.5" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="237.7" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="220.9" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="204.2" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="187.4" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="170.7" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="137.1" cy="46.4" r="4.0"/>
+  <circle class="pad" cx="438.9" cy="63.1" r="4.0"/>
+  <circle class="pad" cx="422.1" cy="63.1" r="4.0"/>
+  <circle class="pad" cx="405.4" cy="63.1" r="4.0"/>
+  <circle class="pad" cx="321.5" cy="63.1" r="4.0"/>
+  <circle class="pad" cx="304.8" cy="63.1" r="4.0"/>
+  <circle class="pad" cx="170.7" cy="63.1" r="4.0"/>
+  <circle class="pad" cx="153.9" cy="63.1" r="4.0"/>
+  <circle class="pad gnd" cx="455.6" cy="63.1" r="5.3"/>
+  <circle class="pad" cx="388.6" cy="63.1" r="5.3"/>
+  <circle class="pad sda" cx="388.6" cy="46.4" r="5.3"/>
+  <circle class="pad" cx="371.8" cy="63.1" r="5.3"/>
+  <circle class="pad scl" cx="371.8" cy="46.4" r="5.3"/>
+  <circle class="pad" cx="355.1" cy="63.1" r="5.3"/>
+  <circle class="pad" cx="338.3" cy="63.1" r="5.3"/>
+  <circle class="pad" cx="288.0" cy="63.1" r="5.3"/>
+  <circle class="pad" cx="271.2" cy="63.1" r="5.3"/>
+  <circle class="pad" cx="254.5" cy="63.1" r="5.3"/>
+  <circle class="pad" cx="237.7" cy="63.1" r="5.3"/>
+  <circle class="pad" cx="220.9" cy="63.1" r="5.3"/>
+  <circle class="pad" cx="204.2" cy="63.1" r="5.3"/>
+  <circle class="pad" cx="187.4" cy="63.1" r="5.3"/>
+  <circle class="pad" cx="153.9" cy="46.4" r="5.3"/>
+  <circle class="pad" cx="137.1" cy="63.1" r="5.3"/>
+  <circle class="pad" cx="164.9" cy="318.0" r="5.9"/>
+  <circle class="pad gnd" cx="164.9" cy="301.2" r="5.9"/>
+  <circle class="pad scl" cx="164.9" cy="284.4" r="5.9"/>
+  <circle class="pad sda" cx="164.9" cy="267.7" r="5.9"/>
+  <circle class="pad" cx="164.9" cy="250.9" r="5.9"/>
+  <circle class="pad" cx="164.9" cy="234.2" r="5.9"/>
+  <circle class="pad" cx="72.7" cy="264.8" r="7.2"/>
+  <circle class="pad" cx="72.7" cy="287.9" r="7.2"/>
+  <circle class="pad" cx="520.4" cy="140.7" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="140.7" r="5.0"/>
+  <circle class="pad sda" cx="520.4" cy="157.4" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="157.4" r="5.0"/>
+  <circle class="pad scl" cx="520.4" cy="174.2" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="174.2" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="191.0" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="191.0" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="207.7" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="207.7" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="224.5" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="224.5" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="241.3" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="241.3" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="258.0" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="258.0" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="274.8" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="274.8" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="291.6" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="291.6" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="308.3" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="308.3" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="325.1" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="325.1" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="341.8" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="341.8" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="358.6" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="358.6" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="375.4" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="375.4" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="392.1" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="392.1" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="408.9" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="408.9" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="425.7" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="425.7" r="5.0"/>
+  <circle class="pad" cx="520.4" cy="442.4" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="442.4" r="5.0"/>
+  <circle class="pad gnd" cx="520.4" cy="459.2" r="5.0"/>
+  <circle class="pad" cx="537.2" cy="459.2" r="5.0"/>
+  <circle class="pad gnd" cx="537.2" cy="174.2" r="5.0"/>
+  <line class="trk" x1="483.1" y1="369.9" x2="460.6" y2="392.3"/>
+  <line class="trk" x1="500.1" y1="174.6" x2="483.1" y2="191.6"/>
+  <line class="trk" x1="378.6" y1="32.3" x2="458.1" y2="32.3"/>
+  <line class="trk" x1="458.1" y1="32.3" x2="483.1" y2="57.3"/>
+  <line class="trk" x1="483.1" y1="157.5" x2="483.1" y2="141.0"/>
+  <line class="trk" x1="500.1" y1="174.6" x2="483.1" y2="157.5"/>
+  <line class="trk" x1="483.1" y1="57.3" x2="483.1" y2="57.7"/>
+  <line class="trk" x1="483.1" y1="57.7" x2="482.1" y2="57.7"/>
+  <line class="trk" x1="483.1" y1="191.6" x2="483.1" y2="369.9"/>
+  <line class="trk" x1="456.6" y1="392.3" x2="301.8" y2="392.3"/>
+  <line class="trk" x1="460.6" y1="392.3" x2="456.6" y2="392.3"/>
+  <line class="trk back" x1="187.4" y1="345.9" x2="187.4" y2="296.4"/>
+  <line class="trk back" x1="520.1" y1="174.6" x2="520.4" y2="174.2"/>
+  <line class="trk back" x1="243.5" y1="392.3" x2="233.9" y2="392.3"/>
+  <line class="trk back" x1="483.1" y1="57.7" x2="483.1" y2="141.0"/>
+  <line class="trk back" x1="301.7" y1="392.3" x2="237.7" y2="392.3"/>
+  <line class="trk back" x1="520.4" y1="174.2" x2="520.2" y2="174.0"/>
+  <line class="trk back" x1="233.9" y1="392.3" x2="187.4" y2="345.9"/>
+  <line class="trk back" x1="167.7" y1="284.4" x2="164.9" y2="284.4"/>
+  <line class="trk back" x1="175.5" y1="284.4" x2="167.7" y2="284.4"/>
+  <line class="trk back" x1="378.6" y1="32.3" x2="371.8" y2="39.1"/>
+  <line class="trk back" x1="371.8" y1="39.1" x2="371.8" y2="46.4"/>
+  <line class="trk back" x1="500.1" y1="174.6" x2="520.1" y2="174.6"/>
+  <line class="trk back" x1="187.4" y1="296.4" x2="175.5" y2="284.4"/>
+  <circle class="via" cx="301.7" cy="392.3" r="5.3"/>
+  <circle class="via" cx="483.1" cy="141.0" r="5.3"/>
+  <circle class="via" cx="500.1" cy="174.6" r="5.3"/>
+  <circle class="via" cx="483.1" cy="57.7" r="5.3"/>
+  <circle class="via" cx="378.6" cy="32.3" r="5.3"/>
+  <circle class="ring" cx="164.9" cy="292.8" r="17"/>
+  <line class="lead" x1="164.9" y1="292.8" x2="237.6" y2="468.6"/>
+  <circle class="tag" cx="237.6" cy="468.6" r="12"/>
+  <text class="tag-n" x="237.6" y="473.1" text-anchor="middle">1</text>
+  <circle class="ring" cx="528.8" cy="174.2" r="17"/>
+  <line class="lead" x1="528.8" y1="174.2" x2="600.6" y2="211.2"/>
+  <circle class="tag" cx="600.6" cy="211.2" r="12"/>
+  <text class="tag-n" x="600.6" y="215.7" text-anchor="middle">2</text>
+  <circle class="ring" cx="483.1" cy="277.2" r="17"/>
+  <line class="lead" x1="483.1" y1="277.2" x2="422.4" y2="468.6"/>
+  <circle class="tag" cx="422.4" cy="468.6" r="12"/>
+  <text class="tag-n" x="422.4" y="473.1" text-anchor="middle">3</text>
+  <text class="t-scl" x="496.4" y="152.2" text-anchor="end">pino 5 · SCL</text>
+  <text class="t-scl" x="367.8" y="20.4" text-anchor="middle">J1.12 · SCL</text>
+  <text class="t-scl" x="190.9" y="280.4">pad 3 · SCL</text>
+  <text class="t-gnd" x="190.9" y="313.2">pad 2 · GND</text>
+</svg></div>
+<div class="mapkey">
+  <span><i></i>trilha do SCL, face de cima</span>
+  <span><i class="back"></i>face de baixo</span>
+  <span><b style="background:var(--bad)"></b>pad do SCL</span>
+  <span><b style="background:var(--fg)"></b>pad de GND</span>
+  <span><b style="background:var(--accent)"></b>pad do SDA</span>
+  <span><b style="background:var(--warn)"></b>suspeito</span>
+</div>
+<figcaption>A placa do OBC vista de cima, desenhada a partir das coordenadas do layout (<code>hardware/obc-v2/PCB_OBC.kicad_pcb</code>). O SCL sai do pino 5 da Pi, vai ao J1.12 do barramento e desce até o pad 3 do INA219: 134 mm em 11 trechos na face de cima e 13 na de baixo, com 5 vias. O pino 6 da Pi não tem ligação na placa, mas é GND na própria Pi.</figcaption>
+</figure>
+<div class="table-wrap"><table>
+  <thead><tr><th></th><th>Suspeito</th><th class="r">Folga até o GND</th><th>Por que</th></tr></thead>
+  <tbody>
+    <tr><td><b>1</b></td><td>ponte de solda no INA219, entre o <b>pad 2 (GND) e o pad 3 (SCL)</b>; ou o módulo com os pinos em outra ordem, ou soldado ao contrário</td><td class="r">0,76 mm</td><td>a folga mais estreita da rede, abaixo do 1 mm da regra caseira, e solda feita à mão. O layout espera, a partir do pad 1: VCC, GND, SCL, SDA, VIN−, VIN+.</td></tr>
+    <tr><td><b>2</b></td><td>ponte de solda no conector da Pi, entre o <b>pino 5 (SCL) e o pino 6 (GND)</b></td><td class="r">1,03 mm</td><td>os dois ficam lado a lado no conector de 40 pinos; o pino 6 é GND dentro da Pi, mesmo sem trilha na placa</td></tr>
+    <tr><td><b>3</b></td><td>a trilha do SCL encostando no <b>plano de GND</b>, ou uma via com o furo em curto</td><td class="r">≥ 1 mm no projeto</td><td>134 mm de trilha e 5 vias dentro do plano, nas duas faces, numa placa feita por transferência térmica: basta um resto de cobre</td></tr>
+  </tbody>
+</table></div>
+<p>O DRC do KiCad 10.0.8 (<code>kicad-cli pcb drc</code>) não acha curto nem violação de folga no SCL: no projeto a rede está certa. Ele acusa só uma ponta de trilha solta de 1,5 mm no SCL, na face de baixo, que não causa curto. O defeito, se existe, está na fabricação ou na montagem.</p>
+
+<h2 id="confirmar"><span class="n">5</span>Como confirmar</h2>
+<div class="callout warn"><p><b>Tudo desligado</b>: tire a bateria e o cabo de alimentação antes de medir resistência. Com a placa energizada, o ohmímetro mede errado e pode danificar algo.</p></div>
+<ol class="steps">
+  <li><p><b>Confirmar o curto.</b> Multímetro em resistência (ou continuidade), entre o <b>pino 5 da Pi</b> e qualquer GND (pino 6, pino 39, ou o J1.1).</p>
+      <p>Perto de 0 Ω: há curto, siga. Alguns kΩ ou mais: não há curto com tudo desligado. Nesse caso, o SCL só cai com a placa ligada, e a suspeita passa a ser o próprio INA219 danificado, segurando a linha (passo 4).</p></li>
+  <li><p><b>Suspeito 1: o INA219.</b> Com lupa, procure estanho entre os pads 2 e 3 do módulo. Meça a resistência <b>entre o pad 2 e o pad 3</b>. Confira a serigrafia do módulo: a ordem dos pinos tem de ser VCC, GND, SCL, SDA, VIN−, VIN+, a partir do pad 1 da OBC.</p></li>
+  <li><p><b>Suspeito 2: o conector da Pi.</b> Procure estanho entre os pinos 5 e 6 do conector de 40 pinos, dos dois lados da placa.</p></li>
+  <li><p><b>Separar as partes.</b> Se a ponte não aparecer à vista, dessolde ou levante o pino SCL do módulo INA219 (o pad 3). Meça de novo o pino 5 da Pi contra o GND.</p>
+      <p>O curto sumiu: está no módulo INA219, ou na solda dele. O curto continua: está na trilha, numa via ou no conector da Pi (suspeitos 2 e 3). Siga a trilha do mapa acima, trecho por trecho, medindo de cada via ao GND.</p></li>
+  <li><p><b>Pela Pi, sem multímetro</b>, depois de cada mudança, com a placa ligada:</p>
+<pre><code>ssh pi@gamapi.local 'pinctrl lev 2,3'      # o esperado: 1 e 1</code></pre></li>
+</ol>
+
+<h2 id="depois"><span class="n">6</span>Depois do conserto</h2>
+<p>O <code>obcd</code> tenta o INA219 de novo a cada leitura; não é preciso reiniciar nada. Para conferir:</p>
+<pre><code>ssh pi@gamapi.local 'pinctrl lev 2,3; i2cdetect -y 1'   # 1 1, e o "40" na tabela
+./gama service logs obcd | grep ina219                    # "ok":true
+</code></pre>
+<p>Na página da ground, a Bateria e a Corrente do painel de telemetria passam a ter valor no HK seguinte, em até 10 s.</p>
+
+<footer>
+  <p>GCD26 · TT&amp;C · 22/11/2026. As medidas são da Pi do satélite montado, por ssh (<code>pinctrl</code>, <code>i2cdetect</code>, o log do <code>obcd</code> em <code>/var/lib/gama/obcd.jsonl</code>). A geometria, as folgas e os diagramas saem de <code>hardware/obc-v2/PCB_OBC.kicad_pcb</code> por <code>build-relatorio/gen-1122/scl_geo.py</code> e <code>gen.py</code>; as folgas são de borda a borda entre pads. O plano de GND não entra no cálculo das folgas: para ele, vale o DRC.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>
