@@ -244,6 +244,7 @@ a.to-index:hover{text-decoration:underline}
   <div class="meta">
     <span>Criado: <b>17/11/2026</b></span>
     <span>Reorganizado: <b>22/11/2026</b></span>
+    <span>Atualizado: <b>24/11/2026</b> (prefixos <code>sim</code> e <code>replay</code>, <code>deploy</code>)</span>
     <span>Branch: <b><code>feat/sdr-check</code></b></span>
     <span>Fonte: <b><code>./gama --help</code></b>, <b><code>make help</code></b>, <a href="2026-11-20-pinagem-bancada.html">mapa de pinagem</a></span>
   </div>
@@ -258,6 +259,8 @@ a.to-index:hover{text-decoration:underline}
   <li><a href="#missoes"><span class="k">Etapa 3</span><span class="t">As missões</span><span class="d">ADS-B, enlace, antena, modos</span></a></li>
   <li><a href="#fim"><span class="k">Etapa 4</span><span class="t">Finalizar</span><span class="d">logs, configuração de voo, rede</span></a></li>
 </ol>
+<p><b>O nome diz o que é real.</b> Sem prefixo, o comando usa o hardware e os dados de verdade (<code>./gama mission</code>: rádio A e o SDR). <b><code>./gama replay …</code></b>: o satélite e o rádio são reais, mas os aviões vêm de um arquivo (uma captura da API ou um tráfego sintético) no lugar do SDR; valida o satélite, o enlace e a ground, não a recepção ADS-B, e os logs da Pi vão para <code>replay-missao-&lt;hora&gt;/</code>. <b><code>./gama sim …</code></b>: nada físico, tudo no PC pelo rádio UDP; serve para ensaiar, nunca como evidência, e os logs ficam em <code>build/</code>. Um <code>sim</code> ou <code>replay</code> abre e fecha com uma linha <code>[SIM]</code> ou <code>[REPLAY]</code>.</p>
+<p>Cada linha da saída começa com uma etiqueta: <code>[OK]</code>, <code>[AVISO]</code>, <code>[ERRO]</code> (com o que fazer na linha de baixo), <code>[INFO]</code>. Para achar só os erros num log: <code>grep '^\[ERRO' arquivo</code>.</p>
 <p class="small">Para treinar, marque <b>Modo treino</b> no sumário: a coluna de comandos fica borrada até você clicar nela. <code>./gama --help</code> e <code>./gama &lt;comando&gt; --help</code> explicam cada comando no terminal.</p>
 
 <h2 id="gs"><span class="stage">Etapa 1</span>Preparar a ground station</h2>
@@ -267,7 +270,7 @@ a.to-index:hover{text-decoration:underline}
 <tr><td><code>./gama net up</code></td><td><span class="where pc">PC</span> Liga a rede da bancada (o Wi-Fi do PC vira o ponto de acesso <code>gama-bancada</code>) e espera até 90 s a Pi responder pelo ssh. Recusa sem o cabo ethernet; <code>--sem-internet</code> sobe assim mesmo.<span class="ok-when">“a Pi responde”</span></td></tr>
 <tr><td><code>./gama esp32 port</code></td><td><span class="where pc">PC</span> Em que porta a ESP32 está. Se não aparece, diz por quê: cabo só de carga, driver do CP210x/CH340, outra porta USB.<span class="ok-when">“ESP32 em /dev/ttyUSB0”</span></td></tr>
 <tr><td><code>./gama esp32 flash</code></td><td><span class="where pc">PC</span> Só se a ESP32 estiver com outro firmware (depois das suítes de teste, por exemplo): grava a ground na porta achada. ESP-IDF em Docker.</td></tr>
-<tr><td><code>./gama doctor</code></td><td><span class="where pc">PC</span> <span class="where pi">Pi</span> Tudo de uma vez, com ✔/⚠/✘ e o que fazer: cabo e rede, ESP32, a Pi, o relógio dela, a internet, o que está rodando, a configuração instalada (fiação B1 de outubro ou B2 da placa), o 1-Wire, o SDR e o rádio A.<span class="ok-when">“tudo certo”, ou só ⚠ que você entende</span></td></tr>
+<tr><td><code>./gama doctor</code></td><td><span class="where pc">PC</span> <span class="where pi">Pi</span> Tudo de uma vez, com <code>[OK]</code>/<code>[AVISO]</code>/<code>[ERRO]</code> e o que fazer: cabo e rede, ESP32, a Pi, o relógio dela, a internet, o que está rodando, a configuração instalada (fiação B1 de outubro ou B2 da placa), o 1-Wire, o SDR e o rádio A.<span class="ok-when">“tudo certo”, ou só <code>[AVISO]</code> que você entende</span></td></tr>
 </table></div>
 <p class="small">A <b>página da ground</b> sobe na etapa 2 (com o satélite ouvindo) ou junto da missão, na etapa 3. A ESP32 atende um programa por vez: a página, o <code>./gama link</code> e o <code>./gama mission</code> não podem rodar ao mesmo tempo.</p>
 
@@ -276,7 +279,7 @@ a.to-index:hover{text-decoration:underline}
 <h3>A configuração da placa (uma vez, ou quando a placa mudar)</h3>
 <div class="table-wrap"><table class="cmds">
 <tr><th>Comando</th><th>O que faz</th></tr>
-<tr><td><code>./gama board check</code></td><td><span class="where pi">Pi</span> Compara a Pi com a placa do OBC (<code>flight/conf/obc-v2/</code>): cada chave de <code>/etc/gama/*.conf</code> que muda (<code>reset_line 20 → 25</code>) e as linhas do <code>/boot/firmware/config.txt</code>. Não muda nada.<span class="ok-when">tudo ✔ (então pule o install)</span></td></tr>
+<tr><td><code>./gama board check</code></td><td><span class="where pi">Pi</span> Compara a Pi com a placa do OBC (<code>flight/conf/obc-v2/</code>): cada chave de <code>/etc/gama/*.conf</code> que muda (<code>reset_line 20 → 25</code>) e as linhas do <code>/boot/firmware/config.txt</code>. Não muda nada.<span class="ok-when">tudo <code>[OK]</code> (então pule o install)</span></td></tr>
 <tr><td><code>./gama board install</code></td><td><span class="where pi">Pi</span> Mostra as diferenças, pergunta e instala: compila na Pi, guarda cada arquivo trocado num <code>.bak-&lt;hora&gt;</code>, troca os <code>.conf</code> pelos da placa, instala os daemons e os serviços e acerta o <code>config.txt</code>. <b>Só com os fios do rádio A nos pinos da placa</b> (RESET no pino 22, DIO0 no 7; <a href="2026-11-20-pinagem-bancada.html">mapa</a>).<span class="ok-when">“placa obc-v2 instalada”</span></td></tr>
 <tr><td><code>./gama pi reboot</code></td><td><span class="where pi">Pi</span> Só se o <code>config.txt</code> mudou (o install avisa). A Pi volta em ~40 s; depois, <code>./gama doctor</code>.<span class="ok-when">o doctor mostra “ttcd.conf na fiação da placa (B2)”</span></td></tr>
 </table></div>
@@ -298,19 +301,19 @@ a.to-index:hover{text-decoration:underline}
 <h2 id="missoes"><span class="stage">Etapa 3</span>As missões</h2>
 <p>Cada missão abaixo é independente. Antes de cada uma, feche a página (<code>Ctrl-C</code> no <code>make gs-web</code>) e rode <code>./gama pi stop</code>: os comandos de missão recusam começar se algo estiver segurando a ESP32, o rádio ou o SDR, e dizem isso.</p>
 
-<h3>A · Missão ADS-B, ensaio curto (replay de tráfego real)</h3>
+<h3>A · Missão ADS-B, ensaio curto (<code>replay</code> de tráfego real)</h3>
 <div class="table-wrap"><table class="cmds">
 <tr><th>Comando</th><th>O que faz</th></tr>
-<tr><td><code>./gama mission --secs 120 --input docs/vv/trafego-real/2026-11-17-unsam/capture_sem_categoria.ndjson</code></td><td><span class="where pc">PC</span> <span class="where pi">Pi</span> <b>A missão num comando só</b>: verifica, compila na Pi, sobe o satélite lá (o <code>sbs_replay</code> toca a captura no lugar do SDR) e a página aqui, as duas pontas com 120 s. As mensagens da Pi aparecem com <code>pi │</code>.<span class="ok-when">“página: http://127.0.0.1:8080”</span></td></tr>
+<tr><td><code>./gama replay mission --secs 120 --input docs/vv/trafego-real/2026-11-17-unsam/capture_sem_categoria.ndjson</code></td><td><span class="where pc">PC</span> <span class="where pi">Pi</span> <b>A missão num comando só</b>, com <code>[REPLAY]</code> no começo e no fim: verifica, compila na Pi, sobe o satélite lá (o <code>sbs_replay</code> toca a captura no lugar do SDR) e a página aqui, as duas pontas com 120 s. As mensagens da Pi aparecem com <code>pi │</code>.<span class="ok-when">“página: http://127.0.0.1:8080”</span></td></tr>
 <tr><td>aba ADS-B → <b>Iniciar missão ADS-B</b></td><td><span class="where gs">página</span> Manda a hora e o modo; a missão dura <code>--secs</code> a partir daí. Pode repetir.<span class="ok-when">aeronaves no mapa; o relógio chega a zero</span></td></tr>
-<tr><td><code>Ctrl-C</code></td><td><span class="where pc">PC</span> Encerra os dois lados, traz os logs da Pi e mostra as pastas (<code>docs/vv/bancada/&lt;data&gt;/missao-&lt;hora&gt;/</code> e a sessão da ground).</td></tr>
+<tr><td><code>Ctrl-C</code></td><td><span class="where pc">PC</span> Encerra os dois lados, traz os logs da Pi e mostra as pastas (<code>docs/vv/bancada/&lt;data&gt;/replay-missao-&lt;hora&gt;/</code> e a sessão da ground).</td></tr>
 </table></div>
 
 <h3>B · Missão ADS-B com aviões de verdade (ao ar livre)</h3>
 <div class="table-wrap"><table class="cmds">
 <tr><th>Comando</th><th>O que faz</th></tr>
-<tr><td><code>./gama mission --secs 120 --sdr</code></td><td><span class="where pc">PC</span> <span class="where pi">Pi</span> O mesmo, com o SDR da Pi (o <code>adsbd</code> sobe o <code>dump1090-fa</code>).</td></tr>
-<tr><td><code>./gama mission --secs 120 --sdr --avr</code></td><td><span class="where pc">PC</span> <span class="where pi">Pi</span> Com a categoria da aeronave lida a bordo (Etapa B, ADR-0023), só nesta missão. No <code>Ctrl-C</code>, o resumo traz <code>avr_idents</code> e <code>avr_rejected</code>.<span class="ok-when"><code>avr_idents &gt; 0</code> e <code>avr_rejected = 0</code></span></td></tr>
+<tr><td><code>./gama mission --secs 120</code></td><td><span class="where pc">PC</span> <span class="where pi">Pi</span> O mesmo, sem prefixo: o SDR da Pi (o <code>adsbd</code> sobe o <code>dump1090-fa</code>). Os logs em <code>docs/vv/bancada/&lt;data&gt;/missao-&lt;hora&gt;/</code>.</td></tr>
+<tr><td><code>./gama mission --secs 120 --avr</code></td><td><span class="where pc">PC</span> <span class="where pi">Pi</span> Com a categoria da aeronave lida a bordo (Etapa B, ADR-0023), só nesta missão. No <code>Ctrl-C</code>, o resumo traz <code>avr_idents</code> e <code>avr_rejected</code>.<span class="ok-when"><code>avr_idents &gt; 0</code> e <code>avr_rejected = 0</code></span></td></tr>
 </table></div>
 
 <h3>C · Missão ADS-B como na prova (serviços, 10 min)</h3>
@@ -358,8 +361,8 @@ a.to-index:hover{text-decoration:underline}
 <h3>G · Tudo no PC, sem hardware</h3>
 <div class="table-wrap"><table class="cmds">
 <tr><th>Comando</th><th>O que faz</th></tr>
-<tr><td><code>./gama mission --pc --secs 30 --input &lt;captura&gt;</code></td><td><span class="where pc">PC</span> O satélite inteiro no PC (rádio UDP) com a página. Bom para ensaiar a página antes da bancada.</td></tr>
-<tr><td><code>./gama link ping --udp</code></td><td><span class="where pc">PC</span> O ping no enlace simulado. <code>./gama link all --udp</code>, os seis passos.<span class="ok-when"><code>"acked":10</code></span></td></tr>
+<tr><td><code>./gama sim mission --secs 30 --input &lt;captura&gt;</code></td><td><span class="where pc">PC</span> O satélite inteiro no PC (rádio UDP) com a página, entre linhas <code>[SIM]</code>. Bom para ensaiar a página antes da bancada.</td></tr>
+<tr><td><code>./gama sim link ping</code></td><td><span class="where pc">PC</span> O ping no enlace simulado. <code>./gama sim link all</code>, os seis passos.<span class="ok-when"><code>"acked":10</code></span></td></tr>
 <tr><td><code>make gs-web REPLAY=&lt;ground.jsonl&gt; SPEED=10</code></td><td><span class="where pc">PC</span> Repete na página uma sessão gravada, 10× mais rápido.</td></tr>
 </table></div>
 
@@ -367,7 +370,7 @@ a.to-index:hover{text-decoration:underline}
 <div class="table-wrap"><table class="cmds">
 <tr><th>Comando</th><th>O que faz</th></tr>
 <tr><td><code>Ctrl-C</code></td><td><span class="where pc">PC</span> No <code>./gama mission</code>: para os dois lados e traz os logs. No <code>make gs-web</code>: fecha a página (a sessão fica em <code>ground/host/sessions/</code>).</td></tr>
-<tr><td><code>./gama mission stop</code></td><td><span class="where pi">Pi</span> Se o terminal caiu no meio de uma missão: encerra o que ficou rodando na Pi e traz os logs.</td></tr>
+<tr><td><code>./gama mission stop</code></td><td><span class="where pi">Pi</span> Se o terminal caiu no meio de uma missão (de verdade ou <code>replay</code>; <code>./gama replay mission stop</code> é o mesmo): encerra o que ficou rodando na Pi e traz os logs.</td></tr>
 <tr><td><code>./gama pi fetch</code></td><td><span class="where pc">PC</span> Traz os logs de bancada da Pi para <code>docs/vv/bancada/</code> (o <code>link</code>, o <code>antenna</code> e o <code>mission</code> já trazem sozinhos).</td></tr>
 <tr><td><code>./gama service enable</code></td><td><span class="where pi">Pi</span> <b>Para a prova</b>: os três daemons agora e em todo boot, a configuração de voo.<span class="ok-when"><code>./gama service status</code>: <code>active</code>, “no boot”</span></td></tr>
 <tr><td><code>./gama pi stop</code></td><td><span class="where pi">Pi</span> Ou, para outra sessão de bancada: tudo parado até o próximo boot.</td></tr>
@@ -442,27 +445,32 @@ build/flight/obcd -c /etc/gama/obcd.conf -o ipc_path=/tmp/ttec-bench.sock \
 <tr><td><code>antenna compare</code></td><td>Todas as medições de antena lado a lado (<code>[pastas]</code>).</td></tr>
 <tr><td><code>board check</code></td><td>O que difere entre a Pi e a placa; não muda nada (<code>--board obc-v2</code>).</td></tr>
 <tr><td><code>board install</code></td><td>Instala a placa com backup de cada arquivo trocado (<code>--yes</code>, <code>--no-build</code>).</td></tr>
+<tr><td><code>deploy</code></td><td>Plano B da REG-07: o burn-wire disparado na própria Pi pelo SSH, com a confirmação antes (<code>--yes</code>); <code>flight/obcd/README.md</code>.</td></tr>
 <tr><td><code>doctor</code></td><td>Diagnóstico de tudo, com o que fazer (<code>--no-sync</code>).</td></tr>
 <tr><td><code>esp32 flash</code></td><td>Grava a ground na ESP32 (<code>--port</code>).</td></tr>
 <tr><td><code>esp32 port</code></td><td>Em que porta está a ESP32, ou por que não aparece.</td></tr>
-<tr><td><code>link &lt;passo&gt;</code></td><td>Um passo de rádio: <code>ping</code>, <code>toa</code>, <code>per</code>, <code>rates</code>, <code>lost-ack</code>, <code>lbt</code>, ou <code>all</code> (<code>--udp</code>, <code>--power</code>, <code>--port</code>, <code>--conf</code>, <code>--skip-radio-check</code>).</td></tr>
-<tr><td><code>mission</code></td><td>Satélite e página com o mesmo tempo, num comando (<code>--secs</code>, <code>--input</code> ou <code>--sdr</code>, <code>--avr</code>, <code>--pc</code>, <code>--tx-power</code>, <code>--power</code>, <code>--web-port</code>, <code>--skip-radio-check</code>).</td></tr>
+<tr><td><code>link &lt;passo&gt;</code></td><td>Um passo de rádio: <code>ping</code>, <code>toa</code>, <code>per</code>, <code>rates</code>, <code>lost-ack</code>, <code>lbt</code>, ou <code>all</code> (<code>--power</code>, <code>--port</code>, <code>--conf</code>, <code>--skip-radio-check</code>).</td></tr>
+<tr><td><code>mission</code></td><td>Satélite e página com o mesmo tempo, num comando, com o SDR de verdade (<code>--secs</code>, <code>--avr</code>, <code>--tx-power</code>, <code>--power</code>, <code>--web-port</code>, <code>--skip-radio-check</code>).</td></tr>
 <tr><td><code>mission stop</code></td><td>Encerra uma missão que ficou rodando na Pi e traz os logs.</td></tr>
 <tr><td><code>net check</code></td><td>A rede vista do PC e da Pi.</td></tr>
 <tr><td><code>net down</code></td><td>Desliga a rede da bancada.</td></tr>
-<tr><td><code>net up</code></td><td>Liga a rede da bancada e espera a Pi (<code>--sem-internet</code>).</td></tr>
+<tr><td><code>net up</code></td><td>Liga a rede da bancada e espera a Pi, uma linha por tentativa de ssh com a hora, o tempo decorrido e o motivo da falha (<code>--sem-internet</code>).</td></tr>
 <tr><td><code>pi fetch</code></td><td>Traz os logs de bancada da Pi.</td></tr>
 <tr><td><code>pi reboot</code></td><td>Reinicia a Pi (sudo).</td></tr>
 <tr><td><code>pi ssh</code></td><td>Terminal na Pi, dentro do repositório.</td></tr>
 <tr><td><code>pi stop</code></td><td>Encerra sobras e para os serviços (sudo).</td></tr>
 <tr><td><code>pi sync</code></td><td>Copia o código para a Pi.</td></tr>
 <tr><td><code>radio check</code></td><td>O RA-02 responde pelo SPI? Com o diagnóstico do MISO.</td></tr>
+<tr><td><code>replay mission</code></td><td>A missão na Pi com o rádio de verdade e uma captura no lugar do SDR (<code>--input</code>, obrigatório; as mesmas opções do <code>mission</code>). Logs em <code>replay-missao-&lt;hora&gt;/</code>.</td></tr>
+<tr><td><code>replay mission stop</code></td><td>O mesmo que <code>mission stop</code>.</td></tr>
 <tr><td><code>service disable</code></td><td>Para e tira do boot (<code>[ttcd obcd adsbd]</code>; sem nome, os três).</td></tr>
 <tr><td><code>service enable</code></td><td>Liga agora e em todo boot: a configuração de voo.</td></tr>
 <tr><td><code>service install</code></td><td>Instala daemons e serviços, mantendo <code>/etc/gama</code>.</td></tr>
 <tr><td><code>service logs &lt;daemon&gt;</code></td><td>O log de um daemon (<code>-f</code>, <code>-n</code>, <code>--journal</code>).</td></tr>
 <tr><td><code>service restart</code> · <code>start</code> · <code>stop</code></td><td>Reinicia · liga até o próximo boot · para até o próximo boot.</td></tr>
 <tr><td><code>service status</code></td><td>Cada serviço e a última linha do log.</td></tr>
+<tr><td><code>sim link &lt;passo&gt;</code></td><td>Os passos de rádio com as duas pontas no PC, rádio UDP (<code>--power</code>). Era <code>link --udp</code>.</td></tr>
+<tr><td><code>sim mission</code></td><td>A missão inteira no PC, rádio UDP, com a página (<code>--secs</code>, <code>--input</code>, obrigatório, <code>--avr</code>, <code>--web-port</code>). Era <code>mission --pc</code>; é o <code>make sim</code>.</td></tr>
 </table></div>
 
 <h2 id="console"><span class="n">8</span>Dicionário do console da ground</h2>
@@ -512,8 +520,8 @@ build/flight/obcd -c /etc/gama/obcd.conf -o ipc_path=/tmp/ttec-bench.sock \
   <div class="card"><p class="q">Liberar o rádio, o SDR e o I²C</p><p class="a"><code>./gama pi stop</code></p></div>
   <div class="card"><p class="q">O primeiro telecomando pelo ar</p><p class="a"><code>./gama link ping</code></p></div>
   <div class="card"><p class="q">A página da ground com a ESP32</p><p class="a"><code>make gs-web ESP32_PORT=/dev/ttyUSB0 ADSB=1</code></p></div>
-  <div class="card"><p class="q">A missão ADS-B de 2 min, com replay</p><p class="a"><code>./gama mission --secs 120 --input &lt;captura&gt;</code></p></div>
-  <div class="card"><p class="q">A missão ADS-B com aviões de verdade e a categoria</p><p class="a"><code>./gama mission --secs 120 --sdr --avr</code></p></div>
+  <div class="card"><p class="q">A missão ADS-B de 2 min, com replay</p><p class="a"><code>./gama replay mission --secs 120 --input &lt;captura&gt;</code></p></div>
+  <div class="card"><p class="q">A missão ADS-B com aviões de verdade e a categoria</p><p class="a"><code>./gama mission --secs 120 --avr</code></p></div>
   <div class="card"><p class="q">Os seis passos de rádio</p><p class="a"><code>./gama link all</code></p></div>
   <div class="card"><p class="q">A antena no SDR da Pi</p><p class="a"><code>./gama antenna check --pi</code></p></div>
   <div class="card"><p class="q">A configuração de voo, para a prova</p><p class="a"><code>./gama service enable</code></p></div>
@@ -543,16 +551,16 @@ build/flight/obcd -c /etc/gama/obcd.conf -o ipc_path=/tmp/ttec-bench.sock \
 <tr><td><code>make pi-service-status</code> · <code>pi-service-logs</code></td><td><code>./gama service status</code> · <code>./gama service logs ttcd -f</code>.</td></tr>
 <tr><td><code>make bench-ping SPLIT=1 GS=esp32 ESP32_PORT=/dev/ttyUSB0</code></td><td><code>./gama link ping</code> (que roda isto por baixo, com <code>TTCD_CONF=/etc/gama/ttcd.conf</code>). <code>make -k bench …</code> é o <code>./gama link all</code>; <code>RADIO=udp</code> é o <code>--udp</code>.</td></tr>
 <tr><td><code>make bench-ttcd RADIO=udp</code> + <code>make bench-gs RADIO=udp</code></td><td>Sem equivalente: o satélite e a ground à mão, em dois terminais, sem hardware. Continuam valendo.</td></tr>
-<tr><td><code>make pi-mission MISSION_S=120 INPUT=&lt;captura&gt;</code> + <code>make gs-web ADSB=1 MISSION_S=120</code></td><td><code>./gama mission --secs 120 --input &lt;captura&gt;</code>. Eram dois terminais com o <b>mesmo</b> <code>MISSION_S</code>; se divergiam, a página mentia. <code>AVR=1</code> é o <code>--avr</code>; sem <code>INPUT</code>, o <code>--sdr</code>. <code>make mission-sat</code> é o lado da Pi, que o <code>./gama</code> usa.</td></tr>
-<tr><td><code>make sim MISSION_S=120 INPUT=&lt;captura&gt;</code></td><td><code>./gama mission --pc --secs 120 --input &lt;captura&gt;</code>.</td></tr>
+<tr><td><code>make pi-mission MISSION_S=120 INPUT=&lt;captura&gt;</code> + <code>make gs-web ADSB=1 MISSION_S=120</code></td><td><code>./gama replay mission --secs 120 --input &lt;captura&gt;</code>. Eram dois terminais com o <b>mesmo</b> <code>MISSION_S</code>; se divergiam, a página mentia. <code>AVR=1</code> é o <code>--avr</code>; sem <code>INPUT</code>, o <code>--sdr</code>. <code>make mission-sat</code> é o lado da Pi, que o <code>./gama</code> usa.</td></tr>
+<tr><td><code>make sim MISSION_S=120 INPUT=&lt;captura&gt;</code></td><td><code>./gama sim mission --secs 120 --input &lt;captura&gt;</code>.</td></tr>
 <tr><td><code>make sdr-check ANTENNA=cots SDR_SECS=120</code> · <code>make pi-sdr-check …</code></td><td><code>./gama antenna check [--pi] --antenna cots --secs 120</code>. <code>SDR_GAIN</code> é o <code>--gain</code>; <code>SDR_OPTS="--lat … --lon …"</code>, o <code>--lat</code>/<code>--lon</code>; <code>SDR_DIR</code> sai (a pasta é a do dia, com a data do PC). <code>make sdr-compare</code> é o <code>./gama antenna compare</code>.</td></tr>
 <tr><td><code>ls /dev/ttyUSB*</code></td><td><code>./gama esp32 port</code>, que também explica quando a porta não aparece.</td></tr>
 </table></div>
 <h3>Os testes da Etapa B de 20/11 (ADR-0023)</h3>
 <div class="table-wrap"><table>
 <tr><th>Teste</th><th>Comando de então → hoje</th><th>Aprovado se</th></tr>
-<tr><td>1 · a categoria pelo LoRa, com replay</td><td><code>make pi-mission MISSION_S=120 AVR=1 INPUT=docs/vv/trafego-real/2026-11-18-unsam/capture.ndjson</code> → <code>./gama mission --secs 120 --avr --input …</code></td><td><code>avr_rejected = 0</code>, <code>avr_idents &gt; 0</code>; categorias na página sem asterisco</td></tr>
-<tr><td>2 · o <code>dump1090-fa</code> de verdade, ao ar livre</td><td><code>make pi-mission MISSION_S=120 AVR=1</code> → <code>./gama mission --secs 120 --sdr --avr</code></td><td>pelo menos uma aeronave real com categoria</td></tr>
+<tr><td>1 · a categoria pelo LoRa, com replay</td><td><code>make pi-mission MISSION_S=120 AVR=1 INPUT=docs/vv/trafego-real/2026-11-18-unsam/capture.ndjson</code> → <code>./gama replay mission --secs 120 --avr --input …</code></td><td><code>avr_rejected = 0</code>, <code>avr_idents &gt; 0</code>; categorias na página sem asterisco</td></tr>
+<tr><td>2 · o <code>dump1090-fa</code> de verdade, ao ar livre</td><td><code>make pi-mission MISSION_S=120 AVR=1</code> → <code>./gama mission --secs 120 --avr</code></td><td>pelo menos uma aeronave real com categoria</td></tr>
 <tr><td>3 · o custo na Pi</td><td>o <code>cpu.txt</code> da pasta da missão, com e sem <code>--avr</code></td><td><code>adsbd</code> &lt; 5% de um núcleo; <code>dump1090-fa</code> até 2 pontos acima dos 21,9% de 09/10</td></tr>
 </table></div>
 <p class="small">A refatoração dos comandos foi em duas fases, ambas em 21/11: a fase 1 trouxe <code>net</code>, <code>doctor</code>, <code>radio</code>, <code>pi</code> e <code>mission</code>; a fase 2, <code>board</code>, <code>service</code>, <code>link</code>, <code>antenna</code>, <code>esp32</code> e <code>pi reboot</code>, além do aviso nos alvos antigos do <code>make</code>. A estação ESP32 usa <code>CONFIG_GAMA_GS_PIN_DIO0=27</code> na bancada (o padrão 26 é o das PCBs): <code>grep DIO0 ground/esp32/sdkconfig</code>.</p>
