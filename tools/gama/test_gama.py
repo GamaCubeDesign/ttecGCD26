@@ -22,6 +22,7 @@ sys.path.insert(0, str(HERE))
 import antenna  # noqa: E402
 import board    # noqa: E402
 import cli      # noqa: E402
+import deploy   # noqa: E402
 import common   # noqa: E402
 import doctor   # noqa: E402
 import link     # noqa: E402
@@ -570,6 +571,46 @@ class Antenna(unittest.TestCase):
             code, _ = quiet(antenna.cmd_check, self.args(), pi)
         self.assertEqual(code, 0)
         self.assertTrue(pi.ran[-1].startswith('python3 tools/bench/sdr_check.py run --antenna cots --secs 60'))
+
+
+DEPLOY_OUT = """\
+{"mono_ms":100,"event":"local_command","signal":10,"uid":0,"pid":7}
+{"mono_ms":100,"event":"mode","from":"PRE_TEST","to":"BASIC_INTERMEDIATE","event":"TC_BASIC_INTER","by":"signal","after_ms":5}
+{"mono_ms":100,"event":"burnwire","on":true,"why":"deploy","driven":true}
+{"mono_ms":5100,"event":"burnwire","on":false,"why":"pulse done","driven":true}
+{"mono_ms":5100,"event":"mode","from":"BASIC_INTERMEDIATE","to":"PRE_TEST","event":"TASK_DONE","by":"burnwire","after_ms":5000}
+RESULT done pid=7 log=/var/lib/gama/obcd.jsonl
+"""
+
+
+class Deploy(unittest.TestCase):
+    def test_a_done_pulse_is_success_with_its_length(self):
+        pi = FakePi(files={'<stdout>': DEPLOY_OUT})
+        code, out = quiet(deploy.cmd_deploy, SimpleNamespace(yes=True), pi)
+        self.assertEqual(code, 0)
+        self.assertEqual(pi.ran, ['sudo -n /usr/local/sbin/gama-deploy'])
+        self.assertIn('após 5000 ms', out)
+
+    def test_an_undriven_gpio_fails(self):
+        pi = FakePi(files={'<stdout>': DEPLOY_OUT.replace('"driven":true', '"driven":false')})
+        code, out = quiet(deploy.cmd_deploy, SimpleNamespace(yes=True), pi)
+        self.assertEqual(code, 1)
+        self.assertIn('nada foi acionado', out)
+
+    def test_a_refusal_names_the_mode(self):
+        text = ('{"mono_ms":1,"event":"local_command","signal":10}\n'
+                '{"mono_ms":1,"event":"event_refused","event":"TC_BASIC_INTER","mode":"MISSION_ADSB","by":"signal"}\n'
+                'RESULT refused pid=7 log=x\n')
+        result, lines = deploy.summarize(text)
+        self.assertEqual(result, 'refused')
+        self.assertIn(('fail', 'recusado: o OBC está em MISSION_ADSB; a implantação só sai de PRE_TEST'), lines)
+
+    def test_nothing_runs_without_confirmation(self):
+        pi = FakePi()
+        with unittest.mock.patch('sys.stdin.isatty', return_value=False):
+            code, _ = quiet(deploy.cmd_deploy, SimpleNamespace(yes=False), pi)
+        self.assertEqual(code, 1)
+        self.assertEqual(pi.ran, [])
 
 
 if __name__ == '__main__':

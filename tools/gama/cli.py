@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import antenna  # noqa: E402
 import board    # noqa: E402
+import deploy   # noqa: E402
 import doctor   # noqa: E402
 import esp32    # noqa: E402
 import link     # noqa: E402
@@ -38,6 +39,7 @@ exemplos, na ordem de uma bancada:
   ./gama mission --pc --secs 120 --input <captura>   tudo no PC, sem hardware
   ./gama service enable             a configuração de voo: os três daemons em todo boot
   ./gama service status             cada serviço e a última linha do log
+  ./gama deploy                     plano B da REG-07: o burn-wire disparado na Pi pelo SSH
 """
 
 
@@ -96,6 +98,11 @@ def build_parser():
     lg.set_defaults(func=service.cmd_logs)
     ss.add_parser('install', help='make install na Pi: daemons e serviços (mantém /etc/gama)').set_defaults(
         func=service.cmd_install)
+
+    dp = sub.add_parser('deploy', help='o burn-wire disparado na Pi pelo SSH (plano B da REG-07)',
+                        description=deploy.__doc__.split('\n\n')[0])
+    dp.add_argument('--yes', '-y', action='store_true', help='não pergunta antes')
+    dp.set_defaults(func=deploy.cmd_deploy)
 
     lk = sub.add_parser('link', help='os passos do enlace (09/10): ttcd na Pi, a ground na ESP32',
                         description=link.__doc__.split('\n\n')[0])
