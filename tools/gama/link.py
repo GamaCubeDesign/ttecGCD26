@@ -2,15 +2,17 @@
 ttcd on radio A and the ground at the other end, one scripted step each,
 the logs in docs/vv/bancada/<date>/.
 
-    gama link ping|toa|per|rates|lost-ack|lbt|all [--udp] [--port P] [--power 2]
+    gama link ping|toa|per|rates|lost-ack|lbt|all [--port P] [--power 2]
+    gama sim link ping|...|all [--power 2]
 
 From the PC (the default): ttcd on the Pi with the installed configuration
 (/etc/gama/ttcd.conf: the board's pins, ./gama board install) and the ESP32
 ground station on this machine's USB — make bench-<step> SPLIT=1 GS=esp32,
 after the same checks as gama mission (ssh, ESP32, nothing holding the
 radio, radio A answering) and a build on the Pi. On the Pi: its two RA-02,
-gs_cli on radio B. --udp: both ends on this machine, the UDP radio, no
-hardware — to see the steps work before the bench.
+gs_cli on radio B. gama sim link <step> (before 24/11, --udp): both ends
+on this machine, the UDP radio, no hardware — to see the steps work before
+the bench.
 
 The steps themselves stay in the Makefile and tools/bench/run_step.sh.
 """
@@ -56,10 +58,24 @@ def preflight(args, remote, local):
 
 
 def cmd_link(args, remote=None, local=None, call=subprocess.call):
+    sim = getattr(args, 'kind', None) == 'sim'
+    if args.udp and not sim:
+        c.warn('gama link --udp agora é ./gama sim link (o --udp some depois de 24/11)')
+        sim = True
+    if sim:
+        c.banner('sim')
+    try:
+        return run_link(args, sim, remote, local, call)
+    finally:
+        if sim:
+            c.banner('sim', 'fim')
+
+
+def run_link(args, sim, remote, local, call):
     steps = STEPS if args.step == 'all' else (args.step,)
     for s in steps:
         c.say(f'{s}: {WHAT[s]}')
-    if args.udp:
+    if sim:
         mode, port = 'udp', None
         c.say('rádio UDP, as duas pontas neste computador (sem hardware)')
     elif c.on_pi():

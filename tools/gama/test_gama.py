@@ -324,13 +324,48 @@ class Mission(unittest.TestCase):
 class Cli(unittest.TestCase):
     def test_help_lists_the_commands(self):
         _, out = quiet(lambda: cli.build_parser().print_help())
-        for word in ('doctor', 'net', 'pi', 'radio', 'mission', 'board', 'service', 'link', 'antenna', 'esp32'):
+        for word in ('doctor', 'net', 'pi', 'radio', 'mission', 'board', 'service', 'link', 'antenna', 'esp32',
+                     'replay', 'sim'):
             self.assertIn(word, out)
 
-    def test_a_mission_needs_to_know_where_aircraft_come_from(self):
-        code, out = quiet(cli.main, ['mission', '--secs', '30'])
+    def test_the_prefix_names_the_kind(self):
+        ap = cli.build_parser()
+        self.assertEqual(ap.parse_args(['mission', '--secs', '30']).kind, 'real')
+        r = ap.parse_args(['replay', 'mission', '--input', 'x.ndjson'])
+        self.assertEqual((r.kind, r.input, r.action), ('replay', 'x.ndjson', None))
+        self.assertEqual(ap.parse_args(['replay', 'mission', 'stop']).action, 'stop')
+        sm = ap.parse_args(['sim', 'mission', '--input', 'x.ndjson'])
+        self.assertEqual(sm.kind, 'sim')
+        sl = ap.parse_args(['sim', 'link', 'ping'])
+        self.assertEqual((sl.kind, sl.udp, sl.step), ('sim', True, 'ping'))
+        self.assertEqual(ap.parse_args(['link', 'ping']).kind, 'real')
+        with self.assertRaises(SystemExit), redirect_stdout(io.StringIO()), \
+                unittest.mock.patch('sys.stderr', io.StringIO()):
+            ap.parse_args(['sim', 'mission'])           # a simulation needs its aircraft
+
+    def test_a_replay_needs_its_capture(self):
+        code, out = quiet(cli.main, ['replay', 'mission', '--secs', '30'])
         self.assertEqual(code, 2)
-        self.assertIn('--sdr', out)
+        self.assertIn('./gama mission', out)
+
+    def test_the_old_flags_still_work_with_a_note(self):
+        a = cli.build_parser().parse_args(['mission', '--pc', '--input', 'x.ndjson'])
+        kind, out = quiet(mission.kind_of, a)
+        self.assertEqual(kind, 'sim')
+        self.assertIn('./gama sim mission', out)
+        a = cli.build_parser().parse_args(['mission', '--input', 'x.ndjson'])
+        kind, out = quiet(mission.kind_of, a)
+        self.assertEqual(kind, 'replay')
+        self.assertIn('./gama replay mission', out)
+
+    def test_a_sim_opens_and_closes_with_its_banner(self):
+        with tempfile.NamedTemporaryFile(suffix='.ndjson') as f, \
+                unittest.mock.patch.object(mission, 'run_pc', lambda a: 0):
+            code, out = quiet(cli.main, ['sim', 'mission', '--input', f.name])
+        self.assertEqual(code, 0)
+        lines = out.splitlines()
+        self.assertTrue(lines[0].startswith('[SIM]'))
+        self.assertTrue(lines[-1].startswith('[SIM]') and lines[-1].endswith('; fim'))
 
     def test_a_missing_capture_is_refused_before_anything(self):
         code, out = quiet(cli.main, ['mission', '--input', '/nonexistent.ndjson'])
@@ -536,6 +571,15 @@ class Link(unittest.TestCase):
         self.assertEqual([x for x in remote.calls if x in ('sync', 'probe', 'build')], ['sync', 'probe', 'build'])
         self.assertIn('ESP32_PORT=/dev/ttyUSB0', calls[0])
 
+    def test_sim_link_is_udp_with_its_banner(self):
+        calls = []
+        code, out = quiet(link.cmd_link, self.args(kind='sim', udp=True, no_build=True), None, None,
+                          lambda argv: calls.append(argv) or 0)
+        self.assertEqual(code, 0)
+        self.assertEqual(calls[0][-1], 'RADIO=udp')
+        self.assertTrue(out.startswith('[SIM]'))
+        self.assertIn('build/bench-udp/', out)
+
     def test_refused_when_radio_a_does_not_answer(self):
         remote, calls = FakeRemote(PROBE_20_11), []
         with unittest.mock.patch.object(common, 'on_pi', lambda: False):
@@ -628,6 +672,15 @@ class Output(unittest.TestCase):
         _, out = quiet(lambda: (common.ok('a'), common.warn('b', 'faça x'), common.fail('c'), common.say('d')))
         self.assertEqual(out, '[OK]     a\n[AVISO]  b\n         faça x\n[ERRO]   c\n[INFO]   d\n')
         self.assertTrue(all(ord(ch) < 0x2000 for ch in out))
+
+    def test_the_banner_marks_sim_and_replay_only(self):
+        _, out = quiet(lambda: (common.banner('sim'), common.banner('replay', 'aviões de x.ndjson'),
+                                common.banner('real')))
+        lines = out.splitlines()
+        self.assertEqual(len(lines), 2)
+        self.assertTrue(lines[0].startswith('[SIM]    simulação'))
+        self.assertTrue(lines[1].startswith('[REPLAY] hardware real'))
+        self.assertTrue(lines[1].endswith('; aviões de x.ndjson'))
 
 
 class Deploy(unittest.TestCase):

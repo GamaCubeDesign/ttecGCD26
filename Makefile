@@ -265,7 +265,9 @@ sim: build ## The satellite on this PC, operated from the ground's page: INPUT=<
 # The logs go to the day's bench folder, which make pi-fetch brings back.
 # On the PC, the page with the same length: make gs-web ADSB=1 MISSION_S=...
 TX_POWER   ?= 2
-MISSION_DIR = docs/vv/bancada/$(BENCH_DATE)/missao-$(BENCH_TIME)
+# A capture in place of the SDR is a replay, not the real reception: the
+# folder says so (replay-missao-*), whichever command started it.
+MISSION_DIR = docs/vv/bancada/$(BENCH_DATE)/$(if $(INPUT),replay-)missao-$(BENCH_TIME)
 # pi-sync leaves *.ndjson behind: pi-mission copies INPUT to this path.
 PI_INPUT    = /tmp/gama-mission$(suffix $(INPUT))
 

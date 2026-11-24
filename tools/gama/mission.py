@@ -9,7 +9,14 @@ then starts gs_web.py here. Ctrl-C stops both: a TERM to the Pi's process
 group (pi_mission.sh cleans up and prints its summary), the page, then the
 logs come back. A mission left behind by a lost terminal: gama mission stop.
 
-With --pc it is make sim: the same satellite on this machine, UDP radio.
+Three kinds, named by the command (24/11), so the operator and the logs
+cannot mistake one for the other:
+  gama mission                the real thing: radio A, the SDR
+  gama replay mission --input the Pi and radio A, aircraft from a capture;
+                              the Pi's logs in replay-missao-*
+  gama sim mission --input    make sim: the same satellite on this machine,
+                              UDP radio; logs under build/
+The old flags (--input, --pc on gama mission) still work, with a note.
 """
 
 import json
@@ -244,7 +251,8 @@ def finish(remote, pgid, ground, tail, failed=False):
 
 def run_pc(args):
     if not args.input:
-        c.fail('no PC a missão precisa de uma captura', '--input docs/vv/trafego-real/2026-11-17-unsam/capture_sem_categoria.ndjson')
+        c.fail('no PC a missão precisa de uma captura',
+               './gama sim mission --input docs/vv/trafego-real/2026-11-17-unsam/capture_sem_categoria.ndjson')
         return 2
     c.say(f'missão ADS-B de {args.secs} s no PC (rádio UDP, sem hardware): make sim')
     argv = ['make', '-C', str(c.ROOT), 'sim', f'MISSION_S={args.secs}', f'INPUT={args.input}',
@@ -257,7 +265,27 @@ def run_pc(args):
         return 130
 
 
+def kind_of(args):
+    """'real', 'replay' or 'sim', from the command; the flags of before
+    24/11 (gama mission --input | --pc) map onto it with a note."""
+    kind = getattr(args, 'kind', None)
+    if kind in ('replay', 'sim'):
+        return kind
+    if getattr(args, 'pc', False):
+        c.warn('gama mission --pc agora é ./gama sim mission (o --pc some depois de 24/11)')
+        return 'sim'
+    if args.input:
+        c.warn('gama mission --input agora é ./gama replay mission (o --input some daqui depois de 24/11)')
+        return 'replay'
+    return 'real'
+
+
 def cmd_mission(args):
+    kind = kind_of(args)
+    if kind != 'real' and not args.input:
+        c.fail(f'./gama {kind} mission precisa de --input <captura.ndjson|.sbs>',
+               'com aviões de verdade, pelo SDR: ./gama mission')
+        return 2
     if args.input and not Path(args.input).is_file():
         c.fail(f'{args.input} não existe')
         return 2
@@ -267,17 +295,17 @@ def cmd_mission(args):
     if args.secs <= 0:
         c.fail('--secs precisa ser positivo')
         return 2
-    if args.pc:
-        return run_pc(args)
-    if c.on_pi():
-        c.fail('na Pi, use make mission-sat (a página roda no PC, onde está a ESP32)')
-        return 2
-    if not args.input and not args.sdr:
-        c.fail('diga de onde vêm os aviões',
-               '--input <captura.ndjson> (replay, sem SDR) ou --sdr (o SDR de verdade, ao ar livre)')
-        return 2
-    host = c.need_pi_host()
-    return run_pi(args, Remote(host, c.pi_dir()), Local(host))
+    c.banner(kind, f'aviões de {args.input}' if args.input else None)
+    try:
+        if kind == 'sim':
+            return run_pc(args)
+        if c.on_pi():
+            c.fail('na Pi, use make mission-sat (a página roda no PC, onde está a ESP32)')
+            return 2
+        host = c.need_pi_host()
+        return run_pi(args, Remote(host, c.pi_dir()), Local(host))
+    finally:
+        c.banner(kind, 'fim')
 
 
 def cmd_mission_stop(args):

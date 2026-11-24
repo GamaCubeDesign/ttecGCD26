@@ -27,20 +27,74 @@ import service  # noqa: E402
 
 EXAMPLES = """\
 exemplos, na ordem de uma bancada:
+  (sem prefixo: tudo real; replay: hardware real, aviões de um arquivo;
+   sim: nada físico, tudo neste computador)
   ./gama net up                     a rede da bancada (com o cabo ethernet no PC)
   ./gama doctor                     PC, rede, Pi, relógio, configuração, SDR e rádio A
   ./gama board install              a configuração da placa do OBC (obc-v2) na Pi
   ./gama radio check                o rádio A responde pelo SPI?
   ./gama pi stop                    para o que estiver segurando o rádio, o SDR e o I²C
   ./gama link ping                  10 PINGs pela ESP32; ./gama link all = os 6 passos
+  ./gama sim link ping              os mesmos passos sem hardware (rádio UDP no PC)
   ./gama antenna check --pi         o SDR da Pi ouve aviões?
-  ./gama mission --secs 120 --input docs/vv/trafego-real/2026-11-17-unsam/capture_sem_categoria.ndjson
-  ./gama mission --secs 120 --sdr   com aviões de verdade (ao ar livre)
-  ./gama mission --pc --secs 120 --input <captura>   tudo no PC, sem hardware
+  ./gama mission --secs 120         com aviões de verdade, pelo SDR (ao ar livre)
+  ./gama replay mission --secs 120 --input docs/vv/trafego-real/2026-11-17-unsam/capture_sem_categoria.ndjson
+                                    satélite e rádio reais, aviões de uma captura
+  ./gama sim mission --secs 120 --input <captura>   tudo no PC, sem hardware
   ./gama service enable             a configuração de voo: os três daemons em todo boot
   ./gama service status             cada serviço e a última linha do log
   ./gama deploy                     plano B da REG-07: o burn-wire disparado na Pi pelo SSH
 """
+
+
+MISSION_DESCRIPTION = ('Uma missão ADS-B operada pela página, num comando só: o satélite e a página, '
+                       'com a mesma duração da MISSION_ADSB nos dois lados. Na Pi: verifica antes (ssh, '
+                       'ESP32, nada rodando, rádio A), compila e sobe tudo; Ctrl-C encerra os dois, traz '
+                       'os logs e mostra o resumo.')
+
+
+def add_mission_args(m, kind):
+    """kind: 'real' (the SDR), 'replay' (the Pi, a capture) or 'sim' (this PC)."""
+    m.set_defaults(kind=kind)
+    if kind != 'sim':
+        m.add_argument('action', nargs='?', choices=['stop'],
+                       help='stop: encerra uma missão que ficou rodando na Pi e traz os logs')
+    m.add_argument('--secs', type=int, default=120, help='duração da MISSION_ADSB, s (padrão 120; 600 no voo)')
+    if kind == 'real':
+        # Before the prefixes (24/11) the source was a flag; still accepted, with a note.
+        m.add_argument('--input', help=argparse.SUPPRESS)
+        m.add_argument('--sdr', action='store_true', help=argparse.SUPPRESS)
+        m.add_argument('--pc', action='store_true', help=argparse.SUPPRESS)
+    else:
+        m.add_argument('--input', required=(kind == 'sim'), help='captura (.ndjson ou .sbs) tocada no lugar do SDR')
+    m.add_argument('--avr', action='store_true', help='a categoria pela porta AVR (Etapa B, ADR-0023), só nesta missão')
+    m.add_argument('--web-port', type=int, default=8080, help='porta da página (padrão 8080)')
+    if kind != 'sim':
+        m.add_argument('--port', help='porta da ESP32 (padrão: a única ttyUSB/ttyACM)')
+        m.add_argument('--power', type=int, default=2, help='potência da ground, dBm (padrão 2)')
+        m.add_argument('--tx-power', type=int, default=2, help='potência do rádio A, dBm (padrão 2)')
+        m.add_argument('--no-build', action='store_true', help='não compila na Pi antes')
+        m.add_argument('--skip-radio-check', action='store_true', help='sobe mesmo se o rádio A não responder')
+    m.set_defaults(func=lambda a: mission.cmd_mission_stop(a) if getattr(a, 'action', None) == 'stop'
+                   else mission.cmd_mission(a))
+
+
+def add_link_args(lk, kind):
+    """kind: 'real' (radio A and the ESP32, or the Pi's two RA-02) or 'sim'
+    (the UDP radio on this computer)."""
+    lk.set_defaults(kind=kind)
+    lk.add_argument('step', choices=(*link.STEPS, 'all'),
+                    help=('; '.join(f'{k}: {v}' for k, v in link.WHAT.items()) + '; all: os seis, em ordem').replace('%', '%%'))
+    lk.add_argument('--power', type=int, default=2, help='dBm, os dois rádios (padrão 2, a ~1 m)')
+    if kind == 'real':
+        lk.add_argument('--udp', action='store_true', help=argparse.SUPPRESS)   # before 24/11: ./gama sim link
+        lk.add_argument('--port', help='porta da ESP32 (padrão: a única ttyUSB/ttyACM)')
+        lk.add_argument('--conf', help=f'o ttcd.conf na Pi (padrão {link.INSTALLED_CONF})')
+        lk.add_argument('--no-build', action='store_true', help='não compila na Pi antes')
+        lk.add_argument('--skip-radio-check', action='store_true', help='segue mesmo se o rádio A não responder')
+    else:
+        lk.set_defaults(udp=True, port=None, conf=None, no_build=True, skip_radio_check=False)
+    lk.set_defaults(func=link.cmd_link)
 
 
 def build_parser():
@@ -106,15 +160,7 @@ def build_parser():
 
     lk = sub.add_parser('link', help='os passos do enlace (09/10): ttcd na Pi, a ground na ESP32',
                         description=link.__doc__.split('\n\n')[0])
-    lk.add_argument('step', choices=(*link.STEPS, 'all'),
-                    help=('; '.join(f'{k}: {v}' for k, v in link.WHAT.items()) + '; all: os seis, em ordem').replace('%', '%%'))
-    lk.add_argument('--udp', action='store_true', help='as duas pontas neste computador, sem hardware')
-    lk.add_argument('--port', help='porta da ESP32 (padrão: a única ttyUSB/ttyACM)')
-    lk.add_argument('--power', type=int, default=2, help='dBm, os dois rádios (padrão 2, a ~1 m)')
-    lk.add_argument('--conf', help=f'o ttcd.conf na Pi (padrão {link.INSTALLED_CONF})')
-    lk.add_argument('--no-build', action='store_true', help='não compila na Pi antes')
-    lk.add_argument('--skip-radio-check', action='store_true', help='segue mesmo se o rádio A não responder')
-    lk.set_defaults(func=link.cmd_link)
+    add_link_args(lk, kind='real')
 
     an = sub.add_parser('antenna', help='a antena de 1090 MHz no SDR, sem o satélite')
     ans = an.add_subparsers(dest='action', metavar='<ação>', required=True)
@@ -145,27 +191,27 @@ def build_parser():
     rc.add_argument('--no-sync', action='store_true', help='não copia o código para a Pi antes')
     rc.set_defaults(func=doctor.cmd_radio_check)
 
-    m = sub.add_parser('mission', help='uma missão ADS-B pela página: satélite e página com o mesmo tempo',
-                       description='Uma missão ADS-B operada pela página, num comando só: o satélite '
-                                   '(na Pi, ou neste PC com --pc) e a página, com a mesma duração da '
-                                   'MISSION_ADSB nos dois lados. Verifica antes (ssh, ESP32, nada '
-                                   'rodando, rádio A), compila e sobe tudo; Ctrl-C encerra os dois, '
-                                   'traz os logs e mostra o resumo.')
-    m.add_argument('action', nargs='?', choices=['stop'],
-                   help='stop: encerra uma missão que ficou rodando na Pi e traz os logs')
-    m.add_argument('--secs', type=int, default=120, help='duração da MISSION_ADSB, s (padrão 120; 600 no voo)')
-    src = m.add_mutually_exclusive_group()
-    src.add_argument('--input', help='captura (.ndjson ou .sbs) tocada no lugar do SDR')
-    src.add_argument('--sdr', action='store_true', help='o SDR de verdade (ao ar livre)')
-    m.add_argument('--avr', action='store_true', help='a categoria pela porta AVR (Etapa B, ADR-0023), só nesta missão')
-    m.add_argument('--pc', action='store_true', help='tudo no PC, rádio UDP, sem hardware (make sim)')
-    m.add_argument('--port', help='porta da ESP32 (padrão: a única ttyUSB/ttyACM)')
-    m.add_argument('--power', type=int, default=2, help='potência da ground, dBm (padrão 2)')
-    m.add_argument('--tx-power', type=int, default=2, help='potência do rádio A, dBm (padrão 2)')
-    m.add_argument('--web-port', type=int, default=8080, help='porta da página (padrão 8080)')
-    m.add_argument('--no-build', action='store_true', help='não compila na Pi antes')
-    m.add_argument('--skip-radio-check', action='store_true', help='sobe mesmo se o rádio A não responder')
-    m.set_defaults(func=lambda a: mission.cmd_mission_stop(a) if a.action == 'stop' else mission.cmd_mission(a))
+    m = sub.add_parser('mission', help='uma missão ADS-B com aviões de verdade (o SDR), operada pela página',
+                       description=MISSION_DESCRIPTION)
+    add_mission_args(m, kind='real')
+
+    rp = sub.add_parser('replay', help='hardware real, aviões de um arquivo (captura da API ou sintético)',
+                        description='replay: o satélite e o rádio são os de verdade; os aviões vêm de um '
+                                    'arquivo no lugar do SDR. Valida o satélite, o enlace e a ground, '
+                                    'não a recepção ADS-B. Os logs da Pi vão para replay-missao-*.')
+    rps = rp.add_subparsers(dest='group_cmd', metavar='<comando>', required=True)
+    add_mission_args(rps.add_parser('mission', help='a missão ADS-B na Pi, com uma captura no lugar do SDR',
+                                    description=MISSION_DESCRIPTION), kind='replay')
+
+    sm = sub.add_parser('sim', help='simulação: nada físico, tudo neste computador (rádio UDP)',
+                        description='sim: o satélite e a ground neste computador, ligados pelo rádio UDP; '
+                                    'nenhum hardware. Serve para ver o fluxo funcionar, nunca como '
+                                    'evidência de bancada. Os logs ficam em build/.')
+    sms = sm.add_subparsers(dest='group_cmd', metavar='<comando>', required=True)
+    add_mission_args(sms.add_parser('mission', help='a missão ADS-B no PC, operada pela página (make sim)',
+                                    description=MISSION_DESCRIPTION), kind='sim')
+    add_link_args(sms.add_parser('link', help='os passos do enlace com as duas pontas neste computador',
+                                 description=link.__doc__.split('\n\n')[0]), kind='sim')
     return ap
 
 

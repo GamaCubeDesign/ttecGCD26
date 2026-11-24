@@ -82,9 +82,26 @@ def need_pi_host():
 
 # Plain-text tags, the same width, so a log reads in columns and greps
 # (grep '^\[ERRO' bancada.log); no symbols the terminal or the log viewer
-# may not render.
-TAGS = {'ok': '[OK]    ', 'warn': '[AVISO] ', 'fail': '[ERRO]  ', 'say': '[INFO]  '}
+# may not render. [SIM] and [REPLAY] mark what is not all real hardware
+# (./gama sim ..., ./gama replay ...).
+TAGS = {'ok': '[OK]    ', 'warn': '[AVISO] ', 'fail': '[ERRO]  ', 'say': '[INFO]  ',
+        'sim': '[SIM]   ', 'replay': '[REPLAY]'}
 HINT_INDENT = ' ' * (len(TAGS['ok']) + 1)
+
+# What each kind of run is, said at its start and its end.
+KIND = {
+    'sim': 'simulação: nada físico, tudo neste computador (rádio UDP); não é evidência de bancada',
+    'replay': ('hardware real, aviões de um arquivo no lugar do SDR: valida o satélite, '
+               'o enlace e a ground, não a recepção ADS-B'),
+}
+
+
+def banner(kind, detail=None):
+    """The line that opens (and closes) a sim or replay run; nothing for a
+    real one."""
+    if kind in KIND:
+        _line(TAGS[kind], KIND[kind] + (f'; {detail}' if detail else ''))
+
 
 def _line(tag, text, hint=None):
     print(f'{tag} {text}', flush=True)
