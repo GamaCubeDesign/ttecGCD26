@@ -30,6 +30,32 @@ do `obcd`. Sair de `BASIC_INTERMEDIATE` por qualquer caminho desliga o
 burn-wire. Boot e reinício sempre em `PRE_TEST`, com as duas saídas desligadas
 (D3, D5).
 
+## Implantação pela própria Pi (plano B da REG-07)
+
+Se o rádio não alcançar o satélite na prova de mecanismos, o mesmo pulso sai
+da Pi: o `obcd` trata o `SIGUSR1` como o `SET_MODE basic_inter` da ground
+(evento `TC_BASIC_INTER`, `"by":"signal"` no log), pelas mesmas transições —
+só a partir de `PRE_TEST` (D1), um pulso por entrada (D3); noutro modo, é
+recusado e registrado. Três jeitos de mandar, todos pelo mesmo script,
+`gama-deploy` (instalado pelo `make install` em `/usr/local/sbin`, com a regra
+`/etc/sudoers.d/gama-deploy`, que deixa o usuário que instalou rodá-lo sem
+senha):
+
+```bash
+./gama deploy                                  # do PC (ou na Pi), pergunta antes
+# a página: aba Implantação, cartão "Plano B", armar e "Implantar pelo SSH"
+#   (make gs-web e ./gama mission passam --pi-ssh com o PI_HOST do local.mk)
+ssh pi@gamapi.local sudo /usr/local/sbin/gama-deploy   # à mão
+```
+
+O script acha o `obcd` que estiver rodando (serviço ou manual), manda o sinal
+e imprime as linhas do log dele até a volta a `PRE_TEST` (no máximo 12 s),
+terminando em `RESULT done|refused|timeout|...`. `"driven":false` na linha do
+`burnwire` quer dizer que o `obcd` não tem o GPIO: o ciclo correu, mas nada
+foi acionado — a página e o `./gama deploy` dão isso como falha. Depende do
+SSH até a Pi (Wi-Fi), que a organização ainda precisa aceitar como "remote
+command".
+
 ## Termostato (D4)
 
 Liga abaixo de `heater_on_below_ccel` (10,00 °C), desliga acima de
@@ -129,6 +155,7 @@ mesmo do `ttcd` e do `adsbd` (D7, ADR-0009).
 |---|---|
 | `start`, `boot` | início: versão, dispositivos, parâmetros |
 | `mode` | toda transição: de, para, evento, quem mandou, quanto durou o modo (OBC-5) |
+| `local_command` | o `SIGUSR1` do `gama-deploy`: o sinal, o uid e o pid de quem mandou |
 | `event_refused` | evento que não vale no modo atual |
 | `burnwire`, `heater` | cada mudança de saída, com o motivo e se a linha foi de fato acionada |
 | `sensor`, `output` | sensor começando ou deixando de responder; saída configurada ou ausente |

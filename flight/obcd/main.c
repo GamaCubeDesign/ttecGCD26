@@ -32,6 +32,7 @@
 #include "ipc.h"
 #include "gama_frame.h"
 #include "gama_ipc.h"
+#include "gama_tc.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -831,6 +832,9 @@ int main(int argc, char **argv)
     sigemptyset(&mask);
     sigaddset(&mask, SIGINT);
     sigaddset(&mask, SIGTERM);
+    /* SIGUSR1: the deployment from the Pi itself, the fallback for REG-07
+     * when the ground cannot reach the satellite (gama deploy --ssh). */
+    sigaddset(&mask, SIGUSR1);
     /* Blocked before any thread starts, so the threads inherit the mask and
      * the signals reach the loop's signalfd only. */
     sigprocmask(SIG_BLOCK, &mask, NULL);
@@ -889,6 +893,16 @@ int main(int argc, char **argv)
             if (fd == O.signal_fd) {
                 struct signalfd_siginfo si;
                 while (read(O.signal_fd, &si, sizeof(si)) == (ssize_t)sizeof(si)) {
+                    if (si.ssi_signo == (uint32_t)SIGUSR1) {
+                        /* The same event as SET_MODE basic_inter from the
+                         * ground, through the same transitions: valid only
+                         * from PRE_TEST (D1), one pulse per entry (D3). */
+                        uint64_t t = now_ms();
+                        write_log(t, "local_command", "\"signal\":%" PRIu32 ",\"uid\":%" PRIu32
+                                  ",\"pid\":%" PRIu32, si.ssi_signo, si.ssi_uid, si.ssi_pid);
+                        obcd_post_event(&O.core, t, GAMA_OBC_EV_TC_BASIC_INTER, "signal");
+                        continue;
+                    }
                     write_log(now_ms(), "stop", "\"signal\":%" PRIu32, si.ssi_signo);
                     O.exiting = true;
                 }

@@ -1,0 +1,76 @@
+#!/bin/sh
+# gama-deploy — the burn-wire from the Pi itself, the fallback for REG-07
+# when the ground station cannot reach the satellite.
+#
+# Sends SIGUSR1 to the running obcd, which posts the same TC_BASIC_INTER
+# event as the ground's SET_MODE basic_inter, through the same transitions:
+# valid only from PRE_TEST (D1), one pulse per entry (D3). Then prints
+# obcd's log lines from the signal on, until it is back in PRE_TEST or the
+# event was refused (at most 12 s; the pulse is burnwire_ms, 5 s), and a
+# last line
+#
+#   RESULT done|refused|timeout|nolog pid=<pid> log=<path>
+#
+# Exit 0 done, 1 refused or timeout, 2 no obcd (or more than one), 3 the
+# signal could not be sent, 4 sent but no log to follow.
+#
+# Installed in /usr/local/sbin by make install, with a sudoers rule
+# (/etc/sudoers.d/gama-deploy) that lets the installing user run exactly
+# this, without a password: gama deploy and the ground's page call it as
+# `ssh <pi> sudo -n /usr/local/sbin/gama-deploy`. It takes no arguments.
+# GAMA_DEPLOY_PID names the process for the tests; sudo drops it.
+
+set -u
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+pid=${GAMA_DEPLOY_PID:-}
+if [ -z "$pid" ]; then
+    pids=$(pgrep -x obcd || true)
+    n=$(printf '%s\n' "$pids" | grep -c .)
+    if [ "$n" -ne 1 ]; then
+        echo "RESULT noobcd count=$n"
+        echo "gama-deploy: $n obcd processes running, need exactly one" >&2
+        exit 2
+    fi
+    pid=$pids
+fi
+
+# obcd keeps its log open: the service's (/etc/gama/obcd.conf) or a manual
+# run's (-o log_path=...), whichever is running.
+log=
+for f in /proc/"$pid"/fd/*; do
+    t=$(readlink "$f" 2>/dev/null) || continue
+    case $t in *.jsonl) log=$t ;; esac
+done
+before=0
+if [ -n "$log" ] && [ -r "$log" ]; then
+    before=$(wc -l < "$log")
+fi
+
+if ! kill -USR1 "$pid"; then
+    echo "RESULT nosignal pid=$pid"
+    exit 3
+fi
+if [ -z "$log" ]; then
+    echo "RESULT nolog pid=$pid"
+    exit 4
+fi
+
+result=timeout
+i=0
+while [ $i -lt 24 ]; do
+    sleep 0.5
+    new=$(tail -n +"$((before + 1))" "$log")
+    if printf '%s\n' "$new" | grep -q '"event":"event_refused"'; then
+        result=refused
+        break
+    fi
+    if printf '%s\n' "$new" | grep -q '"to":"PRE_TEST"'; then
+        result=done
+        break
+    fi
+    i=$((i + 1))
+done
+tail -n +"$((before + 1))" "$log"
+echo "RESULT $result pid=$pid log=$log"
+[ "$result" = done ]

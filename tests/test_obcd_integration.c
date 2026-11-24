@@ -283,6 +283,17 @@ int main(int argc, char **argv)
         CHECK_EQ_INT(count_in_log("\"event\":\"burnwire\",\"on\":true,\"why\":\"deploy\",\"driven\":false"), 1);
     }
 
+    TEST_GROUP("obcd integration: SIGUSR1 is the same deployment, from the Pi itself (REG-07 fallback)");
+    {
+        kill(pid, SIGUSR1);
+        CHECK(wait_mode(fd, GAMA_OBC_ST_BASIC_INTERMEDIATE, 1000));
+        CHECK(wait_mode(fd, GAMA_OBC_ST_PRE_TEST, 1500));
+        CHECK_EQ_INT(count_in_log("\"event\":\"local_command\",\"signal\":10"), 1);
+        CHECK_EQ_INT(count_in_log("\"event\":\"TC_BASIC_INTER\",\"by\":\"signal\""), 1);
+        CHECK_EQ_INT(count_in_log("\"event\":\"burnwire\",\"on\":true,\"why\":\"deploy\""), 2);
+        CHECK_EQ_INT(count_in_log("\"event\":\"stop\""), 0);              /* still running */
+    }
+
     TEST_GROUP("obcd integration: ADVANCED_AOCS with no ESP32 on the bus ends at once (ADR-0017)");
     {
         send_event(fd, GAMA_OBC_EV_TC_AOCS);
@@ -301,6 +312,10 @@ int main(int argc, char **argv)
     {
         send_event(fd, GAMA_OBC_EV_TC_SURVIVAL);
         CHECK(wait_mode(fd, GAMA_OBC_ST_ENV_SURVIVAL, 1000));
+        kill(pid, SIGUSR1);                       /* D1: no deployment from here */
+        listen_obcd(fd, 300, NULL);
+        CHECK_EQ_INT(S.mode, GAMA_OBC_ST_ENV_SURVIVAL);
+        CHECK_EQ_INT(count_in_log("\"event\":\"event_refused\",\"event\":\"TC_BASIC_INTER\",\"mode\":\"ENV_SURVIVAL\",\"by\":\"signal\""), 1);
         close(fd);
         memset(&S, 0, sizeof(S));
         fd = accept_within(lfd, 3000);

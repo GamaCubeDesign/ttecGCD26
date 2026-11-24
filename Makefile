@@ -377,6 +377,17 @@ install: build ## Install the daemons, their units and, if absent, /etc/gama fil
 	        $(SUDO) install -D -m 0644 $$src /etc/gama/$$d.conf && echo "installed /etc/gama/$$d.conf from $$src"; \
 	    fi; \
 	done
+	# The deployment from the Pi itself (REG-07's fallback): the script, and
+	# a sudoers rule letting the installing user run exactly it, without a
+	# password, so gama deploy and the page can call it over ssh (sudo -n).
+	$(SUDO) install -m 0755 flight/obcd/gama-deploy /usr/local/sbin/gama-deploy
+	u=$${SUDO_USER:-$$(id -un)}; \
+	if [ "$$u" != root ]; then \
+	    printf '%s ALL=(root) NOPASSWD: /usr/local/sbin/gama-deploy\n' "$$u" > $(BUILD_DIR)/gama-deploy.sudoers && \
+	    $(SUDO) visudo -cqf $(BUILD_DIR)/gama-deploy.sudoers && \
+	    $(SUDO) install -m 0440 $(BUILD_DIR)/gama-deploy.sudoers /etc/sudoers.d/gama-deploy && \
+	    echo "installed /etc/sudoers.d/gama-deploy for $$u"; \
+	fi
 	$(SUDO) systemctl daemon-reload
 	for d in ttcd adsbd obcd; do \
 	    if systemctl is-active --quiet $$d; then $(SUDO) systemctl restart $$d; echo "$$d restarted"; fi; \

@@ -82,6 +82,12 @@ target_link_libraries(test_obcd_integration PRIVATE ttec_ipc gama_common)
 target_include_directories(test_obcd_integration PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME test_obcd_integration COMMAND test_obcd_integration $<TARGET_FILE:obcd>)
 set_tests_properties(test_obcd_integration PROPERTIES TIMEOUT 60)
+# The deployment from the Pi itself (flight/obcd/gama-deploy, the fallback
+# for REG-07): the script against a real obcd with no hardware.
+add_test(NAME test_gama_deploy
+         COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/test_gama_deploy.sh $<TARGET_FILE:obcd>
+                 ${CMAKE_SOURCE_DIR}/flight/obcd/gama-deploy)
+set_tests_properties(test_gama_deploy PROPERTIES TIMEOUT 30)
 
 # The chain end to end: SBS -> adsbd -> ttcd -> UDP radio -> ground. Also
 # shows the radio surviving the payload, and ttcd re-anchoring a restarted
