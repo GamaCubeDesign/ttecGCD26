@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — Roteiro do teste de mecanismos (24/11/2026)</title>
+<link rel="icon" href="assets/favicon.png">
+<style>
+@font-face{
+  font-family:"Open Sans"; src:url("assets/OpenSans.woff2") format("woff2");
+  font-weight:300 800; font-style:normal; font-display:swap;
+}
+:root{
+  /* Gama Cube Design (identidade_visual_gama.pdf; the same tokens as
+   * ground/host/web/css/gama.css): black, British Racing Green #034a2c and
+   * white; Forest Green, Yellow Orange and Terra Cotta for ok, warning and
+   * failure, in darker shades for text on a light background. */
+  --brand:#034a2c; --brand-band:#000000;
+  --bg:#f3f5f4; --surface:#ffffff; --surface-2:#eaefec; --fg:#111312; --muted:#56605b;
+  --line:#d0d6d3; --line-strong:#7f8a84; --accent:#034a2c; --accent-soft:#e3eee8;
+  --ok:#2f6b3a; --ok-soft:#e6f1e7; --warn:#8a5300; --warn-soft:#fbf0df;
+  --todo:#56605b; --todo-soft:#eceeed; --bad:#a8321f; --bad-soft:#fbe7e3;
+  --code-bg:#eef1ef; --node:#ffffff; --node-hw:#eef1ef; --node-ext:#e3eee8;
+  --sans:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0a0c0b; --surface:#121614; --surface-2:#19201c; --fg:#f2f5f3; --muted:#9aa7a0;
+    --line:#26302b; --line-strong:#6f7c75; --accent:#8cc391; --accent-soft:#10251a;
+    --ok:#8cc391; --ok-soft:#15301f; --warn:#f3b866; --warn-soft:#33280e;
+    --todo:#a8b0ac; --todo-soft:#222826; --bad:#ef8d80; --bad-soft:#3a1b19;
+    --code-bg:#19201c; --node:#121614; --node-hw:#19201c; --node-ext:#10251a;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+
+svg.diagram .lost{fill:var(--bad-soft);stroke:var(--bad);stroke-width:2}
+svg.diagram .new{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2;stroke-dasharray:5 4}
+svg.diagram .edge.ok{stroke:var(--ok);stroke-width:2}
+svg.diagram .ah-ok{fill:var(--ok)}
+svg.diagram .t-bad{font-size:12px;fill:var(--bad);font-weight:600}
+svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
+.bytes .fl{background:var(--warn-soft)}
+
+/* Gama: the band on top, as on the ground's page; ExtraBold titles. */
+.brand-bar{background:var(--brand-band);border-bottom:3px solid var(--brand);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:8px 20px;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.brand-bar img{width:28px;height:28px;display:block}
+.brand-bar b{font-weight:800;letter-spacing:.04em}
+.brand-bar span{opacity:.75}
+h1,h2{font-weight:800}
+.eyebrow{color:var(--accent);font-weight:700}
+@media print{.brand-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+/* Back to the index: in the brand bar, and floating, so it is one tap away anywhere in the report. */
+.brand-bar a.home{margin-left:auto;white-space:nowrap;color:#fff;text-decoration:none;font-weight:600;opacity:.9}
+.brand-bar a.home:hover{opacity:1;text-decoration:underline}
+a.to-index{position:fixed;right:16px;bottom:16px;z-index:10;display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:999px;background:var(--accent);color:var(--bg);font-size:14px;font-weight:600;
+  text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+a.to-index:hover{text-decoration:underline}
+@media print{a.to-index,.brand-bar a.home{display:none}}
+</style>
+
+<style>
+/* Steps as cards: the command on a line of its own, full width, so it never
+ * wraps inside a narrow column; what it does below; what to expect last. */
+.where{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:4px;white-space:nowrap;vertical-align:middle}
+.w-pc{color:var(--accent);background:var(--accent-soft)}
+.w-pi{color:var(--warn);background:var(--warn-soft)}
+.w-web{color:var(--ok);background:var(--ok-soft)}
+.w-gs{color:var(--todo);background:var(--todo-soft)}
+.w-hand{color:var(--bad);background:var(--bad-soft)}
+.steps{counter-reset:st;margin:0 0 22px;padding:0;list-style:none;position:relative}
+.steps>li{counter-increment:st;position:relative;padding:0 0 18px 50px;margin:0}
+.steps>li::before{content:counter(st);position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;
+  background:var(--brand);color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center}
+.steps>li:not(:last-child)::after{content:"";position:absolute;left:16px;top:38px;bottom:4px;width:2px;background:var(--line)}
+.steps.start-1>li{counter-increment:st}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px 12px}
+.step.opt{border-style:dashed}
+.step.danger{border-color:var(--bad);box-shadow:inset 4px 0 0 var(--bad)}
+.step-h{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.step-h b{font-size:16px}
+.step-h .tag-opt{font-size:12px;color:var(--muted);font-style:italic}
+.cmd{display:flex;align-items:stretch;gap:0;margin:0 0 8px;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--code-bg)}
+.cmd code{flex:1;display:block;background:none;padding:9px 12px;font-size:14px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.cmd button{font:inherit;font-size:12px;border:0;border-left:1px solid var(--line);background:transparent;color:var(--muted);padding:0 12px;cursor:pointer}
+.cmd button:hover{color:var(--accent)}
+.action{margin:0 0 8px;padding:9px 12px;border-radius:7px;background:var(--code-bg);border:1px solid var(--line);font-weight:600}
+.action .arr{color:var(--muted);font-weight:400;margin:0 6px}
+.step p{margin:0 0 6px;font-size:15px}
+.expect{display:flex;gap:8px;align-items:baseline;font-size:14.5px;margin:6px 0 0;padding-top:8px;border-top:1px dashed var(--line)}
+.expect::before{content:"✓ espere";flex:none;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ok)}
+.phase{display:flex;align-items:baseline;gap:12px;margin:34px 0 6px}
+.phase .k{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 16px;font-size:14px}
+.flow span{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 10px}
+.flow i{color:var(--muted);font-style:normal}
+.paths{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 16px}
+@media (max-width:700px){.paths{grid-template-columns:1fr}}
+.path{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.path h3{margin:0 0 4px;font-size:17px}
+.path .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.log{margin:6px 0 0}
+.log div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:7px 10px;border:1px solid var(--line);border-top:0;background:var(--surface);font-size:13.5px}
+.log div:first-child{border-top:1px solid var(--line);border-radius:7px 7px 0 0}
+.log div:last-child{border-radius:0 0 7px 7px}
+.log code{background:none;padding:0;font-size:12.5px;overflow-wrap:anywhere}
+.log small{color:var(--muted);white-space:nowrap}
+.fix{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 8px}
+.fix>summary{cursor:pointer;padding:11px 16px;font-weight:600;list-style:none}
+.fix>summary::-webkit-details-marker{display:none}
+.fix>summary::before{content:"▸ ";color:var(--muted)}
+.fix[open]>summary::before{content:"▾ "}
+.fix .body{padding:0 16px 12px}
+.fix .body p{margin:0 0 8px}
+.results{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:8px 0 0;font-size:14.5px}
+.results dt{font-family:var(--mono);font-size:13px;font-weight:700}
+.results dd{margin:0}
+@media print{.cmd button{display:none}}
+</style>
+</head>
+<body>
+<div class="brand-bar"><img src="assets/favicon.png" alt=""><b>Gama Cube Design</b><span>CubeDesign 2026 · TT&amp;C</span><a class="home" href="index.html">← Relatórios</a></div>
+<a class="to-index" href="index.html" aria-label="Voltar ao índice dos relatórios">← Índice</a>
+<div class="layout">
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">O teste e os dois caminhos</a></li>
+    <li><a href="#antes">Antes do dia (uma vez)</a></li>
+    <li><a href="#ground">A ground (ESP32)</a></li>
+    <li><a href="#satelite">O satélite ouvindo</a></li>
+    <li><a href="#pagina">A página e o enlace</a></li>
+    <li><a href="#tc">O disparo por telecomando</a></li>
+    <li><a href="#ssh">Plano B: pelo SSH</a></li>
+    <li><a href="#depois">Depois do disparo</a></li>
+    <li><a href="#problemas">Se algo der errado</a></li>
+    <li><a href="#riscos">Riscos conhecidos</a></li>
+    <li><a href="#cola">A cola</a></li>
+  </ol>
+</nav>
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · TT&amp;C · testes da prova · REG-07</p>
+  <h1>Roteiro do teste de mecanismos</h1>
+  <p class="lede">Todos os comandos, em ordem, desde a ESP32 da ground no USB do PC até o burn-wire disparado: pelo telecomando LoRa (o caminho principal) ou pelo SSH até a Pi (o plano B). Cada passo diz onde roda e o que esperar antes de seguir.</p>
+  <div class="meta"><span><b>Data:</b> 24/11/2026</span><span><b>Estado:</b> roteiro; o burn-wire real nunca rodou em bancada (só o pulso em LED, 05/11)</span><span><b>Requisito:</b> REG-07</span></div>
+</header>
+
+<h2 id="resumo"><span class="n">1</span>O teste e os dois caminhos</h2>
+<blockquote class="callout"><p><i>"Mechanism test: The CubeSat must deploy an antenna or similar device via remote command. The deployed element must be at least 10 cm. [0/1 point – TBC]. Teams must bring their own ground station."</i> — REG-07</p></blockquote>
+<div class="tiles">
+  <div class="tile"><div class="v">5 s</div><div class="l">o pulso do burn-wire no GPIO22 (<code>burnwire_ms</code>, <code>burnwire_line</code>)</div></div>
+  <div class="tile"><div class="v">1 pulso</div><div class="l">por entrada em <code>BASIC_INTERMEDIATE</code>; depois o OBC volta sozinho a <code>PRE_TEST</code></div></div>
+  <div class="tile"><div class="v">só de PRE_TEST</div><div class="l">em outro modo, o disparo é recusado e registrado (<code>event_refused</code>)</div></div>
+</div>
+<p>Não há telecomando próprio de implantação: o disparo é o <code>SET_MODE</code> com o evento <code>basic_inter</code>. Os dois caminhos chegam ao mesmo lugar, o <code>obcd</code> na Pi:</p>
+<div class="paths">
+  <div class="path"><h3>Principal · telecomando</h3><p class="sub">sempre primeiro: é o "remote command" da regra</p>
+    <div class="flow"><span>página</span><i>→</i><span>ESP32</span><i>→</i><span>LoRa 433,92 MHz</span><i>→</i><span>ttcd</span><i>→</i><span>obcd</span></div></div>
+  <div class="path"><h3>Plano B · SSH</h3><p class="sub">só se o rádio não alcançar; a organização ainda precisa aceitar</p>
+    <div class="flow"><span>PC</span><i>→</i><span>Wi-Fi gama-bancada</span><i>→</i><span>sudo gama-deploy</span><i>→</i><span>SIGUSR1</span><i>→</i><span>obcd</span></div></div>
+</div>
+<p class="small">Onde roda cada passo: <span class="where w-pc">PC</span> terminal do PC, na raiz do repositório · <span class="where w-pi">Pi</span> roda do PC; o <code>./gama</code> faz o ssh · <span class="where w-web">página</span> o navegador · <span class="where w-gs">console</span> o prompt do <code>gs_serial.py</code> · <span class="where w-hand">à mão</span> no hardware. Os passos tracejados são opcionais.</p>
+
+<h2 id="antes"><span class="n">2</span>Antes do dia (uma vez)</h2>
+<p>Se o satélite já rodou a missão de 22/11 pelos serviços, quase tudo aqui já está feito: os passos 2 e 4 confirmam.</p>
+<ol class="steps">
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Ligar a rede da bancada</b></div>
+    <div class="cmd"><code>./gama net up</code></div>
+    <p>O Wi-Fi do PC vira o ponto de acesso; o cabo ethernet dá internet e NTP à Pi.</p>
+    <div class="expect">"a Pi responde"</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pi">Pi</span><b>Conferir a configuração da placa</b></div>
+    <div class="cmd"><code>./gama board check</code></div>
+    <p>Compara a Pi com <code>flight/conf/obc-v2/</code>. Não muda nada.</p>
+    <div class="expect">tudo <code>[OK]</code>, e <code>burnwire_line = 22</code></div></div></li>
+  <li><div class="step opt"><div class="step-h"><span class="where w-pi">Pi</span><b>Instalar a placa</b><span class="tag-opt">só se o passo 2 acusou diferença</span></div>
+    <div class="cmd"><code>./gama board install</code></div>
+    <p>Instala os daemons e os <code>.conf</code>, e também o <code>/usr/local/sbin/gama-deploy</code> com a regra do sudoers, que o plano B usa. Se a placa já está certa e só falta o <code>gama-deploy</code>: <code>./gama service install</code>.</p>
+    <div class="expect">"placa obc-v2 instalada"</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pi">Pi</span><b>Serviços em todo boot</b></div>
+    <div class="cmd"><code>./gama service enable</code></div>
+    <p><code>ttcd</code>, <code>obcd</code> e <code>adsbd</code> agora e em todo boot: o satélite liga ouvindo, em <code>PRE_TEST</code>.</p>
+    <div class="expect"><code>./gama service status</code> mostra os três active, "no boot"</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Conferir o DIO0 da ESP32</b></div>
+    <div class="cmd"><code>grep DIO0 ground/esp32/sdkconfig</code></div>
+    <p>A ground compila com o DIO0 no GPIO27, a fiação da bancada (o 26 é o das PCBs).</p>
+    <div class="expect"><code>CONFIG_GAMA_GS_PIN_DIO0=27</code></div></div></li>
+  <li><div class="step opt"><div class="step-h"><span class="where w-pc">PC</span><b>Gravar a ground na ESP32</b><span class="tag-opt">só se ela estiver com outro firmware</span></div>
+    <div class="cmd"><code>./gama esp32 flash</code></div>
+    <p>ESP-IDF no Docker. Necessário depois de <code>make esp32-tests-flash</code>, por exemplo.</p>
+    <div class="expect">termina sem erro ("Hard resetting")</div></div></li>
+</ol>
+
+<h2 id="ground"><span class="n">3</span>No local · a ground (ESP32)</h2>
+<p>A ESP32 com o rádio B no USB do PC, o satélite ligado, o cabo ethernet no PC se houver.</p>
+<ol class="steps">
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>A rede</b></div>
+    <div class="cmd"><code>./gama net up</code></div>
+    <p>Sem cabo ethernet: <code>./gama net up --sem-internet</code>. A rede serve ao plano B e ao log do <code>obcd</code>; o telecomando não depende dela.</p>
+    <div class="expect">"a Pi responde"</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>A porta da ESP32</b></div>
+    <div class="cmd"><code>./gama esp32 port</code></div>
+    <p>Se ela não aparece, o comando diz por quê: cabo só de carga, driver, outra porta.</p>
+    <div class="expect">"ESP32 em /dev/ttyUSB0"</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><span class="where w-pi">Pi</span><b>Diagnóstico geral</b></div>
+    <div class="cmd"><code>./gama doctor</code></div>
+    <p>Rede, ESP32, Pi, relógio, serviços, configuração instalada e rádio A, de uma vez.</p>
+    <div class="expect">"tudo certo", ou só <code>[AVISO]</code> que você entende</div></div></li>
+</ol>
+<div class="callout warn"><p>A ESP32 atende <b>um programa por vez</b>. Feche (Ctrl-C) qualquer <code>./gama link</code>, <code>./gama mission</code> ou outra página antes de seguir.</p></div>
+
+<h2 id="satelite"><span class="n">4</span>O satélite ouvindo</h2>
+<ol class="steps">
+  <li><div class="step"><div class="step-h"><span class="where w-pi">Pi</span><b>Os serviços estão rodando?</b></div>
+    <div class="cmd"><code>./gama service status</code></div>
+    <p>Se algum não estiver active: <code>./gama service start</code>.</p>
+    <div class="expect"><code>ttcd</code>, <code>obcd</code> e <code>adsbd</code> active</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pi">Pi</span><b>O OBC está em PRE_TEST?</b></div>
+    <div class="cmd"><code>./gama service logs obcd -n 20</code></div>
+    <p>Olhe a última linha <code>mode</code> ou <code>status</code>.</p>
+    <div class="expect"><code>"mode":"PRE_TEST"</code></div></div></li>
+</ol>
+
+<h2 id="pagina"><span class="n">5</span>A página e o enlace</h2>
+<ol class="steps">
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Subir a página da ground</b></div>
+    <div class="cmd"><code>make gs-web ESP32_PORT=/dev/ttyUSB0 POWER=14</code></div>
+    <p><code>POWER=14</code> é a potência da ground em dBm; o padrão, 2, é para ~1 m de mesa. O <code>make</code> já passa o <code>--pi-ssh</code> do <code>local.mk</code>, que liga o cartão do plano B.</p>
+    <div class="expect">"gs-web: open http://127.0.0.1:8080"</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>Abrir e sincronizar a hora</b></div>
+    <div class="action">abrir <code>http://127.0.0.1:8080</code><span class="arr">→</span>botão <b>sincronizar hora</b></div>
+    <p>SET_TIME: a Pi não tem RTC; a hora vem da ground e entra nos logs.</p>
+    <div class="expect">ACK com <code>OK</code> nos Eventos</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>Testar o enlace</b></div>
+    <div class="action">painel <b>Utilitários</b><span class="arr">→</span><b>ping</b><span class="arr">→</span><b>hk</b></div>
+    <p>Confirma que o telecomando chega antes de disparar.</p>
+    <div class="expect">pings respondidos e HK com o modo <b>PRE_TEST</b> na barra</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pi">Pi</span><b>O log do OBC ao vivo</b> (num 2º terminal)</div>
+    <div class="cmd"><code>./gama service logs obcd -f</code></div>
+    <p>É aqui que se vê o GPIO acionado de fato. Ctrl-C sai.</p>
+    <div class="expect">uma linha <code>status</code> por minuto</div></div></li>
+</ol>
+
+<h2 id="tc"><span class="n">6</span>O disparo por telecomando</h2>
+<div class="callout bad"><p><b>Irreversível.</b> Antes de armar: o elemento livre para abrir, ninguém com a mão no mecanismo, quem avalia olhando.</p></div>
+<ol class="steps">
+  <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>Abrir a aba do teste</b></div>
+    <div class="action">aba <b>Implantação</b></div>
+    <p>O cartão do teste, com a tensão, a corrente e a temperatura da bateria ao lado.</p></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>Armar</b></div>
+    <div class="action"><b>Armar: burn-wire e AOCS</b></div>
+    <p>Desarma sozinho em <b>15 s</b>: siga logo para o próximo passo.</p>
+    <div class="expect">a chave armada</div></div></li>
+  <li><div class="step danger"><div class="step-h"><span class="where w-web">página</span><b>Disparar</b></div>
+    <div class="action"><b>Acionar implantação ▲</b></div>
+    <p>Envia <code>mode basic_inter</code>. Sem armar, a página recusa com "arm first".</p>
+    <div class="expect">ACK do telecomando; os passos do cartão ficam verdes e o modo volta a PRE_TEST em ~5 s</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pi">Pi</span><b>Conferir no log do OBC</b></div>
+    <p>No terminal do <code>logs obcd -f</code>, estas quatro linhas, nesta ordem:</p>
+    <div class="log">
+      <div><code>"event":"mode","from":"PRE_TEST","to":"BASIC_INTERMEDIATE"</code><small>entrou</small></div>
+      <div><code>"event":"burnwire","on":true, … ,"driven":true</code><small>GPIO22 acionado</small></div>
+      <div><code>"event":"burnwire","on":false</code><small>5000 ms depois</small></div>
+      <div><code>"event":"mode","from":"BASIC_INTERMEDIATE","to":"PRE_TEST"</code><small>voltou</small></div>
+    </div></div></li>
+</ol>
+<div class="callout"><p><b>O ACK não basta.</b> Ele só diz que o <code>ttcd</code> entregou o evento ao OBC. Se o modo não mudou no HK, o motivo está no log do <code>obcd</code> (<code>event_refused</code>: o OBC não estava em <code>PRE_TEST</code>).</p></div>
+
+<details class="fix"><summary>Alternativa: o mesmo pelo console, sem a página</summary><div class="body">
+  <p>Feche a página antes (a ESP32 é de um programa só). <b>O console não tem a chave de armar:</b> <code>mode basic_inter</code> dispara na hora.</p>
+  <ol class="steps">
+    <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Abrir o console</b></div>
+      <div class="cmd"><code>python3 ground/host/gs_serial.py --port /dev/ttyUSB0 --power 14</code></div></div></li>
+    <li><div class="step"><div class="step-h"><span class="where w-gs">console</span><b>Hora, enlace e modo</b></div>
+      <div class="cmd"><code>time</code></div><div class="cmd"><code>ping 5</code></div><div class="cmd"><code>hk</code></div>
+      <div class="expect"><code>"status":"OK"</code>, <code>"acked":5</code>, modo PRE_TEST</div></div></li>
+    <li><div class="step danger"><div class="step-h"><span class="where w-gs">console</span><b>Disparar</b></div>
+      <div class="cmd"><code>mode basic_inter</code></div>
+      <div class="expect">ACK; um <code>hk</code> logo depois mostra BASIC_INTERMEDIATE, e após ~5 s PRE_TEST</div></div></li>
+  </ol>
+</div></details>
+<details class="fix"><summary>O elemento não abriu?</summary><div class="body">
+  <p>Cada entrada em <code>BASIC_INTERMEDIATE</code> é um pulso novo de 5 s: com o OBC de volta a <code>PRE_TEST</code>, armar e disparar de novo dá outro pulso. Se o log mostrou <code>"driven":true</code> e o fio não rompeu, o problema é de corrente no TIP120, não de software (veja <a href="#riscos">Riscos</a>).</p>
+</div></details>
+
+<h2 id="ssh"><span class="n">7</span>Plano B: pelo SSH</h2>
+<p>Só se o telecomando não chegar (NO_ACK repetido) e o OBC estiver em <code>PRE_TEST</code>. O <code>gama-deploy</code> manda <code>SIGUSR1</code> ao <code>obcd</code>, que faz o mesmo ciclo, e acompanha o log até a volta a <code>PRE_TEST</code> (no máximo 12 s). Escolha <b>um</b> dos três:</p>
+<div class="paths">
+  <div class="step danger"><div class="step-h"><span class="where w-web">página</span><b>A · pela página</b></div>
+    <div class="action">aba <b>Implantação</b><span class="arr">→</span>cartão <b>Plano B</b><span class="arr">→</span><b>Armar</b><span class="arr">→</span><b>Implantar pelo SSH ▲</b></div>
+    <p>Leva ~6 s e mostra os quatro passos: sinal entregue, OBC em <code>BASIC_INTERMEDIATE</code>, GPIO acionado (com os ms), de volta a <code>PRE_TEST</code>.</p>
+    <div class="expect">os quatro passos verdes</div></div>
+  <div class="step danger"><div class="step-h"><span class="where w-pc">PC</span><span class="where w-pi">Pi</span><b>B · pelo ./gama</b></div>
+    <div class="cmd"><code>./gama deploy</code></div>
+    <p>Pergunta antes: responda <code>s</code> (<code>--yes</code> pula a pergunta).</p>
+    <div class="expect"><code>[OK] implantação feita, o OBC de volta a PRE_TEST</code></div></div>
+</div>
+<div class="step opt" style="margin-bottom:16px"><div class="step-h"><span class="where w-pc">PC</span><b>C · à mão, sem o ./gama</b></div>
+  <div class="cmd"><code>ssh pi@gamapi.local sudo /usr/local/sbin/gama-deploy</code></div>
+  <p>Imprime as linhas do log do <code>obcd</code> e, por último, o resultado:</p>
+  <dl class="results">
+    <dt>RESULT done</dt><dd>ciclo completo; confira <code>"driven":true</code> na linha <code>burnwire</code></dd>
+    <dt>RESULT refused</dt><dd>o OBC não estava em <code>PRE_TEST</code>: volte a ele (<a href="#problemas">abaixo</a>) e repita</dd>
+    <dt>RESULT timeout</dt><dd>sem volta a <code>PRE_TEST</code> em 12 s: <code>./gama service logs obcd -n 50</code></dd>
+    <dt>RESULT noobcd</dt><dd>nenhum <code>obcd</code> rodando (ou mais de um): <code>./gama service status</code></dd>
+    <dt>RESULT nolog</dt><dd>sinal enviado, sem log para acompanhar: olhe o modo no HK</dd>
+  </dl></div>
+
+<h2 id="depois"><span class="n">8</span>Depois do disparo</h2>
+<ol class="steps">
+  <li><div class="step"><div class="step-h"><span class="where w-hand">à mão</span><b>Medir e fotografar</b></div>
+    <p>O elemento implantado precisa ter <b>pelo menos 10 cm</b> (o braço do dipolo de 433,92 MHz tem 164,1 mm).</p></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>O enlace continua</b></div>
+    <div class="action">painel <b>Utilitários</b><span class="arr">→</span><b>hk</b></div>
+    <div class="expect">HK chegando, modo PRE_TEST</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Fechar a página</b></div>
+    <div class="action">Ctrl-C no terminal do <code>make gs-web</code></div>
+    <p>A sessão da ground fica em <code>ground/host/sessions/</code>.</p></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Trazer os logs da Pi</b></div>
+    <div class="cmd"><code>./gama pi fetch</code></div>
+    <div class="cmd"><code>git status docs/vv/bancada</code></div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Anotar</b></div>
+    <p>Em <code>docs/vv/bancada/2026-11-24/notas.md</code>: a hora, o caminho (TC ou SSH), as linhas <code>burnwire</code> com os ms, quantos pulsos, o comprimento medido. Depois, o estado da REG-07 em <code>docs/requisitos.md</code>.</p></div></li>
+</ol>
+
+<h2 id="problemas"><span class="n">9</span>Se algo der errado</h2>
+<p>Clique no sintoma.</p>
+<details class="fix"><summary>Telecomando sem resposta (NO_ACK)</summary><div class="body">
+  <p>Nenhum <code>ttcd</code> ouvindo, ou o rádio A não responde. Feche a página e rode, em ordem:</p>
+  <div class="cmd"><code>./gama service status</code></div>
+  <div class="cmd"><code>./gama pi stop</code></div>
+  <div class="cmd"><code>./gama radio check</code></div>
+  <div class="cmd"><code>./gama service start</code></div>
+  <p>O <code>radio check</code> deve dar <code>RegVersion 0x12</code>. Se a distância é grande, confirme o <code>POWER=14</code> na página. Persistindo: o <a href="#ssh">plano B</a>.</p></div></details>
+<details class="fix"><summary>ACK chega, mas o modo não muda</summary><div class="body">
+  <p>O OBC não estava em <code>PRE_TEST</code> (<code>event_refused</code> no log). Para voltar:</p>
+  <dl class="results">
+    <dt>ENV_SURVIVAL</dt><dd><code>mode task_done</code></dd>
+    <dt>ADVANCED_AOCS</dt><dd><code>mode task_done</code> (sem ESP32 do AOCS, ele já volta sozinho)</dd>
+    <dt>MISSION_DOWNLINK</dt><dd><code>mode task_done</code></dd>
+    <dt>MISSION_ADSB</dt><dd><code>mode downlink</code>, e esperar o downlink terminar</dd>
+    <dt>qualquer um</dt><dd><code>./gama service restart obcd</code>: o <code>obcd</code> sempre sobe em <code>PRE_TEST</code></dd>
+  </dl></div></details>
+<details class="fix"><summary><code>"driven":false</code> na linha burnwire</summary><div class="body">
+  <p>O <code>obcd</code> não tem o GPIO: o ciclo correu e nada foi acionado. Confira <code>burnwire_line = 22</code> com <code>./gama board check</code> e a linha <code>output</code> no começo do log do <code>obcd</code>.</p></div></details>
+<details class="fix"><summary>A página diz "arm first"</summary><div class="body">
+  <p>A chave desarma em 15 s. Arme de novo e clique logo em seguida.</p></div></details>
+<details class="fix"><summary>O cartão do plano B diz "Desligado"</summary><div class="body">
+  <p>A página subiu sem <code>--pi-ssh</code>. Suba pelo <code>make gs-web</code> (que lê o <code>PI_HOST</code> do <code>local.mk</code>) ou use o <code>./gama deploy</code>.</p></div></details>
+<details class="fix"><summary>"o sudo da Pi pediu senha" ou "gama-deploy não está na Pi"</summary><div class="body">
+  <div class="cmd"><code>./gama service install</code></div>
+  <p>Instala o script e a regra do sudoers.</p></div></details>
+<details class="fix"><summary>A Pi não responde pelo ssh</summary><div class="body">
+  <div class="cmd"><code>./gama net check</code></div>
+  <p>A Pi guarda a rede do celular: ligue o hotspot e rode <code>./gama net down</code>. Sem ssh não há plano B, mas o telecomando não depende dele.</p></div></details>
+<details class="fix"><summary>A ESP32 está ocupada ou não responde</summary><div class="body">
+  <p>Outra página ou um <code>./gama link</code> aberto: Ctrl-C nele. Se ficou a imagem de teste na ESP32: <code>./gama esp32 flash</code>.</p></div></details>
+
+<h2 id="riscos"><span class="n">10</span>Riscos conhecidos</h2>
+<div class="callout warn"><p><b>O burn-wire real nunca rodou.</b> Na bancada de 05/11, o pulso de 5000 ms acendeu um LED no GPIO22; o teste com o fio de verdade (D1) foi adiado. O software está provado; o circuito, não.</p></div>
+<div class="callout warn"><p><b>A corrente na base do TIP120 (achado A5).</b> O R2 de 4,7 kΩ da OBC fica em série com os 220 Ω da placa de antenas: ≈ 0,4 A no coletor, e o ensaio do mecanismo precisou de ~1 A (<a href="2026-10-24-proposta-i2c-ina219-obc.html">proposta de 24/10</a>, <a href="2026-11-03-pendencias-placas.html">pendências das placas</a>; a troca proposta é 470 Ω). Se o R2 não foi trocado, o fio pode só esquentar, e repetir o pulso ajuda pouco. Se der, meça a corrente num pulso antes da prova.</p></div>
+<div class="callout"><p><b>O SSH como "remote command"</b> ainda não foi confirmado com a organização. Tente o telecomando primeiro e pergunte a quem avalia se o plano B vale.</p></div>
+
+<h2 id="cola"><span class="n">11</span>A cola</h2>
+<pre><code># antes (uma vez)
+./gama net up
+./gama board check                  # burnwire_line = 22
+./gama service enable
+
+# no local
+./gama net up                       # ou --sem-internet
+./gama esp32 port                   # /dev/ttyUSB0
+./gama doctor
+./gama service status               # os três active; obcd em PRE_TEST
+make gs-web ESP32_PORT=/dev/ttyUSB0 POWER=14     # http://127.0.0.1:8080
+./gama service logs obcd -f         # 2º terminal
+
+# na página
+sincronizar hora → ping, hk (PRE_TEST) → aba Implantação → Armar → Acionar implantação ▲
+# espere: burnwire on (driven:true) → off após 5000 ms → de volta a PRE_TEST
+
+# plano B, só se o rádio falhar
+./gama deploy                       # ou: aba Implantação → Plano B → Armar → Implantar pelo SSH
+
+# depois
+Ctrl-C na página → ./gama pi fetch → notas.md do dia</code></pre>
+
+<footer>
+  <p>GCD26 · TT&amp;C · 24/11/2026. Os comandos vêm de <code>./gama --help</code>, do <code>Makefile</code> (<code>gs-web</code>, <code>POWER</code>), de <code>flight/obcd/README.md</code> e <code>flight/obcd/gama-deploy</code>, da aba Implantação (<code>ground/host/web/js/tabs/modes.js</code>) e do console (<code>ground/console/gs_console.c</code>). O pulso de 5 s e o GPIO22 são os de <code>flight/conf/obc-v2/obcd.conf</code>.</p>
+</footer>
+</main>
+</div>
+<script>
+// A copy button on every command line.
+document.querySelectorAll('.cmd').forEach(function (box) {
+  var b = document.createElement('button');
+  b.type = 'button'; b.textContent = 'copiar';
+  b.addEventListener('click', function () {
+    var text = box.querySelector('code').textContent;
+    var done = function () { b.textContent = 'copiado'; setTimeout(function () { b.textContent = 'copiar'; }, 1200); };
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, function () {}); else done();
+  });
+  box.appendChild(b);
+});
+</script>
+</body>
+</html>

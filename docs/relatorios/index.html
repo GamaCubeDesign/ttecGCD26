@@ -180,6 +180,7 @@ h1,h2{font-weight:800}
   <p class="toc-title">Sumário</p>
   <ol>
     <li><a href="#comecar">Por onde começar</a></li>
+    <li><a href="#testes">Testes da prova: os roteiros</a></li>
     <li><a href="#guias">Guias de estudo e material de apoio</a></li>
     <li><a href="#adsb">ADS-B: o estimador e a categoria da aeronave</a></li>
     <li><a href="#lora">Telecomunicação pelo LoRa</a></li>
@@ -192,8 +193,8 @@ h1,h2{font-weight:800}
 <header class="doc">
   <p class="eyebrow">GCD26 · TT&amp;C · índice</p>
   <h1>Relatórios do TT&amp;C</h1>
-  <p class="lede">Os 24 relatórios de <code>docs/relatorios/</code>, agrupados pelo que você quer fazer com eles. Os arquivos continuam com o nome datado de sempre: este índice só os organiza.</p>
-  <div class="meta"><span><b>Atualizado:</b> 18/11/2026</span><span><b>Regra:</b> todo relatório novo entra aqui; o CTest <code>relatorios_index</code> falha se algum ficar de fora</span></div>
+  <p class="lede">Os 28 relatórios de <code>docs/relatorios/</code>, agrupados pelo que você quer fazer com eles. Os arquivos continuam com o nome datado de sempre: este índice só os organiza.</p>
+  <div class="meta"><span><b>Atualizado:</b> 24/11/2026</span><span><b>Regra:</b> todo relatório novo entra aqui; o CTest <code>relatorios_index</code> falha se algum ficar de fora</span></div>
 </header>
 
 <h2 id="comecar">Por onde começar</h2>
@@ -203,6 +204,15 @@ h1,h2{font-weight:800}
   <div class="tile"><div class="v"><a href="2026-11-18-adsb-ponta-a-ponta.html">O mais novo</a></div><div class="l">a <b>ADS-B de ponta a ponta</b> e a <a href="2026-11-18-enlace-lora.html">telecomunicação pelo LoRa</a>, para estudar</div></div>
 </div>
 <p class="small">"Atual" é a versão a ler hoje; "versão anterior" foi substituída por outra do mesmo grupo e fica como registro de como o projeto chegou aqui. As decisões formais estão em <code>docs/adr/</code>, e a evidência de bancada em <code>docs/vv/bancada/</code>.</p>
+
+<h2 id="testes">Testes da prova: os roteiros</h2>
+<p>Um roteiro por teste avaliado na prova, com todos os comandos em ordem, da ground ao resultado. Cada teste novo que for escrito entra aqui.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Data</th><th>Teste</th><th>Situação</th></tr></thead>
+  <tbody>
+    <tr><td class="nw">24/11</td><td><a href="2026-11-24-roteiro-teste-mecanismos.html"><b>Teste de mecanismos (REG-07)</b></a><br><span class="small">Da ESP32 da ground no USB ao burn-wire disparado: a rede, o satélite ouvindo, a página, a implantação pelo telecomando (SET_MODE basic_inter) e o plano B pelo SSH (gama deploy), com o que ver em cada passo, o que fazer quando falha e os riscos do circuito.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
+  </tbody>
+</table></div>
 
 <h2 id="guias">Guias de estudo e material de apoio</h2>
 <p>Para entender o repositório: comece pelo guia mais recente; as versões anteriores mostram como ele evoluiu.</p>
@@ -269,6 +279,7 @@ h1,h2{font-weight:800}
 <div class="table-wrap"><table>
   <thead><tr><th>Data</th><th>Relatório</th><th>Situação</th></tr></thead>
   <tbody>
+    <tr><td class="nw">24/11</td><td><a href="2026-11-24-resistor-burn-wire.html"><b>Por que o burn-wire esquenta e não corta o nylon</b></a><br><span class="small">O R2 de 4,7 kΩ da placa do OBC limita a base do TIP120 a ~0,25 mA e o fio a ~0,25 A, contra 1 A no ensaio do CDR. O circuito, as contas, as opções (470 Ω em paralelo) e o TIP120 que ficou vermelho depois do pulso no teste de 24/11.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
     <tr><td class="nw">22/11</td><td><a href="2026-11-22-i2c-scl-em-curto.html"><b>O SCL do I²C da OBC preso em nível baixo</b></a><br><span class="small">Por que o INA219 não responde no satélite montado: o SCL fica em 0 V mesmo com o obcd parado, então não é software. O circuito da hipótese de um curto ao GND, o trajeto do SCL na placa do OBC com os três pontos suspeitos, e como confirmar com o multímetro.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
     <tr><td class="nw">03/11</td><td><a href="2026-11-03-pendencias-placas.html"><b>Pendências das placas</b></a><br><span class="small">O que ainda está errado ou indefinido nas placas do Cubetschek depois da revisão TF de 01–02/11 e da reunião geral de 03/11: o que acontece em cada caso, por que é um problema para a missão e o que precisa ser decidido ou medido.</span></td><td class="nw"><span class="badge b-ok">atual</span></td></tr>
     <tr><td class="nw">24/10</td><td><a href="2026-10-24-proposta-i2c-ina219-obc.html"><b>Placa do OBC: INA219 num I²C próprio</b></a><br><span class="small">Uma mudança de duas trilhas na placa do OBC que está sendo refeita, para que a tensão e a corrente da bateria continuem chegando à ground enquanto o AOCS controla a atitude.</span></td><td class="nw"><span class="badge b-warn">decidido em 31/10</span></td></tr>
@@ -279,7 +290,7 @@ h1,h2{font-weight:800}
 </table></div>
 
 <footer>
-  <p>Índice de 18/11/2026. Os relatórios são HTML autocontidos, em português, para a equipe; cada um diz no topo de que data é e do que trata.</p>
+  <p>Índice de 24/11/2026. Os relatórios são HTML autocontidos, em português, para a equipe; cada um diz no topo de que data é e do que trata.</p>
   <p>Para um relatório novo: copie o <a href="modelo.html">modelo</a>, na identidade visual da Gama, e ponha-o neste índice. Já estão nele este índice e os três de "Por onde começar"; os demais, até 18/11, ficam no visual antigo.</p>
 </footer>
 </main>
