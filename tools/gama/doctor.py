@@ -1,4 +1,4 @@
-"""gama doctor and gama radio check: the bench, end to end, as ✔/⚠/✘ lines
+"""gama doctor and gama radio check: the bench, end to end, as [OK]/[AVISO]/[ERRO] lines
 with what to do about each one.
 
 The Pi's side comes from probe_pi.py, run there over ssh after a sync; the

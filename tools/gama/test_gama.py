@@ -27,6 +27,7 @@ import common   # noqa: E402
 import doctor   # noqa: E402
 import link     # noqa: E402
 import mission  # noqa: E402
+import net      # noqa: E402
 import probe_pi  # noqa: E402
 import service  # noqa: E402
 
@@ -501,9 +502,9 @@ class Service(unittest.TestCase):
                                        '@@ adsbd failed enabled /var/lib/gama/adsbd.jsonl\n'})
         code, out = quiet(service.cmd_status, SimpleNamespace(), pi)
         self.assertEqual(code, 0)
-        self.assertIn('✔ ttcd   active', out)
+        self.assertIn('[OK]     ttcd   active', out)
         self.assertIn('{"event":"hk"}', out)
-        self.assertIn('⚠ obcd   inactive  fora do boot', out)
+        self.assertIn('[AVISO]  obcd   inactive  fora do boot', out)
 
     def test_without_a_terminal_sudo_says_what_to_type(self):
         pi = common.Pi(host='pi@test', directory='ttec', local=False)
@@ -581,6 +582,52 @@ DEPLOY_OUT = """\
 {"mono_ms":5100,"event":"mode","from":"BASIC_INTERMEDIATE","to":"PRE_TEST","event":"TASK_DONE","by":"burnwire","after_ms":5000}
 RESULT done pid=7 log=/var/lib/gama/obcd.jsonl
 """
+
+
+class NetUp(unittest.TestCase):
+    """net up's wait for the Pi: one line per ssh attempt, with the attempt,
+    the time since the network came up and ssh's reason; a summary at the
+    end. Virtual time: each ssh takes 1 s, each pause 3 s."""
+
+    def run_wait(self, results, wait_s=90):
+        t = [0.0]
+        replies = iter(results)
+
+        def ssh():
+            t[0] += 1
+            code, out, err = next(replies)
+            return SimpleNamespace(returncode=code, stdout=out, stderr=err)
+
+        def sleep(s):
+            t[0] += s
+        return quiet(net.wait_for_pi, 'pi@gamapi.local', wait_s=wait_s, ssh=ssh,
+                     now=lambda: t[0], sleep=sleep)
+
+    def test_answers_on_the_third_attempt(self):
+        refused = (255, '', 'ssh: connect to host gamapi.local port 22: Connection refused\n')
+        unknown = (255, '', 'ssh: Could not resolve hostname gamapi.local: Name or service not known\n')
+        code, out = self.run_wait([unknown, refused, (0, '10.42.0.17 \n', '')])
+        self.assertEqual(code, 0)
+        lines = out.splitlines()
+        self.assertIn('tentativa 1, +1 s: falhou em 1.0 s: ssh: Could not resolve hostname', lines[1])
+        self.assertIn('tentativa 2, +5 s: falhou em 1.0 s: ssh: connect to host gamapi.local port 22: '
+                      'Connection refused', lines[2])
+        self.assertTrue(lines[3].startswith('[OK]     '))
+        self.assertIn('tentativa 3, +9 s: a Pi responde: 10.42.0.17', lines[3])
+
+    def test_gives_up_with_a_summary(self):
+        code, out = self.run_wait([(124, '', 'timeout')] * 10, wait_s=20)
+        self.assertEqual(code, 1)
+        self.assertIn('[ERRO]   ', out)
+        self.assertIn('a Pi não respondeu: 5 tentativas em 20 s', out)
+        self.assertIn('5x sem resposta em 8 s', out)
+
+
+class Output(unittest.TestCase):
+    def test_plain_text_tags_only(self):
+        _, out = quiet(lambda: (common.ok('a'), common.warn('b', 'faça x'), common.fail('c'), common.say('d')))
+        self.assertEqual(out, '[OK]     a\n[AVISO]  b\n         faça x\n[ERRO]   c\n[INFO]   d\n')
+        self.assertTrue(all(ord(ch) < 0x2000 for ch in out))
 
 
 class Deploy(unittest.TestCase):

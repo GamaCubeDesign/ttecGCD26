@@ -12,6 +12,7 @@ import os
 import shlex
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -79,27 +80,38 @@ def need_pi_host():
 
 # ---- output ---------------------------------------------------------------
 
-def _line(mark, text, hint=None):
-    print(f'{mark} {text}', flush=True)
+# Plain-text tags, the same width, so a log reads in columns and greps
+# (grep '^\[ERRO' bancada.log); no symbols the terminal or the log viewer
+# may not render.
+TAGS = {'ok': '[OK]    ', 'warn': '[AVISO] ', 'fail': '[ERRO]  ', 'say': '[INFO]  '}
+HINT_INDENT = ' ' * (len(TAGS['ok']) + 1)
+
+def _line(tag, text, hint=None):
+    print(f'{tag} {text}', flush=True)
     if hint:
         for h in hint.splitlines():
-            print(f'    → {h}', flush=True)
+            print(f'{HINT_INDENT}{h}', flush=True)
 
 
 def ok(text, hint=None):
-    _line('✔', text, hint)
+    _line(TAGS['ok'], text, hint)
 
 
 def warn(text, hint=None):
-    _line('⚠', text, hint)
+    _line(TAGS['warn'], text, hint)
 
 
 def fail(text, hint=None):
-    _line('✘', text, hint)
+    _line(TAGS['fail'], text, hint)
 
 
 def say(text):
-    print(f'· {text}', flush=True)
+    _line(TAGS['say'], text)
+
+
+def clock():
+    """The wall-clock time of a log line, HH:MM:SS."""
+    return time.strftime('%H:%M:%S')
 
 
 def show(level, text, hint=None):
@@ -277,6 +289,6 @@ def confirm(question, assume_yes=False):
     if not sys.stdin.isatty():
         return False
     try:
-        return input(f'? {question} [s/N] ').strip().lower() in ('s', 'sim', 'y', 'yes')
+        return input(f'[?]      {question} [s/N] ').strip().lower() in ('s', 'sim', 'y', 'yes')
     except EOFError:
         return False

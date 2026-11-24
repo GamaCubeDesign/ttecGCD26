@@ -30,20 +30,56 @@ def cmd_up(args):
                    'Ligue o cabo, ou rode ./gama net up --sem-internet sabendo disso.')
             return 1
         c.warn('sem cabo ethernet: PC e Pi sem internet enquanto a rede da bancada estiver no ar')
+    c.say(f'{c.clock()} subindo {ap_connection()} (nmcli)')
+    t0 = time.monotonic()
     r = c.run(['nmcli', 'con', 'up', ap_connection()])
     if r.returncode != 0:
-        c.fail(f'nmcli não subiu {ap_connection()}', (r.stderr or r.stdout).strip())
+        c.fail(f'{c.clock()} nmcli não subiu {ap_connection()} ({time.monotonic() - t0:.1f} s)',
+               (r.stderr or r.stdout).strip())
         return 1
-    c.ok(f'rede da bancada no ar ({ap_connection()})')
-    c.say(f'esperando a Pi ({host}) responder, até {WAIT_S} s (ela leva ~40 s depois de ligar)…')
-    deadline = time.monotonic() + WAIT_S
-    while time.monotonic() < deadline:
-        r = c.ssh(host, 'hostname -I', timeout=8)
+    c.ok(f'{c.clock()} rede da bancada no ar ({ap_connection()}, {time.monotonic() - t0:.1f} s)')
+    return wait_for_pi(host)
+
+
+def ssh_reason(r):
+    """One line on why an ssh attempt failed: its last stderr line, which
+    tells a name not resolved (the Pi not on this network yet) from a
+    refused port (up, sshd not yet) from a timeout."""
+    if r.returncode == 124:
+        return 'sem resposta em 8 s'
+    lines = [l.strip() for l in (r.stderr or '').splitlines() if l.strip()]
+    return lines[-1] if lines else f'ssh saiu com {r.returncode}'
+
+
+def wait_for_pi(host, wait_s=WAIT_S, interval_s=3, ssh=None, now=time.monotonic, sleep=time.sleep):
+    """ssh until the Pi answers or wait_s runs out, one log line per attempt:
+    the time, the attempt, the seconds since the network came up and, on a
+    failure, ssh's own reason. ssh/now/sleep are for the tests."""
+    ssh = ssh or (lambda: c.ssh(host, 'hostname -I', timeout=8))
+    c.say(f'{c.clock()} esperando a Pi ({host}) responder pelo ssh, até {wait_s} s '
+          f'(ela leva ~40 s depois de ligar), uma tentativa a cada {interval_s} s')
+    t0 = now()
+    attempt = 0
+    reasons = {}
+    while now() - t0 < wait_s:
+        attempt += 1
+        t = now()
+        r = ssh()
+        took = now() - t
+        elapsed = now() - t0
         if r.returncode == 0:
-            c.ok(f'a Pi responde: {r.stdout.split()[0] if r.stdout.split() else host}')
+            addr = r.stdout.split()[0] if r.stdout.split() else host
+            c.ok(f'{c.clock()} tentativa {attempt}, +{elapsed:.0f} s: a Pi responde: {addr} '
+                 f'(ssh em {took:.1f} s)')
             return 0
-        time.sleep(3)
-    c.fail('a Pi não respondeu', 'está ligada? entrou no hotspot do celular em vez desta rede? ./gama net check')
+        reason = ssh_reason(r)
+        reasons[reason] = reasons.get(reason, 0) + 1
+        c.say(f'{c.clock()} tentativa {attempt}, +{elapsed:.0f} s: falhou em {took:.1f} s: {reason}')
+        sleep(interval_s)
+    summary = '; '.join(f'{n}x {why}' for why, n in reasons.items())
+    c.fail(f'{c.clock()} a Pi não respondeu: {attempt} tentativas em {now() - t0:.0f} s',
+           f'{summary}\n'
+           'está ligada? entrou no hotspot do celular em vez desta rede? ./gama net check')
     return 1
 
 
