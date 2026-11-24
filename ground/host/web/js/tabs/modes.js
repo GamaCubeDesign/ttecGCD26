@@ -4,7 +4,8 @@
 
 import { esc, fmtNum, setHTML } from '../util.js';
 import { t } from '../i18n.js';
-import { latestRun, genericSteps, runDot } from '../runs.js';
+import { latestRun, genericSteps, runDot, step } from '../runs.js';
+import { isArmed, setArmed, toast } from '../commands.js';
 
 function hkFig(label, v, div, unit) {
   const nd = v == null;
@@ -36,9 +37,67 @@ function modeTab({ id, label, target, lead, start, end, extra, side }) {
   };
 }
 
+// REG-07's fallback, when the radio cannot reach the satellite: the same
+// pulse fired from the Pi itself over ssh (gs_web.py --pi-ssh, gama-deploy
+// on the Pi). Not a radio command; it needs arming like basic_inter.
+let sshResult = null;
+let sshBusy = false;
+
+function sshSteps(r) {
+  if (!r) return '';
+  const s = r.steps || {};
+  const st = (ok) => ok ? 'done' : r.result ? 'fail' : '';
+  return `<ol class="steps">
+    ${step(1, t('ssh_s_signal'), st(s.signal), '')}
+    ${step(2, t('ssh_s_entered'), st(s.entered), '')}
+    ${step(3, t('ssh_s_burn'), st(s.burn_on && s.driven), r.burn_ms != null ? fmtNum(r.burn_ms, 0) + ' ms' : '')}
+    ${step(4, t('s_back'), st(s.back), '')}</ol>
+    <p class="${r.ok ? 'muted' : 'toast bad'}">${esc(r.why || '')}</p>`;
+}
+
+function renderSsh(box) {
+  const host = box.dataset.host;
+  setHTML(box, `<h2>${esc(t('ssh_title'))}</h2>
+    <p class="lead">${esc(t('ssh_lead'))}</p>
+    ${host ? `<p class="muted">${esc(t('ssh_host'))}: <b>${esc(host)}</b></p>
+      <div class="row" style="margin-bottom:12px">
+        <button class="btn danger" id="ssh-deploy"${sshBusy ? ' disabled' : ''}>${esc(t(sshBusy ? 'ssh_busy' : 'ssh_start'))} ▲</button></div>
+      <div id="ssh-steps">${sshSteps(sshResult)}</div>`
+    : `<p class="muted">${esc(t('ssh_off'))}</p>`}`);
+}
+
+async function deploySsh(box) {
+  if (!isArmed()) { toast(t('ssh_arm'), 'bad'); return; }
+  sshBusy = true;
+  sshResult = null;
+  renderSsh(box);
+  try {
+    const r = await fetch('/api/deploy-ssh', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ armed: true }),
+    });
+    sshResult = await r.json();
+    setArmed(false);
+    toast(sshResult.why, sshResult.ok ? 'ok' : 'bad');
+  } catch (e) {
+    sshResult = { ok: false, why: t('no_server') };
+  }
+  sshBusy = false;
+  renderSsh(box);
+}
+
 export const deploy = modeTab({
   id: 'deploy', label: 'tab_deploy', target: 'BASIC_INTERMEDIATE', lead: 'deploy_lead',
   start: { cmd: 'mode basic_inter', label: 'start_deploy', arm: true },
+  extra(box) {
+    if (box.dataset.ready) return;
+    box.dataset.ready = '1';
+    box.addEventListener('click', (e) => { if (e.target.closest('#ssh-deploy')) deploySsh(box); });
+    fetch('/api/deploy-ssh').then((r) => r.json()).then((j) => {
+      box.dataset.host = j.host || '';
+      renderSsh(box);
+    }).catch(() => renderSsh(box));
+  },
   side: {
     steps: (run) => [[t('s_burn'), run.left, null]],
     html: (st) => {

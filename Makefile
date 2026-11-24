@@ -206,7 +206,7 @@ WEB_PORT   ?= 8080
 SPEED      ?= 1
 MISSION_S  ?= 600
 GS_WEB      = $(PYTHON) ground/host/gs_web.py --host $(WEB_HOST) --port $(WEB_PORT) --mission-s $(MISSION_S) \
-              $(if $(ADSB),--adsb) \
+              $(if $(ADSB),--adsb) $(if $(PI_HOST),--pi-ssh $(PI_HOST)) \
               $(if $(REPLAY),--replay '$(REPLAY)' --speed $(SPEED),$(if $(UDP),--udp,--serial $(ESP32_PORT) --power $(POWER)))
 
 .PHONY: gs-web

@@ -75,7 +75,11 @@ class Remote:
 
 
 class Local:
-    """This machine: the ESP32 and the page."""
+    """This machine: the ESP32 and the page. pi_ssh: the Pi the page can
+    fire the burn-wire on over ssh, REG-07's fallback (gama deploy)."""
+
+    def __init__(self, pi_ssh=None):
+        self.pi_ssh = pi_ssh
 
     def esp32(self, given):
         return c.esp32_port(given)
@@ -83,6 +87,8 @@ class Local:
     def start_ground(self, port, secs, power, web_port):
         argv = [sys.executable, str(c.ROOT / 'ground/host/gs_web.py'), '--serial', port,
                 '--power', str(power), '--adsb', '--mission-s', str(secs), '--port', str(web_port)]
+        if self.pi_ssh:
+            argv += ['--pi-ssh', self.pi_ssh]
         return subprocess.Popen(argv, cwd=c.ROOT)
 
 
@@ -270,7 +276,8 @@ def cmd_mission(args):
         c.fail('diga de onde vêm os aviões',
                '--input <captura.ndjson> (replay, sem SDR) ou --sdr (o SDR de verdade, ao ar livre)')
         return 2
-    return run_pi(args, Remote(c.need_pi_host(), c.pi_dir()), Local())
+    host = c.need_pi_host()
+    return run_pi(args, Remote(host, c.pi_dir()), Local(host))
 
 
 def cmd_mission_stop(args):

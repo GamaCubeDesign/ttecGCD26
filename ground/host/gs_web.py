@@ -67,6 +67,74 @@ COMMANDS = [
 ]
 
 
+# The deployment from the Pi itself, over ssh (flight/obcd/gama-deploy): the
+# fallback for REG-07 when the radio cannot reach the satellite. It is not a
+# radio command, so it is not in COMMANDS: the page needs --pi-ssh for it,
+# and the arm switch, as for basic_inter. sudo -n: the sudoers rule that
+# make install writes on the Pi, never a password typed here.
+DEPLOY_REMOTE = "sudo -n /usr/local/sbin/gama-deploy"
+DEPLOY_TIMEOUT_S = 30
+OBCD_KIND = re.compile(r'^\{"mono_ms":\d+,"event":"([a-z_]+)"')
+
+
+def ssh_deploy_argv(host):
+    return ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", host, DEPLOY_REMOTE]
+
+
+def parse_deploy(returncode, stdout, stderr):
+    """What gama-deploy's output says: {ok, result, why, burn_ms, steps}.
+    result is its RESULT word (done, refused, timeout, nolog, noobcd,
+    nosignal), or None when it never ran (ssh, sudo)."""
+    result, events = None, []
+    for line in stdout.splitlines():
+        if line.startswith("RESULT "):
+            result = line.split()[1] if len(line.split()) > 1 else None
+            continue
+        # The line's kind is its first "event": obcd's mode and refusal lines
+        # carry a second one (the OBC event), which json.loads would keep.
+        m = OBCD_KIND.match(line)
+        try:
+            obj = json.loads(line)
+        except ValueError:
+            continue
+        if m and isinstance(obj, dict):
+            events.append((m.group(1), obj))
+    def first(kind, **want):
+        return next((o for k, o in events if k == kind and all(o.get(f) == v for f, v in want.items())), None)
+    on, off = first("burnwire", on=True), first("burnwire", on=False)
+    steps = {
+        "signal": first("local_command") is not None,
+        "entered": first("mode", to="BASIC_INTERMEDIATE") is not None,
+        "burn_on": on is not None,
+        # False: obcd had no GPIO line for the burn-wire, nothing was driven.
+        "driven": bool(on and on.get("driven")),
+        "burn_off": off is not None,
+        "back": first("mode", to="PRE_TEST") is not None,
+    }
+    refused = first("event_refused")
+    err = (stderr or "").strip().splitlines()
+    if result is None:
+        if any("password is required" in l for l in err):
+            why = "sudo asked for a password: run make install on the Pi (it writes /etc/sudoers.d/gama-deploy)"
+        elif any("not found" in l for l in err):
+            why = "gama-deploy is not installed on the Pi: make install there"
+        else:
+            why = err[-1] if err else "ssh exit %s" % returncode
+    elif result == "refused":
+        why = "refused by obcd: the mode is %s, deployment only from PRE_TEST" % (refused or {}).get("mode")
+    else:
+        why = {"done": "burn-wire pulse done, back in PRE_TEST",
+               "timeout": "no return to PRE_TEST in 12 s",
+               "nolog": "signal sent; obcd has no log file to follow",
+               "noobcd": "obcd is not running (or more than one)",
+               "nosignal": "the signal could not be sent"}.get(result, result)
+    if result == "done" and not steps["driven"]:
+        why += "; but the burn-wire's GPIO was not driven (no line in obcd)"
+    burn_ms = off["mono_ms"] - on["mono_ms"] if on and off else None
+    return {"ok": result == "done" and steps["driven"], "result": result, "why": why,
+            "burn_ms": burn_ms, "steps": steps}
+
+
 def static_file(url_path):
     """The file under web/ that a GET path names, or None. Nothing outside
     web/ is ever served, whatever the path says."""
@@ -302,8 +370,13 @@ class Hub:
     PUSH_MIN_S = 0.5
     IDLE_PUSH_S = 2.0       # the ADS-B counters move on their own
 
-    def __init__(self, state, source, pipeline=None, mission_s=600):
+    def __init__(self, state, source, pipeline=None, mission_s=600, pi_ssh=None,
+                 runner=subprocess.run):
         self.pipeline = pipeline
+        # The Pi for the deployment over ssh (--pi-ssh), None without one.
+        self.pi_ssh = pi_ssh
+        self.runner = runner
+        self.deploying = threading.Lock()
         # How long obcd's MISSION_ADSB lasts (its adsb_timeout_ms, OBC-6): the
         # page counts down from it. 600 s in flight; a bench run may be
         # shorter, and then both sides are told the same number.
@@ -397,6 +470,34 @@ class Hub:
         if not self.source.send(cmd):
             return False, "the ground is not running"
         return True, "sent"
+
+
+    def deploy_ssh(self, armed):
+        """REG-07's fallback: gama-deploy on the Pi over ssh. Blocks the
+        request's thread for the pulse (about 6 s); one at a time."""
+        if not self.pi_ssh:
+            return {"ok": False, "result": None, "why": "no Pi for ssh: start gs_web with --pi-ssh HOST"}
+        if not armed:
+            return {"ok": False, "result": None, "why": "arm first"}
+        if not self.deploying.acquire(blocking=False):
+            return {"ok": False, "result": None, "why": "a deployment over ssh is already running"}
+        try:
+            self.note("cmd", "> deploy over ssh (%s)" % self.pi_ssh)
+            try:
+                r = self.runner(ssh_deploy_argv(self.pi_ssh), capture_output=True, text=True,
+                                timeout=DEPLOY_TIMEOUT_S)
+                out = parse_deploy(r.returncode, r.stdout, r.stderr)
+            except subprocess.TimeoutExpired:
+                out = {"ok": False, "result": None, "why": "ssh gave no answer in %d s" % DEPLOY_TIMEOUT_S}
+            except OSError as exc:
+                out = {"ok": False, "result": None, "why": "ssh: %s" % exc}
+            text = "deploy over ssh: " + out["why"]
+            if out.get("burn_ms") is not None:
+                text += " (pulse %d ms)" % out["burn_ms"]
+            self.note("ok" if out["ok"] else "bad", text)
+            return out
+        finally:
+            self.deploying.release()
 
 
 class ProcessSource:
@@ -540,6 +641,8 @@ def make_handler(hub):
                     self._send(HTTPStatus.OK, body, ctype)
                 except Exception as exc:
                     self._send(HTTPStatus.SERVICE_UNAVAILABLE, str(exc), "text/plain")
+            elif path == "/api/deploy-ssh":
+                self._send(HTTPStatus.OK, json.dumps({"host": hub.pi_ssh}), "application/json")
             elif path == "/api/state":
                 self._send(HTTPStatus.OK, json.dumps(hub.snapshot()), "application/json")
             elif path == "/events":
@@ -600,7 +703,7 @@ def make_handler(hub):
                 hub.unsubscribe(q)
 
         def do_POST(self):
-            if self.path != "/api/cmd":
+            if self.path not in ("/api/cmd", "/api/deploy-ssh"):
                 self._send(HTTPStatus.NOT_FOUND, "not found", "text/plain")
                 return
             try:
@@ -609,6 +712,11 @@ def make_handler(hub):
             except ValueError:
                 self._send(HTTPStatus.BAD_REQUEST, json.dumps({"ok": False, "why": "bad request"}),
                            "application/json")
+                return
+            if self.path == "/api/deploy-ssh":
+                out = hub.deploy_ssh(bool(body.get("armed")))
+                self._send(HTTPStatus.OK if out["ok"] or out.get("result") else HTTPStatus.FORBIDDEN,
+                           json.dumps(out), "application/json")
                 return
             ok, why = hub.send(body.get("cmd"), bool(body.get("armed")))
             self._send(HTTPStatus.OK if ok else HTTPStatus.FORBIDDEN,
@@ -646,6 +754,8 @@ def main(argv=None):
     ap.add_argument("--adsb", action="store_true", help="process received aircraft continuously")
     ap.add_argument("--mission-s", type=int, default=600,
                     help="MISSION_ADSB's length, s: obcd's adsb_timeout_ms / 1000 (600 in flight)")
+    ap.add_argument("--pi-ssh", metavar="HOST",
+                    help="the Pi, for the deployment over ssh (REG-07's fallback), e.g. pi@gamapi.local")
     ap.add_argument("--session-dir", type=Path, default=Path(HERE)/"sessions")
     from adsb.estimator.config import Config, add_pair_arguments, pair_options
     ap.add_argument("--reference-db", type=Path, default=Config().reference_db)
@@ -669,7 +779,7 @@ def main(argv=None):
     source, name = build_source(args)
     if args.mission_s <= 0:
         ap.error("--mission-s must be positive")
-    hub = Hub(GsState(source=name), source, pipeline, mission_s=args.mission_s)
+    hub = Hub(GsState(source=name), source, pipeline, mission_s=args.mission_s, pi_ssh=args.pi_ssh)
     server = None
     def interrupt(signum, frame):
         raise KeyboardInterrupt

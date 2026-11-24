@@ -203,6 +203,77 @@ class TestHub(unittest.TestCase):
         self.assertEqual(short.snapshot()["mission_s"], 120)
 
 
+# gama-deploy's output against a real obcd (tests/test_gama_deploy.sh), with
+# the GPIO driven as on the board.
+DEPLOY_DONE = textwrap.dedent("""\
+    {"mono_ms":6940621,"event":"local_command","signal":10,"uid":0,"pid":40327}
+    {"mono_ms":6940621,"event":"mode","from":"PRE_TEST","to":"BASIC_INTERMEDIATE","event":"TC_BASIC_INTER","by":"signal","after_ms":845}
+    {"mono_ms":6940621,"event":"burnwire","on":true,"why":"deploy","driven":true}
+    {"mono_ms":6945621,"event":"burnwire","on":false,"why":"pulse done","driven":true}
+    {"mono_ms":6945621,"event":"mode","from":"BASIC_INTERMEDIATE","to":"PRE_TEST","event":"TASK_DONE","by":"burnwire","after_ms":5000}
+    RESULT done pid=40322 log=/var/lib/gama/obcd.jsonl
+""")
+DEPLOY_REFUSED = textwrap.dedent("""\
+    {"mono_ms":10,"event":"local_command","signal":10,"uid":0,"pid":1}
+    {"mono_ms":10,"event":"event_refused","event":"TC_BASIC_INTER","mode":"MISSION_ADSB","by":"signal"}
+    RESULT refused pid=2 log=/var/lib/gama/obcd.jsonl
+""")
+
+
+class Ran:
+    def __init__(self, code, out, err=""):
+        self.returncode, self.stdout, self.stderr = code, out, err
+
+
+class TestDeploySsh(unittest.TestCase):
+    def test_a_done_pulse_is_read_step_by_step(self):
+        r = gs_web.parse_deploy(0, DEPLOY_DONE, "")
+        self.assertTrue(r["ok"])
+        self.assertEqual(r["result"], "done")
+        self.assertEqual(r["burn_ms"], 5000)
+        self.assertTrue(all(r["steps"].values()))
+
+    def test_an_undriven_gpio_is_not_success(self):
+        r = gs_web.parse_deploy(0, DEPLOY_DONE.replace('"driven":true', '"driven":false'), "")
+        self.assertFalse(r["ok"])
+        self.assertFalse(r["steps"]["driven"])
+        self.assertIn("not driven", r["why"])
+
+    def test_a_refusal_names_the_mode(self):
+        r = gs_web.parse_deploy(1, DEPLOY_REFUSED, "")
+        self.assertFalse(r["ok"])
+        self.assertEqual(r["result"], "refused")
+        self.assertIn("MISSION_ADSB", r["why"])
+        self.assertFalse(r["steps"]["entered"])
+
+    def test_sudo_without_its_rule_says_what_to_do(self):
+        r = gs_web.parse_deploy(1, "", "sudo: a password is required\n")
+        self.assertIsNone(r["result"])
+        self.assertIn("make install", r["why"])
+
+    def test_the_hub_needs_a_host_and_arming(self):
+        calls = []
+        hub = gs_web.Hub(gs_web.GsState(), source=None, runner=lambda *a, **k: calls.append(a))
+        self.addCleanup(hub.close)
+        self.assertIn("--pi-ssh", hub.deploy_ssh(True)["why"])
+        hub.pi_ssh = "pi@gamapi.local"
+        self.assertEqual(hub.deploy_ssh(False)["why"], "arm first")
+        self.assertEqual(calls, [])
+
+    def test_the_hub_runs_ssh_and_logs_the_outcome(self):
+        calls = []
+        def runner(argv, **kw):
+            calls.append(argv)
+            return Ran(0, DEPLOY_DONE)
+        hub = gs_web.Hub(gs_web.GsState(), source=None, pi_ssh="pi@gamapi.local", runner=runner)
+        self.addCleanup(hub.close)
+        self.assertTrue(hub.deploy_ssh(True)["ok"])
+        self.assertEqual(calls, [["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
+                                  "pi@gamapi.local", "sudo -n /usr/local/sbin/gama-deploy"]])
+        texts = [e["text"] for e in hub.snapshot()["log"]]
+        self.assertIn("deploy over ssh: burn-wire pulse done, back in PRE_TEST (pulse 5000 ms)", texts)
+
+
 FAKE_GROUND = textwrap.dedent("""
     import json, sys
     def out(**o):
