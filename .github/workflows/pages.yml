@@ -1,0 +1,56 @@
+# The team reports (docs/relatorios/) on GitHub Pages, at
+# https://gamacubedesign.github.io/ttecGCD26/ with the reports' index.html as
+# the home page. Only that folder is published. The reports link to repository
+# files as ../../<path> (and ../<path> for docs/); those links point into the
+# repository on GitHub, at the commit being published, and
+# ../../docs/relatorios/<file> becomes <file>.
+# The files in the repository are not changed.
+#
+# On every push to main, and by hand from any branch the github-pages
+# environment allows (Actions > pages > Run workflow).
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths: [docs/relatorios/**, .github/workflows/pages.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: the reports, with the repository links pointing to GitHub
+        run: |
+          mkdir _site
+          cp -r docs/relatorios/. _site/
+          blob="https://github.com/${GITHUB_REPOSITORY}/blob/${GITHUB_SHA}"
+          find _site -name '*.html' -exec sed -i -E \
+            -e 's#(href|src)="\.\./\.\./docs/relatorios/#\1="#g' \
+            -e "s#(href|src)=\"\\.\\./\\.\\./#\\1=\"${blob}/#g" \
+            -e "s#(href|src)=\"\\.\\./#\\1=\"${blob}/docs/#g" {} +
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
