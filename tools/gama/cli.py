@@ -100,6 +100,11 @@ def add_ground_args(g, kind):
     g.add_argument('--secs', type=int, default=600, help='duração da MISSION_ADSB que a página conta, s (padrão 600, o voo)')
     g.add_argument('--web-port', type=int, default=8080, help='porta da página (padrão 8080)')
     g.add_argument('--no-adsb', action='store_true', help='sem o processamento ADS-B (mapa e estimativas)')
+    # The battery estimate's calibration (ADR-0024), measured on the bench
+    # (docs/relatorios/2026-11-25-roteiro-teste-eps.html); absent: the page's defaults.
+    g.add_argument('--battery-mah', type=float, help='capacidade do pack, mAh (padrão 3200, NCR18650B)')
+    g.add_argument('--battery-r-ohm', type=float, help='R das células ao INA219, ohm (padrão 0,25; o "R medido" da aba OBC)')
+    g.add_argument('--battery-diode-v', type=float, help='queda no D1 da EPS, V (padrão 0,30; P+ menos a leitura do INA219)')
     if kind == 'real':
         g.add_argument('--port', help='porta da ESP32 (padrão: a única ttyUSB/ttyACM)')
         g.add_argument('--power', type=int, default=2, help='potência da ground, dBm (padrão 2)')

@@ -13,11 +13,13 @@ board). Two limits shape the method, both in ADR-0024:
   charger (hardware/README.md, A9): it measures the load, never the charge
   current. Counting charge works only while discharging; a charge shows only
   as the voltage rising against what the load predicts.
-- The voltage under load is below the open-circuit voltage by I·R, with R the
-  cells, the BMS and the 100 mΩ shunt. R is corrected for, and is a parameter
-  the bench should measure (a load step: ΔV/ΔI).
+- The INA219 reads the voltage after the EPS's D1 (1N5822 Schottky, from the
+  BMS's P+ to the 8 V line) and its own shunt: below the open-circuit voltage
+  by D1's drop plus I·R, with R the cells, the BMS, the switch and the shunt.
+  Both are corrected for and both are parameters the bench should measure
+  (V at P+ against the INA219; a load step: ΔV/ΔI).
 
-    python3 battery.py GROUND.jsonl [--capacity-mah 3200] [--r-ohm 0.25]
+    python3 battery.py GROUND.jsonl [--capacity-mah 3200] [--r-ohm 0.25] [--diode-v 0.30]
         one line per HK of a recorded ground log, the estimate after it
 """
 
@@ -48,6 +50,10 @@ class BatteryModel:
     # Cells (~2 x 60 mOhm DC), BMS switches and wiring (~30), the INA219's
     # 100 mOhm shunt: ~0.25 Ohm from the cells to where the INA219 measures.
     r_ohm: float = 0.25
+    # D1 on the EPS (hardware/eps-potencia, P+ -> D1 -> SW1 -> 8V Bruto): a
+    # 1N5822 Schottky drops ~0.3 V at 0.5 A. Its rise with the current is
+    # small next to I*R and lands in the measured R.
+    diode_v: float = 0.30
     # A cell voltage outside this is a broken reading, not a battery.
     cell_v_min: float = 2.50
     cell_v_max: float = 4.35
@@ -142,14 +148,14 @@ class BatteryEstimator:
             self.last_uptime = uptime_s
             t = float(uptime_s)
         m = self.model
-        if mv is None or not m.cell_v_min <= mv / 1000.0 / m.cells_series <= m.cell_v_max:
+        if mv is None or not m.cell_v_min <= (mv / 1000.0 + m.diode_v) / m.cells_series <= m.cell_v_max:
             self.last_reason = "no_data" if mv is None else "out_of_range"
             self._advance(t, ma)
             return
         self.last_reason = None
         # The OCV, assuming the battery feeds the load: wrong by the charge
         # current times R while charging, which is why the level is then unused.
-        cell_v = mv / 1000.0 / m.cells_series
+        cell_v = (mv / 1000.0 + m.diode_v) / m.cells_series
         ocv = cell_v + (ma / 1000.0 * m.r_ohm / m.cells_series if ma is not None else 0.0)
         soc_v = soc_from_cell_v(ocv)
         self._edges(t, mv, ma, soc_v)
@@ -253,6 +259,7 @@ class BatteryEstimator:
                "soc_pct": None, "soc_v_pct": None, "trend_pct_h": None, "load_ma": None,
                "autonomy_s": None, "full_in_s": None, "charge_ma": None, "used_mah": None,
                "counted_s": None, "capacity_mah": cap, "r_ohm": self.model.r_ohm,
+               "diode_v": self.model.diode_v,
                "r_measured_ohm": None if r is None else round(r, 3)}
         if self.soc is None:
             return out
@@ -282,8 +289,10 @@ def main(argv=None):
     ap.add_argument("log", help="ground JSON lines (gs_serial.py, gs_cli, a session's ground.jsonl)")
     ap.add_argument("--capacity-mah", type=float, default=BatteryModel.capacity_mah)
     ap.add_argument("--r-ohm", type=float, default=BatteryModel.r_ohm)
+    ap.add_argument("--diode-v", type=float, default=BatteryModel.diode_v)
     args = ap.parse_args(argv)
-    est = BatteryEstimator(BatteryModel(capacity_mah=args.capacity_mah, r_ohm=args.r_ohm))
+    est = BatteryEstimator(BatteryModel(capacity_mah=args.capacity_mah, r_ohm=args.r_ohm,
+                                        diode_v=args.diode_v))
     print("uptime_s  mV     mA    carga%  tensão%  tend%/h  autonomia_min  estado")
     with open(args.log, encoding="utf-8") as f:
         for line in f:

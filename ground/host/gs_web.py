@@ -793,6 +793,8 @@ def main(argv=None):
                     help="the pack's capacity, mAh (NCR18650B 2S1P: 3200 minimum, 3350 typical)")
     ap.add_argument("--battery-r-ohm", type=float, default=BatteryModel.r_ohm,
                     help="cells to INA219, Ohm: the page's measured R once the bench has one")
+    ap.add_argument("--battery-diode-v", type=float, default=BatteryModel.diode_v,
+                    help="the EPS's D1 drop, V: P+ minus the INA219's reading at a light load")
     ap.add_argument("--session-dir", type=Path, default=Path(HERE)/"sessions")
     ap.add_argument("--session-prefix", default="mission-",
                     help="the session folder's prefix: sim-mission- or replay-mission- when not all real")
@@ -819,9 +821,10 @@ def main(argv=None):
     source, name = build_source(args)
     if args.mission_s <= 0:
         ap.error("--mission-s must be positive")
-    if args.battery_mah <= 0 or args.battery_r_ohm < 0:
-        ap.error("--battery-mah must be positive and --battery-r-ohm not negative")
-    model = BatteryModel(capacity_mah=args.battery_mah, r_ohm=args.battery_r_ohm)
+    if args.battery_mah <= 0 or args.battery_r_ohm < 0 or args.battery_diode_v < 0:
+        ap.error("--battery-mah must be positive, --battery-r-ohm and --battery-diode-v not negative")
+    model = BatteryModel(capacity_mah=args.battery_mah, r_ohm=args.battery_r_ohm,
+                         diode_v=args.battery_diode_v)
     hub = Hub(GsState(source=name, battery=model), source, pipeline, mission_s=args.mission_s, pi_ssh=args.pi_ssh)
     server = None
     def interrupt(signum, frame):

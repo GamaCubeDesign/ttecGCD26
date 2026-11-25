@@ -710,6 +710,14 @@ class Ground(unittest.TestCase):
         rec = ground.gs_web_argv('sim', self.args(kind='sim', session='g.jsonl', speed=10.0, loop=True))
         self.assertEqual(rec[-5:], ['--replay', 'g.jsonl', '--speed', '10.0', '--loop'])
 
+    def test_the_battery_calibration_passes_through(self):
+        line = ground.gs_web_argv('real', self.args(battery_r_ohm=0.31, battery_diode_v=0.27),
+                                  '/dev/ttyUSB0')
+        self.assertIn('--battery-r-ohm', line)
+        self.assertEqual(line[line.index('--battery-r-ohm') + 1], '0.31')
+        self.assertEqual(line[line.index('--battery-diode-v') + 1], '0.27')
+        self.assertNotIn('--battery-mah', line)
+
     def test_refused_while_the_esp32_is_held(self):
         r, out = quiet(ground.preflight, 'real', self.args(), esp32=lambda p: ('/dev/ttyUSB0', None),
                        held=lambda p: [(77, 'screen /dev/ttyUSB0 115200')], free=lambda p: True)

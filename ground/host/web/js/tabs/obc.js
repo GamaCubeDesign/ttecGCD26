@@ -116,6 +116,7 @@ export const tab = {
       [t('adsb_linked'), yn(hk.adsb_linked)],
       [t('dump1090_up'), yn(hk.dump1090_up)],
       [t('soc_v'), b && b.soc_v_pct != null ? fmtNum(b.soc_v_pct, 0) + ' %' : '—'],
+      [t('d1_drop'), b && b.diode_v != null ? fmtNum(b.diode_v, 2) + ' V' : '—'],
       [t('r_model'), b ? `${fmtNum(b.r_ohm, 2)} / ${b.r_measured_ohm != null ? fmtNum(b.r_measured_ohm, 2) : '—'} Ω` : '—'],
     ].map(([k, x]) => `<span>${esc(k)}</span><span>${esc(x)}</span>`).join('')
       : `<span class="muted">${esc(t('no_hk'))}</span><span></span>`);

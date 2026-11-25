@@ -77,6 +77,10 @@ def gs_web_argv(kind, args, serial=None, pi_host=None, prefix=None):
             '--session-prefix', prefix or SESSION_PREFIX[kind]]
     if not getattr(args, 'no_adsb', False):
         argv.append('--adsb')
+    for flag in ('battery_mah', 'battery_r_ohm', 'battery_diode_v'):
+        value = getattr(args, flag, None)
+        if value is not None:
+            argv += ['--' + flag.replace('_', '-'), str(value)]
     if kind == 'sim':
         session = getattr(args, 'session', None)
         if session:

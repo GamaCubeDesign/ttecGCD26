@@ -26,10 +26,15 @@ Two facts of the hardware decide what can be estimated:
    the 8 V line from the EPS to the stack, after the BMS and the charger. Its
    current is what the satellite draws and is never negative; the charge
    current from the light source never passes through it.
-2. **The voltage is measured under load,** after the cells' internal
-   resistance, the BMS switches, the wiring and the 100 mΩ shunt: about
-   0.25 Ω for the pack. At 600 mA that is 0.15 V, ~20 % of state of charge in
-   the curve's plateau if not corrected.
+2. **The voltage is measured after a diode and under load.** On the EPS the
+   BMS's P+ feeds the 8 V line through D1 (1N5822 Schottky) and the switch
+   SW1; the solar boost (U2, from the panels on J3) joins P+ through D3, and
+   the external input (J2) the 8 V line through D2 (netlist of
+   `hardware/eps-potencia`). The INA219 module then reads after its own shunt.
+   So it sees the pack's voltage minus D1's ~0.3 V, minus I·R with R the
+   cells, the BMS, the switch and the shunt, about 0.25 Ω. Uncorrected, D1
+   alone is ~20 % of state of charge in the curve's plateau, and I·R at
+   600 mA another ~20 %.
 
 The radio budget is fixed (58 KB per mission, `docs/budgets/data-budget.md`).
 
@@ -40,7 +45,7 @@ The estimate is computed **at the ground**, from the HK already received, in
 page's OBC tab. Nothing changes on board or on the wire.
 
 - **Voltage to charge:** the open-circuit voltage of a cell is estimated as
-  `V/2 + I·R/2` and mapped to percent through a piecewise-linear NCR18650B
+  `(V + V_D1 + I·R)/2` and mapped to percent through a piecewise-linear NCR18650B
   curve (`CELL_OCV`, 0 % at 3.00 V, 100 % at 4.18 V).
 - **Discharging:** coulomb counting of the INA219's current (trapezoid,
   timed by the satellite's `uptime_s`), anchored on the first valid voltage and
@@ -62,8 +67,9 @@ page's OBC tab. Nothing changes on board or on the wire.
 - **Gaps** (no data, the AOCS lease of ADR-0017) keep counting at the last
   load for up to 900 s; a longer gap or a reboot (`uptime_s` going back)
   re-anchors on the voltage.
-- Defaults: 3200 mAh (the minimum, so the autonomy errs short) and 0.25 Ω.
-  `gs_web.py --battery-mah`, `--battery-r-ohm` override them.
+- Defaults: 3200 mAh (the minimum, so the autonomy errs short), 0.25 Ω and
+  0.30 V for D1. `gs_web.py --battery-mah`, `--battery-r-ohm`,
+  `--battery-diode-v` override them.
 
 ## Rationale
 
@@ -128,8 +134,10 @@ charging, which the INA219 cannot see. Kept for discharge only.
 
 ### Follow-up required
 
-- Bench, with the satellite assembled: a known load step (`mode` changes) to
-  read R from the page, then `--battery-r-ohm` with it; a discharge from full
+- Bench, with the satellite assembled (`docs/relatorios/2026-11-25-roteiro-teste-eps.html`):
+  V at P+ against the INA219 at a light load for `--battery-diode-v`; a known
+  load step (`mode` changes) to read R from the page, then `--battery-r-ohm`
+  with it; a discharge from full
   against the counted mAh to check the capacity and the curve.
 - If the EPS adds a current sensor on the charge line, replace the inferred
   charge current with it.

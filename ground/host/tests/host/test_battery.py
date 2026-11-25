@@ -24,8 +24,8 @@ class Pack:
     """A 2S pack: the INA219 sees the load and the voltage after R; a charger
     feeds the cells (and so the load) without the INA219 seeing it."""
 
-    def __init__(self, soc=70.0, cap=3300.0, r=0.25, seed=1):
-        self.soc, self.cap, self.r, self.t = soc, cap, r, 0
+    def __init__(self, soc=70.0, cap=3300.0, r=0.25, seed=1, diode=0.30):
+        self.soc, self.cap, self.r, self.diode, self.t = soc, cap, r, diode, 0
         self.rng = random.Random(seed)
 
     def run(self, est, seconds, load, charge=0, every=10):
@@ -33,7 +33,7 @@ class Pack:
             ibat = load - charge
             self.soc -= ibat * every / 3600.0 / self.cap * 100.0
             self.t += every
-            v = 2 * cell_ocv(self.soc) - ibat / 1000.0 * self.r
+            v = 2 * cell_ocv(self.soc) - ibat / 1000.0 * self.r - self.diode
             mv = int(round(v * 1000 / 4)) * 4 + self.rng.choice((-4, 0, 4))   # the INA219's 4 mV
             est.feed(self.t, mv, load + self.rng.randint(-10, 10), uptime_s=self.t)
         return est.estimate()
@@ -102,6 +102,17 @@ class Charging(unittest.TestCase):
         self.assertEqual(e["state"], "charging")
 
 
+class TheDiode(unittest.TestCase):
+    def test_d1_drop_ignored_reads_low(self):
+        # The INA219 is after D1: without its 0.3 V the charge reads ~15 % low
+        # in the plateau.
+        right = Pack(soc=60.0).run(battery.BatteryEstimator(), 120, load=500)
+        wrong = Pack(soc=60.0).run(battery.BatteryEstimator(battery.BatteryModel(diode_v=0.0)),
+                                   120, load=500)
+        self.assertLess(abs(right["soc_pct"] - 60.0), 1.5)
+        self.assertGreater(60.0 - wrong["soc_pct"], 10.0)
+
+
 class NoReading(unittest.TestCase):
     def test_no_data_and_impossible_voltages(self):
         est = battery.BatteryEstimator()
@@ -136,7 +147,7 @@ class InThePage(unittest.TestCase):
         clock = [1000.0]
         s = gs_web.GsState(now=lambda: clock[0])
         for k in range(3):
-            s.feed({"ev": "hk", "battery_mv": 7560, "current_ma": 600, "uptime_s": 10 * k,
+            s.feed({"ev": "hk", "battery_mv": 7260, "current_ma": 600, "uptime_s": 10 * k,
                     "obc_mode": "PRE_TEST"})
             clock[0] += 10
         snap = s.snapshot()
