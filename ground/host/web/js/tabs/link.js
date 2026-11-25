@@ -3,6 +3,55 @@
 import { esc, fmtAge, setHTML } from '../util.js';
 import { t } from '../i18n.js';
 import { since } from '../state.js';
+import { toast } from '../commands.js';
+
+// The satellite's link, LoRa or ssh (gama-link on the Pi, then the page's
+// source): two clicks, the second within CONFIRM_MS, as nothing else on the
+// page restarts ttcd.
+const CONFIRM_MS = 5000;
+let pending = null;      // {to, until}
+let switching = false;
+let lastLink = null;     // the server's last {current, options, busy}
+
+function redraw(panel) {
+  const box = panel.querySelector('#link-buttons');
+  if (box && lastLink) setHTML(box, linkButtons(lastLink));
+}
+
+function linkButtons(L) {
+  return ['lora', 'ssh'].map((to) => {
+    const cur = L.current === to;
+    const ask = pending && pending.to === to && Date.now() < pending.until;
+    const label = switching && pending && pending.to === to ? t('link_busy')
+      : ask ? t('link_confirm') : t('link_' + to);
+    return `<button class="btn${cur ? ' primary' : ask ? ' danger' : ''}" data-link="${to}"` +
+      `${cur || switching || L.busy ? ' disabled' : ''}>${esc(label)}</button>`;
+  }).join('');
+}
+
+async function switchLink(to, panel) {
+  if (!pending || pending.to !== to || Date.now() >= pending.until) {
+    pending = { to, until: Date.now() + CONFIRM_MS };
+    setTimeout(() => { pending = null; redraw(panel); }, CONFIRM_MS + 50);
+    redraw(panel);
+    return;
+  }
+  switching = true;
+  redraw(panel);
+  try {
+    const r = await fetch('/api/link', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to }),
+    });
+    const j = await r.json();
+    toast(j.why, j.ok ? 'ok' : 'bad');
+    panel.querySelector('#link-msg').textContent = j.why;
+  } catch (e) {
+    toast(t('no_server'), 'bad');
+  }
+  switching = false;
+  pending = null;
+  redraw(panel);
+}
 
 function spark(canvas, st) {
   const g = canvas.getContext('2d');
@@ -45,6 +94,9 @@ export const tab = {
   id: 'link', label: 'tab_link',
   mount(panel) {
     panel.innerHTML = `
+      <section class="card" style="grid-column: span 12" id="link-switch" hidden><h2>${esc(t('link_sat'))}</h2>
+        <p class="lead">${esc(t('link_lead'))}</p>
+        <div class="row" id="link-buttons"></div><p class="muted" id="link-msg"></p></section>
       <section class="card span-7"><h2>${esc(t('link'))}</h2>
         <canvas class="spark" id="link-spark"></canvas>
         <div class="leg"><span style="color:var(--forest)">● RSSI (dBm)</span><span style="color:var(--yellow)">● SNR (dB)</span></div></section>
@@ -55,6 +107,10 @@ export const tab = {
           <button class="btn" data-cmd="rate nominal">nominal</button>
           <button class="btn" data-cmd="rate fast">fast</button>
           <button class="btn" data-cmd="ping 10">ping ×10</button></div></div></section>`;
+    panel.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-link]');
+      if (b && !b.disabled) switchLink(b.dataset.link, panel);
+    });
   },
   update(state, fresh) {
     const st = state.st;
@@ -69,8 +125,14 @@ export const tab = {
       [t('acks'), `${a.ok ?? 0} / ${a.bad ?? 0}`],
       [t('latency'), a.latency_ms == null ? '—' : a.latency_ms + ' ms'],
       [t('failed'), a.tc_failed ?? 0], [t('badcrc'), a.rx_bad ?? 0],
-      [t('ground_radio'), st && st.ground && st.ground.radio ? `${st.ground.radio} · ${st.ground.profile || ''}` : '—'],
+      [t('ground_radio'), st && st.ground && st.ground.radio
+        ? `${st.source === 'ssh' ? 'ssh' : st.ground.radio} · ${st.ground.profile || ''}` : '—'],
     ].map(([k, v]) => `<span>${esc(k)}</span><span>${esc(v)}</span>`).join(''));
+    const L = st && st.link;
+    const box = document.getElementById('link-switch');
+    box.hidden = !(L && L.options && L.options.length > 1);
+    lastLink = L;
+    if (!box.hidden) setHTML(document.getElementById('link-buttons'), linkButtons(L));
     if (fresh) spark(document.getElementById('link-spark'), st);
   },
 };

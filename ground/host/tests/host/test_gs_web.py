@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 import textwrap
+import time
 import unittest
 from unittest import mock
 import urllib.error
@@ -339,15 +340,120 @@ class TestSources(unittest.TestCase):
             replay=None, serial=None, udp=False, exec=None, ssh="pi@test", ssh_dir="ttec"))
         self.assertEqual(name, "ssh")
         source.clock = lambda: 1795614460.549
-        started = []
-        with mock.patch.object(gs_web.ProcessSource, "start", lambda self, hub: started.append(self.argv)):
-            source.start(None)
-        argv = started[0]
+        with mock.patch.object(gs_web.subprocess, "Popen") as popen:
+            source._spawn()
+        argv = popen.call_args[0][0]
         self.assertEqual(argv[:2], ["ssh", "-T"])
         self.assertIn("BatchMode=yes", argv)
         self.assertEqual(argv[-2], "pi@test")
         self.assertEqual(argv[-1], "cd ttec && { pkill -x gs_cli && sleep 0.5; true; } && exec "
                                    "build/tools/gs_cli/gs_cli --radio udp --auto-time on --clock 1795614460549")
+
+
+    def test_a_dropped_ssh_is_started_again(self):
+        # 25/11: the Pi's Wi-Fi went away for a minute and the page stayed
+        # without a ground. Each run here prints one line and ends, as an
+        # ssh that drops.
+        line = '{"ev": "start", "radio": "udp", "profile": "NOMINAL"}'
+        fed = []
+        hub = mock.Mock(feed=fed.append)
+        source = gs_web.SshSource("pi@test", "ttec", retry_s=0.05)
+        with mock.patch.object(gs_web, "ssh_ground_argv",
+                               lambda h, d, ms: [sys.executable, "-c", "print(%r)" % line]):
+            source.start(hub)
+            deadline = time.time() + 5
+            while sum(1 for o in fed if o.get("ev") == "start") < 3 and time.time() < deadline:
+                time.sleep(0.02)
+            source.stop()
+        self.assertGreaterEqual(sum(1 for o in fed if o.get("ev") == "start"), 3)
+        drops = [o for o in fed if o.get("ev") == "error"]
+        self.assertTrue(drops and "dropped" in drops[0]["what"])
+        # Each drop after lines is one error: never one per failed attempt.
+        self.assertLessEqual(len(drops), sum(1 for o in fed if o.get("ev") == "start"))
+        n = len(fed)
+        time.sleep(0.2)
+        self.assertEqual(len(fed), n)                 # stopped: no more attempts
+
+    def test_both_links_start_where_the_satellite_is(self):
+        args = gs_web.argparse.Namespace(replay=None, udp=False, exec=None, serial="/dev/ttyUSB0",
+                                         power=14, ssh="pi@test", ssh_dir="ttec", link=None)
+        on_ssh = lambda argv, **kw: mock.Mock(returncode=0, stdout="ssh\n")
+        self.assertEqual(gs_web.initial_link(args, gs_web.build_links(args), on_ssh), "ssh")
+        unreachable = lambda argv, **kw: mock.Mock(returncode=255, stdout="")
+        self.assertEqual(gs_web.initial_link(args, gs_web.build_links(args), unreachable), "lora")
+        args.link = "ssh"
+        self.assertEqual(gs_web.initial_link(args, gs_web.build_links(args), unreachable), "ssh")
+        source, name = gs_web.build_source(gs_web.argparse.Namespace(**dict(vars(args), link="lora")))
+        self.assertEqual((name, source.argv[-2:]), ("serial", ["--power", "14"]))
+
+    def test_one_source_kind(self):
+        for argv in (["--serial", "/dev/x", "--udp"], ["--ssh", "pi@test", "--replay", "x.jsonl"], []):
+            with self.assertRaises(SystemExit), mock.patch("sys.stderr"):
+                gs_web.main(argv)
+
+
+class FakeSource:
+    def __init__(self, name):
+        self.name, self.started, self.stopped = name, False, False
+
+    def start(self, hub):
+        self.started = True
+
+    def stop(self):
+        self.stopped = True
+
+
+class TestLinkSwitch(unittest.TestCase):
+    def hub(self, stdout, returncode=0, stderr=""):
+        self.calls, self.made = [], []
+        def runner(argv, **kw):
+            self.calls.append(argv)
+            return mock.Mock(returncode=returncode, stdout=stdout, stderr=stderr)
+        def make(name):
+            def f():
+                s = FakeSource(name)
+                self.made.append(s)
+                return s
+            return f
+        self.old = FakeSource("lora")
+        return gs_web.Hub(gs_web.GsState(source="serial"), self.old, runner=runner,
+                          links={"lora": make("lora"), "ssh": make("ssh")}, link="lora", link_host="pi@test")
+
+    def test_the_satellite_moves_then_the_page(self):
+        hub = self.hub("RESULT ssh active\n")
+        out = hub.switch_link("ssh")
+        self.assertTrue(out["ok"])
+        self.assertEqual(self.calls, [["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", "pi@test",
+                                       "sudo -n /usr/local/sbin/gama-link ssh"]])
+        self.assertTrue(self.old.stopped)
+        self.assertEqual([(s.name, s.started) for s in self.made], [("ssh", True)])
+        snap = hub.snapshot()
+        self.assertEqual((snap["source"], snap["link"]["current"]), ("ssh", "ssh"))
+        self.assertIn("link: now ssh (satellite on ssh, ttcd active)", [e["text"] for e in snap["log"]])
+        self.assertEqual(hub.switch_link("ssh")["why"], "already on ssh")
+        self.assertEqual(len(self.calls), 1)
+
+    def test_a_satellite_that_cannot_move_keeps_the_page(self):
+        hub = self.hub("", returncode=1, stderr="sudo: a password is required\n")
+        out = hub.switch_link("ssh")
+        self.assertFalse(out["ok"])
+        self.assertIn("make install on the Pi", out["why"])
+        self.assertFalse(self.old.stopped)
+        self.assertEqual(self.made, [])
+        self.assertEqual(hub.snapshot()["link"]["current"], "lora")
+
+    def test_back_to_a_radio_that_does_not_answer(self):
+        hub = self.hub("RESULT lora activating\n", returncode=1)
+        hub.link = "ssh"
+        out = hub.switch_link("lora")
+        self.assertFalse(out["ok"])                   # said, and the page follows anyway
+        self.assertIn("the RA-02 does not answer?", out["why"])
+        self.assertEqual(hub.snapshot()["link"]["current"], "lora")
+
+    def test_without_both_links_there_is_no_switch(self):
+        hub = gs_web.Hub(gs_web.GsState(), FakeSource("lora"), runner=None)
+        self.assertIn("--serial and --ssh", hub.switch_link("ssh")["why"])
+        self.assertEqual(hub.snapshot()["link"]["options"], [])
 
 
 class TestServer(unittest.TestCase):

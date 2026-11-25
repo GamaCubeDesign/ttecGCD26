@@ -9,6 +9,8 @@ commands one types in the console.
     gs_web.py --serial /dev/ttyUSB0 [--power 2]     the ESP32 ground station
     gs_web.py --udp                                 gs_cli on the UDP radio
     gs_web.py --ssh pi@gamapi.local                 the satellite over ssh, no LoRa
+    gs_web.py --serial /dev/ttyUSB0 --ssh pi@...    both: the page's link button
+                                                    moves between them (--link)
     gs_web.py --replay docs/vv/bancada/.../x.jsonl  a recorded log, no hardware
     gs_web.py --exec CMD ARGS...                    any program printing the lines
 
@@ -280,6 +282,11 @@ class GsState:
                 run["failed"] = str(obj.get("what"))      # e.g. no wall clock: nothing sent
             self.error = obj.get("what")
             self._note("bad", "error: %s" % obj.get("what"))
+        elif ev == "link":
+            self.contact = None           # the new path has not heard the satellite yet
+            self.ground = {}
+            self.error = None
+            self._note("info", "link: now %s (%s)" % (obj.get("to"), obj.get("why")))
         elif ev == "rx_crc_error":
             self.rx_bad += 1
             self._note("bad", "frame with a bad CRC")
@@ -413,8 +420,15 @@ class Hub:
     IDLE_PUSH_S = 2.0       # the ADS-B counters move on their own
 
     def __init__(self, state, source, pipeline=None, mission_s=600, pi_ssh=None,
-                 runner=subprocess.run):
+                 runner=subprocess.run, links=None, link=None, link_host=None):
         self.pipeline = pipeline
+        # The ways to the satellite the page can move between, {"lora": make
+        # the ESP32's source, "ssh": make the ssh one}, when it has both; the
+        # one in use; and the Pi that gama-link runs on.
+        self.links = links or {}
+        self.link = link
+        self.link_host = link_host
+        self.switching = threading.Lock()
         # The Pi for the deployment over ssh (--pi-ssh), None without one.
         self.pi_ssh = pi_ssh
         self.runner = runner
@@ -455,6 +469,8 @@ class Hub:
     def _snapshot(self, since=None):
         result = self.state.snapshot(since)
         result["mission_s"] = self.mission_s
+        result["link"] = {"current": self.link, "options": sorted(self.links),
+                          "busy": self.switching.locked()}
         if self.pipeline:
             result["adsb"] = self.pipeline.snapshot()
         return result
@@ -514,6 +530,42 @@ class Hub:
         return True, "sent"
 
 
+    def switch_link(self, to):
+        """The satellite's ttcd onto another link (gama-link over ssh), then
+        the page's source after it. Blocks the request's thread up to
+        LINK_TIMEOUT_S; one at a time."""
+        if to not in self.links or len(self.links) < 2 or not self.link_host:
+            return {"ok": False, "result": None, "why": "no link switch: start gs_web with --serial and --ssh"}
+        if not self.switching.acquire(blocking=False):
+            return {"ok": False, "result": None, "why": "a link switch is already running"}
+        try:
+            if to == self.link:
+                return {"ok": True, "result": to, "why": "already on %s" % to}
+            self.note("cmd", "> link %s (gama-link on %s)" % (to, self.link_host))
+            try:
+                r = self.runner(ssh_link_argv(self.link_host, to), capture_output=True, text=True,
+                                timeout=LINK_TIMEOUT_S)
+                out = parse_link(r.returncode, r.stdout, r.stderr)
+            except subprocess.TimeoutExpired:
+                out = {"ok": False, "result": None, "why": "ssh gave no answer in %d s" % LINK_TIMEOUT_S}
+            except OSError as exc:
+                out = {"ok": False, "result": None, "why": "ssh: %s" % exc}
+            if out["result"] != to:
+                self.note("bad", "link: " + out["why"])
+                return out
+            # The satellite moved (its ttcd may still be restarting): the page follows.
+            self.source.stop()
+            source = self.links[to]()
+            with self.lock:
+                self.source, self.link = source, to
+                self.state.source = LINK_SOURCE[to]
+                self.dirty = True
+            self.feed({"ev": "link", "to": to, "ttcd": out.get("ttcd"), "why": out["why"]})
+            source.start(self)
+            return out
+        finally:
+            self.switching.release()
+
     def deploy_ssh(self, armed):
         """REG-07's fallback: gama-deploy on the Pi over ssh. Blocks the
         request's thread for the pulse (about 6 s); one at a time."""
@@ -542,6 +594,55 @@ class Hub:
             self.deploying.release()
 
 
+# The satellite's link, from the page (25/11): flight/ttcd/gama-link on the
+# Pi, over ssh, with the sudoers rule make install writes there (sudo -n),
+# then the page's source follows. The satellite moves first: if it cannot,
+# the page stays where it was.
+LINK_HELPER = "/usr/local/sbin/gama-link"
+LINK_DROPIN = "/etc/systemd/system/ttcd.service.d/link-ssh.conf"
+LINK_TIMEOUT_S = 30
+LINK_SOURCE = {"lora": "serial", "ssh": "ssh"}
+
+
+def ssh_link_argv(host, to):
+    return ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", host, "sudo -n %s %s" % (LINK_HELPER, to)]
+
+
+def parse_link(returncode, stdout, stderr):
+    """What gama-link's output says: {ok, result, ttcd, why}. result is the
+    link it put ttcd on, or None when it never ran (ssh, sudo)."""
+    result = ttcd = None
+    for line in stdout.splitlines():
+        f = line.split()
+        if len(f) >= 2 and f[0] == "RESULT":
+            result, ttcd = f[1], (f[2] if len(f) > 2 else None)
+    err = (stderr or "").strip().splitlines()
+    if result in ("lora", "ssh"):
+        why = "satellite on %s, ttcd %s" % ("LoRa" if result == "lora" else "ssh", ttcd)
+        if returncode != 0:
+            why += (": the RA-02 does not answer?" if result == "lora" else ": see ./gama service logs ttcd")
+        return {"ok": returncode == 0, "result": result, "ttcd": ttcd, "why": why}
+    if any("password is required" in l for l in err):
+        why = "sudo asked for a password: run make install on the Pi (it writes /etc/sudoers.d/gama-link)"
+    elif any("not found" in l for l in err):
+        why = "gama-link is not installed on the Pi: ./gama service install"
+    else:
+        why = err[-1] if err else "ssh exit %s" % returncode
+    return {"ok": False, "result": None, "ttcd": None, "why": why}
+
+
+def query_link(host, runner=subprocess.run):
+    """'lora' or 'ssh', as the Pi's ttcd is now; None when ssh fails."""
+    try:
+        r = runner(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=5", host,
+                    "test -f %s && echo ssh || echo lora" % LINK_DROPIN],
+                   capture_output=True, text=True, timeout=15)
+    except (subprocess.TimeoutExpired, OSError):
+        return None
+    word = (r.stdout or "").strip()
+    return word if r.returncode == 0 and word in ("lora", "ssh") else None
+
+
 def ssh_ground_argv(host, directory, clock_ms):
     remote = (f"cd {directory} && {{ pkill -x gs_cli && sleep 0.5; true; }} && "
               f"exec {SSH_GS_CLI} --radio udp --auto-time on --clock {clock_ms}")
@@ -557,6 +658,7 @@ class ProcessSource:
         self.proc = None
         self.send_lock = threading.Lock()
         self.reader = None
+        self.stopping = False         # stopped on purpose: its end is no error
 
     def start(self, hub):
         self.proc = subprocess.Popen(self.argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -564,16 +666,29 @@ class ProcessSource:
         self.reader = threading.Thread(target=self._read, args=(hub,), daemon=True)
         self.reader.start()
 
-    def _read(self, hub):
+    def _pump(self, hub):
+        """The process's lines into the hub until it ends; how many."""
+        n = 0
         for raw in self.proc.stdout:
             raw = raw.strip()
             if not raw.startswith("{"):
                 continue
             try:
                 hub.feed(json.loads(raw))
+                n += 1
             except ValueError:
                 continue
-        hub.feed({"ev": "error", "what": "the ground process ended"})
+        try:                          # reaped: a reconnecting source makes many
+            self.proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            self.proc.kill()
+            self.proc.wait()
+        return n
+
+    def _read(self, hub):
+        self._pump(hub)
+        if not self.stopping:
+            hub.feed({"ev": "error", "what": "the ground process ended"})
 
     def send(self, cmd):
         if self.proc is None or self.proc.poll() is not None:
@@ -587,6 +702,7 @@ class ProcessSource:
             return False
 
     def stop(self):
+        self.stopping = True
         if self.proc is not None and self.proc.poll() is None:
             try:
                 self.proc.stdin.write("quit\n")
@@ -692,6 +808,8 @@ def make_handler(hub):
                     self._send(HTTPStatus.SERVICE_UNAVAILABLE, str(exc), "text/plain")
             elif path == "/api/deploy-ssh":
                 self._send(HTTPStatus.OK, json.dumps({"host": hub.pi_ssh}), "application/json")
+            elif path == "/api/link":
+                self._send(HTTPStatus.OK, json.dumps(hub.snapshot()["link"]), "application/json")
             elif path == "/api/state":
                 self._send(HTTPStatus.OK, json.dumps(hub.snapshot()), "application/json")
             elif path == "/events":
@@ -752,7 +870,7 @@ def make_handler(hub):
                 hub.unsubscribe(q)
 
         def do_POST(self):
-            if self.path not in ("/api/cmd", "/api/deploy-ssh"):
+            if self.path not in ("/api/cmd", "/api/deploy-ssh", "/api/link"):
                 self._send(HTTPStatus.NOT_FOUND, "not found", "text/plain")
                 return
             try:
@@ -761,6 +879,11 @@ def make_handler(hub):
             except ValueError:
                 self._send(HTTPStatus.BAD_REQUEST, json.dumps({"ok": False, "why": "bad request"}),
                            "application/json")
+                return
+            if self.path == "/api/link":
+                out = hub.switch_link(str(body.get("to")))
+                self._send(HTTPStatus.OK if out["result"] else HTTPStatus.FORBIDDEN,
+                           json.dumps(out), "application/json")
                 return
             if self.path == "/api/deploy-ssh":
                 out = hub.deploy_ssh(bool(body.get("armed")))
@@ -775,42 +898,107 @@ def make_handler(hub):
 
 
 class SshSource(ProcessSource):
-    """gs_cli on the Pi over ssh; the clock is read when it starts."""
+    """gs_cli on the Pi over ssh. A dropped ssh is started again every
+    RETRY_S until the source is stopped: on 25/11 the Pi's Wi-Fi went away
+    for about a minute, ssh gave up after 15 s without an answer
+    (ServerAliveInterval x CountMax) and the page stayed without a ground.
+    ttcd runs on regardless; each new run carries the clock read then, and
+    gs_cli's --auto-time sends SET_TIME again on contact."""
 
-    def __init__(self, host, directory, clock=time.time):
+    RETRY_S = 5.0
+
+    def __init__(self, host, directory, clock=time.time, retry_s=None):
         super().__init__(None)
         self.host, self.directory, self.clock = host, directory, clock
+        self.retry_s = self.RETRY_S if retry_s is None else retry_s
+        self.wakeup = threading.Event()
+
+    def _spawn(self):
+        self.argv = ssh_ground_argv(self.host, self.directory, int(self.clock() * 1000))
+        self.proc = subprocess.Popen(self.argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                     text=True, bufsize=1)
 
     def start(self, hub):
-        self.argv = ssh_ground_argv(self.host, self.directory, int(self.clock() * 1000))
-        super().start(hub)
+        self._spawn()
+        self.reader = threading.Thread(target=self._run, args=(hub,), daemon=True)
+        self.reader.start()
+
+    def _run(self, hub):
+        down = False
+        while True:
+            if self._pump(hub) and down:
+                down = False
+            if self.stopping:
+                return
+            if not down:
+                down = True
+                hub.feed({"ev": "error", "what": "ssh to %s dropped: trying again every %g s"
+                          % (self.host, self.retry_s)})
+            if self.wakeup.wait(self.retry_s):
+                return
+            try:
+                self._spawn()
+            except OSError:
+                continue
+
+    def stop(self):
+        self.stopping = True
+        self.wakeup.set()
+        super().stop()
 
 
-def build_source(args):
+def serial_source(args):
+    argv = [sys.executable, os.path.join(HERE, "gs_serial.py"), "--port", args.serial,
+            "--auto-time", "on"]
+    if args.power is not None:
+        argv += ["--power", str(args.power)]
+    return ProcessSource(argv)
+
+
+def build_links(args):
+    """{link: a function making its source} for --serial (lora) and --ssh."""
+    links = {}
+    if getattr(args, "serial", None):
+        links["lora"] = lambda: serial_source(args)
+    if getattr(args, "ssh", None):
+        links["ssh"] = lambda: SshSource(args.ssh, args.ssh_dir)
+    return links
+
+
+def initial_link(args, links, runner=subprocess.run):
+    """With both links, --link, else the one the satellite is on (asked over
+    ssh), else lora; with one, that one."""
+    if len(links) == 1:
+        return next(iter(links))
+    if getattr(args, "link", None):
+        return args.link
+    return query_link(args.ssh, runner) or "lora"
+
+
+def build_source(args, runner=subprocess.run):
     if args.replay:
         return ReplaySource(args.replay, args.speed, args.loop), "replay"
-    if args.serial:
-        argv = [sys.executable, os.path.join(HERE, "gs_serial.py"), "--port", args.serial,
-                "--auto-time", "on"]
-        if args.power is not None:
-            argv += ["--power", str(args.power)]
-        return ProcessSource(argv), "serial"
     if args.udp:
         return ProcessSource([GS_CLI, "--radio", "udp"]), "udp"
-    if getattr(args, "ssh", None):
-        return SshSource(args.ssh, args.ssh_dir), "ssh"
-    return ProcessSource(args.exec), "exec"
+    if args.exec:
+        return ProcessSource(args.exec), "exec"
+    links = build_links(args)
+    link = initial_link(args, links, runner)
+    return links[link](), LINK_SOURCE[link]
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    src = ap.add_mutually_exclusive_group(required=True)
-    src.add_argument("--serial", metavar="PORT", help="the ESP32 ground station, e.g. /dev/ttyUSB0")
+    src = ap.add_mutually_exclusive_group()
+    ap.add_argument("--serial", metavar="PORT", help="the ESP32 ground station, e.g. /dev/ttyUSB0")
     src.add_argument("--udp", action="store_true", help="gs_cli on the UDP radio (build/ first)")
     src.add_argument("--replay", metavar="FILE", help="a recorded ground log (.jsonl)")
-    src.add_argument("--ssh", metavar="HOST",
-                     help="the satellite over ssh, no LoRa: gs_cli on the Pi's UDP radio "
-                          "(ttcd with radio=udp: ./gama service link ssh)")
+    ap.add_argument("--ssh", metavar="HOST",
+                    help="the satellite over ssh, no LoRa: gs_cli on the Pi's UDP radio "
+                         "(ttcd with radio=udp: ./gama service link ssh); with --serial too, "
+                         "the page's link button moves between the two")
+    ap.add_argument("--link", choices=("lora", "ssh"),
+                    help="with --serial and --ssh, the one to start on (default: the satellite's)")
     src.add_argument("--exec", nargs=argparse.REMAINDER, help="any program printing the lines")
     ap.add_argument("--power", type=int, help="ground power, dBm (with --serial)")
     ap.add_argument("--ssh-dir", default="ttec", help="the repository on the Pi, from its home (with --ssh)")
@@ -852,13 +1040,19 @@ def main(argv=None):
         except Exception as exc:
             ap.exit(1, f"ADS-B startup failed: {exc}\n")
 
+    if bool(args.replay or args.udp or args.exec) == bool(args.serial or args.ssh):
+        ap.error("one source: --serial and/or --ssh, or one of --udp, --replay, --exec")
     source, name = build_source(args)
+    links = build_links(args) if name in ("serial", "ssh") else {}
+    if len(links) < 2:
+        links = {}
     if args.mission_s <= 0:
         ap.error("--mission-s must be positive")
     if args.battery_mah <= 0 or (args.battery_r_ohm or 0) < 0 or args.battery_diode_v < 0:
         ap.error("--battery-mah must be positive, --battery-r-ohm and --battery-diode-v not negative")
     model = model_from(args.battery_mah, args.battery_r_ohm, args.battery_diode_v)
-    hub = Hub(GsState(source=name, battery=model), source, pipeline, mission_s=args.mission_s, pi_ssh=args.pi_ssh)
+    hub = Hub(GsState(source=name, battery=model), source, pipeline, mission_s=args.mission_s, pi_ssh=args.pi_ssh,
+              links=links, link={"serial": "lora", "ssh": "ssh"}.get(name), link_host=args.ssh)
     server = None
     def interrupt(signum, frame):
         raise KeyboardInterrupt
@@ -872,7 +1066,7 @@ def main(argv=None):
     except KeyboardInterrupt:
         pass
     finally:
-        source.stop()
+        hub.source.stop()
         hub.close()
         if pipeline:
             pipeline.close()
