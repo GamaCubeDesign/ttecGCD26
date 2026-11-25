@@ -244,8 +244,8 @@ a.to-index:hover{text-decoration:underline}
   <div class="meta">
     <span>Criado: <b>17/11/2026</b></span>
     <span>Reorganizado: <b>22/11/2026</b></span>
-    <span>Atualizado: <b>24/11/2026</b> (prefixos <code>sim</code> e <code>replay</code>, <code>deploy</code>, <code>ground</code>; os alvos antigos saíram)</span>
-    <span>Branch: <b><code>feat/sdr-check</code></b></span>
+    <span>Atualizado: <b>25/11/2026</b> (o plano B do enlace: <code>service link ssh</code> e <code>ground --ssh</code>); <b>24/11</b> (prefixos <code>sim</code> e <code>replay</code>, <code>deploy</code>, <code>ground</code>; os alvos antigos saíram)</span>
+    <span>Branch: <b><code>main</code></b></span>
     <span>Fonte: <b><code>./gama --help</code></b>, <b><code>make help</code></b>, <a href="2026-11-20-pinagem-bancada.html">mapa de pinagem</a></span>
   </div>
 </header>
@@ -255,7 +255,7 @@ a.to-index:hover{text-decoration:underline}
 <p>Cada linha das tabelas diz <b>onde roda</b> (<span class="where pc">PC</span> <span class="where pi">Pi</span> <span class="where gs">página</span>), o que faz e quando está pronto. Siga as quatro etapas em ordem:</p>
 <ol class="trail">
   <li><a href="#gs"><span class="k">Etapa 1</span><span class="t">Preparar a ground</span><span class="d">rede, ESP32, diagnóstico</span></a></li>
-  <li><a href="#tc"><span class="k">Etapa 2</span><span class="t">Preparar os telecomandos</span><span class="d">placa, rádio A, primeiro ping</span></a></li>
+  <li><a href="#tc"><span class="k">Etapa 2</span><span class="t">Preparar os telecomandos</span><span class="d">placa, rádio A, primeiro ping; sem LoRa, o SSH</span></a></li>
   <li><a href="#missoes"><span class="k">Etapa 3</span><span class="t">As missões</span><span class="d">ADS-B, enlace, antena, modos</span></a></li>
   <li><a href="#fim"><span class="k">Etapa 4</span><span class="t">Finalizar</span><span class="d">logs, configuração de voo, rede</span></a></li>
 </ol>
@@ -276,6 +276,7 @@ a.to-index:hover{text-decoration:underline}
 
 <h2 id="tc"><span class="stage">Etapa 2</span>Preparar o envio de telecomandos</h2>
 <p>O satélite precisa estar com a configuração certa, com o rádio A respondendo e com um <code>ttcd</code> ouvindo. Sem isso, os telecomandos ficam sem resposta: foi o <code>SET_TIME NO_ACK</code> de 20/11.</p>
+<div class="callout warn"><p><b>Se o LoRa falhar, o satélite fala pelo SSH.</b> Quando o <code>./gama radio check</code> não dá <code>0x12</code> e não há como consertar a tempo (25/11: o MISO preso em 0 no satélite montado), dois comandos põem a ground na rede no lugar do rádio: <code>./gama service link ssh</code> e <code>./gama ground --ssh</code>. Veja <a href="#plano-b">o plano B do enlace</a>, logo abaixo do primeiro telecomando.</p></div>
 <h3>A configuração da placa (uma vez, ou quando a placa mudar)</h3>
 <div class="table-wrap"><table class="cmds">
 <tr><th>Comando</th><th>O que faz</th></tr>
@@ -290,6 +291,16 @@ a.to-index:hover{text-decoration:underline}
 <tr><td><code>./gama radio check</code></td><td><span class="where pi">Pi</span> Lê o registrador de versão do RA-02 pelo SPI. Se não der <code>0x12</code>, diz o que está errado: nada no MISO (rádio desconectado, sem 3,3 V, fio fora do pino 21), MISO preso em 0, ou fios do SPI trocados.<span class="ok-when">“rádio A responde (RegVersion 0x12)”</span></td></tr>
 <tr><td><code>./gama link ping</code></td><td><span class="where pc">PC</span> <span class="where pi">Pi</span> O primeiro telecomando pelo ar: 10 PINGs da ESP32 para o <code>ttcd</code> na Pi, com os pinos instalados. Verifica antes e compila na Pi. Logs em <code>docs/vv/bancada/&lt;hoje&gt;/</code>.<span class="ok-when"><code>"acked":10</code> no <code>ping_summary</code></span></td></tr>
 </table></div>
+<h3 id="plano-b">Plano B: o enlace pelo SSH, sem LoRa</h3>
+<p>O <code>ttcd</code> passa do RA-02 para o rádio UDP no loopback da própria Pi, e a ground roda ao lado dele, na Pi; a página, no PC, fala com ela pelo SSH. Os quadros, os ACKs, a HK, a missão ADS-B, a aba OBC e a implantação pelo SSH são os mesmos do rádio; o <code>SET_TIME</code> leva a hora do PC. O <code>obcd</code> e o <code>adsbd</code> não mudam. <b>Não é evidência de RF</b>: a página mostra uma faixa “ENLACE PELO SSH” o tempo todo, e as sessões ficam em <code>ssh-mission-*</code>. A Pi precisa estar na mesma rede do PC (<code>./gama net up</code>).</p>
+<div class="table-wrap"><table class="cmds">
+<tr><th>Comando</th><th>O que faz</th></tr>
+<tr><td><code>./gama service link ssh</code></td><td><span class="where pi">Pi</span> Põe o <code>ttcd</code> no rádio UDP: um drop-in do systemd (<code>/etc/systemd/system/ttcd.service.d/link-ssh.conf</code>) e um restart só do <code>ttcd</code>. O <code>/etc/gama/ttcd.conf</code> fica intacto. Pede a senha do sudo no seu terminal.<span class="ok-when"><code>./gama service status</code> mostra “enlace do ttcd: SSH” e o <code>ttcd</code> <code>active</code></span></td></tr>
+<tr><td><code>./gama ground --ssh</code></td><td><span class="where pc">PC</span> <span class="where pi">Pi</span> A página sem ESP32: confere se o <code>ttcd</code> está no enlace SSH, compila na Pi (<code>--no-build</code> pula) e abre <code>http://127.0.0.1:8080</code>. As mesmas opções do <code>./gama ground</code> (<code>--secs</code>, <code>--web-port</code>, <code>--no-adsb</code>). Se o SSH cair, rode de novo.<span class="ok-when">a barra mostra contato, “ssh · NOMINAL” e a HK</span></td></tr>
+<tr><td><code>./gama service link</code></td><td><span class="where pi">Pi</span> Só diz em que enlace o <code>ttcd</code> está, sem mudar nada.</td></tr>
+<tr><td><code>./gama service link lora</code></td><td><span class="where pi">Pi</span> De volta ao RA-02, a configuração de voo: remove o drop-in e reinicia o <code>ttcd</code>. Faça isso assim que o rádio A voltar a responder.<span class="ok-when">“ttcd de volta ao RA-02”</span></td></tr>
+</table></div>
+
 <h3>Telecomandos pela página</h3>
 <div class="table-wrap"><table class="cmds">
 <tr><th>Comando</th><th>O que faz</th></tr>
@@ -451,6 +462,7 @@ build/flight/obcd -c /etc/gama/obcd.conf -o ipc_path=/tmp/ttec-bench.sock \
 <tr><td><code>esp32 flash</code></td><td>Grava a ground na ESP32 (<code>--port</code>).</td></tr>
 <tr><td><code>esp32 port</code></td><td>Em que porta está a ESP32, ou por que não aparece.</td></tr>
 <tr><td><code>ground</code></td><td>A página da ground com a ESP32 (<code>--secs</code>, <code>--power</code>, <code>--port</code>, <code>--web-port</code>, <code>--no-adsb</code>). Recusa com a ESP32 ou a porta ocupadas. Era <code>make gs-web</code>.</td></tr>
+<tr><td><code>ground --ssh</code></td><td>Plano B do enlace: a página falando com o satélite pelo SSH, sem LoRa nem ESP32 (<code>--no-build</code>); antes, <code>service link ssh</code>. Sessões em <code>ssh-mission-*</code>. <a href="#plano-b">Plano B</a>.</td></tr>
 <tr><td><code>link &lt;passo&gt;</code></td><td>Um passo de rádio: <code>ping</code>, <code>toa</code>, <code>per</code>, <code>rates</code>, <code>lost-ack</code>, <code>lbt</code>, ou <code>all</code> (<code>--power</code>, <code>--port</code>, <code>--conf</code>, <code>--skip-radio-check</code>).</td></tr>
 <tr><td><code>mission</code></td><td>Satélite e página com o mesmo tempo, num comando, com o SDR de verdade (<code>--secs</code>, <code>--avr</code>, <code>--tx-power</code>, <code>--power</code>, <code>--web-port</code>, <code>--skip-radio-check</code>).</td></tr>
 <tr><td><code>mission stop</code></td><td>Encerra uma missão que ficou rodando na Pi e traz os logs.</td></tr>
@@ -468,6 +480,7 @@ build/flight/obcd -c /etc/gama/obcd.conf -o ipc_path=/tmp/ttec-bench.sock \
 <tr><td><code>service disable</code></td><td>Para e tira do boot (<code>[ttcd obcd adsbd]</code>; sem nome, os três).</td></tr>
 <tr><td><code>service enable</code></td><td>Liga agora e em todo boot: a configuração de voo.</td></tr>
 <tr><td><code>service install</code></td><td>Instala daemons e serviços, mantendo <code>/etc/gama</code>.</td></tr>
+<tr><td><code>service link</code></td><td>O enlace do <code>ttcd</code>: <code>ssh</code> (o rádio UDP no loopback da Pi, plano B), <code>lora</code> (o RA-02, o voo); sem nada, só diz qual é.</td></tr>
 <tr><td><code>service logs &lt;daemon&gt;</code></td><td>O log de um daemon (<code>-f</code>, <code>-n</code>, <code>--journal</code>).</td></tr>
 <tr><td><code>service restart</code> · <code>start</code> · <code>stop</code></td><td>Reinicia · liga até o próximo boot · para até o próximo boot.</td></tr>
 <tr><td><code>service status</code></td><td>Cada serviço e a última linha do log.</td></tr>
@@ -502,6 +515,8 @@ build/flight/obcd -c /etc/gama/obcd.conf -o ipc_path=/tmp/ttec-bench.sock \
 <tr><th>Sintoma</th><th>Causa e saída</th></tr>
 <tr><td>Telecomando sem resposta (<code>NO_ACK</code>)</td><td>Nenhum <code>ttcd</code> ouvindo na Pi, ou o rádio A não responde. <code>./gama service status</code>, depois <code>./gama radio check</code>.</td></tr>
 <tr><td>“rádio A não responde: nada dirige o MISO”</td><td>Com a Pi desligada: o RA-02 está conectado? 3,3 V no pino 1, GND no 6, MISO no 21 (<a href="2026-11-20-pinagem-bancada.html">mapa</a>).</td></tr>
+<tr><td>“MISO preso em 0” / o <code>ttcd</code> em <code>activating</code> com <code>radio_open_failed</code></td><td>O RA-02 sem os 3,3 V ou o MISO em curto com o GND (25/11). Meça os 3,3 V no RA-02 e, desligado, a resistência do MISO ao GND. Sem conserto a tempo: <a href="#plano-b">o plano B pelo SSH</a>.</td></tr>
+<tr><td>“o ttcd da Pi está no LoRa (o RA-02), não no rádio UDP”</td><td>O <code>./gama ground --ssh</code> antes do <code>./gama service link ssh</code>: rode o link primeiro.</td></tr>
 <tr><td>“rodando na Pi: …” / “a ttcd is already running”</td><td>Um serviço ou uma sobra segura o rádio ou o SDR: <code>./gama pi stop</code>.</td></tr>
 <tr><td>“a ESP32 (…) está aberta por outro programa: pid …”</td><td>Uma página (<code>./gama ground</code>), um <code>./gama link</code> ou um monitor serial ainda está aberto: <code>Ctrl-C</code> nele. O <code>ground</code> e o <code>mission</code> dizem qual programa é.</td></tr>
 <tr><td>“a porta 8080 já está em uso”</td><td>Outra página ficou aberta: feche-a, ou use <code>--web-port 8081</code>.</td></tr>
@@ -524,6 +539,8 @@ build/flight/obcd -c /etc/gama/obcd.conf -o ipc_path=/tmp/ttec-bench.sock \
   <div class="card"><p class="q">Liberar o rádio, o SDR e o I²C</p><p class="a"><code>./gama pi stop</code></p></div>
   <div class="card"><p class="q">O primeiro telecomando pelo ar</p><p class="a"><code>./gama link ping</code></p></div>
   <div class="card"><p class="q">A página da ground com a ESP32</p><p class="a"><code>./gama ground</code></p></div>
+  <div class="card"><p class="q">O LoRa falhou: o satélite pelo SSH</p><p class="a"><code>./gama service link ssh</code> e <code>./gama ground --ssh</code></p></div>
+  <div class="card"><p class="q">O rádio voltou: o ttcd de novo no RA-02</p><p class="a"><code>./gama service link lora</code></p></div>
   <div class="card"><p class="q">A missão ADS-B de 2 min, com replay</p><p class="a"><code>./gama replay mission --secs 120 --input &lt;captura&gt;</code></p></div>
   <div class="card"><p class="q">A missão ADS-B com aviões de verdade e a categoria</p><p class="a"><code>./gama mission --secs 120 --avr</code></p></div>
   <div class="card"><p class="q">Os seis passos de rádio</p><p class="a"><code>./gama link all</code></p></div>
