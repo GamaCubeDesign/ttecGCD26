@@ -16,8 +16,10 @@ board). Two limits shape the method, both in ADR-0024:
 - The INA219 reads the voltage after the EPS's D1 (1N5822 Schottky, from the
   BMS's P+ to the 8 V line) and its own shunt: below the open-circuit voltage
   by D1's drop plus I·R, with R the cells, the BMS, the switch and the shunt.
-  Both are corrected for and both are parameters the bench should measure
-  (V at P+ against the INA219; a load step: ΔV/ΔI).
+  Both are corrected for: the drop is a parameter the bench measures (V at
+  P+ against the INA219); R is measured here, from how the voltage follows
+  the load between consecutive HK (0.54-0.61 Ohm on 25/11), the parameter
+  only standing in until then.
 
     python3 battery.py GROUND.jsonl [--capacity-mah 3200] [--r-ohm 0.25] [--diode-v 0.30]
         one line per HK of a recorded ground log, the estimate after it
@@ -50,6 +52,9 @@ class BatteryModel:
     # Cells (~2 x 60 mOhm DC), BMS switches and wiring (~30), the INA219's
     # 100 mOhm shunt: ~0.25 Ohm from the cells to where the INA219 measures.
     r_ohm: float = 0.25
+    # r_ohm was measured on the bench (--r-ohm): trusted from the first HK,
+    # before the HK themselves show R. Otherwise the state waits for them.
+    r_known: bool = False
     # D1 on the EPS (hardware/eps-potencia, P+ -> D1 -> SW1 -> 8V Bruto): a
     # 1N5822 Schottky drops ~0.3 V at 0.5 A. Its rise with the current is
     # small next to I*R and lands in the measured R.
@@ -92,35 +97,60 @@ def _slope(points):
     return sum((p[0] - mt) * (p[1] - my) for p in points) / sxx
 
 
+def _median(xs):
+    xs = sorted(xs)
+    n = len(xs)
+    return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2.0
+
+
 class BatteryEstimator:
     """Feed it every HK; ask it for the estimate.
 
-    Discharging, the load is counted (coulomb counting) and the count is
-    pulled slowly towards the voltage's figure. Charging, the voltage's level
-    reads high by the unknown charge current times R, but its slope does not:
-    the estimate follows the slope. A charger switched on or off shows as a
-    jump of the voltage with the load steady; a jump with the load changing is
-    R mis-set, and measures R instead (ADR-0024)."""
+    The state (charging or not) comes from steps of the compensated voltage,
+    V + R·I: the light switched on lifts it by the charge current times the
+    cells' resistance, with the load unchanged, and switched off drops it back.
+    A two-sided CUSUM against the median of the last HK finds the step in one
+    or two HK, with thresholds set by the measured noise. R and the noise are
+    measured continuously from the differences between consecutive HK
+    (ΔV against ΔI), which neither a step nor the slow discharge disturbs.
+
+    The charge: discharging, the load is counted (coulomb counting) and
+    pulled slowly towards the voltage's figure; charging, the voltage's level
+    reads high by the unknown charge current times R, but its slope does not,
+    and the estimate follows the slope (ADR-0024).
+
+    Only a step changes the state. A light already on at the first HK shows
+    only when it goes off; the state waits ~3 min for R (R_MIN_PAIRS)."""
 
     WINDOW_S = 300.0        # the trend and the mean load: the last 5 min
     TREND_MIN_S = 120.0     # no trend from less than 2 min of samples
     HOLD_GAP_S = 900.0      # a gap up to this keeps counting at the last load
     STEP_GAP_S = 60.0       # two samples further apart are not compared
     K_DISCHARGE = 0.02      # per sample, how far the count is pulled to the voltage
-    # Charging by the trend: the voltage rising faster than the load predicts
-    # by more than this, %/h. 1 A into 3.2 Ah is +31 %/h.
-    CHARGE_PCT_H = 10.0
-    # A charger edge: the voltage's figure jumping this much between two HK
-    # with the load within STEADY_MA. 0.5 A of charge through 0.25 Ohm is
-    # ~0.06 V a cell, ~8 % in the plateau.
-    JUMP_PCT = 3.0
-    STEADY_MA = 50
-    STEP_MA = 100           # a load step this large measures R
-    R_SAMPLES = 15
+    # R and the noise, from the differences of the last 10 min; R is trusted
+    # once the load has moved enough (rms of ΔI) to show it.
+    R_WINDOW_S = 600.0
+    R_MIN_PAIRS = 18        # 3 min of HK: with 12, the first R of 25/11 swung 0.41-0.74
+    R_MIN_DI_MA = 15.0
+    R_MIN, R_MAX = 0.05, 1.0     # 25/11: 0.47-0.77 Ohm
+    # No single pair may carry more than this share of the ΔI²: a charger
+    # switched on in the same HK as a 400 mA load step made R 1.17 Ohm alone.
+    R_MAX_SHARE = 0.5
+    SIGMA_DEFAULT_MV = 8.0  # before it is measured: the 25/11 logs gave 5-6
+    SIGMA_MIN_MV = 3.0      # below the INA219's 4 mV step there is no noise to trust
+    # The CUSUM, in noise units: slack k, threshold h, and each HK's deviation
+    # clipped, so that one HK alone never changes the state (the 25/11 log has
+    # single HK 40 mV off with the load unchanged) and two in a row do. With
+    # the 25/11 noise (~6 mV), a step of 25 mV (100 mA of charge through
+    # ~0.25 Ohm of cells) shows at the second HK.
+    CUSUM_K = 1.0
+    CUSUM_H = 3.5
+    CUSUM_CLIP = 3.0
+    BASE_N = 6              # the baseline: median of the last HK since the last step
+    BASE_MIN = 3
 
     def __init__(self, model=None):
         self.model = model or BatteryModel()
-        self.r_steps = collections.deque(maxlen=self.R_SAMPLES)
         self.reset()
 
     def reset(self):
@@ -131,11 +161,17 @@ class BatteryEstimator:
         self.last_t = None       # the last sample, any
         self.last_uptime = None
         self.last_ma = None
-        self.prev = None         # the last valid voltage sample: (t, mv, ma, soc_v)
+        self.prev = None         # the last valid voltage sample: (t, mv, ma)
         self.last_reason = "no_data"
-        self.window = collections.deque()   # (t, ocv V a cell, ma or None)
+        self.window = collections.deque()   # (t, mv, ma or None): compensated with the R of the moment
+        self.pairs = collections.deque()    # (t, ΔmV, ΔmA) of consecutive HK
+        self.base = collections.deque(maxlen=self.BASE_N)   # (mv, ma) since the last step
+        self.gp = self.gn = 0.0  # the CUSUM's two sums, mV
         self.charging = False
-        self.edges = 0           # charger edges seen
+        self.edges = 0           # steps of the charger seen
+        self.state_t = None      # when the present state began
+        self.r_now, self.sigma_now = None, self.SIGMA_DEFAULT_MV
+        self.reanchor = False    # R just measured: the level from the voltage again
 
     def feed(self, t, battery_mv, current_ma, uptime_s=None):
         """One HK. t is the ground's time, s; uptime_s, when present, is the
@@ -153,44 +189,112 @@ class BatteryEstimator:
             self._advance(t, ma)
             return
         self.last_reason = None
-        # The OCV, assuming the battery feeds the load: wrong by the charge
-        # current times R while charging, which is why the level is then unused.
-        cell_v = (mv / 1000.0 + m.diode_v) / m.cells_series
-        ocv = cell_v + (ma / 1000.0 * m.r_ohm / m.cells_series if ma is not None else 0.0)
-        soc_v = soc_from_cell_v(ocv)
-        self._edges(t, mv, ma, soc_v)
-        self.soc_v = soc_v
-        self.prev = (t, mv, ma, soc_v)
+        self._measure(t, mv, ma)                # may ask for a new anchor: R first known
+        r = self.r_used()
+        self._step(t, mv, ma, r)
+        self.prev = (t, mv, ma)
+        self.soc_v = soc_from_cell_v(self._ocv(mv, ma, r))
         self._advance(t, ma)                    # may drop the anchor after a long gap
         if self.soc is None:
-            self.soc, self.anchor_t, self.last_t, self.last_ma = soc_v, t, t, ma
+            self.soc, self.anchor_t, self.last_t, self.last_ma = self.soc_v, t, t, ma
             self.used_mah = 0.0
+            self.state_t = t
+        elif self.reanchor:
+            self.soc = self.soc_v
         elif not self.charging:
-            self.soc += self.K_DISCHARGE * (soc_v - self.soc)
+            self.soc += self.K_DISCHARGE * (self.soc_v - self.soc)
+        self.reanchor = False
         self.soc = min(100.0, max(0.0, self.soc))
-        self.window.append((t, ocv, ma))
+        self.window.append((t, mv, ma))
         while self.window and t - self.window[0][0] > self.WINDOW_S:
             self.window.popleft()
-        self._detect_charge()
 
-    def _edges(self, t, mv, ma, soc_v):
-        """Against the previous valid sample: a load step measures R and
-        restarts the trend; a jump with the load steady is a charger edge."""
-        if self.prev is None or t - self.prev[0] > self.STEP_GAP_S:
+    def _measure(self, t, mv, ma):
+        """R and the noise from the differences between consecutive HK."""
+        p = self.prev
+        if p is not None and ma is not None and p[2] is not None and t - p[0] <= self.STEP_GAP_S:
+            self.pairs.append((t, mv - p[1], ma - p[2]))
+        while self.pairs and t - self.pairs[0][0] > self.R_WINDOW_S:
+            self.pairs.popleft()
+        if len(self.pairs) < self.R_MIN_PAIRS:
             return
-        _, pmv, pma, psoc = self.prev
-        if ma is None or pma is None:
+        r = self._fit_r(self.pairs)
+        if r is not None:
+            # The first R measured: the anchor taken with the default R is
+            # off by the difference times the load (8 % at 0.3 Ohm, 0.5 A).
+            if self.r_now is None and not self.charging:
+                self.reanchor = True
+            self.r_now = r
+        r = self.r_used()
+        e = [d[1] + r * d[2] for d in self.pairs]
+        med = _median(e)
+        # MAD of the differences: one step is one outlier; /sqrt(2) for a
+        # difference of two samples.
+        self.sigma_now = max(self.SIGMA_MIN_MV, _median([abs(x - med) for x in e]) * 1.4826 / 2 ** 0.5)
+
+    def _fit_r(self, pairs):
+        """-ΔV/ΔI by least squares, refitted without the pairs far off the
+        line: a charger's step is a ΔV with no ΔI, and alone it pulled R from
+        0.47 to 0.23 Ohm in the simulation."""
+        def fit(ps):
+            sdi = sum(d[2] * d[2] for d in ps)
+            if len(ps) < self.R_MIN_PAIRS or sdi / len(ps) < self.R_MIN_DI_MA ** 2:
+                return None
+            if max(d[2] * d[2] for d in ps) > self.R_MAX_SHARE * sdi:
+                return None
+            return -sum(d[1] * d[2] for d in ps) / sdi              # mV / mA = Ohm
+        r = fit(pairs)
+        if r is None:
+            return None
+        e = [d[1] + r * d[2] for d in pairs]
+        med = _median(e)
+        mad = max(self.SIGMA_MIN_MV, _median([abs(x - med) for x in e]) * 1.4826)
+        r = fit([d for d, x in zip(pairs, e) if abs(x - med) <= 4.0 * mad])
+        return r if r is not None and self.R_MIN < r < self.R_MAX else None
+
+    def _ocv(self, mv, ma, r):
+        """One cell's open-circuit voltage, V, assuming the battery feeds the
+        load: wrong by the charge current times R while charging, which is why
+        the level is then unused."""
+        m = self.model
+        return (mv / 1000.0 + m.diode_v + (ma / 1000.0 * r if ma is not None else 0.0)) / m.cells_series
+
+    def r_used(self):
+        return self.r_now if self.r_now is not None else self.model.r_ohm
+
+    def _step(self, t, mv, ma, r):
+        """The CUSUM on V + R·I against the baseline: a step up is the
+        charger switched on, down switched off."""
+        if ma is None:
             return
-        di = ma - pma
-        if abs(di) >= self.STEP_MA:
-            r = -(mv - pmv) / di                # mV / mA = Ohm, for the whole pack
-            if 0.0 < r < 2.0:
-                self.r_steps.append(r)
-            self.window.clear()
-        elif abs(di) <= self.STEADY_MA and abs(soc_v - psoc) >= self.JUMP_PCT:
-            self.charging = soc_v > psoc
-            self.edges += 1
-            self.window.clear()
+        if self.r_now is None and not self.model.r_known:
+            # R unknown: every load swing's I·R would read as a step (with the
+            # 0.25 Ohm default, 27-33 false charges in the 25/11 logs). The
+            # state waits; the trend cannot stand in: on the curve's plateau
+            # 1 % is 14 mV of the pack, and the 25/11 logs wander 10 mV in 4
+            # min, +38 %/h with no light at all.
+            self.base.clear()
+            self.gp = self.gn = 0.0
+            return
+        if len(self.base) < self.BASE_MIN:
+            self.base.append((mv, ma))
+            return
+        sig = self.sigma_now
+        d = mv + r * ma - _median([b[0] + r * b[1] for b in self.base])
+        d = max(-self.CUSUM_CLIP * sig, min(self.CUSUM_CLIP * sig, d))
+        k, h = self.CUSUM_K * sig, self.CUSUM_H * sig
+        self.gp = max(0.0, self.gp + d - k)
+        self.gn = max(0.0, self.gn - d - k)
+        if self.gp > h or self.gn > h:
+            up = self.gp > h
+            if up != self.charging:
+                self.charging = up
+                self.edges += 1
+                self.state_t = t
+                self.window.clear()             # the trend starts again from the step
+            self.base.clear()
+            self.gp = self.gn = 0.0
+        self.base.append((mv, ma))
 
     def _advance(self, t, ma):
         """Moves the estimate to time t: the load counted (trapezoid, the
@@ -204,6 +308,8 @@ class BatteryEstimator:
             # Too long unseen: whatever happened, the voltage says it.
             self.soc, self.anchor_t, self.last_t, self.last_ma = None, None, None, None
             self.window.clear()
+            self.base.clear()
+            self.gp = self.gn = 0.0
             return
         ends = [x for x in (self.last_ma, ma) if x is not None]
         mah = sum(ends) / len(ends) * dt / 3600.0 if ends else 0.0
@@ -233,34 +339,22 @@ class BatteryEstimator:
         estimate is: not where the level reads, which charging lifts."""
         if self._span() < self.TREND_MIN_S or self.soc is None:
             return None
-        s = _slope([(w[0], w[1]) for w in self.window])
+        r = self.r_used()
+        s = _slope([(w[0], self._ocv(w[1], w[2], r)) for w in self.window])
         return None if s is None else s * 3600.0 / ocv_slope(self.soc)
-
-    def _detect_charge(self):
-        trend, load = self._trend_pct_h(), self._mean_ma()
-        if trend is None or load is None:
-            return
-        excess = trend + load / self.model.capacity_mah * 100.0
-        # Hysteresis: in at the threshold, out at half of it.
-        self.charging = excess > (self.CHARGE_PCT_H / 2 if self.charging else self.CHARGE_PCT_H)
-
-    def r_measured(self):
-        """The median of R from the load steps seen, Ohm; None before 3."""
-        if len(self.r_steps) < 3:
-            return None
-        r = sorted(self.r_steps)
-        return r[len(r) // 2]
 
     def estimate(self):
         """What the page shows. None for what cannot be said."""
         cap = self.model.capacity_mah
-        r = self.r_measured()
         out = {"state": self.last_reason or ("charging" if self.charging else "discharging"),
                "soc_pct": None, "soc_v_pct": None, "trend_pct_h": None, "load_ma": None,
                "autonomy_s": None, "full_in_s": None, "charge_ma": None, "used_mah": None,
                "counted_s": None, "capacity_mah": cap, "r_ohm": self.model.r_ohm,
                "diode_v": self.model.diode_v,
-               "r_measured_ohm": None if r is None else round(r, 3)}
+               "r_measured_ohm": None if self.r_now is None else round(self.r_now, 3),
+               "noise_mv": round(self.sigma_now, 1),
+               "state_s": None if self.state_t is None or self.last_t is None
+               else round(self.last_t - self.state_t)}
         if self.soc is None:
             return out
         trend, load = self._trend_pct_h(), self._mean_ma()
@@ -284,16 +378,22 @@ class BatteryEstimator:
         return out
 
 
+def model_from(capacity_mah, r_ohm, diode_v):
+    """The model from the command line: r_ohm None is not measured."""
+    if r_ohm is None:
+        return BatteryModel(capacity_mah=capacity_mah, diode_v=diode_v)
+    return BatteryModel(capacity_mah=capacity_mah, r_ohm=r_ohm, diode_v=diode_v, r_known=True)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="the battery estimate over a recorded ground log")
     ap.add_argument("log", help="ground JSON lines (gs_serial.py, gs_cli, a session's ground.jsonl)")
     ap.add_argument("--capacity-mah", type=float, default=BatteryModel.capacity_mah)
-    ap.add_argument("--r-ohm", type=float, default=BatteryModel.r_ohm)
+    ap.add_argument("--r-ohm", type=float, help="R measured on the bench, Ohm (default: from the HK)")
     ap.add_argument("--diode-v", type=float, default=BatteryModel.diode_v)
     args = ap.parse_args(argv)
-    est = BatteryEstimator(BatteryModel(capacity_mah=args.capacity_mah, r_ohm=args.r_ohm,
-                                        diode_v=args.diode_v))
-    print("uptime_s  mV     mA    carga%  tensão%  tend%/h  autonomia_min  estado")
+    est = BatteryEstimator(model_from(args.capacity_mah, args.r_ohm, args.diode_v))
+    print("uptime_s  mV     mA    carga%  tensão%  tend%/h  autonomia_min  R_ohm  ruído_mV  estado")
     with open(args.log, encoding="utf-8") as f:
         for line in f:
             try:
@@ -306,10 +406,11 @@ def main(argv=None):
                      obj.get("uptime_s"))
             e = est.estimate()
             fmt = lambda v, f: "-" if v is None else f % v
-            print("%8s  %5s  %5s  %6s  %7s  %7s  %13s  %s" % (
+            print("%8s  %5s  %5s  %6s  %7s  %7s  %13s  %5s  %8s  %s" % (
                 obj.get("uptime_s", "-"), obj.get("battery_mv"), obj.get("current_ma"),
                 fmt(e["soc_pct"], "%.1f"), fmt(e["soc_v_pct"], "%.1f"), fmt(e["trend_pct_h"], "%+.1f"),
-                fmt(None if e["autonomy_s"] is None else e["autonomy_s"] / 60, "%.0f"), e["state"]))
+                fmt(None if e["autonomy_s"] is None else e["autonomy_s"] / 60, "%.0f"),
+                fmt(e["r_measured_ohm"], "%.2f"), fmt(e["noise_mv"], "%.1f"), e["state"]))
     return 0
 
 

@@ -21,22 +21,38 @@ def cell_ocv(soc):
 
 
 class Pack:
-    """A 2S pack: the INA219 sees the load and the voltage after R; a charger
-    feeds the cells (and so the load) without the INA219 seeing it."""
+    """A 2S pack: the INA219 sees the load and the voltage after D1 and R; a
+    charger feeds the cells (and so the load) without the INA219 seeing it.
 
-    def __init__(self, soc=70.0, cap=3300.0, r=0.25, seed=1, diode=0.30):
+    r is the cells' and the BMS's resistance, which both the load and the
+    charge current cross; r_extra is D1's and the shunt's, which only the load
+    crosses. The 25/11 logs: r + r_extra ~0.55 Ohm, noise ~6 mV, the load
+    wandering 150-260 mA."""
+
+    def __init__(self, soc=70.0, cap=3300.0, r=0.25, seed=1, diode=0.30, r_extra=0.0,
+                 jitter=10, noise_mv=0.0):
         self.soc, self.cap, self.r, self.diode, self.t = soc, cap, r, diode, 0
+        self.r_extra, self.jitter, self.noise_mv = r_extra, jitter, noise_mv
         self.rng = random.Random(seed)
 
-    def run(self, est, seconds, load, charge=0, every=10):
+    def run(self, est, seconds, load, charge=0, every=10, watch=None):
         for _ in range(int(seconds / every)):
-            ibat = load - charge
+            ma = load + self.rng.randint(-self.jitter, self.jitter)
+            ibat = ma - charge
             self.soc -= ibat * every / 3600.0 / self.cap * 100.0
             self.t += every
-            v = 2 * cell_ocv(self.soc) - ibat / 1000.0 * self.r - self.diode
+            v = (2 * cell_ocv(self.soc) - ibat / 1000.0 * self.r - ma / 1000.0 * self.r_extra
+                 - self.diode + self.rng.gauss(0, self.noise_mv) / 1000.0)
             mv = int(round(v * 1000 / 4)) * 4 + self.rng.choice((-4, 0, 4))   # the INA219's 4 mV
-            est.feed(self.t, mv, load + self.rng.randint(-10, 10), uptime_s=self.t)
+            est.feed(self.t, mv, ma, uptime_s=self.t)
+            if watch is not None:
+                watch.append((self.t, est.estimate()["state"]))
         return est.estimate()
+
+
+def like_25_11(**kw):
+    """The pack as the 25/11 logs show it."""
+    return Pack(**dict(dict(soc=45.0, r=0.25, r_extra=0.30, jitter=55, noise_mv=5.0), **kw))
 
 
 class TheCurve(unittest.TestCase):
@@ -61,28 +77,63 @@ class Discharging(unittest.TestCase):
         self.assertLess(e["trend_pct_h"], 0)
         self.assertIsNone(e["full_in_s"])
 
-    def test_a_load_step_measures_r(self):
-        est, pack = battery.BatteryEstimator(), Pack(r=0.32)
-        for k in range(6):
-            pack.run(est, 30, load=400 if k % 2 == 0 else 900)
-        self.assertAlmostEqual(est.estimate()["r_measured_ohm"], 0.32, delta=0.03)
+    def test_the_load_wandering_measures_r(self):
+        est, pack = battery.BatteryEstimator(), like_25_11()
+        e = pack.run(est, 600, load=200)
+        self.assertAlmostEqual(e["r_measured_ohm"], 0.55, delta=0.08)
+        self.assertLess(e["noise_mv"], 10)
 
-    def test_a_load_step_is_not_a_charge(self):
-        # R mis-set by 0.15 Ohm: the step moves the voltage's figure, and must
-        # neither start a charge nor bend the trend.
-        est, pack = battery.BatteryEstimator(), Pack(r=0.40)
-        pack.run(est, 300, load=300)
-        e = pack.run(est, 300, load=1000)
-        self.assertEqual(e["state"], "discharging")
-        self.assertLess(e["trend_pct_h"], 0)
+    def test_r_unknown_the_state_waits(self):
+        # The load barely moves: no R, and the state waits instead of reading
+        # load swings as steps. One step alone does not make R either: it
+        # could be a charger switched on in the same HK.
+        est, pack, seen = battery.BatteryEstimator(), Pack(r=0.40), []
+        e = pack.run(est, 300, load=300)
+        self.assertIsNone(e["r_measured_ohm"])
+        e = pack.run(est, 300, load=1000, watch=seen)
+        self.assertIsNone(e["r_measured_ohm"])
+        self.assertEqual({st for _, st in seen}, {"discharging"})
+
+    def test_r_from_the_bench_detects_with_a_steady_load(self):
+        # The load steady (no R from the HK): R measured on the bench is
+        # trusted from the first HK, and the charger's step shows.
+        model = battery.model_from(3200, 0.30, 0.30)
+        est, pack, seen = battery.BatteryEstimator(model), Pack(r=0.30), []
+        pack.run(est, 300, load=500)
+        on = pack.t
+        pack.run(est, 120, load=500, charge=600, watch=seen)
+        self.assertLessEqual(first(seen, "charging", on), 20)
+
+    def test_a_charger_in_the_same_hk_as_a_load_step_does_not_make_r(self):
+        est, pack = battery.BatteryEstimator(), Pack(r=0.30)
+        pack.run(est, 600, load=900)
+        e = pack.run(est, 300, load=500, charge=1200)
+        self.assertIsNone(e["r_measured_ohm"])
+
+    def test_no_false_charge_over_half_an_hour(self):
+        for seed in range(5):
+            est, pack, seen = battery.BatteryEstimator(), like_25_11(seed=seed), []
+            pack.run(est, 1800, load=200, watch=seen)
+            self.assertEqual({st for _, st in seen}, {"discharging"}, seed)
+
+    def test_a_load_step_with_r_known_is_not_a_charge(self):
+        est, pack, seen = battery.BatteryEstimator(), like_25_11(), []
+        pack.run(est, 300, load=200)
+        pack.run(est, 300, load=450, watch=seen)          # the SDR on
+        pack.run(est, 300, load=200, watch=seen)
+        self.assertEqual({st for _, st in seen}, {"discharging"})
+
+
+def first(seen, state, after):
+    return next(t for t, st in seen if st == state and t > after) - after
 
 
 class Charging(unittest.TestCase):
     def test_a_charger_switched_on_and_off(self):
-        est, pack = battery.BatteryEstimator(), Pack(soc=60.0)
+        est, pack = battery.BatteryEstimator(), like_25_11(soc=60.0)
         pack.run(est, 300, load=500)
         e = pack.run(est, 20, load=500, charge=1200)
-        self.assertEqual(e["state"], "charging")           # the edge, at once
+        self.assertEqual(e["state"], "charging")           # within two HK
         before = e["soc_pct"]
         e = pack.run(est, 600, load=500, charge=1200)
         self.assertEqual(e["state"], "charging")
@@ -91,15 +142,30 @@ class Charging(unittest.TestCase):
         self.assertLess(abs(e["soc_pct"] - pack.soc), 3.0)  # the level is not lifted by I*R
         self.assertIsNone(e["autonomy_s"])
         self.assertGreater(e["full_in_s"], 0)
+        e = pack.run(est, 20, load=500)
+        self.assertEqual(e["state"], "discharging")        # within two HK
         e = pack.run(est, 300, load=500)
-        self.assertEqual(e["state"], "discharging")
         self.assertLess(abs(e["soc_pct"] - pack.soc), 3.0)
 
-    def test_a_charge_starting_with_a_load_step_is_found_by_the_trend(self):
-        est, pack = battery.BatteryEstimator(), Pack(soc=60.0)
-        pack.run(est, 300, load=900)
-        e = pack.run(est, 300, load=500, charge=1200)
-        self.assertEqual(e["state"], "charging")
+    def test_a_weak_charge_shows_in_seconds_both_ways(self):
+        # 100 mA into the cells: 25 mV through their 0.25 Ohm, 4-5 noise units.
+        for seed in range(5):
+            est, pack, seen = battery.BatteryEstimator(), like_25_11(seed=seed), []
+            pack.run(est, 300, load=200)
+            on = pack.t
+            pack.run(est, 300, load=200, charge=300, watch=seen)
+            off = pack.t
+            pack.run(est, 300, load=200, watch=seen)
+            self.assertLessEqual(first(seen, "charging", on), 30, seed)
+            self.assertLessEqual(first(seen, "discharging", off), 30, seed)
+
+    def test_a_charge_starting_with_a_load_step(self):
+        # R known, the load's step is compensated and the charge's is not.
+        est, pack, seen = battery.BatteryEstimator(), like_25_11(soc=60.0), []
+        pack.run(est, 300, load=450)
+        on = pack.t
+        pack.run(est, 120, load=200, charge=500, watch=seen)
+        self.assertLessEqual(first(seen, "charging", on), 30)
 
 
 class TheDiode(unittest.TestCase):
@@ -137,7 +203,7 @@ class NoReading(unittest.TestCase):
     def test_a_reboot_starts_again_from_the_voltage(self):
         est, pack = battery.BatteryEstimator(), Pack()
         pack.run(est, 300, load=600)
-        est.feed(0, 7600, 600, uptime_s=5)
+        est.feed(0, 7300, 600, uptime_s=5)
         e = est.estimate()
         self.assertEqual((e["used_mah"], e["counted_s"]), (0.0, 0))
 

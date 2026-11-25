@@ -105,7 +105,7 @@ def add_ground_args(g, kind):
     # The battery estimate's calibration (ADR-0024), measured on the bench
     # (docs/relatorios/2026-11-25-roteiro-teste-eps.html); absent: the page's defaults.
     g.add_argument('--battery-mah', type=float, help='capacidade do pack, mAh (padrão 3200, NCR18650B)')
-    g.add_argument('--battery-r-ohm', type=float, help='R das células ao INA219, ohm (padrão 0,25; o "R medido" da aba OBC)')
+    g.add_argument('--battery-r-ohm', type=float, help='R das células ao INA219 medido na bancada, ohm (padrão: medido pelo HK, o "R medido" da aba OBC)')
     g.add_argument('--battery-diode-v', type=float, help='queda no D1 da EPS, V (padrão 0,30; P+ menos a leitura do INA219)')
     if kind == 'real':
         g.add_argument('--port', help='porta da ESP32 (padrão: a única ttyUSB/ttyACM)')

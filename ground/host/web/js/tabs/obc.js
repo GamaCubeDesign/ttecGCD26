@@ -105,7 +105,8 @@ export const tab = {
       (charging ? figText(t('full_in'), dur(b.full_in_s)) : figText(t('autonomy'), dur(b.autonomy_s))) +
       fig(t('trend'), b.trend_pct_h, 1, '%/h') +
       (charging ? fig(t('charge_in'), b.charge_ma, 0, 'mA') : fig(t('used'), b.used_mah, 0, 'mAh')) +
-      figText(t('b_state'), t('st_' + b.state))) : '');
+      `<div class="fig txt"><span class="lbl">${esc(t('b_state'))}</span><b>${esc(t('st_' + b.state))}` +
+      (b.state_s != null ? `<br><small>${esc(t('for'))} ${esc(fmtAge(b.state_s))}</small>` : '') + '</b></div>') : '');
     const yn = (b) => (b == null ? '—' : b ? '✓ ' + t('yes') : '✗ ' + t('no'));
     setHTML(document.getElementById('obc-kv'), hk ? [
       [t('obc_mode'), st.mode ? `${st.mode} · ${t('for')} ${fmtAge(since(st.mode_age))}` : '—'],
@@ -117,7 +118,8 @@ export const tab = {
       [t('dump1090_up'), yn(hk.dump1090_up)],
       [t('soc_v'), b && b.soc_v_pct != null ? fmtNum(b.soc_v_pct, 0) + ' %' : '—'],
       [t('d1_drop'), b && b.diode_v != null ? fmtNum(b.diode_v, 2) + ' V' : '—'],
-      [t('r_model'), b ? `${fmtNum(b.r_ohm, 2)} / ${b.r_measured_ohm != null ? fmtNum(b.r_measured_ohm, 2) : '—'} Ω` : '—'],
+      [t('r_model'), b ? `${b.r_measured_ohm != null ? fmtNum(b.r_measured_ohm, 2) : '—'} / ${fmtNum(b.r_ohm, 2)} Ω` : '—'],
+      [t('noise_mv'), b && b.noise_mv != null ? fmtNum(b.noise_mv, 1) + ' mV' : '—'],
     ].map(([k, x]) => `<span>${esc(k)}</span><span>${esc(x)}</span>`).join('')
       : `<span class="muted">${esc(t('no_hk'))}</span><span></span>`);
     // The charts change only with a new HK.

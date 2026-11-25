@@ -55,21 +55,35 @@ page's OBC tab. Nothing changes on board or on the wire.
   slope of the open-circuit voltage over the last 5 min, converted to %/h
   through the curve's slope at the estimate. The charge current is estimated
   as `slope × capacity + load`.
-- **Charging is detected** by a jump of the voltage's figure of 3 % or more
-  between two HK with the load steady (±50 mA), the charger switched on or
-  off; and by the trend over 5 min exceeding what the load predicts by
-  10 %/h, in at 10 and out at 5, for a charge that starts with a load change.
-- **A load step of 100 mA or more** restarts the trend window, so that an
-  R mis-set cannot read as a charge, and measures R as `−ΔV/ΔI`. The median of
-  the last 15 is shown next to the R in use. R is not adapted automatically.
+- **R is measured from the HK themselves:** `−ΔV/ΔI` by least squares over
+  the differences between consecutive HK of the last 10 min, refitted without
+  the pairs far off the line. It needs 18 pairs, a load moving at least
+  15 mA rms between HK, and no single pair holding more than half of the ΔI²,
+  so that a charger switched on in the same HK as a load step cannot make R
+  alone; it must lie within 0.05–1.0 Ω. The noise σ is the MAD of the same
+  differences, compensated, divided by √2. A value passed with
+  `--battery-r-ohm` (measured on the bench) is trusted from the first HK;
+  without it, the state waits for R. The first R measured re-anchors the
+  charge on the voltage.
+- **The state changes only on a step** of the compensated voltage `V + R·I`:
+  the light on lifts it by the charge current times the cells' resistance
+  with the load unchanged, and off drops it back. A two-sided CUSUM against
+  the median of the last 6 HK since the previous step, with slack 1σ,
+  threshold 3.5σ and each HK clipped at 3σ, so that one HK alone never
+  changes the state and two in a row do. Only a change of state restarts the
+  trend window.
+- **The trend does not decide the state.** On the curve's plateau 1 % is
+  14 mV of the pack, and the 25/11 logs wander 10 mV in 4 min: with no light
+  at all, a 5-min trend read +38 %/h. A light already on at the first HK
+  shows only when it goes off.
 - **Autonomy** is `charge × capacity / mean load` over the last 5 min;
   charging, the time to full is `(100 − charge) / trend`.
 - **Gaps** (no data, the AOCS lease of ADR-0017) keep counting at the last
   load for up to 900 s; a longer gap or a reboot (`uptime_s` going back)
   re-anchors on the voltage.
-- Defaults: 3200 mAh (the minimum, so the autonomy errs short), 0.25 Ω and
-  0.30 V for D1. `gs_web.py --battery-mah`, `--battery-r-ohm`,
-  `--battery-diode-v` override them.
+- Defaults: 3200 mAh (the minimum, so the autonomy errs short), 0.25 Ω until
+  R is measured, and 0.30 V for D1. `gs_web.py --battery-mah`,
+  `--battery-r-ohm`, `--battery-diode-v` override them.
 
 ## Rationale
 
@@ -89,7 +103,23 @@ page's OBC tab. Nothing changes on board or on the wire.
 | R mis-set (true 0.40) | worst error 7.1 %: why R is measured and shown |
 | charger 1200 mA, load 500 mA | estimated charge current 1150–1250 mA; level within 3 % |
 | charger 600 mA, load 500 mA | 567 mA |
-| load steps of 500 mA, R 0.32 Ω | R measured 0.32 ± 0.03 |
+| the load wandering ±55 mA, R 0.55 Ω, noise 5 mV | R measured 0.55 ± 0.08 in 10 min |
+| charger of 300 mA (25 mV step), 5 seeds | charging and back within 30 s each way |
+| 30 min with no light, 5 seeds | no false charging |
+
+4. **Against the two real logs of 25/11** (`ground/host/sessions/ssh-mission-*`,
+   158 HK, no light, the new INA219): R 0.53 and 0.61 Ω, noise 5.6 and
+   5.0 mV, 0 HK read as charging (the first version of this estimator, with
+   a 3 % jump and the trend deciding: 1 false charge that lasted to the end of
+   the log). A charge step added to the real voltage between two times:
+
+| Step (≈ charge current at 0.25 Ω) | On detected after | Off detected after |
+|---|---|---|
+| 10 mV (40 mA) | never | — |
+| 15 mV (60 mA) | 20 s, in one of two cases | never: stays charging |
+| 20 mV (80 mA) | 20 s | 10–80 s |
+| 25 mV (100 mA) | 10 s | 10–30 s |
+| 40 mV (160 mA) | 10 s | 10–20 s |
 
 ## Alternatives considered
 
@@ -117,16 +147,22 @@ charging, which the INA219 cannot see. Kept for discharge only.
 - The page shows charge, autonomy, trend, estimated charge current and state
   in the OBC tab, in every replay of a recorded log too (`python3 battery.py
   LOG.jsonl` prints it per HK).
-- R is measured from the mode changes' load steps, so the bench calibrates the
-  estimate without extra hardware.
+- R and the noise are measured from the load's own wander between HK, so
+  the estimate calibrates itself in ~3 min, and the state follows the light
+  within one or two HK.
 
 ### Negative
 
 - The curve is the chemistry's typical shape, not measured on our cells:
   ~10 % in the plateau until calibrated.
-- During charging the figure rests on the slope alone: the first 2 min after a
-  charge starting with a load change pull the level towards the voltage's
-  high reading (~4 % in the simulation).
+- During charging the figure rests on the slope alone, which needs 2 min of
+  HK after the step.
+- A charge below ~20 mV of step (~80 mA into the cells) is not reliably
+  detected, and one of ~15 mV can be seen on and never off. A steadier load
+  than 25/11's (below 15 mA rms between HK) leaves R unmeasured and the
+  state waiting, unless R comes from the bench.
+- For the first ~3 min after the page starts, or a reboot, there is no state
+  change at all (R not yet measured).
 - The charge current is inferred, not measured; REG-09 evaluates current and
   voltage, and the jury may want a meter on the charge line.
 - In the CV phase of a charge the voltage stops rising while the charge still
@@ -135,9 +171,9 @@ charging, which the INA219 cannot see. Kept for discharge only.
 ### Follow-up required
 
 - Bench, with the satellite assembled (`docs/relatorios/2026-11-25-roteiro-teste-eps.html`):
-  V at P+ against the INA219 at a light load for `--battery-diode-v`; a known
-  load step (`mode` changes) to read R from the page, then `--battery-r-ohm`
-  with it; a discharge from full
+  V at P+ against the INA219 at a light load for `--battery-diode-v`; the R
+  the page measures, then `--battery-r-ohm` with it; the step a real light
+  gives, against the table above; a discharge from full
   against the counted mAh to check the capacity and the curve.
 - If the EPS adds a current sensor on the charge line, replace the inferred
   charge current with it.
