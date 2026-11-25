@@ -7,6 +7,11 @@ on this machine, in place of make gs-web (24/11).
     gama ground --ssh [--secs 600] [--web-port 8080]
         the satellite over ssh, no LoRa and no ESP32: the ground console on the
         Pi, next to ttcd on the UDP radio (./gama service link ssh first)
+
+With both the ESP32 and PI_HOST, the page gets both ways to the satellite:
+the Link tab's button moves ttcd between LoRa and ssh (flight/ttcd/gama-link)
+and the page follows; a plain gama ground starts on whichever the satellite
+is on.
     gama sim ground [--secs 600] [--web-port 8080]
         gs_cli on the UDP radio, against a satellite on this PC
         (make bench-ttcd RADIO=udp in another terminal)
@@ -98,10 +103,13 @@ def gs_web_argv(kind, args, serial=None, pi_host=None, prefix=None):
         return argv
     if getattr(args, 'ssh', False):
         argv[argv.index('--session-prefix') + 1] = prefix or SESSION_PREFIX['ssh']
-        return argv + ['--ssh', pi_host, '--ssh-dir', c.pi_dir(), '--pi-ssh', pi_host]
+        argv += ['--ssh', pi_host, '--ssh-dir', c.pi_dir(), '--pi-ssh', pi_host, '--link', 'ssh']
+        if serial:                # the ESP32 too: the button can go back to LoRa
+            argv += ['--serial', serial, '--power', str(args.power)]
+        return argv
     argv += ['--serial', serial, '--power', str(args.power)]
     if pi_host:
-        argv += ['--pi-ssh', pi_host]
+        argv += ['--pi-ssh', pi_host, '--ssh', pi_host, '--ssh-dir', c.pi_dir()]
     return argv
 
 
@@ -166,15 +174,28 @@ def preflight_ssh(args, pi, free=None):
     return True
 
 
-def cmd_ground_ssh(args, call=subprocess.call, pi=None):
+def spare_esp32(args, esp32=None, held=None):
+    """The ESP32's port when it is here and free, for the way back to LoRa;
+    None otherwise, without failing: ssh needs no ESP32."""
+    esp32, held = esp32 or c.esp32_port, held or holders
+    port, _ = esp32(args.port)
+    return port if port and not held(port) else None
+
+
+def cmd_ground_ssh(args, call=subprocess.call, pi=None, esp32=None, held=None):
     pi = pi or c.Pi()
     c.warn(SSH_WARNING)
     try:
         if not preflight_ssh(args, pi):
             return 1
+        serial = spare_esp32(args, esp32, held)
+        if serial:
+            c.ok(f'ESP32 em {serial}: a aba Enlace volta ao LoRa pelo botão')
+        else:
+            c.say('sem a ESP32 livre: a página fica só no SSH')
         c.ok(f'página: http://127.0.0.1:{args.web_port}  (MISSION_ADSB de {args.secs} s; Ctrl-C fecha)')
         try:
-            status = call(gs_web_argv('real', args, pi_host=pi.host), cwd=c.ROOT)
+            status = call(gs_web_argv('real', args, serial, pi.host), cwd=c.ROOT)
         except KeyboardInterrupt:
             status = 0
         c.say(f'a sessão da ground fica em ground/host/sessions/{SESSION_PREFIX["ssh"]}*')
@@ -201,7 +222,7 @@ def cmd_ground(args, call=subprocess.call):
                 return 1
         host = c.pi_host() if kind == 'real' else None
         if kind == 'real' and not host:
-            c.warn('PI_HOST não definido: a implantação pelo ssh (plano B da REG-07) fica desligada na página')
+            c.warn('PI_HOST não definido: a implantação e o enlace pelo ssh ficam desligados na página')
         c.ok(f'página: http://127.0.0.1:{args.web_port}  (MISSION_ADSB de {args.secs} s; Ctrl-C fecha)')
         try:
             status = call(gs_web_argv(kind, args, port, host), cwd=c.ROOT)

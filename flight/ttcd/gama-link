@@ -1,0 +1,76 @@
+#!/bin/sh
+# gama-link — ttcd's link: the RA-02 (lora, the flight configuration) or the
+# UDP radio on the Pi's loopback (ssh, the fallback when the LoRa fails), the
+# ground then reaching it over ssh (gs_web.py --ssh, ./gama ground --ssh).
+#
+#   gama-link status     LINK lora|ssh, then TTCD <systemctl is-active>
+#   gama-link ssh        the drop-in in, ttcd restarted on the UDP radio
+#   gama-link lora       the drop-in out, ttcd restarted on the RA-02
+#
+# ssh and lora wait up to 6 s for ttcd and end with
+#
+#   RESULT <link> <systemctl is-active ttcd>
+#
+# Exit 0 ttcd active on the link asked for, 1 the link changed but ttcd is
+# not active (on lora, an RA-02 that does not answer leaves it restarting),
+# 2 bad usage, 3 the drop-in could not be written or removed.
+#
+# The drop-in (/etc/systemd/system/ttcd.service.d/link-ssh.conf) leaves
+# /etc/gama/ttcd.conf untouched and only ttcd restarts; obcd and adsbd see
+# no change. Installed in /usr/local/sbin by make install, with a sudoers
+# rule (/etc/sudoers.d/gama-link) that lets the installing user run exactly
+# this, without a password: ./gama service link and the ground's page call
+# it as `ssh <pi> sudo -n /usr/local/sbin/gama-link ssh|lora`.
+# GAMA_LINK_DIR and GAMA_LINK_SYSTEMCTL replace the unit directory and
+# systemctl for the tests; sudo drops them.
+
+set -u
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+dir=${GAMA_LINK_DIR:-/etc/systemd/system/ttcd.service.d}
+systemctl=${GAMA_LINK_SYSTEMCTL:-systemctl}
+dropin=$dir/link-ssh.conf
+
+current() {
+    if [ -f "$dropin" ]; then echo ssh; else echo lora; fi
+}
+
+state() {
+    $systemctl is-active ttcd 2>/dev/null || true
+}
+
+case ${1:-} in
+status)
+    echo "LINK $(current)"
+    echo "TTCD $(state)"
+    exit 0
+    ;;
+ssh)
+    mkdir -p "$dir" && cat > "$dropin" <<'EOF' || { echo "RESULT error write"; exit 3; }
+# gama-link ssh: ttcd on the UDP radio, the ground over ssh; gama-link lora
+# removes this file. The ports are gs_cli's defaults (tools/gs_cli/gs_cli.c).
+[Service]
+ExecStart=
+ExecStart=/usr/local/bin/ttcd -c /etc/gama/ttcd.conf -o radio=udp -o udp_bind=127.0.0.1 -o udp_port=47001 -o udp_peer=127.0.0.1 -o udp_peer_port=47002
+EOF
+    ;;
+lora)
+    rm -f "$dropin" || { echo "RESULT error remove"; exit 3; }
+    ;;
+*)
+    echo "usage: gama-link status|ssh|lora" >&2
+    exit 2
+    ;;
+esac
+
+$systemctl daemon-reload
+$systemctl restart ttcd
+s=$(state)
+i=0
+while [ "$s" != active ] && [ $i -lt 12 ]; do
+    sleep 0.5
+    s=$(state)
+    i=$((i + 1))
+done
+echo "RESULT $1 $s"
+[ "$s" = active ]

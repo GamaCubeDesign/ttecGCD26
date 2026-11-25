@@ -15,13 +15,13 @@ In place of make service-*, adsbd-* and obcd-*, which ran sudo over ssh
 without a terminal and failed (20/11).
 
 link ssh is the fallback for a LoRa link that fails (25/11: radio A's MISO
-held at 0 on the assembled satellite): a systemd drop-in starts ttcd on the
-UDP radio, on the Pi's loopback, and ./gama ground --ssh runs the ground
-console next to it, over ssh. /etc/gama/ttcd.conf is not touched; link lora
-removes the drop-in. Both restart ttcd only; obcd and adsbd see no change.
+held at 0 on the assembled satellite): flight/ttcd/gama-link puts a systemd
+drop-in that starts ttcd on the UDP radio, on the Pi's loopback, and
+./gama ground --ssh runs the ground console next to it, over ssh.
+/etc/gama/ttcd.conf is not touched; link lora removes the drop-in. Both
+restart ttcd only; obcd and adsbd see no change. The page's link button runs
+the same script.
 """
-
-import shlex
 
 import common as c
 
@@ -36,28 +36,15 @@ ACTIONS = {
 
 
 LINK_DROPIN = '/etc/systemd/system/ttcd.service.d/link-ssh.conf'
-# The installed unit's line plus the UDP radio, every key pinned so nothing
-# in /etc/gama/ttcd.conf can point it elsewhere; the ports are gs_cli's
-# defaults (tools/gs_cli/gs_cli.c).
-LINK_SSH_UNIT = ('# ./gama service link ssh: ttcd on the UDP radio, the ground over ssh\n'
-                 '# (./gama ground --ssh); ./gama service link lora removes this file.\n'
-                 '[Service]\n'
-                 'ExecStart=\n'
-                 'ExecStart=/usr/local/bin/ttcd -c /etc/gama/ttcd.conf -o radio=udp '
-                 '-o udp_bind=127.0.0.1 -o udp_port=47001 -o udp_peer=127.0.0.1 -o udp_peer_port=47002\n')
+# The drop-in itself is written by flight/ttcd/gama-link, installed by make
+# install with a sudoers rule: the same script the page's link button runs.
+LINK_HELPER = '/usr/local/sbin/gama-link'
 LINK_NAME = {'lora': 'LoRa (o RA-02)', 'ssh': 'SSH (o rádio UDP no loopback da Pi)'}
 
 
 def link_command(link):
     """The sudo line that puts ttcd on a link and restarts it."""
-    if link == 'ssh':
-        put = (f'sudo mkdir -p {shlex.quote(LINK_DROPIN.rsplit("/", 1)[0])} && '
-               # printf's format, its newlines as \\n: one line to type by hand.
-               f"printf {shlex.quote(LINK_SSH_UNIT.replace(chr(10), chr(92) + 'n'))} "
-               f'| sudo tee {LINK_DROPIN} >/dev/null')
-    else:
-        put = f'sudo rm -f {LINK_DROPIN}'
-    return f'{put} && sudo systemctl daemon-reload && sudo systemctl restart ttcd'
+    return f'sudo {LINK_HELPER} {link}'
 
 
 def link_probe_command():
@@ -190,6 +177,9 @@ def cmd_link(args, pi=None):
     if now == args.link:
         c.ok(f'o ttcd já está no enlace {LINK_NAME[args.link]}')
         return 0
+    if pi.run(f'test -x {LINK_HELPER}', timeout=30).returncode != 0:
+        c.fail(f'{LINK_HELPER} não está instalado na Pi', 'antes: ./gama service install')
+        return 1
     if not pi.sudo(link_command(args.link), f'passando o ttcd para {LINK_NAME[args.link]}'):
         return 1
     if args.link == 'ssh':

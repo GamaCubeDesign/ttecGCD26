@@ -88,6 +88,11 @@ add_test(NAME test_gama_deploy
          COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/test_gama_deploy.sh $<TARGET_FILE:obcd>
                  ${CMAKE_SOURCE_DIR}/flight/obcd/gama-deploy)
 set_tests_properties(test_gama_deploy PROPERTIES TIMEOUT 30)
+# ttcd's link, LoRa or ssh (flight/ttcd/gama-link, the fallback when the
+# LoRa fails): the script with a fake systemctl and unit directory.
+add_test(NAME test_gama_link
+         COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/test_gama_link.sh ${CMAKE_SOURCE_DIR}/flight/ttcd/gama-link)
+set_tests_properties(test_gama_link PROPERTIES TIMEOUT 30)
 
 # The chain end to end: SBS -> adsbd -> ttcd -> UDP radio -> ground. Also
 # shows the radio surviving the payload, and ttcd re-anchoring a restarted

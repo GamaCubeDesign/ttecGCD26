@@ -555,20 +555,15 @@ class Service(unittest.TestCase):
         pi = FakePi(files={'<stdout>': '@link lora\n'})
         code, out = quiet(service.cmd_link, SimpleNamespace(link='ssh'), pi)
         self.assertEqual(code, 0)
-        self.assertEqual(len(pi.sudos), 1)
-        line = pi.sudos[0]
-        self.assertIn('| sudo tee /etc/systemd/system/ttcd.service.d/link-ssh.conf', line)
-        self.assertIn('-o radio=udp -o udp_bind=127.0.0.1 -o udp_port=47001', line)
-        self.assertTrue(line.endswith('sudo systemctl daemon-reload && sudo systemctl restart ttcd'))
-        self.assertNotIn('\n', line)                  # one line, to type by hand without a terminal
+        self.assertEqual(pi.sudos, ['sudo /usr/local/sbin/gama-link ssh'])   # the page's script
+        self.assertIn('test -x /usr/local/sbin/gama-link', pi.ran)
         self.assertIn('./gama ground --ssh', out)
 
     def test_link_lora_removes_the_dropin(self):
         pi = FakePi(files={'<stdout>': '@link ssh\n'})
         code, _ = quiet(service.cmd_link, SimpleNamespace(link='lora'), pi)
         self.assertEqual(code, 0)
-        self.assertEqual(pi.sudos, ['sudo rm -f /etc/systemd/system/ttcd.service.d/link-ssh.conf && '
-                                    'sudo systemctl daemon-reload && sudo systemctl restart ttcd'])
+        self.assertEqual(pi.sudos, ['sudo /usr/local/sbin/gama-link lora'])
 
     def test_link_already_there_or_asked_changes_nothing(self):
         pi = FakePi(files={'<stdout>': '@link ssh\n'})
@@ -738,7 +733,8 @@ class Ground(unittest.TestCase):
         real = ground.gs_web_argv('real', self.args(), '/dev/ttyUSB0', 'pi@gamapi.local')
         self.assertEqual(real[2:], ['--port', '8080', '--mission-s', '600', '--session-prefix', 'mission-',
                                     '--adsb', '--serial', '/dev/ttyUSB0', '--power', '2',
-                                    '--pi-ssh', 'pi@gamapi.local'])
+                                    '--pi-ssh', 'pi@gamapi.local', '--ssh', 'pi@gamapi.local',
+                                    '--ssh-dir', common.pi_dir()])          # the link button
         udp = ground.gs_web_argv('sim', self.args(kind='sim', no_adsb=True))
         self.assertEqual(udp[2:], ['--port', '8080', '--mission-s', '600', '--session-prefix', 'sim-mission-', '--udp'])
         rec = ground.gs_web_argv('sim', self.args(kind='sim', session='g.jsonl', speed=10.0, loop=True))
@@ -794,7 +790,15 @@ class Ground(unittest.TestCase):
         line = ground.gs_web_argv('real', self.args(ssh=True), pi_host='pi@test')
         self.assertEqual(line[2:], ['--port', '8080', '--mission-s', '600', '--session-prefix', 'ssh-mission-',
                                     '--adsb', '--ssh', 'pi@test', '--ssh-dir', common.pi_dir(),
-                                    '--pi-ssh', 'pi@test'])
+                                    '--pi-ssh', 'pi@test', '--link', 'ssh'])
+        both = ground.gs_web_argv('real', self.args(ssh=True), '/dev/ttyUSB0', 'pi@test')
+        self.assertEqual(both[-4:], ['--serial', '/dev/ttyUSB0', '--power', '2'])   # back to LoRa
+
+    def test_ssh_takes_the_esp32_only_when_free(self):
+        here = lambda p: ('/dev/ttyUSB0', None)
+        self.assertEqual(ground.spare_esp32(self.args(), here, lambda p: []), '/dev/ttyUSB0')
+        self.assertIsNone(ground.spare_esp32(self.args(), here, lambda p: [(7, 'screen')]))
+        self.assertIsNone(ground.spare_esp32(self.args(), lambda p: (None, 'absent'), lambda p: []))
 
     def test_ssh_refused_while_ttcd_is_on_the_radio(self):
         pi = FakePi(files={'<stdout>': '@link lora\n'})
@@ -807,7 +811,8 @@ class Ground(unittest.TestCase):
         pi, calls = FakePi(files={'<stdout>': '@link ssh\n'}), []
         with unittest.mock.patch.object(ground, 'port_free', lambda p, host='127.0.0.1': True):
             code, out = quiet(ground.cmd_ground_ssh, self.args(ssh=True, no_build=False),
-                              lambda argv, **kw: calls.append(argv) or 0, pi)
+                              lambda argv, **kw: calls.append(argv) or 0, pi,
+                              esp32=lambda p: (None, 'absent'))
         self.assertEqual(code, 0)
         self.assertEqual(pi.ran[1:], ['<sync>', 'make build'])
         self.assertIn('--ssh', calls[0])

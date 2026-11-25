@@ -353,6 +353,16 @@ install: build ## Install the daemons, their units and, if absent, /etc/gama fil
 	    $(SUDO) install -m 0440 $(BUILD_DIR)/gama-deploy.sudoers /etc/sudoers.d/gama-deploy && \
 	    echo "installed /etc/sudoers.d/gama-deploy for $$u"; \
 	fi
+	# ttcd's link, LoRa or ssh (the fallback when the LoRa fails): the same,
+	# so ./gama service link and the page's link button need no terminal.
+	$(SUDO) install -m 0755 flight/ttcd/gama-link /usr/local/sbin/gama-link
+	u=$${SUDO_USER:-$$(id -un)}; \
+	if [ "$$u" != root ]; then \
+	    printf '%s ALL=(root) NOPASSWD: /usr/local/sbin/gama-link\n' "$$u" > $(BUILD_DIR)/gama-link.sudoers && \
+	    $(SUDO) visudo -cqf $(BUILD_DIR)/gama-link.sudoers && \
+	    $(SUDO) install -m 0440 $(BUILD_DIR)/gama-link.sudoers /etc/sudoers.d/gama-link && \
+	    echo "installed /etc/sudoers.d/gama-link for $$u"; \
+	fi
 	$(SUDO) systemctl daemon-reload
 	for d in ttcd adsbd obcd; do \
 	    if systemctl is-active --quiet $$d; then $(SUDO) systemctl restart $$d; echo "$$d restarted"; fi; \
