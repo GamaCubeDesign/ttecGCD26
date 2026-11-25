@@ -166,6 +166,12 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME boards_match_conf
              COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/analysis/board_check.py
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+    # The AOCS panel's page: the header the firmware embeds is the one
+    # generated from flight/aocs/painel/status.html.
+    add_test(NAME aocs_pagina_h
+             COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/aocs/gera_pagina_h.py --check
+                     ${CMAKE_SOURCE_DIR}/flight/aocs/painel/status.html
+                     ${CMAKE_SOURCE_DIR}/flight/aocs/arduino/AOCS_Cubetscheck/pagina_html.h)
     # The ground's ADS-B estimator, with its own tests.
     add_test(NAME ground_aeronaves
              COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/estimator
