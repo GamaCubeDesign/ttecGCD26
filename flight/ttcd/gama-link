@@ -64,6 +64,12 @@ lora)
 esac
 
 $systemctl daemon-reload
+# A ttcd whose RA-02 does not answer restarts every RestartSec (2 s), close to
+# systemd's start limit (5 starts in 10 s): on 25/11 the restart below was one
+# start too many, systemd refused it ("start of the service was attempted too
+# often") and left ttcd failed, on neither link. reset-failed empties the
+# counter first.
+$systemctl reset-failed ttcd 2>/dev/null || true
 $systemctl restart ttcd
 s=$(state)
 i=0
