@@ -98,6 +98,13 @@ make esp32-tests-qemu                     # as suítes portáveis numa ESP32 emu
 make esp32-flash ESP32_PORT=/dev/ttyUSB0  # grava na placa
 ```
 
+## Operar: o `gama`
+
+O `make` compila, testa e analisa; a bancada e a missão se operam pelo
+`./gama` (`./gama --help`). Uma vez por PC, `make gama-link` põe o `gama` no
+`PATH` (um link simbólico em `~/.local/bin`), e ele passa a valer de qualquer
+pasta, sem o `./`; `make gama-unlink` o tira.
+
 ## Sem hardware, e na bancada
 
 ```bash

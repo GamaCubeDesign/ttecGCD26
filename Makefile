@@ -286,6 +286,22 @@ esp32-tests-flash: ## The same suites on the DevKit: ESP32_PORT=/dev/ttyUSB0
 	$(IDF_SH) ground/esp32-tests --port $(ESP32_PORT) -p $(ESP32_PORT) flash
 	$(PYTHON) ground/host/gs_serial.py --port $(ESP32_PORT) --suites
 
+##@ Once on the PC — `gama` on the PATH
+
+# A symlink, not a copy: ./gama follows it (readlink -f) to tools/gama, and the
+# CLI finds the repository from its own file, so `gama` works from any folder
+# and always runs this checkout's code. ~/.local/bin is on most distros' PATH.
+USER_BIN ?= $(HOME)/.local/bin
+.PHONY: gama-link gama-unlink
+gama-link: ## `gama` from any folder: a symlink in USER_BIN (~/.local/bin) to ./gama
+	mkdir -p '$(USER_BIN)'
+	ln -sfn '$(CURDIR)/gama' '$(USER_BIN)/gama'
+	@case ":$$PATH:" in *":$(USER_BIN):"*) ;; \
+	    *) echo "gama-link: $(USER_BIN) is not on PATH; add to ~/.bashrc: export PATH=\"$(USER_BIN):\$$PATH\"" >&2 ;; esac
+gama-unlink: ## Remove that symlink (./gama keeps working)
+	@if [ -L '$(USER_BIN)/gama' ]; then rm '$(USER_BIN)/gama' && echo "removed $(USER_BIN)/gama"; \
+	 else echo "gama-unlink: no symlink at $(USER_BIN)/gama"; fi
+
 ##@ On the Pi — ttcd, adsbd and obcd as systemd services
 
 # Starting, stopping and following them: ./gama service (tools/gama/service.py).
