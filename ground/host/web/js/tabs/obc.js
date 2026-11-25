@@ -1,0 +1,118 @@
+// OBC: the battery's health and the OBC's state, from the housekeeping
+// (every 10 s): the figures now, and the last 30 min that gs_web.py keeps
+// (GsState.hk_hist: [t, battery_mv, current_ma, temp_bat, temp_ext, temp_soc]).
+
+import { esc, fmtAge, fmtNum, setHTML } from '../util.js';
+import { t } from '../i18n.js';
+import { since } from '../state.js';
+
+function fig(label, v, digits, unit) {
+  const nd = v == null || !isFinite(v);
+  return `<div class="fig"><span class="lbl">${esc(label)}</span>` +
+    `<b>${nd ? '—' : esc(fmtNum(v, digits)) + `<small>${esc(unit)}</small>`}</b></div>`;
+}
+
+// Each series on its own scale, its range written at its left; time along x.
+// series: [{ idx, div, unit, digits, color }]
+function chart(canvas, hist, series) {
+  const g = canvas.getContext('2d');
+  const ratio = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth * ratio, h = canvas.clientHeight * ratio;
+  if (!w || !h) return;
+  if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+  const css = getComputedStyle(document.documentElement);
+  g.clearRect(0, 0, w, h);
+  g.strokeStyle = css.getPropertyValue('--line');
+  g.lineWidth = 1;
+  for (let i = 1; i < 4; i++) { g.beginPath(); g.moveTo(0, h * i / 4); g.lineTo(w, h * i / 4); g.stroke(); }
+  if (!hist || hist.length < 2) return;
+  const t0 = hist[0][0], t1 = hist[hist.length - 1][0];
+  const span = Math.max(t1 - t0, 1);
+  const pad = 14 * ratio;
+  g.font = `${11 * ratio}px ${css.getPropertyValue('--sans')}`;
+  series.forEach((s, k) => {
+    const vals = hist.map((r) => r[s.idx]).filter((v) => v != null);
+    if (!vals.length) return;
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    if (hi - lo < s.minSpan) { const m = (hi + lo) / 2; lo = m - s.minSpan / 2; hi = m + s.minSpan / 2; }
+    const color = css.getPropertyValue(s.color);
+    g.strokeStyle = color; g.lineWidth = 2 * ratio; g.beginPath();
+    let pen = false;
+    for (const r of hist) {
+      const v = r[s.idx];
+      if (v == null) { pen = false; continue; }
+      const x = (r[0] - t0) / span * w;
+      const y = h - pad - (v - lo) / (hi - lo) * (h - 2 * pad);
+      if (pen) g.lineTo(x, y); else g.moveTo(x, y);
+      pen = true;
+    }
+    g.stroke();
+    g.fillStyle = color;
+    const fmt = (v) => fmtNum(v / s.div, s.digits) + ' ' + s.unit;
+    g.fillText(fmt(hi), 4 * ratio + k * 90 * ratio, 11 * ratio);
+    g.fillText(fmt(lo), 4 * ratio + k * 90 * ratio, h - 3 * ratio);
+  });
+}
+
+function legend(items) {
+  return `<div class="leg">${items.map(([c, l]) => `<span style="color:var(${c})">● ${esc(l)}</span>`).join('')}` +
+    `<span class="hint">${esc(t('last_30'))}</span></div>`;
+}
+
+export const tab = {
+  id: 'obc', label: 'tab_obc',
+  mount(panel) {
+    panel.innerHTML = `
+      <section class="card span-7"><h2>${esc(t('obc_bat'))}</h2>
+        <p class="lead">${esc(t('obc_lead'))}</p>
+        <div class="figs big" id="obc-bat"></div>
+        <canvas class="spark tall" id="obc-bat-chart"></canvas>
+        ${legend([['--forest', t('battery') + ' (V)'], ['--yellow', t('current') + ' (mA)']])}</section>
+      <section class="card span-5"><h2>${esc(t('obc_temps'))}</h2>
+        <div class="figs" id="obc-temps"></div>
+        <canvas class="spark tall" id="obc-temp-chart"></canvas>
+        ${legend([['--forest', t('tbat')], ['--yellow', t('tsoc')]])}</section>
+      <section class="card"><h2>${esc(t('obc_state'))}</h2><div class="kv" id="obc-kv"></div></section>`;
+    this.drawnAt = null;
+  },
+  show() { this.drawnAt = null; },
+  update(state) {
+    const st = state.st;
+    const hk = st && st.hk;
+    const v = hk && hk.battery_mv != null ? hk.battery_mv / 1000 : null;
+    const i = hk && hk.current_ma != null ? hk.current_ma : null;
+    setHTML(document.getElementById('obc-bat'),
+      fig(t('battery'), v, 2, 'V') + fig(t('current'), i, 0, 'mA') +
+      fig(t('power_w'), v != null && i != null ? v * i / 1000 : null, 2, 'W') +
+      fig(t('tbat'), hk && hk.temp_bat_ccel != null ? hk.temp_bat_ccel / 100 : null, 1, '°C'));
+    setHTML(document.getElementById('obc-temps'),
+      fig(t('tbat'), hk && hk.temp_bat_ccel != null ? hk.temp_bat_ccel / 100 : null, 1, '°C') +
+      fig(t('text'), hk && hk.temp_ext_ccel != null ? hk.temp_ext_ccel / 100 : null, 1, '°C') +
+      fig(t('tsoc'), hk && hk.temp_soc_ccel != null ? hk.temp_soc_ccel / 100 : null, 1, '°C'));
+    const yn = (b) => (b == null ? '—' : b ? '✓ ' + t('yes') : '✗ ' + t('no'));
+    setHTML(document.getElementById('obc-kv'), hk ? [
+      [t('obc_mode'), st.mode ? `${st.mode} · ${t('for')} ${fmtAge(since(st.mode_age))}` : '—'],
+      [t('hk_age'), fmtAge(since(st.hk_age))],
+      [t('uptime'), hk.uptime_s != null ? fmtAge(hk.uptime_s) : '—'],
+      [t('time_sync'), yn(hk.time_synced)],
+      [t('obc_linked'), yn(hk.obc_linked)],
+      [t('adsb_linked'), yn(hk.adsb_linked)],
+      [t('dump1090_up'), yn(hk.dump1090_up)],
+    ].map(([k, x]) => `<span>${esc(k)}</span><span>${esc(x)}</span>`).join('')
+      : `<span class="muted">${esc(t('no_hk'))}</span><span></span>`);
+    // The charts change only with a new HK.
+    const hist = (st && st.hk_hist) || [];
+    const last = hist.length ? hist[hist.length - 1][0] : null;
+    if (last === this.drawnAt) return;
+    this.drawnAt = last;
+    chart(document.getElementById('obc-bat-chart'), hist, [
+      { idx: 1, div: 1000, unit: 'V', digits: 2, color: '--forest', minSpan: 100 },
+      { idx: 2, div: 1, unit: 'mA', digits: 0, color: '--yellow', minSpan: 20 },
+    ]);
+    chart(document.getElementById('obc-temp-chart'), hist, [
+      { idx: 3, div: 100, unit: '°C', digits: 1, color: '--forest', minSpan: 200 },
+      { idx: 5, div: 100, unit: '°C', digits: 1, color: '--yellow', minSpan: 200 },
+    ]);
+  },
+};
+

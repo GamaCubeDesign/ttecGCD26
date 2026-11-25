@@ -170,6 +170,38 @@ class TestState(unittest.TestCase):
         self.s.feed({"ev": "tc_failed", "id": 2, "cmd": "SET_TIME", "attempts": 8})
         self.assertEqual(self.s.snapshot()["runs"][-1]["failed"], "SET_TIME NO_ACK")
 
+    def test_a_pulse_shorter_than_the_hk_period_completes_the_run(self):
+        # burnwire_ms = 750: no HK ever shows BASIC_INTERMEDIATE.
+        self.clock.t = 0.0
+        self.s.feed(hk())
+        self.s.feed({"ev": "command", "text": "mode basic_inter"})
+        self.clock.t = 0.3
+        self.ack("SET_MODE", ms=290)
+        self.s.feed(hk())                                # too soon after the ACK: proves nothing
+        self.assertIsNone(self.s.snapshot()["runs"][-1]["entered"])
+        self.clock.t = 8.0
+        self.s.feed(hk())
+        run = self.s.snapshot()["runs"][-1]
+        self.assertEqual((run["entered"], run["left"], run["left_to"], run["inferred"]),
+                         (0.3, 8.0, "PRE_TEST", True))
+
+    def test_a_refused_pulse_is_not_inferred(self):
+        self.s.feed(hk())
+        self.s.feed({"ev": "command", "text": "mode basic_inter"})
+        self.ack("SET_MODE", status="REJECTED_STATE")
+        self.clock.t += 10
+        self.s.feed(hk())
+        run = self.s.snapshot()["runs"][-1]
+        self.assertEqual((run["entered"], run["left"]), (None, None))
+
+    def test_the_hk_history_keeps_the_power_series(self):
+        self.s.feed(hk(battery=7400, current=80))
+        self.clock.t += 10
+        self.s.feed(hk(battery=65535, current=95))
+        h = self.s.snapshot()["hk_hist"]
+        self.assertEqual([r[1:3] for r in h], [[7400, 80], [None, 95]])
+        self.assertEqual(h[0][4], None)                  # temp_ext: no data
+
     def test_other_commands_are_not_runs(self):
         for text in ("ping 3", "hk", "rate fast", "mode"):
             self.s.feed({"ev": "command", "text": text})

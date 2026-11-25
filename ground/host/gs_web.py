@@ -169,6 +169,13 @@ class GsState:
     LOG_MAX = 300
     SPARK_MAX = 90
     RUNS_MAX = 20
+    HK_HIST_MAX = 180     # 30 min of housekeeping at one every 10 s
+    # Modes that end before the next housekeeping (10 s) can show them: the
+    # burn-wire pulse (burnwire_ms, 750 ms on obc-v2), the AOCS task without
+    # its ESP32. A run of one is complete when SET_MODE was acknowledged and
+    # a later HK finds the OBC back in PRE_TEST, where it came from.
+    SHORT_MODES = ("BASIC_INTERMEDIATE", "ADVANCED_AOCS")
+    INFER_AFTER_S = 1.0   # an HK this soon after the ACK may predate the change
     # The mode each `mode` command asks the OBC for (CDR Figure 44).
     MODE_OF = {"basic_inter": "BASIC_INTERMEDIATE", "aocs": "ADVANCED_AOCS",
                "mission_adsb": "MISSION_ADSB", "downlink": "MISSION_DOWNLINK",
@@ -202,6 +209,9 @@ class GsState:
         # mode it asked for: the evidence of each test, step by step.
         self.runs = collections.deque(maxlen=self.RUNS_MAX)
         self.run = None
+        # The OBC tab's series: [t, battery_mv, current_ma, temp_bat, temp_ext,
+        # temp_soc], no-data sentinels as None.
+        self.hk_hist = collections.deque(maxlen=self.HK_HIST_MAX)
 
     def _note(self, kind, text):
         self.seq += 1
@@ -281,7 +291,7 @@ class GsState:
         self.run = {"n": self.seq, "cmd": text, "target": self.MODE_OF.get(parts[1]),
                     "sent": self.now(), "acks": [], "failed": None, "entered": None,
                     "left": None, "left_to": None, "dump1090": None,
-                    "first_tracks": None, "tracks": 0}
+                    "first_tracks": None, "tracks": 0, "from": self.mode, "inferred": False}
         self.runs.append(self.run)
 
     def _run_ack(self, obj):
@@ -301,11 +311,23 @@ class GsState:
         now = self.now()
         if run["entered"] is None and mode == run["target"]:
             run["entered"] = now
+        elif run["entered"] is None and self._short_run_done(run, mode, now):
+            # Entered and left between two HK: the ACK is when it entered.
+            run["entered"] = next(a["t"] for a in run["acks"] if a["cmd"] == "SET_MODE")
+            run["left"], run["left_to"], run["inferred"] = now, mode, True
         elif run["entered"] is not None and run["left"] is None and mode != run["target"]:
             run["left"], run["left_to"] = now, mode
         if (run["target"] == "MISSION_ADSB" and run["entered"] is not None and run["left"] is None
                 and run["dump1090"] is None and isinstance(flags, int) and flags & 8):
             run["dump1090"] = now
+
+    def _short_run_done(self, run, mode, now):
+        if run["target"] not in self.SHORT_MODES or run["failed"] is not None:
+            return False
+        if mode != "PRE_TEST" or run["from"] != "PRE_TEST":
+            return False
+        ack = [a for a in run["acks"] if a["cmd"] == "SET_MODE" and a["status"] == "OK"]
+        return bool(ack) and now - ack[-1]["t"] >= self.INFER_AFTER_S
 
     def _hk(self, obj):
         self.hk = {k: obj.get(k) for k in (
@@ -320,6 +342,9 @@ class GsState:
             self.mode = mode
             self.mode_at = self.now()
         self._run_mode(mode, obj.get("flags"))
+        self.hk_hist.append([round(self.hk_at, 1)] + [
+            None if NO_DATA.get(k) == obj.get(k) else obj.get(k)
+            for k in ("battery_mv", "current_ma", "temp_bat_ccel", "temp_ext_ccel", "temp_soc_ccel")])
         parts = [str(mode)]
         for key, div, unit in (("battery_mv", 1000, "V"), ("current_ma", 1, "mA"),
                                ("temp_bat_ccel", 100, "°C"), ("temp_soc_ccel", 100, "°C SoC")):
@@ -356,6 +381,7 @@ class GsState:
                      "latency_ms": round(sum(lat) / len(lat)) if lat else None},
             "log": log, "log_n": self.seq, "full": since is None,
             "runs": [dict(r, acks=list(r["acks"])) for r in self.runs],
+            "hk_hist": list(self.hk_hist),
             "now": now,
         }
 

@@ -1,18 +1,19 @@
-// The ground station's page: the bar, the tabs, the utilities and the
-// events, all fed by one state (state.js). Only the visible tab redraws.
+// The ground station's page: the bar, the tabs and the events bar, all fed
+// by one state (state.js). Only the visible tab redraws.
 
 import { $, esc, store } from './util.js';
 import { t, labels, setLang, currentLang } from './i18n.js';
 import { start, subscribe, state } from './state.js';
-import { renderUtilities, wire } from './commands.js';
+import { refreshArm, wire } from './commands.js';
 import { renderBar } from './telemetry.js';
 import { renderEventsFrame, renderEvents } from './events.js';
 import { tab as operations } from './tabs/operations.js';
 import { tab as adsb } from './tabs/adsb.js';
 import { deploy, aocs, survival } from './tabs/modes.js';
 import { tab as link } from './tabs/link.js';
+import { tab as obc } from './tabs/obc.js';
 
-const TABS = [operations, adsb, deploy, aocs, survival, link];
+const TABS = [operations, adsb, deploy, aocs, survival, obc, link];
 // The tab in the address (#adsb) wins over the one remembered.
 let active = location.hash.slice(1) || store('gs-tab') || 'ops';
 if (!TABS.some((x) => x.id === active)) active = 'ops';
@@ -36,7 +37,13 @@ function show(id) {
   const cur = TABS.find((x) => x.id === id);
   if (cur.show) cur.show();
   if (state.st) cur.update(state, true);
+  refreshArm();
 }
+// A link to a tab (#deploy), as the operations tab's test tiles are.
+window.addEventListener('hashchange', () => {
+  const id = location.hash.slice(1);
+  if (id !== active && TABS.some((x) => x.id === id)) show(id);
+});
 
 // The theme button shows the theme it switches to: a sun on the dark page,
 // a moon on the light one; its name is the tooltip.
@@ -61,9 +68,8 @@ function relabel() {
   $('b-big').title = t('big');
   $('b-big').setAttribute('aria-label', t('big'));
   applyTheme(document.documentElement.dataset.theme || 'dark');
-  applySide(!document.body.classList.contains('no-side'));
-  renderUtilities();
   renderEventsFrame();
+  applyDock(store('gs-dock') === '1');
   for (const x of TABS) if (x.hide) x.hide();
   buildTabs();
   show(active);
@@ -106,22 +112,19 @@ $('b-big').addEventListener('click', () => {
   $('b-big').setAttribute('aria-pressed', String(on));
 });
 wire($('panels'));
-wire($('utilities'));
-// The side column (events and utilities) can be hidden, so the tab gets
-// the whole width; remembered.
-function applySide(on) {
-  document.body.classList.toggle('no-side', !on);
-  $('b-side').setAttribute('aria-pressed', String(on));
-  $('b-side').title = on ? t('side_hide') : t('side_show');
-  store('gs-side', on ? '1' : '0');
+// The events bar, fixed at the bottom of every tab: short (a few lines) or
+// tall; remembered.
+function applyDock(big) {
+  document.body.classList.toggle('dock-big', big);
+  store('gs-dock', big ? '1' : '0');
+  const b = document.getElementById('ev-size');
+  if (b) { b.textContent = big ? '▾' : '▴'; b.title = t(big ? 'ev_shrink' : 'ev_grow'); b.setAttribute('aria-label', b.title); }
   window.dispatchEvent(new Event('resize'));
 }
-applySide(store('gs-side') !== '0');
-$('b-side').addEventListener('click', () => applySide(document.body.classList.contains('no-side')));
-// The utilities stay folded unless the operator left them open.
-$('utilities').open = store('gs-util') === '1';
-$('utilities').addEventListener('toggle', () => store('gs-util', $('utilities').open ? '1' : '0'));
-// The bar's height, for what sticks below it (the side column, the map).
+$('events').addEventListener('click', (e) => {
+  if (e.target.closest('#ev-size')) applyDock(!document.body.classList.contains('dock-big'));
+});
+// The bar's height, for what sticks below it (the map).
 new ResizeObserver(() => document.documentElement.style.setProperty('--bar-h', $('bar').offsetHeight + 'px')).observe($('bar'));
 
 relabel();

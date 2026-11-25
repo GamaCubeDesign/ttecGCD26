@@ -39,15 +39,19 @@ export function genericSteps(run, extra = []) {
   items.push(step(n++, t('s_mode'), a ? (a.status === 'OK' ? 'done' : 'fail') : failed ? 'fail' : 'now',
     a ? `${a.status} · ${a.latency_ms} ms` : failed || t('waiting')));
   const reached = run.entered != null;
+  // A mode shorter than the HK period (the burn-wire's pulse) is never seen
+  // in the housekeeping: gs_web.py infers it from the ACK and the OBC back
+  // in PRE_TEST, and its duration is not known.
   items.push(step(n++, t('s_entered') + ' ' + (run.target || ''), reached ? 'done' : (a && !failed ? 'now' : ''),
-    reached ? after(run, run.entered) : ''));
+    run.inferred ? t('s_inferred') : reached ? after(run, run.entered) : ''));
   for (const [label, at, value] of extra) {
     items.push(step(n++, label, at != null ? 'done' : reached && run.left == null ? 'now' : '', value ?? (at != null ? after(run, at) : '')));
   }
   const back = run.left != null;
   items.push(step(n++, t('s_back') + (run.left_to && run.left_to !== 'PRE_TEST' ? ' (' + run.left_to + ')' : ''),
     back ? 'done' : reached ? 'now' : '',
-    back ? `${after(run, run.left)} · ${t('r_dur')} ${fmtAge(run.left - run.entered)}` : reached ? fmtAge(serverNow() - run.entered) : ''));
+    back ? (run.inferred ? after(run, run.left) : `${after(run, run.left)} · ${t('r_dur')} ${fmtAge(run.left - run.entered)}`)
+      : reached ? fmtAge(serverNow() - run.entered) : ''));
   return `<ol class="steps">${items.join('')}</ol>`;
 }
 

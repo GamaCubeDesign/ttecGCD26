@@ -40,6 +40,11 @@ assert.equal(runDot({ ...run, failed: 'SET_MODE FAILED' }), 'bad');
 const html = genericSteps({ ...run, left: 109, left_to: 'PRE_TEST' });
 assert.equal((html.match(/class="done"/g) || []).length, 4);
 assert.match(html, /OK · 289 ms/);
+// A pulse shorter than the HK period: inferred, no duration claimed.
+const inferred = genericSteps({ ...run, entered: 100.3, left: 108, left_to: 'PRE_TEST', inferred: true }, [['burn', 108, null]]);
+assert.equal((inferred.match(/class="done"/g) || []).length, 5);
+assert.match(inferred, new RegExp(t('s_inferred')));
+assert.doesNotMatch(inferred, new RegExp(t('r_dur')));
 const failed = genericSteps({ ...run, acks: [{ cmd: 'SET_MODE', status: 'REJECTED_STATE', latency_ms: 280 }], entered: null, failed: 'SET_MODE REJECTED_STATE' });
 assert.match(failed, /class="fail"/);
 

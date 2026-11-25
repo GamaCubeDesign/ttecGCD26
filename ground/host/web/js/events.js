@@ -1,5 +1,6 @@
-// The events card, beside every tab: the ground's log, newest first,
-// appended row by row as it arrives, with a filter by kind.
+// The events bar, fixed at the bottom of every tab: the ground's log,
+// newest first, appended row by row as it arrives, with a filter by kind.
+// Its size button is wired in main.js.
 
 import { $, esc, fmtTime } from './util.js';
 import { t } from './i18n.js';
@@ -26,8 +27,9 @@ function applyFilter() {
 }
 
 export function renderEventsFrame() {
-  $('events').innerHTML = `<h2>${esc(t('events'))}</h2>
+  $('events').innerHTML = `<div class="dock-head"><h2>${esc(t('events'))}</h2>
     <div class="filters">${FILTERS.map(([k]) => `<button type="button" data-f="${k}">${esc(t('f_' + k))}</button>`).join('')}</div>
+    <button class="tool" type="button" id="ev-size"></button></div>
     <div class="list" id="evlist"></div>`;
   $('events').querySelector('.filters').addEventListener('click', (e) => {
     const b = e.target.closest('button');

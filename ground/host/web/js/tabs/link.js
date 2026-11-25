@@ -30,6 +30,17 @@ function spark(canvas, st) {
   }
 }
 
+// The ground's ping_summary line, as figures: 3/3 acked, min / mean / max.
+export function pingSummary(text) {
+  let p;
+  try { p = JSON.parse(text.replace(/^ping_summary /, '')); } catch (e) { return esc(text); }
+  const ms = (v) => (v == null ? '—' : esc(v) + ' ms');
+  return `<b>${esc(p.acked ?? '—')}/${esc(p.sent ?? '—')}</b> ${esc(t('acked'))}` +
+    (p.failed ? ` · <span class="bad">${esc(p.failed)} ${esc(t('fail'))}</span>` : '') +
+    ` · ${esc(t('attempts'))} ${esc(p.attempts ?? '—')}` +
+    `<br><span class="muted">min / ${esc(t('mean'))} / max</span> ${ms(p.latency_min_ms)} / ${ms(p.latency_mean_ms)} / ${ms(p.latency_max_ms)}`;
+}
+
 export const tab = {
   id: 'link', label: 'tab_link',
   mount(panel) {
@@ -38,7 +49,8 @@ export const tab = {
         <canvas class="spark" id="link-spark"></canvas>
         <div class="leg"><span style="color:var(--forest)">● RSSI (dBm)</span><span style="color:var(--yellow)">● SNR (dB)</span></div></section>
       <section class="card span-5"><h2>${esc(t('stats'))}</h2><div class="kv" id="link-kv"></div>
-        <div class="grp" style="margin-top:14px"><span class="lbl">${esc(t('rate'))}</span><div class="row">
+        <div class="grp" style="margin-top:14px"><span class="lbl">${esc(t('ping_res'))}</span><div class="ping" id="link-ping"></div></div>
+        <div class="grp"><span class="lbl">${esc(t('rate'))}</span><div class="row">
           <button class="btn" data-cmd="rate safe">safe</button>
           <button class="btn" data-cmd="rate nominal">nominal</button>
           <button class="btn" data-cmd="rate fast">fast</button>
@@ -50,7 +62,7 @@ export const tab = {
     const rssi = st && st.rssi.length ? st.rssi[st.rssi.length - 1] : null;
     const snr = st && st.snr.length ? st.snr[st.snr.length - 1] : null;
     const pings = state.log.filter((e) => e.text.startsWith('ping_summary'));
-    const last = pings.length ? pings[pings.length - 1].text.replace('ping_summary ', '') : '—';
+    setHTML(document.getElementById('link-ping'), pings.length ? pingSummary(pings[pings.length - 1].text) : '—');
     setHTML(document.getElementById('link-kv'), [
       [t('last_frame'), st && st.frame_age != null ? fmtAge(since(st.frame_age)) : '—'],
       [t('rssi') + ' / ' + t('snr'), rssi == null ? '—' : `${rssi} dBm / ${snr} dB`],
@@ -58,7 +70,6 @@ export const tab = {
       [t('latency'), a.latency_ms == null ? '—' : a.latency_ms + ' ms'],
       [t('failed'), a.tc_failed ?? 0], [t('badcrc'), a.rx_bad ?? 0],
       [t('ground_radio'), st && st.ground && st.ground.radio ? `${st.ground.radio} · ${st.ground.profile || ''}` : '—'],
-      [t('ping_res'), last],
     ].map(([k, v]) => `<span>${esc(k)}</span><span>${esc(v)}</span>`).join(''));
     if (fresh) spark(document.getElementById('link-spark'), st);
   },

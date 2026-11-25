@@ -5,7 +5,7 @@
 import { esc, fmtNum, setHTML } from '../util.js';
 import { t } from '../i18n.js';
 import { latestRun, genericSteps, runDot, step } from '../runs.js';
-import { isArmed, setArmed, toast } from '../commands.js';
+import { armBox, isArmed, setArmed, toast } from '../commands.js';
 
 function hkFig(label, v, div, unit) {
   const nd = v == null;
@@ -19,8 +19,9 @@ function modeTab({ id, label, target, lead, start, end, extra, side }) {
       panel.innerHTML = `
         <section class="card span-6"><h2>${esc(t(label))}</h2>
           <p class="lead">${esc(t(lead))}</p>
+          ${start.arm ? armBox() : ''}
           <div class="row" style="margin-bottom:12px">
-            <button class="btn primary${start.arm ? ' danger' : ''}" data-cmd="${esc(start.cmd)}">${esc(t(start.label))}${start.arm ? ' ▲' : ''}</button>
+            <button class="btn primary${start.arm ? ' danger' : ''}"${start.arm && !isArmed() ? ' data-needs-arm disabled' : start.arm ? ' data-needs-arm' : ''} data-cmd="${esc(start.cmd)}">${esc(t(start.label))}${start.arm ? ' ▲' : ''}</button>
             ${end ? `<button class="btn" data-cmd="${esc(end.cmd)}">${esc(t(end.label))}</button>` : ''}</div>
           <div id="${id}-steps"></div></section>
         <section class="card span-6" id="${id}-side"></section>
@@ -61,12 +62,13 @@ function renderSsh(box) {
     <p class="lead">${esc(t('ssh_lead'))}</p>
     ${host ? `<p class="muted">${esc(t('ssh_host'))}: <b>${esc(host)}</b></p>
       <div class="row" style="margin-bottom:12px">
-        <button class="btn danger" id="ssh-deploy"${sshBusy ? ' disabled' : ''}>${esc(t(sshBusy ? 'ssh_busy' : 'ssh_start'))} ▲</button></div>
+        <button class="btn danger" id="ssh-deploy"${sshBusy ? ' disabled' : ` data-needs-arm${isArmed() ? '' : ' disabled'}`}>${esc(t(sshBusy ? 'ssh_busy' : 'ssh_start'))} ▲</button></div>
       <div id="ssh-steps">${sshSteps(sshResult)}</div>`
     : `<p class="muted">${esc(t('ssh_off'))}</p>`}`);
 }
 
 async function deploySsh(box) {
+  if (sshBusy) return;
   if (!isArmed()) { toast(t('ssh_arm'), 'bad'); return; }
   sshBusy = true;
   sshResult = null;
