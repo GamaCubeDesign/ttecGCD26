@@ -5,7 +5,9 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import textwrap
+import threading
 import time
 import unittest
 from unittest import mock
@@ -335,19 +337,54 @@ class TestSources(unittest.TestCase):
         self.assertTrue(gs_web.GS_CLI.startswith(gs_web.REPO + os.sep))
 
 
-    def test_ssh_runs_gs_cli_on_the_pi_with_this_clock(self):
+    def test_ssh_runs_gs_cli_on_the_pi(self):
         source, name = gs_web.build_source(gs_web.argparse.Namespace(
             replay=None, serial=None, udp=False, exec=None, ssh="pi@test", ssh_dir="ttec"))
         self.assertEqual(name, "ssh")
-        source.clock = lambda: 1795614460.549
         with mock.patch.object(gs_web.subprocess, "Popen") as popen:
             source._spawn()
         argv = popen.call_args[0][0]
         self.assertEqual(argv[:2], ["ssh", "-T"])
         self.assertIn("BatchMode=yes", argv)
         self.assertEqual(argv[-2], "pi@test")
-        self.assertEqual(argv[-1], "cd ttec && { pkill -x gs_cli && sleep 0.5; true; } && exec "
-                                   "build/tools/gs_cli/gs_cli --radio udp --auto-time on --clock 1795614460549")
+        self.assertEqual(argv[-1], "cd ttec && { pkill -x gs_cli && sleep 0.5; true; } && "
+                                   "echo '@clock?' && read -r clock && exec "
+                                   "build/tools/gs_cli/gs_cli --radio udp --auto-time on --clock \"$clock\"")
+
+    def test_the_pi_gets_the_clock_when_it_asks(self):
+        # 25/11: read when ssh started, the clock was 0.5 s to 4.4 s old by
+        # the time gs_cli took it, and the satellite's anchor as far behind.
+        # A shell plays the Pi (no pkill: it would reach a real gs_cli), a
+        # script gs_cli prints the clock it was given and its first command.
+        with tempfile.TemporaryDirectory() as d:
+            gs = os.path.join(d, "build", "tools", "gs_cli")
+            os.makedirs(gs)
+            with open(os.path.join(gs, "gs_cli"), "w") as f:
+                f.write("#!/bin/sh\n"
+                        "printf '{\"ev\": \"argv\", \"argv\": \"%s\"}\\n' \"$*\"\n"
+                        "read -r line\n"
+                        "printf '{\"ev\": \"line\", \"line\": \"%s\"}\\n' \"$line\"\n")
+            os.chmod(os.path.join(gs, "gs_cli"), 0o755)
+            remote = gs_web.ssh_ground_argv("pi@test", d)[-1].replace("pkill -x gs_cli", "false")
+            now = [1795614460.549]
+            source = gs_web.SshSource("pi@test", d, clock=lambda: now[0])
+            fed = []
+            with mock.patch.object(gs_web, "ssh_ground_argv", lambda h, dd: ["sh", "-c", remote]):
+                source._spawn()
+            self.assertFalse(source.send("hk"))   # the Pi's shell would take it for the clock
+            now[0] += 10.0                          # ssh connecting
+            pump = threading.Thread(target=source._pump, args=(mock.Mock(feed=fed.append),))
+            pump.start()
+            deadline = time.time() + 5
+            while not any(o.get("ev") == "argv" for o in fed) and time.time() < deadline:
+                time.sleep(0.01)
+            self.assertTrue(source.send("hk"))
+            pump.join(5)
+            source.proc.stdin.close()
+            source.proc.stdout.close()
+        self.assertEqual([o["argv"] for o in fed if o["ev"] == "argv"],
+                         ["--radio udp --auto-time on --clock 1795614470549"])
+        self.assertEqual([o["line"] for o in fed if o["ev"] == "line"], ["hk"])
 
 
     def test_a_dropped_ssh_is_started_again(self):
@@ -359,7 +396,7 @@ class TestSources(unittest.TestCase):
         hub = mock.Mock(feed=fed.append)
         source = gs_web.SshSource("pi@test", "ttec", retry_s=0.05)
         with mock.patch.object(gs_web, "ssh_ground_argv",
-                               lambda h, d, ms: [sys.executable, "-c", "print(%r)" % line]):
+                               lambda h, d: [sys.executable, "-c", "print(%r)" % line]):
             source.start(hub)
             deadline = time.time() + 5
             while sum(1 for o in fed if o.get("ev") == "start") < 3 and time.time() < deadline:

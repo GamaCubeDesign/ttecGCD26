@@ -59,8 +59,13 @@ GS_CLI = os.path.join(REPO, "build", "tools", "gs_cli", "gs_cli")
 # inside ssh. The frames, the ACKs and the page are those of the radio link.
 # gs_cli carries this machine's clock (--clock): the SET_TIME it sends on
 # contact is the PC's, not the RTC-less Pi's (ADR-0009). A gs_cli left behind
-# by a dropped ssh would hold the UDP port, so any is stopped first.
+# by a dropped ssh would hold the UDP port, so any is stopped first. Then the
+# Pi asks for the clock (SSH_CLOCK_ASK) and SshSource answers with the time
+# read then, so gs_cli takes it one Wi-Fi hop old: read before ssh started,
+# as until 25/11, it was 0.5 s to 4.4 s old by then, and the satellite's
+# anchor as far behind (docs/vv/bancada/2026-11-25/notas.md).
 SSH_GS_CLI = "build/tools/gs_cli/gs_cli"
+SSH_CLOCK_ASK = "@clock?"
 
 # What the satellite reports for "no data" (common/gama_tc.h).
 NO_DATA = {"battery_mv": 65535, "current_ma": -32768, "temp_bat_ccel": -32768,
@@ -749,9 +754,11 @@ def query_link(host, runner=subprocess.run):
     return word if r.returncode == 0 and word in ("lora", "ssh") else None
 
 
-def ssh_ground_argv(host, directory, clock_ms):
+def ssh_ground_argv(host, directory):
+    """gs_cli on the Pi, its clock the line read after SSH_CLOCK_ASK."""
     remote = (f"cd {directory} && {{ pkill -x gs_cli && sleep 0.5; true; }} && "
-              f"exec {SSH_GS_CLI} --radio udp --auto-time on --clock {clock_ms}")
+              f"echo '{SSH_CLOCK_ASK}' && read -r clock && "
+              f"exec {SSH_GS_CLI} --radio udp --auto-time on --clock \"$clock\"")
     return ["ssh", "-T", "-o", "BatchMode=yes", "-o", "ConnectTimeout=6",
             "-o", "ServerAliveInterval=5", "-o", "ServerAliveCountMax=3", host, remote]
 
@@ -778,6 +785,7 @@ class ProcessSource:
         for raw in self.proc.stdout:
             raw = raw.strip()
             if not raw.startswith("{"):
+                self._text(raw)
                 continue
             try:
                 hub.feed(json.loads(raw))
@@ -790,6 +798,9 @@ class ProcessSource:
             self.proc.kill()
             self.proc.wait()
         return n
+
+    def _text(self, raw):
+        """A line that is not one of the ground's: nothing to do."""
 
     def _read(self, hub):
         self._pump(hub)
@@ -1013,8 +1024,8 @@ class SshSource(ProcessSource):
     RETRY_S until the source is stopped: on 25/11 the Pi's Wi-Fi went away
     for about a minute, ssh gave up after 15 s without an answer
     (ServerAliveInterval x CountMax) and the page stayed without a ground.
-    ttcd runs on regardless; each new run carries the clock read then, and
-    gs_cli's --auto-time sends SET_TIME again on contact."""
+    ttcd runs on regardless; each new run gets the clock when the Pi asks
+    for it, and gs_cli's --auto-time sends SET_TIME again on contact."""
 
     RETRY_S = 5.0
 
@@ -1023,11 +1034,29 @@ class SshSource(ProcessSource):
         self.host, self.directory, self.clock = host, directory, clock
         self.retry_s = self.RETRY_S if retry_s is None else retry_s
         self.wakeup = threading.Event()
+        self.clock_sent = False
 
     def _spawn(self):
-        self.argv = ssh_ground_argv(self.host, self.directory, int(self.clock() * 1000))
+        self.clock_sent = False
+        self.argv = ssh_ground_argv(self.host, self.directory)
         self.proc = subprocess.Popen(self.argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                      text=True, bufsize=1)
+
+    def _text(self, raw):
+        """The Pi's question: this machine's clock now, in ms since 1970."""
+        if raw != SSH_CLOCK_ASK or self.clock_sent:
+            return
+        with self.send_lock:
+            try:
+                self.proc.stdin.write("%d\n" % int(self.clock() * 1000))
+                self.proc.stdin.flush()
+                self.clock_sent = True
+            except OSError:
+                pass
+
+    def send(self, cmd):
+        """Nothing before the clock: the Pi's shell would read it as one."""
+        return self.clock_sent and super().send(cmd)
 
     def start(self, hub):
         self._spawn()
