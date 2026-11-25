@@ -509,7 +509,7 @@ build/flight/obcd -c /etc/gama/obcd.conf -o ipc_path=/tmp/ttec-bench.sock \
 <tr><td>Logs da Pi numa pasta com a data errada</td><td>A Pi ficou sem NTP (sem o cabo ethernet no PC). O <code>./gama doctor</code> mostra o relógio dela.</td></tr>
 <tr><td>O ping passa, mas com retentativas</td><td>O DIO0 não chega: confira o fio do DIO0 contra a configuração (<code>./gama board check</code>).</td></tr>
 <tr><td>A ESP32 não responde depois do teste das suítes</td><td>Ficou a imagem de teste: <code>./gama esp32 flash</code>.</td></tr>
-<tr><td>A página conta 10 min, o satélite 2</td><td>Os dois lados com o mesmo tempo: use <code>./gama mission --secs</code>, ou <code>MISSION_S</code> igual nos dois.</td></tr>
+<tr><td>A página conta 10 min, o satélite 2</td><td>Os dois lados com o mesmo tempo: <code>./gama mission --secs N</code> acerta os dois juntos. Com os serviços (10 min de voo), o <code>./gama ground</code> já conta 600 s; com outro tempo no satélite, o mesmo <code>--secs</code> no <code>./gama ground</code>.</td></tr>
 </table></div>
 
 <h2 id="cartoes"><span class="n">10</span>Cartões para decorar</h2>
