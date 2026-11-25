@@ -43,6 +43,8 @@ exemplos, na ordem de uma bancada:
                                     satélite e rádio reais, aviões de uma captura
   ./gama sim mission --secs 120 --input <captura>   tudo no PC, sem hardware
   ./gama ground                     só a página, com a ESP32 (o satélite já no ar: os serviços)
+  ./gama service link ssh           plano B se o LoRa falhar: o ttcd no rádio UDP da Pi...
+  ./gama ground --ssh               ...e a página falando com ele pelo SSH (lora: de volta)
   ./gama sim ground --session <ground.jsonl> --speed 10   repete na página uma sessão gravada
   ./gama service enable             a configuração de voo: os três daemons em todo boot
   ./gama service status             cada serviço e a última linha do log
@@ -108,6 +110,9 @@ def add_ground_args(g, kind):
     if kind == 'real':
         g.add_argument('--port', help='porta da ESP32 (padrão: a única ttyUSB/ttyACM)')
         g.add_argument('--power', type=int, default=2, help='potência da ground, dBm (padrão 2)')
+        g.add_argument('--ssh', action='store_true',
+                       help='o satélite pelo SSH, sem LoRa nem ESP32 (antes: ./gama service link ssh)')
+        g.add_argument('--no-build', action='store_true', help='com --ssh: não compila na Pi antes')
     else:
         g.add_argument('--session', metavar='GROUND.JSONL',
                        help='repete uma sessão gravada da ground, sem satélite (sem isto: o rádio UDP)')
@@ -171,6 +176,9 @@ def build_parser():
     lg.set_defaults(func=service.cmd_logs)
     ss.add_parser('install', help='make install na Pi: daemons e serviços (mantém /etc/gama)').set_defaults(
         func=service.cmd_install)
+    sl = ss.add_parser('link', help='o enlace do ttcd: lora (o RA-02, o voo) ou ssh (o plano B); sem nada, qual é')
+    sl.add_argument('link', nargs='?', choices=('lora', 'ssh'))
+    sl.set_defaults(func=service.cmd_link)
 
     dp = sub.add_parser('deploy', help='o burn-wire disparado na Pi pelo SSH (plano B da REG-07)',
                         description=deploy.__doc__.split('\n\n')[0])

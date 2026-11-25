@@ -551,6 +551,40 @@ class Service(unittest.TestCase):
         self.assertIn('{"event":"hk"}', out)
         self.assertIn('[AVISO]  obcd   inactive  fora do boot', out)
 
+    def test_link_ssh_puts_the_dropin_and_restarts_ttcd_alone(self):
+        pi = FakePi(files={'<stdout>': '@link lora\n'})
+        code, out = quiet(service.cmd_link, SimpleNamespace(link='ssh'), pi)
+        self.assertEqual(code, 0)
+        self.assertEqual(len(pi.sudos), 1)
+        line = pi.sudos[0]
+        self.assertIn('| sudo tee /etc/systemd/system/ttcd.service.d/link-ssh.conf', line)
+        self.assertIn('-o radio=udp -o udp_bind=127.0.0.1 -o udp_port=47001', line)
+        self.assertTrue(line.endswith('sudo systemctl daemon-reload && sudo systemctl restart ttcd'))
+        self.assertNotIn('\n', line)                  # one line, to type by hand without a terminal
+        self.assertIn('./gama ground --ssh', out)
+
+    def test_link_lora_removes_the_dropin(self):
+        pi = FakePi(files={'<stdout>': '@link ssh\n'})
+        code, _ = quiet(service.cmd_link, SimpleNamespace(link='lora'), pi)
+        self.assertEqual(code, 0)
+        self.assertEqual(pi.sudos, ['sudo rm -f /etc/systemd/system/ttcd.service.d/link-ssh.conf && '
+                                    'sudo systemctl daemon-reload && sudo systemctl restart ttcd'])
+
+    def test_link_already_there_or_asked_changes_nothing(self):
+        pi = FakePi(files={'<stdout>': '@link ssh\n'})
+        self.assertEqual(quiet(service.cmd_link, SimpleNamespace(link='ssh'), pi)[0], 0)
+        code, out = quiet(service.cmd_link, SimpleNamespace(link=None), pi)
+        self.assertEqual(code, 0)
+        self.assertEqual(pi.sudos, [])
+        self.assertIn('enlace do ttcd: SSH', out)
+
+    def test_status_says_when_ttcd_is_on_ssh(self):
+        pi = FakePi(files={'<stdout>': '@link ssh\n@@ ttcd active enabled /var/lib/gama/ttcd.jsonl\n'})
+        code, out = quiet(service.cmd_status, SimpleNamespace(), pi)
+        self.assertEqual(code, 0)
+        self.assertIn('[AVISO]  enlace do ttcd: SSH', out)
+        self.assertIn('./gama service link lora', out)
+
     def test_without_a_terminal_sudo_says_what_to_type(self):
         pi = common.Pi(host='pi@test', directory='ttec', local=False)
         with unittest.mock.patch('sys.stdin', io.StringIO()):
@@ -756,8 +790,38 @@ class Ground(unittest.TestCase):
         self.assertTrue(lines[0].startswith('[SIM]') and 'rádio UDP' in lines[0])
         self.assertTrue(lines[-1].startswith('[SIM]') and lines[-1].endswith('; fim'))
 
+    def test_the_ssh_gs_web_line(self):
+        line = ground.gs_web_argv('real', self.args(ssh=True), pi_host='pi@test')
+        self.assertEqual(line[2:], ['--port', '8080', '--mission-s', '600', '--session-prefix', 'ssh-mission-',
+                                    '--adsb', '--ssh', 'pi@test', '--ssh-dir', common.pi_dir(),
+                                    '--pi-ssh', 'pi@test'])
+
+    def test_ssh_refused_while_ttcd_is_on_the_radio(self):
+        pi = FakePi(files={'<stdout>': '@link lora\n'})
+        ok, out = quiet(ground.preflight_ssh, self.args(ssh=True), pi, free=lambda p: True)
+        self.assertFalse(ok)
+        self.assertIn('./gama service link ssh', out)
+        self.assertEqual(pi.ran, [service.link_probe_command()])    # nothing built for nothing
+
+    def test_ssh_builds_on_the_pi_then_opens_the_page(self):
+        pi, calls = FakePi(files={'<stdout>': '@link ssh\n'}), []
+        with unittest.mock.patch.object(ground, 'port_free', lambda p, host='127.0.0.1': True):
+            code, out = quiet(ground.cmd_ground_ssh, self.args(ssh=True, no_build=False),
+                              lambda argv, **kw: calls.append(argv) or 0, pi)
+        self.assertEqual(code, 0)
+        self.assertEqual(pi.ran[1:], ['<sync>', 'make build'])
+        self.assertIn('--ssh', calls[0])
+        self.assertNotIn('--serial', calls[0])
+        lines = out.rstrip().splitlines()
+        self.assertTrue(lines[0].startswith('[AVISO]') and 'não pelo LoRa' in lines[0])
+        self.assertTrue(lines[-1].startswith('[AVISO]') and lines[-1].endswith('; fim'))
+
     def test_the_parser(self):
         ap = cli.build_parser()
+        self.assertTrue(ap.parse_args(['ground', '--ssh']).ssh)
+        sl = ap.parse_args(['service', 'link', 'ssh'])
+        self.assertEqual((sl.link, sl.func), ('ssh', service.cmd_link))
+        self.assertIsNone(ap.parse_args(['service', 'link']).link)
         g = ap.parse_args(['ground', '--secs', '120'])
         self.assertEqual((g.kind, g.secs, g.func), ('real', 120, ground.cmd_ground))
         sg = ap.parse_args(['sim', 'ground', '--session', 'g.jsonl', '--speed', '10'])

@@ -4,6 +4,9 @@ on this machine, in place of make gs-web (24/11).
     gama ground [--secs 600] [--port P] [--power 2] [--web-port 8080]
         the ESP32 on this machine's USB, found by itself; the Pi of PI_HOST
         for the deployment over ssh (REG-07's fallback)
+    gama ground --ssh [--secs 600] [--web-port 8080]
+        the satellite over ssh, no LoRa and no ESP32: the ground console on the
+        Pi, next to ttcd on the UDP radio (./gama service link ssh first)
     gama sim ground [--secs 600] [--web-port 8080]
         gs_cli on the UDP radio, against a satellite on this PC
         (make bench-ttcd RADIO=udp in another terminal)
@@ -24,9 +27,12 @@ import sys
 from pathlib import Path
 
 import common as c
+import service
 
 GS_WEB = c.ROOT / 'ground/host/gs_web.py'
-SESSION_PREFIX = {'real': 'mission-', 'replay': 'replay-mission-', 'sim': 'sim-mission-'}
+SESSION_PREFIX = {'real': 'mission-', 'replay': 'replay-mission-', 'sim': 'sim-mission-',
+                  'ssh': 'ssh-mission-'}
+SSH_WARNING = 'enlace pelo SSH, não pelo LoRa: os dados são do satélite, mas não é evidência de RF'
 
 
 def holders(path, proc=Path('/proc')):
@@ -90,6 +96,9 @@ def gs_web_argv(kind, args, serial=None, pi_host=None, prefix=None):
         else:
             argv.append('--udp')
         return argv
+    if getattr(args, 'ssh', False):
+        argv[argv.index('--session-prefix') + 1] = prefix or SESSION_PREFIX['ssh']
+        return argv + ['--ssh', pi_host, '--ssh-dir', c.pi_dir(), '--pi-ssh', pi_host]
     argv += ['--serial', serial, '--power', str(args.power)]
     if pi_host:
         argv += ['--pi-ssh', pi_host]
@@ -127,8 +136,57 @@ def preflight(kind, args, esp32=None, held=None, free=None):
     return port
 
 
+def preflight_ssh(args, pi, free=None):
+    """True when the page can reach the satellite over ssh: the web port
+    free, the Pi answering, ttcd on the UDP radio, gs_cli built there."""
+    free = free or port_free
+    if args.secs <= 0:
+        c.fail('--secs precisa ser positivo')
+        return False
+    if not free(args.web_port):
+        c.fail(f'a porta {args.web_port} já está em uso: outra página aberta?',
+               f'feche a outra (Ctrl-C nela) ou use --web-port {args.web_port + 1}')
+        return False
+    if not c.reachable_pi(pi):
+        return False
+    link = service.current_link(pi)
+    if link != 'ssh':
+        c.fail('o ttcd da Pi está no ' + (service.LINK_NAME[link] if link else 'enlace desconhecido') +
+               ', não no rádio UDP', 'antes: ./gama service link ssh')
+        return False
+    c.ok(f'ttcd no enlace {service.LINK_NAME["ssh"]}')
+    if not args.no_build:
+        c.say('compilando na Pi (o gs_cli, a ground desta vez)…')
+        if not pi.sync() or pi.run('make build', capture=False).returncode != 0:
+            c.fail('a compilação na Pi falhou')
+            return False
+    elif pi.run('test -x build/tools/gs_cli/gs_cli', timeout=30).returncode != 0:
+        c.fail('o gs_cli não está compilado na Pi', 'rode sem --no-build')
+        return False
+    return True
+
+
+def cmd_ground_ssh(args, call=subprocess.call, pi=None):
+    pi = pi or c.Pi()
+    c.warn(SSH_WARNING)
+    try:
+        if not preflight_ssh(args, pi):
+            return 1
+        c.ok(f'página: http://127.0.0.1:{args.web_port}  (MISSION_ADSB de {args.secs} s; Ctrl-C fecha)')
+        try:
+            status = call(gs_web_argv('real', args, pi_host=pi.host), cwd=c.ROOT)
+        except KeyboardInterrupt:
+            status = 0
+        c.say(f'a sessão da ground fica em ground/host/sessions/{SESSION_PREFIX["ssh"]}*')
+        return 0 if status in (0, 130, -2) else 1
+    finally:
+        c.warn(SSH_WARNING + '; fim')
+
+
 def cmd_ground(args, call=subprocess.call):
     kind = getattr(args, 'kind', 'real')
+    if kind == 'real' and getattr(args, 'ssh', False):
+        return cmd_ground_ssh(args, call)
     session = getattr(args, 'session', None)
     c.banner(kind, f'a página toca {session}, sem satélite' if session else
              ('a ground no rádio UDP: o satélite no PC é make bench-ttcd RADIO=udp' if kind == 'sim' else None))
