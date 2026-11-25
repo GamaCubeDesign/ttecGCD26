@@ -117,17 +117,9 @@ terminal):
 ./gama service logs ttcd -f   # acompanha o log de operação, /var/lib/gama/ttcd.jsonl
 ```
 
-Os alvos de antes continuam valendo até depois de 24/11, com um aviso:
-
-```bash
-make pi-install           # ttcd, adsbd e obcd, as unidades e, se ainda não existirem, /etc/gama/*.conf
-make pi-install CONF_DIR=flight/conf/obc-v2   # o mesmo, com os arquivos da placa nova do OBC
-make pi-service-enable    # sobe agora e em todo boot
-make pi-service-status    # o que o systemd diz, e o fim do log
-make pi-service-logs      # acompanha o log de operação, /var/lib/gama/ttcd.jsonl
-```
-
-Num terminal dentro da Pi, os mesmos alvos sem o `pi-`. O `make install`
+Sem o `./gama`, o `make install` faz a instalação (`make pi-install` do PC,
+`CONF_DIR=flight/conf/obc-v2` para os arquivos da placa); os alvos
+`service-*` do `make` saíram em 24/11. O `make install`
 nunca sobrescreve um `/etc/gama/*.conf` existente — compare-o com o exemplo,
 ou com o arquivo da placa, quando este mudar; para trocar, apague-o antes — e
 reinicia os serviços que estiverem rodando. Os daemons **não rodam como
@@ -202,7 +194,7 @@ Os logs vão direto para `docs/vv/bancada/AAAA-MM-DD/`, um par por passo:
 `HHMMSS-<passo>-ttcd.jsonl` e `HHMMSS-<passo>-ground.jsonl`. A data e a hora
 vêm do relógio da Pi, que não tem RTC: sem rede, confira `date` antes.
 
-O serviço precisa estar parado (`make service-stop`): com qualquer `ttcd`
+O serviço precisa estar parado (`./gama service stop ttcd`): com qualquer `ttcd`
 rodando, o `make` recusa e mostra qual.
 
 `make bench` roda os passos 1 a 6 em ordem. No rádio UDP levou 28 min — 17 no

@@ -19,24 +19,25 @@ Uma pasta por dia de bancada, `AAAA-MM-DD/`, com:
 | `HHMMSS-toa.txt` | tempo no ar medido × modelo (passo 2) |
 | `ganho.txt`, `cpu.txt` | varredura de ganho e CPU do `dump1090` (etapa 5) |
 | `adsb.ndjson`, `adsbd.jsonl`, `manual-*.jsonl` | `adsbd` com o SDR e a cadeia completa (etapas 6 e 7) |
-| `antena/<antena>-HHMMSS/` | `make sdr-check`: a antena de 1090 MHz no SDR, sem o satélite (abaixo) |
+| `antena/<antena>-HHMMSS/` | `./gama antenna check`: a antena de 1090 MHz no SDR, sem o satélite (abaixo) |
 
 Os logs são gravados na Pi, em `~/ttec/docs/vv/bancada/`, e chegam aqui com
 `make pi-fetch` (os alvos `make pi-bench-…` já fazem isso no fim). O
 `make pi-sync` nunca toca nesta pasta na Pi, então os logs de lá não se perdem.
 
-## Teste da antena de 1090 MHz (`make sdr-check`)
+## Teste da antena de 1090 MHz (`./gama antenna check`)
 
 Responde uma pergunta só: **a antena entrega aeronaves ao SDR?** Roda no PC ou na
-Pi, sem satélite e sem o `adsbd` (na Pi, `make pi-adsbd-stop` antes, para liberar o
-SDR). Desde 21/11, `./gama antenna check` no PC e `./gama antenna check --pi` na
-Pi, que recusa enquanto o `adsbd` segura o SDR, grava com a data do PC e traz os
-logs (`--antenna`, `--secs`, `--gain`, `--lat`/`--lon`, `--no-reference`).
+Pi, sem satélite e sem o `adsbd`: `./gama antenna check` no PC e
+`./gama antenna check --pi` na Pi, que recusa enquanto o `adsbd` segura o SDR
+(`./gama service stop adsbd` antes), grava com a data do PC e traz os logs
+(`--antenna`, `--secs`, `--gain`, `--lat`/`--lon`, `--no-reference`). Era
+`make sdr-check` até 24/11.
 
 ```bash
-make sdr-check ANTENNA=cots               # 60 s com a antena COTS
-make sdr-check ANTENNA=gama SDR_SECS=120  # a nossa, por 2 min
-make sdr-compare                          # todas as medições lado a lado
+./gama antenna check --antenna cots              # 60 s com a antena COTS
+./gama antenna check --antenna gama --secs 120   # a nossa, por 2 min
+./gama antenna compare                           # todas as medições lado a lado
 ```
 
 1. **A referência:** com internet, as aeronaves que a OpenSky vê num raio de

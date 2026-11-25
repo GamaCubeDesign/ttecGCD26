@@ -135,15 +135,15 @@ da bancada ele foi instalado em 09/10 (a versão 11.1, pelo repositório da
 FlightAware). Depois:
 
 ```bash
-make install          # ttcd, adsbd e obcd, as unidades e, se ainda não existirem, /etc/gama/*.conf
-make adsbd-enable     # sobe agora e a cada boot
-make adsbd-status     # o que o systemd diz, e o fim do log
-make adsbd-stop       # libera o SDR, por exemplo para a varredura de ganho
+./gama service install         # ttcd, adsbd e obcd, as unidades e, se ainda não existirem, /etc/gama/*.conf
+./gama service enable adsbd    # sobe agora e a cada boot
+./gama service status          # o que o systemd diz, e a última linha de cada log
+./gama service stop adsbd      # libera o SDR, por exemplo para a varredura de ganho
 ```
 
 Na bancada sem OBC, o `dump1090` só sobe com `decoder = always` em
 `/etc/gama/adsbd.conf`, ou com o `obcd` conectado ao `ttcd`
-(`make obcd-enable`, `flight/obcd/README.md`) e um
+(`./gama service enable obcd`, `flight/obcd/README.md`) e um
 `mode mission_adsb` na `gs_cli`.
 
 O serviço roda como o usuário `gama`, sem root, no grupo `plugdev` (o

@@ -170,11 +170,11 @@ ICAO no NDJSON de bordo.
 Prova a operação como na competição: os três serviços, um clique na ground,
 10 min de missão (`adsb_timeout` = 600 000 ms), o downlink final.
 
-Na Pi:
+Do PC (o `./gama` faz o ssh):
 
 ```bash
-make obcd-enable service-enable adsbd-enable
-make service-status adsbd-status obcd-status       # os três ativos; adsbd sem dump1090 (PRE_TEST)
+./gama service enable                              # os três agora e em todo boot (do PC)
+./gama service status                              # os três ativos; adsbd sem dump1090 (PRE_TEST)
 ```
 
 No PC, a ground com o processamento ADS-B, **sem pares** nesta etapa:
@@ -244,7 +244,7 @@ o de pares e a decisão combinada.
 ```bash
 make pi-fetch                                       # logs da Pi para docs/vv/bancada/
 cp ground/host/sessions/mission-XXXX/ground.jsonl docs/vv/bancada/AAAA-MM-DD/
-make service-stop adsbd-stop obcd-stop              # se a Pi não deve seguir rodando
+./gama pi stop                                     # se a Pi não deve seguir rodando
 nmcli con down bancada-ap
 ```
 

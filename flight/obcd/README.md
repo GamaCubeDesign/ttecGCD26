@@ -44,7 +44,7 @@ senha):
 ```bash
 ./gama deploy                                  # do PC (ou na Pi), pergunta antes
 # a página: aba Implantação, cartão "Plano B", armar e "Implantar pelo SSH"
-#   (make gs-web e ./gama mission passam --pi-ssh com o PI_HOST do local.mk)
+#   (./gama ground e ./gama mission passam --pi-ssh com o PI_HOST do local.mk)
 ssh pi@gamapi.local sudo /usr/local/sbin/gama-deploy   # à mão
 ```
 
@@ -137,8 +137,8 @@ para um arquivo com o formato do `w1_slave` (`flight/obcd/ds18b20.h`) e mude o
 ```bash
 make provision        # uma vez: liga o I2C1 e põe o usuário gama no grupo i2c
 make install          # ttcd, adsbd e obcd; /etc/gama/obcd.conf se ainda não existir
-make obcd-enable      # sobe agora e a cada boot
-make obcd-status
+./gama service enable obcd    # sobe agora e a cada boot
+./gama service status
 ```
 
 O serviço é `Type=notify` com `WatchdogSec=10`: o `obcd` avisa o systemd a

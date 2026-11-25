@@ -42,18 +42,27 @@ Os mesmos rodam no `make test`.
 `gs_web.py` lê as linhas JSON da ground e serve a página com o estado do satélite.
 Só biblioteca padrão (com `--adsb`, NumPy); escuta em `127.0.0.1:8080`.
 
-Pela raiz do repositório, `make gs-web` escolhe a fonte por variável:
-`ESP32_PORT=/dev/ttyUSB0` (padrão), `UDP=1` ou `REPLAY=<log.jsonl>` (com
-`SPEED=10`). `POWER`, `WEB_HOST` e `WEB_PORT` ajustam a potência da ground, o
-endereço e a porta. Equivale a:
+Pela raiz do repositório, desde 24/11 (era `make gs-web`):
 
 ```bash
-python3 gs_web.py --serial /dev/ttyUSB0 --power 2        # a ESP32 da ground
+./gama ground --power 14                  # a ESP32, achada sozinha; o PI_HOST do local.mk para o plano B
+./gama sim ground                         # gs_cli no rádio UDP
+./gama sim ground --session docs/vv/bancada/AAAA-MM-DD/x-ground.jsonl --speed 10   # sem hardware
+```
+
+Antes de subir, o `./gama` recusa se a ESP32 estiver aberta por outro
+programa ou a porta da página estiver ocupada. O processamento ADS-B vem
+ligado (`--no-adsb` desliga), e a sessão vai para `sessions/mission-*`, ou
+`sim-mission-*` e `replay-mission-*` quando não é tudo real
+(`--session-prefix`). Equivale a:
+
+```bash
+python3 gs_web.py --serial /dev/ttyUSB0 --power 2 --adsb --pi-ssh pi@gamapi.local   # a ESP32 da ground
 python3 gs_web.py --udp                                   # gs_cli no rádio UDP (build/ primeiro)
 python3 gs_web.py --replay ../../docs/vv/bancada/AAAA-MM-DD/x-ground.jsonl --speed 10   # sem hardware
 ```
 
-Abra `http://127.0.0.1:8080`. Sem a Pi, `make sim INPUT=<captura>` sobe o satélite
+Abra `http://127.0.0.1:8080`. Sem a Pi, `./gama sim mission --input <captura>` (o `make sim`) sobe o satélite
 inteiro no PC (rádio UDP, os três daemons de voo, o `sbs_replay` no lugar do SDR)
 com esta página na frente; tráfego aéreo real vem do `tools/live_traffic`.
 

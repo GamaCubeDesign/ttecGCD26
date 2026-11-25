@@ -346,9 +346,9 @@ a.to-index:hover{text-decoration:underline}
 <h2 id="pagina"><span class="n">5</span>A página e o enlace</h2>
 <ol class="steps">
   <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Subir a página da ground</b></div>
-    <div class="cmd"><code>make gs-web ESP32_PORT=/dev/ttyUSB0 POWER=14</code></div>
-    <p><code>POWER=14</code> é a potência da ground em dBm; o padrão, 2, é para ~1 m de mesa. O <code>make</code> já passa o <code>--pi-ssh</code> do <code>local.mk</code>, que liga o cartão do plano B.</p>
-    <div class="expect">"gs-web: open http://127.0.0.1:8080"</div></div></li>
+    <div class="cmd"><code>./gama ground --power 14</code></div>
+    <p><code>--power 14</code> é a potência da ground em dBm; o padrão, 2, é para ~1 m de mesa. O <code>./gama</code> acha a ESP32 sozinho, recusa se ela estiver aberta por outro programa e passa o <code>--pi-ssh</code> do <code>local.mk</code>, que liga o cartão do plano B. Na prova (24/11) a página subiu com <code>make gs-web ESP32_PORT=/dev/ttyUSB0 POWER=14</code>, que saiu no mesmo dia.</p>
+    <div class="expect">"página: http://127.0.0.1:8080"</div></div></li>
   <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>Abrir e sincronizar a hora</b></div>
     <div class="action">abrir <code>http://127.0.0.1:8080</code><span class="arr">→</span>botão <b>sincronizar hora</b></div>
     <p>SET_TIME: a Pi não tem RTC; a hora vem da ground e entra nos logs.</p>
@@ -436,7 +436,7 @@ a.to-index:hover{text-decoration:underline}
     <div class="action">painel <b>Utilitários</b><span class="arr">→</span><b>hk</b></div>
     <div class="expect">HK chegando, modo PRE_TEST</div></div></li>
   <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Fechar a página</b></div>
-    <div class="action">Ctrl-C no terminal do <code>make gs-web</code></div>
+    <div class="action">Ctrl-C no terminal do <code>./gama ground</code></div>
     <p>A sessão da ground fica em <code>ground/host/sessions/</code>.</p></div></li>
   <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Trazer os logs da Pi</b></div>
     <div class="cmd"><code>./gama pi fetch</code></div>
@@ -468,7 +468,7 @@ a.to-index:hover{text-decoration:underline}
 <details class="fix"><summary>A página diz "arm first"</summary><div class="body">
   <p>A chave desarma em 15 s. Arme de novo e clique logo em seguida.</p></div></details>
 <details class="fix"><summary>O cartão do plano B diz "Desligado"</summary><div class="body">
-  <p>A página subiu sem <code>--pi-ssh</code>. Suba pelo <code>make gs-web</code> (que lê o <code>PI_HOST</code> do <code>local.mk</code>) ou use o <code>./gama deploy</code>.</p></div></details>
+  <p>A página subiu sem <code>--pi-ssh</code>: o <code>PI_HOST</code> não está no <code>local.mk</code> (o <code>./gama ground</code> avisa). Defina-o ou use o <code>./gama deploy</code>.</p></div></details>
 <details class="fix"><summary>"o sudo da Pi pediu senha" ou "gama-deploy não está na Pi"</summary><div class="body">
   <div class="cmd"><code>./gama service install</code></div>
   <p>Instala o script e a regra do sudoers.</p></div></details>
@@ -494,7 +494,7 @@ a.to-index:hover{text-decoration:underline}
 ./gama esp32 port                   # /dev/ttyUSB0
 ./gama doctor
 ./gama service status               # os três active; obcd em PRE_TEST
-make gs-web ESP32_PORT=/dev/ttyUSB0 POWER=14     # http://127.0.0.1:8080
+./gama ground --power 14            # http://127.0.0.1:8080
 ./gama service logs obcd -f         # 2º terminal
 
 # na página

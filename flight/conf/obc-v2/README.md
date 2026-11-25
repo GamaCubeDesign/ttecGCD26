@@ -49,7 +49,7 @@ guardando cada arquivo trocado num `.bak-<hora>`:
    obcd -c /etc/gama/obcd.conf --check-config
    ```
 
-   Para ver quem responde no I²C, com o `obcd` parado (`make obcd-stop`) e
+   Para ver quem responde no I²C, com o `obcd` parado (`./gama service stop obcd`) e
    nunca durante um `ADVANCED_AOCS`, quando o barramento é do ESP32:
    `sudo apt install i2c-tools` uma vez, depois `i2cdetect -y 1` — 0x40 é o
    INA219, 0x2a o ESP32 do AOCS.
