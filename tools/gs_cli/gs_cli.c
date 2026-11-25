@@ -19,6 +19,11 @@
  * the ground sends its wall clock (SET_TIME) by itself, as operations do
  * (ADR-0009). The bench steps leave it off, so their measurements see only
  * the telecommands their scripts send.
+ *
+ * With --clock MS (milliseconds since 1970) the wall clock is another
+ * machine's, read once at start and carried on by this one's monotonic
+ * clock: ./gama ground --ssh runs gs_cli on the Pi itself, which has no RTC,
+ * and passes the operator PC's clock, so the SET_TIME it sends is the PC's.
  */
 
 #define _GNU_SOURCE
@@ -38,6 +43,7 @@
 static radio_t      R;
 static gs_console_t C;
 static bool         stdin_open = true;
+static bool         clock_given = false;   /* --clock: the console's own clock */
 
 static uint64_t mono_ms(void)
 {
@@ -55,6 +61,9 @@ static int c_power(void *c, int8_t dbm) { (void)c; return R.set_power(&R, dbm); 
 static int c_wall(void *c, uint64_t *ms)
 {
     (void)c;
+    if (clock_given) {
+        return -1;                /* the console uses the clock set by --clock */
+    }
     struct timespec w;
     clock_gettime(CLOCK_REALTIME, &w);
     *ms = (uint64_t)w.tv_sec * 1000u + (uint64_t)w.tv_nsec / 1000000u;
@@ -114,14 +123,15 @@ static void usage(void)
             "          --reset N (16) --dio0 N (26) --power DBM (2) --lbt header|preamble\n"
             "  udp:    --bind IP (127.0.0.1) --port N (47002) --peer IP --peer-port N (47001)\n"
             "  both:   --profile safe|nominal|fast (nominal)\n"
-            "          --auto-time on|off (off): SET_TIME whenever contact comes up\n");
+            "          --auto-time on|off (off): SET_TIME whenever contact comes up\n"
+            "          --clock MS: the wall clock, ms since 1970 (default: this machine's)\n");
 }
 
 int main(int argc, char **argv)
 {
     const char *radio = NULL, *spi = "/dev/spidev0.1", *chip = "/dev/gpiochip0",
                *bind_ip = "127.0.0.1", *peer = "127.0.0.1", *lbt = "header",
-               *profile_name = "nominal", *auto_time = "off";
+               *profile_name = "nominal", *auto_time = "off", *clock = NULL;
     uint32_t reset = 16, dio0 = 26;
     int power = 2, port = 47002, peer_port = 47001;
     for (int i = 1; i + 1 < argc; i += 2) {
@@ -138,6 +148,7 @@ int main(int argc, char **argv)
         else if (strcmp(k, "--peer") == 0)      { peer = v; }
         else if (strcmp(k, "--peer-port") == 0) { peer_port = atoi(v); }
         else if (strcmp(k, "--auto-time") == 0) { auto_time = v; }
+        else if (strcmp(k, "--clock") == 0)     { clock = v; }
         else if (strcmp(k, "--profile") == 0) {
             /* Anything but safe or fast has always meant nominal here. */
             profile_name = strcmp(v, "safe") == 0 || strcmp(v, "fast") == 0 ? v : "nominal";
@@ -150,6 +161,13 @@ int main(int argc, char **argv)
                              .write_line = c_write };
     gs_console_init(&C, &ops, radio);
     const char *why = "";
+    if (clock != NULL) {
+        if (gs_console_set(&C, mono_ms(), "clock", clock, &why) != 0) {
+            fprintf(stderr, "gs_cli: %s\n", why);
+            return 2;
+        }
+        clock_given = true;
+    }
     if (gs_console_set(&C, mono_ms(), "auto_time", auto_time, &why) != 0) {
         usage();
         return 2;

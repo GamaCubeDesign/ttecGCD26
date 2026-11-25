@@ -7,6 +7,7 @@ import subprocess
 import sys
 import textwrap
 import unittest
+from unittest import mock
 import urllib.error
 import urllib.request
 
@@ -331,6 +332,22 @@ class TestSources(unittest.TestCase):
         self.assertEqual(source.argv[0], gs_web.GS_CLI)
         self.assertTrue(os.path.isfile(os.path.join(gs_web.REPO, "flight", "ttcd", "link.c")))
         self.assertTrue(gs_web.GS_CLI.startswith(gs_web.REPO + os.sep))
+
+
+    def test_ssh_runs_gs_cli_on_the_pi_with_this_clock(self):
+        source, name = gs_web.build_source(gs_web.argparse.Namespace(
+            replay=None, serial=None, udp=False, exec=None, ssh="pi@test", ssh_dir="ttec"))
+        self.assertEqual(name, "ssh")
+        source.clock = lambda: 1795614460.549
+        started = []
+        with mock.patch.object(gs_web.ProcessSource, "start", lambda self, hub: started.append(self.argv)):
+            source.start(None)
+        argv = started[0]
+        self.assertEqual(argv[:2], ["ssh", "-T"])
+        self.assertIn("BatchMode=yes", argv)
+        self.assertEqual(argv[-2], "pi@test")
+        self.assertEqual(argv[-1], "cd ttec && { pkill -x gs_cli && sleep 0.5; true; } && exec "
+                                   "build/tools/gs_cli/gs_cli --radio udp --auto-time on --clock 1795614460549")
 
 
 class TestServer(unittest.TestCase):

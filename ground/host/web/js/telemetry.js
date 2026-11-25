@@ -51,9 +51,12 @@ export function renderBar(state) {
 
   const banner = $('banner');
   if (st && st.source === 'replay') { banner.className = 'banner show demo'; banner.textContent = t('demo'); }
+  else if (st && st.source === 'ssh' && !st.error) { banner.className = 'banner show demo'; banner.textContent = t('ssh_link'); }
   else if (st && st.error) { banner.className = 'banner show'; banner.textContent = st.error; }
   else if (st && st.adsb && st.adsb.error) { banner.className = 'banner show'; banner.textContent = 'ADS-B: ' + st.adsb.error; }
   else { banner.className = 'banner'; }
-  const g = st && st.ground && st.ground.radio ? st.ground.radio + ' · ' + (st.ground.profile || '') : (st ? st.source : '');
+  // Over ssh gs_cli says "udp": the page names the link the operator has.
+  const radio = st && st.source === 'ssh' ? 'ssh' : st && st.ground && st.ground.radio;
+  const g = st && st.ground && st.ground.radio ? radio + ' · ' + (st.ground.profile || '') : (st ? st.source : '');
   $('source').textContent = g || '';
 }

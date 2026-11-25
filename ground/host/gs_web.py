@@ -8,6 +8,7 @@ commands one types in the console.
 
     gs_web.py --serial /dev/ttyUSB0 [--power 2]     the ESP32 ground station
     gs_web.py --udp                                 gs_cli on the UDP radio
+    gs_web.py --ssh pi@gamapi.local                 the satellite over ssh, no LoRa
     gs_web.py --replay docs/vv/bancada/.../x.jsonl  a recorded log, no hardware
     gs_web.py --exec CMD ARGS...                    any program printing the lines
 
@@ -50,6 +51,14 @@ MAPDETAIL_PATH = os.path.join(HERE, "adsb", "data", "mapa", "mapa.json")
 REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
 # The bench ground on the UDP radio, as the top-level build makes it.
 GS_CLI = os.path.join(REPO, "build", "tools", "gs_cli", "gs_cli")
+# The link when the LoRa fails (25/11, ./gama ground --ssh): ttcd on the UDP
+# radio on the Pi's loopback (./gama service link ssh) and gs_cli, the ground
+# console, on the Pi too, so only its lines and commands cross the network,
+# inside ssh. The frames, the ACKs and the page are those of the radio link.
+# gs_cli carries this machine's clock (--clock): the SET_TIME it sends on
+# contact is the PC's, not the RTC-less Pi's (ADR-0009). A gs_cli left behind
+# by a dropped ssh would hold the UDP port, so any is stopped first.
+SSH_GS_CLI = "build/tools/gs_cli/gs_cli"
 
 # What the satellite reports for "no data" (common/gama_tc.h).
 NO_DATA = {"battery_mv": 65535, "current_ma": -32768, "temp_bat_ccel": -32768,
@@ -533,6 +542,13 @@ class Hub:
             self.deploying.release()
 
 
+def ssh_ground_argv(host, directory, clock_ms):
+    remote = (f"cd {directory} && {{ pkill -x gs_cli && sleep 0.5; true; }} && "
+              f"exec {SSH_GS_CLI} --radio udp --auto-time on --clock {clock_ms}")
+    return ["ssh", "-T", "-o", "BatchMode=yes", "-o", "ConnectTimeout=6",
+            "-o", "ServerAliveInterval=5", "-o", "ServerAliveCountMax=3", host, remote]
+
+
 class ProcessSource:
     """A program printing the ground's JSON lines and reading its commands."""
 
@@ -758,6 +774,18 @@ def make_handler(hub):
     return Handler
 
 
+class SshSource(ProcessSource):
+    """gs_cli on the Pi over ssh; the clock is read when it starts."""
+
+    def __init__(self, host, directory, clock=time.time):
+        super().__init__(None)
+        self.host, self.directory, self.clock = host, directory, clock
+
+    def start(self, hub):
+        self.argv = ssh_ground_argv(self.host, self.directory, int(self.clock() * 1000))
+        super().start(hub)
+
+
 def build_source(args):
     if args.replay:
         return ReplaySource(args.replay, args.speed, args.loop), "replay"
@@ -769,6 +797,8 @@ def build_source(args):
         return ProcessSource(argv), "serial"
     if args.udp:
         return ProcessSource([GS_CLI, "--radio", "udp"]), "udp"
+    if getattr(args, "ssh", None):
+        return SshSource(args.ssh, args.ssh_dir), "ssh"
     return ProcessSource(args.exec), "exec"
 
 
@@ -778,8 +808,12 @@ def main(argv=None):
     src.add_argument("--serial", metavar="PORT", help="the ESP32 ground station, e.g. /dev/ttyUSB0")
     src.add_argument("--udp", action="store_true", help="gs_cli on the UDP radio (build/ first)")
     src.add_argument("--replay", metavar="FILE", help="a recorded ground log (.jsonl)")
+    src.add_argument("--ssh", metavar="HOST",
+                     help="the satellite over ssh, no LoRa: gs_cli on the Pi's UDP radio "
+                          "(ttcd with radio=udp: ./gama service link ssh)")
     src.add_argument("--exec", nargs=argparse.REMAINDER, help="any program printing the lines")
     ap.add_argument("--power", type=int, help="ground power, dBm (with --serial)")
+    ap.add_argument("--ssh-dir", default="ttec", help="the repository on the Pi, from its home (with --ssh)")
     ap.add_argument("--speed", type=float, default=1.0, help="replay speed")
     ap.add_argument("--loop", action="store_true", help="replay again at the end")
     ap.add_argument("--host", default="127.0.0.1")
