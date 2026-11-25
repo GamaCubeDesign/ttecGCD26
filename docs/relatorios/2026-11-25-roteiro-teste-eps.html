@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — Roteiro do teste da EPS (25/11/2026)</title>
+<link rel="icon" href="assets/favicon.png">
+<style>
+@font-face{
+  font-family:"Open Sans"; src:url("assets/OpenSans.woff2") format("woff2");
+  font-weight:300 800; font-style:normal; font-display:swap;
+}
+:root{
+  /* Gama Cube Design (identidade_visual_gama.pdf; the same tokens as
+   * ground/host/web/css/gama.css): black, British Racing Green #034a2c and
+   * white; Forest Green, Yellow Orange and Terra Cotta for ok, warning and
+   * failure, in darker shades for text on a light background. */
+  --brand:#034a2c; --brand-band:#000000;
+  --bg:#f3f5f4; --surface:#ffffff; --surface-2:#eaefec; --fg:#111312; --muted:#56605b;
+  --line:#d0d6d3; --line-strong:#7f8a84; --accent:#034a2c; --accent-soft:#e3eee8;
+  --ok:#2f6b3a; --ok-soft:#e6f1e7; --warn:#8a5300; --warn-soft:#fbf0df;
+  --todo:#56605b; --todo-soft:#eceeed; --bad:#a8321f; --bad-soft:#fbe7e3;
+  --code-bg:#eef1ef; --node:#ffffff; --node-hw:#eef1ef; --node-ext:#e3eee8;
+  --sans:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0a0c0b; --surface:#121614; --surface-2:#19201c; --fg:#f2f5f3; --muted:#9aa7a0;
+    --line:#26302b; --line-strong:#6f7c75; --accent:#8cc391; --accent-soft:#10251a;
+    --ok:#8cc391; --ok-soft:#15301f; --warn:#f3b866; --warn-soft:#33280e;
+    --todo:#a8b0ac; --todo-soft:#222826; --bad:#ef8d80; --bad-soft:#3a1b19;
+    --code-bg:#19201c; --node:#121614; --node-hw:#19201c; --node-ext:#10251a;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+
+svg.diagram .lost{fill:var(--bad-soft);stroke:var(--bad);stroke-width:2}
+svg.diagram .new{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2;stroke-dasharray:5 4}
+svg.diagram .edge.ok{stroke:var(--ok);stroke-width:2}
+svg.diagram .ah-ok{fill:var(--ok)}
+svg.diagram .t-bad{font-size:12px;fill:var(--bad);font-weight:600}
+svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
+.bytes .fl{background:var(--warn-soft)}
+
+/* Gama: the band on top, as on the ground's page; ExtraBold titles. */
+.brand-bar{background:var(--brand-band);border-bottom:3px solid var(--brand);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:8px 20px;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.brand-bar img{width:28px;height:28px;display:block}
+.brand-bar b{font-weight:800;letter-spacing:.04em}
+.brand-bar span{opacity:.75}
+h1,h2{font-weight:800}
+.eyebrow{color:var(--accent);font-weight:700}
+@media print{.brand-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+/* Back to the index: in the brand bar, and floating, so it is one tap away anywhere in the report. */
+.brand-bar a.home{margin-left:auto;white-space:nowrap;color:#fff;text-decoration:none;font-weight:600;opacity:.9}
+.brand-bar a.home:hover{opacity:1;text-decoration:underline}
+a.to-index{position:fixed;right:16px;bottom:16px;z-index:10;display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:999px;background:var(--accent);color:var(--bg);font-size:14px;font-weight:600;
+  text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+a.to-index:hover{text-decoration:underline}
+@media print{a.to-index,.brand-bar a.home{display:none}}
+</style>
+
+<style>
+/* Steps as cards: the command on a line of its own, full width, so it never
+ * wraps inside a narrow column; what it does below; what to expect last. */
+.where{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:4px;white-space:nowrap;vertical-align:middle}
+.w-pc{color:var(--accent);background:var(--accent-soft)}
+.w-pi{color:var(--warn);background:var(--warn-soft)}
+.w-web{color:var(--ok);background:var(--ok-soft)}
+.w-gs{color:var(--todo);background:var(--todo-soft)}
+.w-hand{color:var(--bad);background:var(--bad-soft)}
+.steps{counter-reset:st;margin:0 0 22px;padding:0;list-style:none;position:relative}
+.steps>li{counter-increment:st;position:relative;padding:0 0 18px 50px;margin:0}
+.steps>li::before{content:counter(st);position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;
+  background:var(--brand);color:#fff;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center}
+.steps>li:not(:last-child)::after{content:"";position:absolute;left:16px;top:38px;bottom:4px;width:2px;background:var(--line)}
+.steps.start-1>li{counter-increment:st}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px 12px}
+.step.opt{border-style:dashed}
+.step.danger{border-color:var(--bad);box-shadow:inset 4px 0 0 var(--bad)}
+.step-h{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.step-h b{font-size:16px}
+.step-h .tag-opt{font-size:12px;color:var(--muted);font-style:italic}
+.cmd{display:flex;align-items:stretch;gap:0;margin:0 0 8px;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--code-bg)}
+.cmd code{flex:1;display:block;background:none;padding:9px 12px;font-size:14px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.cmd button{font:inherit;font-size:12px;border:0;border-left:1px solid var(--line);background:transparent;color:var(--muted);padding:0 12px;cursor:pointer}
+.cmd button:hover{color:var(--accent)}
+.action{margin:0 0 8px;padding:9px 12px;border-radius:7px;background:var(--code-bg);border:1px solid var(--line);font-weight:600}
+.action .arr{color:var(--muted);font-weight:400;margin:0 6px}
+.step p{margin:0 0 6px;font-size:15px}
+.expect{display:flex;gap:8px;align-items:baseline;font-size:14.5px;margin:6px 0 0;padding-top:8px;border-top:1px dashed var(--line)}
+.expect::before{content:"✓ espere";flex:none;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ok)}
+.phase{display:flex;align-items:baseline;gap:12px;margin:34px 0 6px}
+.phase .k{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 16px;font-size:14px}
+.flow span{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 10px}
+.flow i{color:var(--muted);font-style:normal}
+.paths{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 16px}
+@media (max-width:700px){.paths{grid-template-columns:1fr}}
+.path{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.path h3{margin:0 0 4px;font-size:17px}
+.path .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.log{margin:6px 0 0}
+.log div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:7px 10px;border:1px solid var(--line);border-top:0;background:var(--surface);font-size:13.5px}
+.log div:first-child{border-top:1px solid var(--line);border-radius:7px 7px 0 0}
+.log div:last-child{border-radius:0 0 7px 7px}
+.log code{background:none;padding:0;font-size:12.5px;overflow-wrap:anywhere}
+.log small{color:var(--muted);white-space:nowrap}
+.fix{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 8px}
+.fix>summary{cursor:pointer;padding:11px 16px;font-weight:600;list-style:none}
+.fix>summary::-webkit-details-marker{display:none}
+.fix>summary::before{content:"▸ ";color:var(--muted)}
+.fix[open]>summary::before{content:"▾ "}
+.fix .body{padding:0 16px 12px}
+.fix .body p{margin:0 0 8px}
+.results{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;margin:8px 0 0;font-size:14.5px}
+.results dt{font-family:var(--mono);font-size:13px;font-weight:700}
+.results dd{margin:0}
+@media print{.cmd button{display:none}}
+</style>
+<style>
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 16px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.calc label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.calc input{font:inherit;font-size:15px;padding:6px 8px;border:1px solid var(--line-strong);border-radius:6px;background:var(--code-bg);color:var(--fg);min-width:0}
+.calc .out{display:flex;flex-direction:column;gap:2px;padding:6px 10px;border-radius:7px;background:var(--accent-soft)}
+.calc .out span{font-size:12px;color:var(--muted)}
+.calc .out b{font-size:18px;font-variant-numeric:tabular-nums}
+table.sheet td{height:30px}
+</style>
+</head>
+<body>
+<div class="brand-bar"><img src="assets/favicon.png" alt=""><b>Gama Cube Design</b><span>CubeDesign 2026 · TT&amp;C</span><a class="home" href="index.html">← Relatórios</a></div>
+<a class="to-index" href="index.html" aria-label="Voltar ao índice dos relatórios">← Índice</a>
+<div class="layout">
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">O teste e o que dá para medir</a></li>
+    <li><a href="#material">Material</a></li>
+    <li><a href="#antes">Antes do dia</a></li>
+    <li><a href="#ina">Parte A · validar o INA219</a></li>
+    <li><a href="#calibrar">Parte B · calibrar a estimativa</a></li>
+    <li><a href="#solar">Parte C · a carga pelos painéis</a></li>
+    <li><a href="#calc">A conta da carga</a></li>
+    <li><a href="#depois">Depois do teste</a></li>
+    <li><a href="#problemas">Se algo der errado</a></li>
+    <li><a href="#riscos">Riscos conhecidos</a></li>
+    <li><a href="#cola">A cola</a></li>
+  </ol>
+</nav>
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · TT&amp;C · testes da prova · REG-09</p>
+  <h1>Roteiro do teste da EPS</h1>
+  <p class="lede">O INA219 conferido contra o multímetro e a fonte de bancada, a estimativa de carga da ground calibrada, e a bateria carregando pelos painéis solares sob uma lâmpada, com o que a telemetria mostra e o que só o multímetro mede. Cada passo diz onde roda e o que esperar antes de seguir.</p>
+  <div class="meta"><span><b>Data:</b> 25/11/2026</span><span><b>Estado:</b> roteiro; o INA219 novo lê, mas nada disto rodou no satélite montado</span><span><b>Requisitos:</b> REG-09 (HLR-EPS-02), HLR-EPS-04</span><span><b>Registro formal:</b> <a href="../adr/0024-ground-battery-charge-estimate.md">ADR-0024</a></span></div>
+</header>
+
+<h2 id="resumo"><span class="n">1</span>O teste e o que dá para medir</h2>
+<blockquote class="callout"><p><i>"Battery charging using a light source: current and voltage will be evaluated. [0/1 point – TBC]."</i> — REG-09</p></blockquote>
+<div class="tiles">
+  <div class="tile"><div class="v">0 mA</div><div class="l">da corrente dos painéis que o INA219 vê: ele fica depois do D1 e mede só o consumo do satélite (achado A9)</div></div>
+  <div class="tile"><div class="v">~0,3 V</div><div class="l">abaixo da bateria: a queda no D1 (1N5822) entre o P+ da BMS e o INA219</div></div>
+  <div class="tile"><div class="v">10 s</div><div class="l">entre dois HK em NOMINAL; o <code>obcd</code> lê o INA219 a cada 1 s e registra uma linha <code>status</code> por minuto</div></div>
+</div>
+<div class="callout warn"><p><b>O INA219 não mede a carga dos painéis.</b> Pelo esquemático da EPS (<code>hardware/eps-potencia</code>), os painéis entram no J3, passam pelo boost U2 (TPS61088) e pelo diodo D3 e chegam ao P+ da bateria. O INA219 está do outro lado do D1, no caminho que alimenta o satélite. Ele mede a <b>tensão</b> (a da bateria menos o D1) e a <b>corrente de consumo</b>. A corrente que entra na bateria é a do boost menos a do consumo, e a do boost só um multímetro no J3 dá. A ground também a estima pela subida da tensão (ADR-0024), e o teste serve para comparar as duas.</p></div>
+
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 960 360" role="img" aria-label="Caminho da energia na EPS e no OBC, com os pontos de medida">
+  <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker></defs>
+  <rect class="zone" x="8" y="8" width="664" height="336" rx="10"/><text class="zone-label" x="22" y="28">EPS · eps-potencia</text>
+  <rect class="zone" x="688" y="8" width="264" height="336" rx="10"/><text class="zone-label" x="702" y="28">OBC · obc-v2</text>
+
+  <rect class="box hw" x="24" y="48" width="150" height="52" rx="7"/><text class="t-b" x="99" y="71" text-anchor="middle">painéis solares</text><text class="t-s" x="99" y="89" text-anchor="middle">conector J3</text>
+  <rect class="box hw" x="250" y="48" width="150" height="52" rx="7"/><text class="t-b" x="325" y="71" text-anchor="middle">boost U2</text><text class="t-s" x="325" y="89" text-anchor="middle">TPS61088</text>
+  <rect class="box" x="470" y="48" width="70" height="52" rx="7"/><text class="t-b" x="505" y="79" text-anchor="middle">D3</text>
+  <path class="edge" d="M174 74H246" marker-end="url(#ah)"/>
+  <path class="edge" d="M400 74H466" marker-end="url(#ah)"/>
+  <path class="edge" d="M540 74H580V184" marker-end="url(#ah)"/>
+
+  <rect class="box hw" x="24" y="166" width="170" height="52" rx="7"/><text class="t-b" x="109" y="189" text-anchor="middle">células 2S + BMS</text><text class="t-s" x="109" y="207" text-anchor="middle">NCR18650B · HX-2S</text>
+  <circle cx="580" cy="192" r="6" fill="var(--fg)"/><text class="t-b" x="560" y="182" text-anchor="end">P+</text>
+  <path class="edge" d="M194 192H574"/><text class="t-s" x="384" y="212" text-anchor="middle">I_bateria: entra com a luz, sai no escuro</text>
+  <rect class="box" x="604" y="166" width="56" height="52" rx="7"/><text class="t-b" x="632" y="197" text-anchor="middle">D1</text>
+  <path class="edge" d="M586 192H600" marker-end="url(#ah)"/>
+
+  <rect class="box" x="604" y="268" width="56" height="52" rx="7"/><text class="t-b" x="632" y="291" text-anchor="middle">D2</text><text class="t-s" x="632" y="309" text-anchor="middle">J2</text>
+  <text class="t-s" x="590" y="300" text-anchor="end">fonte externa →</text>
+  <path class="edge" d="M660 294H676V200"/>
+  <path class="edge" d="M660 192H700" marker-end="url(#ah)"/>
+  <text class="t-s" x="706" y="240">SW1 → J1.38</text>
+
+  <rect class="box done" x="704" y="166" width="230" height="52" rx="7"/><text class="t-b" x="819" y="189" text-anchor="middle">INA219 + shunt</text><text class="t-s" x="819" y="207" text-anchor="middle">battery_mv, current_ma</text>
+  <path class="edge" d="M819 218V264" marker-end="url(#ah)"/><text class="t-s" x="852" y="246">J1.33</text>
+  <rect class="box hw" x="704" y="268" width="230" height="52" rx="7"/><text class="t-b" x="819" y="291" text-anchor="middle">conversores 5 / 3,3 / 12 V</text><text class="t-s" x="819" y="309" text-anchor="middle">Pi, rádio, SDR, aquecedores</text>
+
+  <g font-weight="700">
+    <circle cx="212" cy="74" r="13" fill="var(--brand)" stroke="var(--accent)" stroke-width="1.5"/><text x="212" y="78" text-anchor="middle" style="fill:#fff;font-size:11px">M1</text>
+    <circle cx="434" cy="74" r="13" fill="var(--brand)" stroke="var(--accent)" stroke-width="1.5"/><text x="434" y="78" text-anchor="middle" style="fill:#fff;font-size:11px">M2</text>
+    <circle cx="580" cy="146" r="13" fill="var(--brand)" stroke="var(--accent)" stroke-width="1.5"/><text x="580" y="150" text-anchor="middle" style="fill:#fff;font-size:11px">M3</text>
+    <circle cx="690" cy="166" r="13" fill="var(--brand)" stroke="var(--accent)" stroke-width="1.5"/><text x="690" y="170" text-anchor="middle" style="fill:#fff;font-size:11px">M4</text>
+    <circle cx="836" cy="242" r="13" fill="var(--brand)" stroke="var(--accent)" stroke-width="1.5"/><text x="836" y="246" text-anchor="middle" style="fill:#fff;font-size:11px">M5</text>
+  </g>
+</svg></div>
+<figcaption>O caminho da energia, tirado do netlist de <code>hardware/eps-potencia</code> e <code>hardware/obc-v2</code>. Com luz, o boost alimenta o P+, e o P+ alimenta ao mesmo tempo a bateria e o satélite. O INA219 vê só o ramo da direita. M1 a M5 são os pontos do multímetro (tabela abaixo).</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+  <thead><tr><th>Ponto</th><th>Onde, no hardware</th><th>O que medir</th><th>Para quê</th></tr></thead>
+  <tbody>
+    <tr><td><b>M1</b></td><td>conector J3 da EPS, os fios dos painéis</td><td>V dos painéis; I dos painéis com o amperímetro <b>em série</b></td><td>a potência que entra: P = V × I</td></tr>
+    <tr><td><b>M2</b></td><td>anodo do D3 (saída do boost)</td><td>V, com a luz ligada</td><td>se o boost passa do P+; se não passar, nada carrega</td></tr>
+    <tr><td><b>M3</b></td><td>anodo do D1 = P+ da BMS</td><td>V</td><td>a tensão real da bateria; nunca acima de 8,40 V</td></tr>
+    <tr><td><b>M4</b></td><td>VIN+ do módulo INA219 na placa do OBC (J1.38, 8V Bruto)</td><td>V</td><td>M3 − M4 é a queda no D1 e no SW1</td></tr>
+    <tr><td><b>M5</b></td><td>VIN− do módulo INA219 (J1.33)</td><td>V</td><td>é o que o INA219 informa: compare com <code>battery_mv</code>; M4 − M5 é a queda no shunt</td></tr>
+  </tbody>
+</table></div>
+<p class="small">Onde roda cada passo: <span class="where w-pc">PC</span> terminal do PC, na raiz do repositório · <span class="where w-pi">Pi</span> roda do PC; o <code>./gama</code> faz o ssh · <span class="where w-web">página</span> o navegador · <span class="where w-hand">à mão</span> no hardware, com o multímetro. Os passos tracejados são opcionais.</p>
+
+<h2 id="material"><span class="n">2</span>Material</h2>
+<ul>
+  <li><b>Dois multímetros</b>, se houver: um como voltímetro, outro como amperímetro em série no J3. Com um só, meça a corrente primeiro e a tensão depois, a cada leitura.</li>
+  <li><b>Fonte de bancada</b> com limite de corrente, para a parte A (no J2, a entrada externa).</li>
+  <li><b>A lâmpada</b>: a da prova, se a organização disser qual é; se não, uma halógena ou LED forte. Anote o tipo, a potência e a distância aos painéis.</li>
+  <li>Pontas finas ou garras para os pontos M3 a M5; fita para prender o amperímetro.</li>
+  <li>Um relógio à vista (a página mostra a idade do HK) e esta página aberta para a tabela da seção 7.</li>
+</ul>
+<div class="callout"><p><b>Perguntar à equipe da EPS antes do dia:</b> (1) a tensão de saída do boost U2, ajustada no módulo: ela precisa ficar entre a tensão da bateria e 8,4 V; (2) como os dois painéis se ligam no J3, em série ou em paralelo; (3) a eficiência esperada do boost nesse ponto (a conta da seção 7 usa 0,88 se não houver outra).</p></div>
+
+<h2 id="antes"><span class="n">3</span>Antes do dia</h2>
+<p>O mesmo começo do <a href="2026-11-24-roteiro-teste-mecanismos.html">roteiro de mecanismos</a> (seções 2 a 5): rede, placa conferida, serviços no boot, ESP32. Resumido:</p>
+<ol class="steps">
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><span class="where w-pi">Pi</span><b>Rede, placa e serviços</b></div>
+    <div class="cmd"><code>./gama net up &amp;&amp; ./gama board check &amp;&amp; ./gama service status</code></div>
+    <p><code>board check</code> confere <code>ina219_addr = 0x40</code> e <code>ina219_shunt_mohm</code> em <code>/etc/gama/obcd.conf</code>.</p>
+    <div class="expect">tudo <code>[OK]</code>; <code>ttcd</code>, <code>obcd</code> e <code>adsbd</code> active</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>A página com a ESP32</b></div>
+    <div class="cmd"><code>./gama ground --power 14</code></div>
+    <p>Abra <code>http://127.0.0.1:8080</code>, <b>sincronizar hora</b>, e vá para a aba <b>OBC</b>. A partir da parte B, a página sobe de novo com a calibração medida.</p>
+    <div class="expect">HK chegando a cada 10 s; cartões Bateria e Carga da bateria preenchidos</div></div></li>
+</ol>
+
+<h2 id="ina"><span class="n">4</span>Parte A · validar o INA219</h2>
+<p>Com o satélite montado e na bateria. Cada passo confirma um elo: o chip no barramento, o <code>obcd</code> lendo, o HK chegando e, por fim, os números contra o multímetro e a fonte.</p>
+<ol class="steps">
+  <li><div class="step"><div class="step-h"><span class="where w-pi">Pi</span><b>O INA219 responde no I²C</b></div>
+    <div class="cmd"><code>ssh pi@gamapi.local 'python3 /tmp/i2cscan.py'</code></div>
+    <p>Só leitura. O script está na seção 6 do <a href="2026-11-24-sensores-obc.html">relatório dos sensores</a>; recrie-o em <code>/tmp</code> se a Pi reiniciou.</p>
+    <div class="expect"><code>respondem: ['0x40']</code> e <code>barramento: ~7xxx mV</code></div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pi">Pi</span><b>O <code>obcd</code> lê o INA219</b></div>
+    <div class="cmd"><code>./gama service logs obcd -n 200 | grep '"status"' | tail -3</code></div>
+    <p>Uma linha por minuto. <code>power_failures</code> é acumulado: o que importa é ele não subir entre duas linhas.</p>
+    <div class="expect"><code>battery_mv</code> entre 6000 e 8400, <code>current_ma</code> positivo, <code>power_failures</code> parado</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>O mesmo pelo HK</b></div>
+    <div class="action">aba OBC <span class="arr">→</span> cartão Bateria</div>
+    <p>A tensão e a corrente da página devem bater com a última linha <code>status</code>, dentro do que muda em um minuto.</p>
+    <div class="expect">tensão e corrente na página; potência = V × I</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-hand">à mão</span><b>Tensão: M5 contra <code>battery_mv</code></b></div>
+    <p>Voltímetro entre M5 (VIN− do INA219) e o GND. Leia junto com o próximo HK (botão <b>hk</b> no painel Utilitários, para não esperar).</p>
+    <div class="expect">diferença ≤ 50 mV (o INA219 tem 4 mV por passo e ±0,5 % de ganho)</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-hand">à mão</span><b>Shunt: M4 − M5</b></div>
+    <p>A queda no shunt de 100 mΩ do módulo é <code>current_ma × 0,1</code> mV: 500 mA dá 50 mV. Uma diferença grande aqui significa outro valor de shunt no módulo novo; leia o resistor (R100 = 0,1 Ω).</p>
+    <div class="expect">M4 − M5 ≈ <code>current_ma</code> / 10, em mV</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-hand">à mão</span><b>A queda no D1: M3 − M4</b></div>
+    <p>Com o satélite em PRE_TEST (consumo baixo e estável). Anote: este é o <code>--battery-diode-v</code> da parte B.</p>
+    <div class="expect">0,2 a 0,4 V</div></div></li>
+  <li><div class="step opt"><div class="step-h"><span class="where w-hand">à mão</span><b>Corrente contra a fonte de bancada</b><span class="tag-opt">a única referência de corrente sem abrir nada</span></div>
+    <p>Fonte em <b>8,40 V</b>, limite de <b>1,5 A</b>, no J2. Com ela acima do P+, o D1 fica cortado e todo o consumo sai da fonte: o mostrador da fonte e o <code>current_ma</code> medem a mesma corrente. Faça a leitura em PRE_TEST e depois em <code>MISSION_ADSB</code> (o SDR liga, ~200 mA a mais).</p>
+    <div class="expect">as duas correntes a ±3 %. Se não: <code>ina219_shunt_mohm</code> novo = 100 × <code>current_ma</code> / I da fonte</div></div></li>
+</ol>
+<details class="fix"><summary>A corrente diferiu mais de 3 % da fonte: mudar o shunt na configuração</summary><div class="body">
+  <p>A calibração é da placa, não do software. Edite <code>ina219_shunt_mohm</code> em <code>flight/conf/obc-v2/obcd.conf</code>, instale e reinicie o <code>obcd</code>, e refaça o passo 7:</p>
+  <div class="cmd"><code>./gama board install &amp;&amp; ./gama service restart obcd</code></div>
+  <p>Commit do <code>.conf</code> com a medida no texto, e uma linha em <code>docs/vv/bancada/&lt;data&gt;/notas.md</code>.</p></div></details>
+
+<h2 id="calibrar"><span class="n">5</span>Parte B · calibrar a estimativa</h2>
+<p>A estimativa da ground (ADR-0024) precisa de dois números da placa: a queda no D1 (passo 6 acima) e a resistência R das células até o INA219, que a página mede sozinha nos degraus de consumo. <b>Fonte de bancada desligada</b> daqui em diante: tudo na bateria.</p>
+<ol class="steps">
+  <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>Degraus de consumo, duas vezes</b></div>
+    <div class="action">aba ADS-B <span class="arr">→</span> Iniciar missão ADS-B <span class="arr">→</span> 1 min <span class="arr">→</span> Encerrar agora (downlink) <span class="arr">→</span> aba Operação: PRE_TEST (<code>task_done</code>)</div>
+    <p>O SDR ligando e desligando dá um degrau de ~200 mA, acima dos 100 mA que a página exige para medir R. A página precisa de 3 degraus para mostrar R; dois ciclos dão 4.</p>
+    <div class="expect">aba OBC, Estado do OBC: <b>R usado / medido</b> com o segundo número preenchido</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Subir a página de novo, calibrada</b></div>
+    <div class="cmd"><code>./gama ground --power 14 --battery-r-ohm &lt;R medido&gt; --battery-diode-v &lt;M3 − M4&gt;</code></div>
+    <p>Ctrl-C na página anterior antes. A estimativa recomeça da tensão.</p>
+    <div class="expect">aba OBC: <b>Queda no D1</b> e <b>R usado</b> com os valores passados; o percentual não muda mais com as trocas de modo</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-hand">à mão</span><b>Conferir o percentual pela tensão real</b></div>
+    <p>Com o satélite em PRE_TEST há 2 min, M3 ÷ 2 é a tensão de uma célula. Pela curva da NCR18650B: 3,70 V ≈ 40 %, 3,85 V ≈ 60 %, 4,02 V ≈ 80 %.</p>
+    <div class="expect">o "Carga" da página a poucos % do que M3 indica</div></div></li>
+</ol>
+
+<h2 id="solar"><span class="n">6</span>Parte C · a carga pelos painéis</h2>
+<div class="callout warn"><p><b>Antes de ligar a luz:</b> a bateria abaixo de 8,2 V (M3). A carga não passa por um carregador CC/CV, só pelo boost e pela proteção da BMS. Alguém olha M3 o tempo todo; acima de <b>8,40 V</b>, luz desligada.</p></div>
+<ol class="steps">
+  <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>5 min no escuro</b></div>
+    <p>A linha de base: o consumo e a descarga sem luz. Lâmpada apagada, painéis cobertos.</p>
+    <div class="expect">Estado <b>descarregando</b>; Tendência negativa (~ −15 %/h a 500 mA); Autonomia em horas</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-hand">à mão</span><b>O amperímetro no J3</b></div>
+    <p>Desligue um fio dos painéis no J3 e ponha o amperímetro em série: ponta na <b>entrada de 10 A</b>, nunca na de mA. O voltímetro em paralelo com o J3.</p>
+    <div class="expect">0 A e ~0 V no escuro</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-hand">à mão</span><b>Luz ligada</b></div>
+    <p>Lâmpada a uma distância fixa, de frente para os painéis. Anote a hora.</p>
+    <div class="expect">M1: corrente e tensão; M2 maior que M3 (o boost passa do P+); M3 subindo devagar</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>A ground vê a carga</b></div>
+    <p>A luz liga com o consumo parado: a tensão salta e o próximo HK já mostra <b>carregando</b>. A tendência e a corrente de recarga precisam de 2 min de dados.</p>
+    <div class="expect">Estado <b>carregando</b>; depois de 2 min, Tendência positiva, <b>Cheia em</b> e <b>Recarga (estimada)</b></div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-hand">à mão</span><b>Uma linha por minuto, por 10 min</b></div>
+    <p>Na tabela da seção 7: V e I do J3, M3, e da página a tensão, a corrente, a Carga e a Recarga (estimada). Não mude o modo nem a lâmpada nesse tempo: um degrau de consumo reinicia a tendência.</p>
+    <div class="expect">a "Corrente na bateria" da conta perto da "pela página"</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-hand">à mão</span><b>Luz apagada</b></div>
+    <div class="expect">Estado volta a <b>descarregando</b> no próximo HK; a Carga ficou acima da linha de base</div></div></li>
+  <li><div class="step opt"><div class="step-h"><span class="where w-hand">à mão</span><b>Outra distância ou ângulo</b><span class="tag-opt">se houver tempo</span></div>
+    <p>Repita os passos 3 a 6 com a lâmpada mais perto ou inclinada: mostra a carga variando com a luz, que é o que a regra avalia.</p></div></li>
+</ol>
+
+<h2 id="calc"><span class="n">7</span>A conta da carga</h2>
+<p>O boost entrega ao P+ a potência dos painéis vezes a sua eficiência. Do que ele entrega, o satélite leva o que o INA219 mede; o resto entra na bateria:</p>
+<pre><code>I_boost   = η × V_J3 × I_J3 / V_P+          (η ≈ 0,88: pergunte à EPS)
+I_bateria = I_boost − current_ma            (positivo: carregando)
+pela página: Recarga (estimada) ≈ I_boost   (pela subida da tensão, ADR-0024)</code></pre>
+<div class="calc" id="calc-box">
+  <label>V no J3 (V)<input id="c-v" type="number" step="0.01" value="6.0"></label>
+  <label>I no J3 (mA)<input id="c-i" type="number" step="1" value="800"></label>
+  <label>M3, V no P+ (V)<input id="c-p" type="number" step="0.01" value="7.6"></label>
+  <label>current_ma do HK<input id="c-l" type="number" step="1" value="450"></label>
+  <label>η do boost<input id="c-e" type="number" step="0.01" value="0.88"></label>
+  <div class="out"><span>Potência dos painéis</span><b id="o-p">—</b></div>
+  <div class="out"><span>I_boost</span><b id="o-b">—</b></div>
+  <div class="out"><span>Corrente na bateria</span><b id="o-n">—</b></div>
+  <div class="out"><span>Carga por hora (3200 mAh)</span><b id="o-h">—</b></div>
+</div>
+<div class="table-wrap"><table class="sheet">
+  <thead><tr><th>min</th><th>V_J3</th><th>I_J3 (mA)</th><th>M3 (V)</th><th>battery_mv</th><th>current_ma</th><th>Carga %</th><th>Recarga est. (mA)</th><th>I_boost pela conta</th></tr></thead>
+  <tbody>
+    <tr><td>0 (escuro)</td><td></td><td></td><td></td><td></td><td></td><td></td><td>—</td><td>—</td></tr>
+    <tr><td>1</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>2</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>3</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>4</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>5</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>6</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>7</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>8</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>9</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>10</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <tr><td>apagou</td><td></td><td></td><td></td><td></td><td></td><td></td><td>—</td><td>—</td></tr>
+  </tbody>
+</table></div>
+<p class="small">A tabela é para imprimir ou copiar para o <code>notas.md</code> do dia. A estimativa da página erra mais nos primeiros 2 min depois de ligar a luz e quando a bateria passa de ~4,1 V por célula, onde a tensão para de subir mas a carga continua (ADR-0024, consequências).</p>
+
+<h2 id="depois"><span class="n">8</span>Depois do teste</h2>
+<ol class="steps">
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Fechar a página e trazer os logs</b></div>
+    <div class="cmd"><code>./gama pi fetch</code></div>
+    <p>Ctrl-C na página antes. A sessão da ground fica em <code>ground/host/sessions/</code>; o <code>obcd.jsonl</code> vem para <code>docs/vv/bancada/&lt;data&gt;/</code>.</p></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>A estimativa sobre a sessão gravada</b></div>
+    <div class="cmd"><code>python3 ground/host/battery.py ground/host/sessions/&lt;sessão&gt;/ground.jsonl --r-ohm &lt;R&gt; --diode-v &lt;D1&gt;</code></div>
+    <p>Uma linha por HK: dá para refazer a conta com outro R ou outra queda no D1 sem repetir o teste.</p></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Anotar</b></div>
+    <p>Em <code>docs/vv/bancada/&lt;data&gt;/notas.md</code>: as medidas da parte A (M3 a M5, a fonte contra o INA219), o R e a queda no D1, a lâmpada e a distância, e a tabela. Depois, o estado do HLR-EPS-02 e do HLR-EPS-04 em <code>docs/requisitos.md</code>, e a verificação da ADR-0024.</p></div></li>
+</ol>
+
+<h2 id="problemas"><span class="n">9</span>Se algo der errado</h2>
+<p>Clique no sintoma.</p>
+<details class="fix"><summary>O I²C não acha o 0x40</summary><div class="body">
+  <p>As árvores de decisão do <a href="2026-11-24-sensores-obc.html">relatório dos sensores</a> (seção 4.2): o 3,3 V no pad 1 do módulo, que vem do J1.39 da EPS, e as linhas SDA/SCL até ele.</p></div></details>
+<details class="fix"><summary>A página mostra "tensão fora da faixa"</summary><div class="body">
+  <p>A leitura mais a queda no D1 deu menos de 5,0 V ou mais de 8,7 V para o pack. Uma leitura de ~0,9 V é a do INA219 antigo, ou do chip sem o VIN ligado; confira M5 com o multímetro.</p></div></details>
+<details class="fix"><summary><code>current_ma</code> zero ou negativo</summary><div class="body">
+  <p>Zero com o satélite ligado: os VIN+ e VIN− do módulo podem estar ligados no mesmo lado do shunt, ou o shunt em curto. Negativo: VIN+ e VIN− invertidos. Os dois se resolvem na placa, não no software.</p></div></details>
+<details class="fix"><summary>A luz está ligada e a página não diz "carregando"</summary><div class="body">
+  <p>Compare M2 com M3. Se M2 ≤ M3, o boost não passa do P+: a lâmpada fraca demais (o TPS61088 precisa de ~2,7 V na entrada) ou a saída do boost ajustada abaixo da bateria. Se M2 &gt; M3 e o amperímetro no J3 mostra corrente, a carga existe mas é menor que ~10 %/h: espere os 5 min da janela da tendência, ou aproxime a lâmpada.</p></div></details>
+<details class="fix"><summary>O estado alterna entre carregando e descarregando</summary><div class="body">
+  <p>Luz piscando (lâmpada LED com dimmer) ou a mão fazendo sombra. Com a luz parada, a janela de 5 min estabiliza.</p></div></details>
+<details class="fix"><summary>M3 passou de 8,40 V</summary><div class="body">
+  <p><b>Luz desligada na hora.</b> A BMS corta em ~4,25 V por célula, mas não devemos chegar lá. Anote o que aconteceu e avise a equipe da EPS: a saída do boost está alta demais.</p></div></details>
+
+<h2 id="riscos"><span class="n">10</span>Riscos conhecidos</h2>
+<div class="callout warn"><p><b>A carga não tem controle de corrente.</b> O boost U2 empurra para o P+ pelo D3, sem carregador CC/CV. Quem limita é a potência dos painéis e o corte por sobretensão da BMS. Uma fonte de luz forte sobre a bateria quase cheia leva a tensão até o corte.</p></div>
+<div class="callout warn"><p><b>A entrada de mA do multímetro.</b> Em 24/11, uma das hipóteses para o curto no burn-wire foi uma ponta na entrada A/mA. Para a corrente do J3, entrada de 10 A, e nunca o amperímetro em paralelo com nada.</p></div>
+<div class="callout warn"><p><b>Calor da lâmpada.</b> Uma halógena perto aquece os painéis e o satélite. A temperatura da bateria vem do DS18B20, que estava sem leitura em 24/11; sem ela, o termostato dos aquecedores fica desligado e nada protege a bateria do calor. Olhe a T. bateria no HK; se for "—", limite o tempo de luz.</p></div>
+<div class="callout"><p><b>A corrente de carga da ground é inferida, não medida.</b> Se quem avalia quiser a corrente, a medida direta é o amperímetro no J3 com a conta da seção 7, ou um amperímetro em série com a bateria. A telemetria dá a tensão, o consumo e a estimativa; diga isso a quem avalia.</p></div>
+
+<h2 id="cola"><span class="n">11</span>A cola</h2>
+<pre><code># antes
+./gama net up &amp;&amp; ./gama board check &amp;&amp; ./gama service status
+./gama ground --power 14                        # aba OBC
+
+# A · o INA219
+ssh pi@gamapi.local 'python3 /tmp/i2cscan.py'   # 0x40
+./gama service logs obcd -n 200 | grep '"status"' | tail -3
+multímetro: M5 ≈ battery_mv · M4−M5 ≈ current_ma/10 mV · M3−M4 = queda no D1
+fonte 8,40 V / 1,5 A no J2: I da fonte ≈ current_ma (±3 %)
+
+# B · calibrar (fonte desligada)
+2× (Iniciar missão ADS-B → 1 min → Encerrar agora → task_done) → "R medido"
+./gama ground --power 14 --battery-r-ohm R --battery-diode-v D1
+
+# C · painéis
+5 min no escuro → amperímetro (10 A) em série no J3 → luz → "carregando"
+1 linha por minuto, 10 min → luz apagada → "descarregando"
+M3 &gt; 8,40 V: luz desligada
+
+# depois
+./gama pi fetch
+python3 ground/host/battery.py ground/host/sessions/&lt;sessão&gt;/ground.jsonl --r-ohm R --diode-v D1</code></pre>
+
+<footer>
+  <p>GCD26 · TT&amp;C · 25/11/2026. O caminho da energia vem dos netlists exportados pelo <code>kicad-cli</code> de <code>hardware/eps-potencia/PCB_EPS_3_EXTRA.kicad_sch</code> (J3 → U2 → D3 → P+; P+ → D1 → SW1 → J1.38; J2 → D2) e de <code>hardware/obc-v2/PCB_OBC.kicad_sch</code> (J1.38 → VIN+ do INA219, VIN− → J1.33). O INA219, de <code>flight/obcd/ina219.c</code> (4 mV por passo, 10 µV no shunt) e de <code>flight/obcd/README.md</code>. A estimativa, de <code>ground/host/battery.py</code> e da ADR-0024. A curva e a capacidade da NCR18650B são do datasheet; a eficiência do boost é uma suposição a confirmar com a EPS.</p>
+</footer>
+</main>
+</div>
+<script>
+// A copy button on every command line.
+document.querySelectorAll('.cmd').forEach(function (box) {
+  var b = document.createElement('button');
+  b.type = 'button'; b.textContent = 'copiar';
+  b.addEventListener('click', function () {
+    var text = box.querySelector('code').textContent;
+    var done = function () { b.textContent = 'copiado'; setTimeout(function () { b.textContent = 'copiar'; }, 1200); };
+    if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, function () {}); else done();
+  });
+  box.appendChild(b);
+});
+// Section 7: the boost's current and the battery's, from the multimeter and the HK.
+(function () {
+  var ids = ['c-v', 'c-i', 'c-p', 'c-l', 'c-e'];
+  var num = function (id) { return parseFloat(document.getElementById(id).value); };
+  var put = function (id, text) { document.getElementById(id).textContent = text; };
+  var fmt = function (v, d) { return v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }); };
+  function update() {
+    var v = num('c-v'), i = num('c-i'), p = num('c-p'), l = num('c-l'), e = num('c-e');
+    if (![v, i, p, l, e].every(isFinite) || p <= 0) { ['o-p', 'o-b', 'o-n', 'o-h'].forEach(function (k) { put(k, '—'); }); return; }
+    var pin = v * i / 1000, boost = e * v * i / p, bat = boost - l;
+    put('o-p', fmt(pin, 2) + ' W');
+    put('o-b', fmt(boost, 0) + ' mA');
+    put('o-n', (bat >= 0 ? '+' : '') + fmt(bat, 0) + ' mA');
+    put('o-h', (bat >= 0 ? '+' : '') + fmt(bat / 3200 * 100, 1) + ' %/h');
+  }
+  ids.forEach(function (id) { document.getElementById(id).addEventListener('input', update); });
+  update();
+})();
+</script>
+</body>
+</html>
