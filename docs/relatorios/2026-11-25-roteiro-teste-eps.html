@@ -395,16 +395,19 @@ table.sheet td{height:30px}
   <p>Commit do <code>.conf</code> com a medida no texto, e uma linha em <code>docs/vv/bancada/&lt;data&gt;/notas.md</code>.</p></div></details>
 
 <h2 id="calibrar"><span class="n">5</span>Parte B · calibrar a estimativa</h2>
-<p>A estimativa da ground (ADR-0024) precisa de dois números da placa: a queda no D1 (passo 6 acima) e a resistência R das células até o INA219, que a página mede sozinha nos degraus de consumo. <b>Fonte de bancada desligada</b> daqui em diante: tudo na bateria.</p>
+<p>A estimativa da ground (ADR-0024) precisa de dois números da placa: a queda no D1 (passo 6 acima) e a resistência R das células até o INA219, que a página mede sozinha pela oscilação natural do consumo entre um HK e outro (em 25/11: 0,53 a 0,61 Ω). <b>Fonte de bancada desligada</b> daqui em diante: tudo na bateria.</p>
 <ol class="steps">
-  <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>Degraus de consumo, duas vezes</b></div>
-    <div class="action">aba ADS-B <span class="arr">→</span> Iniciar missão ADS-B <span class="arr">→</span> 1 min <span class="arr">→</span> Encerrar agora (downlink) <span class="arr">→</span> aba Operação: PRE_TEST (<code>task_done</code>)</div>
-    <p>O SDR ligando e desligando dá um degrau de ~200 mA, acima dos 100 mA que a página exige para medir R. A página precisa de 3 degraus para mostrar R; dois ciclos dão 4.</p>
-    <div class="expect">aba OBC, Estado do OBC: <b>R usado / medido</b> com o segundo número preenchido</div></div></li>
+  <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>Esperar R aparecer</b></div>
+    <p>A página precisa de 18 pares de HK (3 min) com o consumo oscilando pelo menos 15 mA entre um e outro. Até lá, o estado não muda: sem R, cada oscilação do consumo pareceria luz.</p>
+    <div class="expect">aba OBC, Estado do OBC: <b>R medido / padrão</b> com o primeiro número preenchido (~0,5 Ω) e o <b>Ruído da tensão</b> em ~5 mV</div></div></li>
+  <li><div class="step opt"><div class="step-h"><span class="where w-web">página</span><b>Se R não aparecer em 5 min</b><span class="tag-opt">consumo estável demais</span></div>
+    <div class="action">aba ADS-B <span class="arr">→</span> Iniciar missão ADS-B <span class="arr">→</span> 1 min <span class="arr">→</span> Encerrar agora (downlink) <span class="arr">→</span> aba Operação: PRE_TEST (<code>task_done</code>), duas vezes</div>
+    <p>O SDR ligando e desligando faz o consumo variar ~200 mA. Um degrau sozinho não basta (nenhum par pode ter mais da metade da variação): são precisos vários.</p></div></li>
   <li><div class="step"><div class="step-h"><span class="where w-pc">PC</span><b>Subir a página de novo, calibrada</b></div>
     <div class="cmd"><code>./gama ground --power 14 --battery-r-ohm &lt;R medido&gt; --battery-diode-v &lt;M3 − M4&gt;</code></div>
     <p>Ctrl-C na página anterior antes. A estimativa recomeça da tensão.</p>
-    <div class="expect">aba OBC: <b>Queda no D1</b> e <b>R usado</b> com os valores passados; o percentual não muda mais com as trocas de modo</div></div></li>
+    <p>Com <code>--battery-r-ohm</code>, a página confia nesse R desde o primeiro HK, e o estado já funciona sem esperar os 3 min.</p>
+    <div class="expect">aba OBC: <b>Queda no D1</b> e o segundo número de <b>R medido / padrão</b> com os valores passados</div></div></li>
   <li><div class="step"><div class="step-h"><span class="where w-hand">à mão</span><b>Conferir o percentual pela tensão real</b></div>
     <p>Com o satélite em PRE_TEST há 2 min, M3 ÷ 2 é a tensão de uma célula. Pela curva da NCR18650B: 3,70 V ≈ 40 %, 3,85 V ≈ 60 %, 4,02 V ≈ 80 %.</p>
     <div class="expect">o "Carga" da página a poucos % do que M3 indica</div></div></li>
@@ -423,13 +426,13 @@ table.sheet td{height:30px}
     <p>Lâmpada a uma distância fixa, de frente para os painéis. Anote a hora.</p>
     <div class="expect">M1: corrente e tensão; M2 maior que M3 (o boost passa do P+); M3 subindo devagar</div></div></li>
   <li><div class="step"><div class="step-h"><span class="where w-web">página</span><b>A ground vê a carga</b></div>
-    <p>A luz liga com o consumo parado: a tensão salta e o próximo HK já mostra <b>carregando</b>. A tendência e a corrente de recarga precisam de 2 min de dados.</p>
-    <div class="expect">Estado <b>carregando</b>; depois de 2 min, Tendência positiva, <b>Cheia em</b> e <b>Recarga (estimada)</b></div></div></li>
+    <p>A luz liga e a tensão, descontado o consumo (V + R·I), sobe um degrau: a página o confirma em 1 ou 2 HK. O degrau é a corrente de recarga vezes a resistência das células (~0,25 Ω): 100 mA dão ~25 mV, detectados em 10 s; abaixo de ~80 mA (20 mV), a detecção não é confiável. A tendência e a corrente de recarga precisam de 2 min de dados.</p>
+    <div class="expect">Estado <b>carregando · há 10 s</b>; depois de 2 min, Tendência positiva, <b>Cheia em</b> e <b>Recarga (estimada)</b></div></div></li>
   <li><div class="step"><div class="step-h"><span class="where w-hand">à mão</span><b>Uma linha por minuto, por 10 min</b></div>
-    <p>Na tabela da seção 7: V e I do J3, M3, e da página a tensão, a corrente, a Carga e a Recarga (estimada). Não mude o modo nem a lâmpada nesse tempo: um degrau de consumo reinicia a tendência.</p>
+    <p>Na tabela da seção 7: V e I do J3, M3, e da página a tensão, a corrente, a Carga e a Recarga (estimada). Não mude a lâmpada nesse tempo: a tendência recomeça a cada mudança de estado.</p>
     <div class="expect">a "Corrente na bateria" da conta perto da "pela página"</div></div></li>
   <li><div class="step"><div class="step-h"><span class="where w-hand">à mão</span><b>Luz apagada</b></div>
-    <div class="expect">Estado volta a <b>descarregando</b> no próximo HK; a Carga ficou acima da linha de base</div></div></li>
+    <div class="expect">Estado volta a <b>descarregando</b> em 1 a 3 HK; a Carga ficou acima da linha de base</div></div></li>
   <li><div class="step opt"><div class="step-h"><span class="where w-hand">à mão</span><b>Outra distância ou ângulo</b><span class="tag-opt">se houver tempo</span></div>
     <p>Repita os passos 3 a 6 com a lâmpada mais perto ou inclinada: mostra a carga variando com a luz, que é o que a regra avalia.</p></div></li>
 </ol>
@@ -490,9 +493,11 @@ pela página: Recarga (estimada) ≈ I_boost   (pela subida da tensão, ADR-0024
 <details class="fix"><summary><code>current_ma</code> zero ou negativo</summary><div class="body">
   <p>Zero com o satélite ligado: os VIN+ e VIN− do módulo podem estar ligados no mesmo lado do shunt, ou o shunt em curto. Negativo: VIN+ e VIN− invertidos. Os dois se resolvem na placa, não no software.</p></div></details>
 <details class="fix"><summary>A luz está ligada e a página não diz "carregando"</summary><div class="body">
-  <p>Compare M2 com M3. Se M2 ≤ M3, o boost não passa do P+: a lâmpada fraca demais (o TPS61088 precisa de ~2,7 V na entrada) ou a saída do boost ajustada abaixo da bateria. Se M2 &gt; M3 e o amperímetro no J3 mostra corrente, a carga existe mas é menor que ~10 %/h: espere os 5 min da janela da tendência, ou aproxime a lâmpada.</p></div></details>
+  <p>Compare M2 com M3. Se M2 ≤ M3, o boost não passa do P+: a lâmpada fraca demais (o TPS61088 precisa de ~2,7 V na entrada) ou a saída do boost ajustada abaixo da bateria. Se M2 &gt; M3 e o amperímetro no J3 mostra corrente, a carga existe mas o degrau dela ficou abaixo do que a página separa do ruído (~80 mA na bateria): aproxime a lâmpada. Nos primeiros 3 min da página, o estado ainda espera R (<b>R medido</b> em "—").</p></div></details>
 <details class="fix"><summary>O estado alterna entre carregando e descarregando</summary><div class="body">
-  <p>Luz piscando (lâmpada LED com dimmer) ou a mão fazendo sombra. Com a luz parada, a janela de 5 min estabiliza.</p></div></details>
+  <p>Luz piscando (lâmpada LED com dimmer) ou a mão fazendo sombra: cada variação de luz é um degrau. Com a luz parada, o estado fica.</p></div></details>
+<details class="fix"><summary>A luz apagou e a página continua em "carregando"</summary><div class="body">
+  <p>A recarga era fraca (degrau abaixo de ~20 mV, ~80 mA na bateria): a luz ligando foi vista, a apagando se perdeu no ruído. Confira o <b>Ruído da tensão</b> na aba OBC e a corrente no J3. Para recomeçar, suba a página de novo.</p></div></details>
 <details class="fix"><summary>M3 passou de 8,40 V</summary><div class="body">
   <p><b>Luz desligada na hora.</b> A BMS corta em ~4,25 V por célula, mas não devemos chegar lá. Anote o que aconteceu e avise a equipe da EPS: a saída do boost está alta demais.</p></div></details>
 
@@ -514,7 +519,7 @@ multímetro: M5 ≈ battery_mv · M4−M5 ≈ current_ma/10 mV · M3−M4 = qued
 fonte 8,40 V / 1,5 A no J2: I da fonte ≈ current_ma (±3 %)
 
 # B · calibrar (fonte desligada)
-2× (Iniciar missão ADS-B → 1 min → Encerrar agora → task_done) → "R medido"
+3 min na bateria → "R medido" (~0,5 Ω) e "Ruído" (~5 mV)
 ./gama ground --power 14 --battery-r-ohm R --battery-diode-v D1
 
 # C · painéis
