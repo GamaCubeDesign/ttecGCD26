@@ -131,6 +131,14 @@ for line in sys.stdin:
         self.assertEqual(pipeline.snapshot()['repeats'],1)
         self.assertIsNone(pipeline.snapshot()['error'])
 
+    def test_the_session_folder_carries_the_prefix(self):
+        default = AdsbPipeline(self.root/'sessions', replace(self.config, pairs_enabled=False))
+        self.addCleanup(default.close)
+        sim = AdsbPipeline(self.root/'sessions', replace(self.config, pairs_enabled=False), prefix='sim-mission-')
+        self.addCleanup(sim.close)
+        self.assertTrue(default.directory.name.startswith('mission-'))
+        self.assertTrue(sim.directory.name.startswith('sim-mission-'))
+
     def test_missing_pairs_prevents_start(self):
         with self.assertRaises(sqlite3.Error):
             AdsbPipeline(self.root/'sessions',replace(self.config,pairs_db=self.root/'absent.db'))

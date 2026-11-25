@@ -757,6 +757,8 @@ def main(argv=None):
     ap.add_argument("--pi-ssh", metavar="HOST",
                     help="the Pi, for the deployment over ssh (REG-07's fallback), e.g. pi@gamapi.local")
     ap.add_argument("--session-dir", type=Path, default=Path(HERE)/"sessions")
+    ap.add_argument("--session-prefix", default="mission-",
+                    help="the session folder's prefix: sim-mission- or replay-mission- when not all real")
     from adsb.estimator.config import Config, add_pair_arguments, pair_options
     ap.add_argument("--reference-db", type=Path, default=Config().reference_db)
     add_pair_arguments(ap)
@@ -772,7 +774,8 @@ def main(argv=None):
         from adsb.pipeline import AdsbPipeline
         from dataclasses import replace
         try:
-            pipeline = AdsbPipeline(args.session_dir, replace(Config(), reference_db=args.reference_db, **pair_options(ap,args)))
+            pipeline = AdsbPipeline(args.session_dir, replace(Config(), reference_db=args.reference_db, **pair_options(ap,args)),
+                                    prefix=args.session_prefix)
         except Exception as exc:
             ap.exit(1, f"ADS-B startup failed: {exc}\n")
 

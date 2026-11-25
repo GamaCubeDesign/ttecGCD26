@@ -92,7 +92,7 @@ def summarize(states, airports):
 
 
 class AdsbPipeline:
-    def __init__(self, directory, config):
+    def __init__(self, directory, config, prefix='mission-'):
         # Fail before accepting mission commands if either input database is absent.
         estimator = AirportEstimator(config)
         if config.pairs_enabled:
@@ -103,7 +103,10 @@ class AdsbPipeline:
                 if meta.get('generation_status') != 'complete' or region.get('status') != 'complete' or region.get('bonus_enabled') != 'false':
                     raise ValueError('Pair database is incomplete or incompatible')
         directory.mkdir(parents=True, exist_ok=True)
-        self.directory = Path(tempfile.mkdtemp(prefix='mission-', dir=directory))
+        # prefix: 'sim-mission-' or 'replay-mission-' when the run is not all
+        # real hardware (./gama sim ground, ./gama replay mission), so a
+        # session folder cannot pass for evidence it is not.
+        self.directory = Path(tempfile.mkdtemp(prefix=prefix, dir=directory))
         # estado.json is for the evaluation after the mission (the page reads
         # /api/adsb): every 10 s unless the configuration says otherwise, and
         # once more at close. At 1 s it was still 345 MB written in a

@@ -112,7 +112,7 @@ pids+=($!)
 echo "sim: $input — logs in $out"
 "$python" ground/host/gs_web.py --host "$web_host" --port "$web_port" --adsb "${pairs[@]}" \
     --mission-s "$mission_s" \
-    --session-dir "$out/sessions" \
+    --session-dir "$out/sessions" --session-prefix sim-mission- \
     --exec "$build"/tools/gs_cli/gs_cli --radio udp --port "$gnd_port" --peer-port "$sat_port" \
         --auto-time on &
 pids+=($!)
