@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — Sensores do OBC sem dados (24/11/2026)</title>
+<link rel="icon" href="assets/favicon.png">
+<style>
+@font-face{
+  font-family:"Open Sans"; src:url("assets/OpenSans.woff2") format("woff2");
+  font-weight:300 800; font-style:normal; font-display:swap;
+}
+:root{
+  /* Gama Cube Design (identidade_visual_gama.pdf; the same tokens as
+   * ground/host/web/css/gama.css): black, British Racing Green #034a2c and
+   * white; Forest Green, Yellow Orange and Terra Cotta for ok, warning and
+   * failure, in darker shades for text on a light background. */
+  --brand:#034a2c; --brand-band:#000000;
+  --bg:#f3f5f4; --surface:#ffffff; --surface-2:#eaefec; --fg:#111312; --muted:#56605b;
+  --line:#d0d6d3; --line-strong:#7f8a84; --accent:#034a2c; --accent-soft:#e3eee8;
+  --ok:#2f6b3a; --ok-soft:#e6f1e7; --warn:#8a5300; --warn-soft:#fbf0df;
+  --todo:#56605b; --todo-soft:#eceeed; --bad:#a8321f; --bad-soft:#fbe7e3;
+  --code-bg:#eef1ef; --node:#ffffff; --node-hw:#eef1ef; --node-ext:#e3eee8;
+  --sans:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0a0c0b; --surface:#121614; --surface-2:#19201c; --fg:#f2f5f3; --muted:#9aa7a0;
+    --line:#26302b; --line-strong:#6f7c75; --accent:#8cc391; --accent-soft:#10251a;
+    --ok:#8cc391; --ok-soft:#15301f; --warn:#f3b866; --warn-soft:#33280e;
+    --todo:#a8b0ac; --todo-soft:#222826; --bad:#ef8d80; --bad-soft:#3a1b19;
+    --code-bg:#19201c; --node:#121614; --node-hw:#19201c; --node-ext:#10251a;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+
+svg.diagram .lost{fill:var(--bad-soft);stroke:var(--bad);stroke-width:2}
+svg.diagram .new{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2;stroke-dasharray:5 4}
+svg.diagram .edge.ok{stroke:var(--ok);stroke-width:2}
+svg.diagram .ah-ok{fill:var(--ok)}
+svg.diagram .t-bad{font-size:12px;fill:var(--bad);font-weight:600}
+svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
+.bytes .fl{background:var(--warn-soft)}
+
+/* Gama: the band on top, as on the ground's page; ExtraBold titles. */
+.brand-bar{background:var(--brand-band);border-bottom:3px solid var(--brand);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:8px 20px;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.brand-bar img{width:28px;height:28px;display:block}
+.brand-bar b{font-weight:800;letter-spacing:.04em}
+.brand-bar span{opacity:.75}
+h1,h2{font-weight:800}
+.eyebrow{color:var(--accent);font-weight:700}
+@media print{.brand-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+/* Back to the index: in the brand bar, and floating, so it is one tap away anywhere in the report. */
+.brand-bar a.home{margin-left:auto;white-space:nowrap;color:#fff;text-decoration:none;font-weight:600;opacity:.9}
+.brand-bar a.home:hover{opacity:1;text-decoration:underline}
+a.to-index{position:fixed;right:16px;bottom:16px;z-index:10;display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:999px;background:var(--accent);color:var(--bg);font-size:14px;font-weight:600;
+  text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+a.to-index:hover{text-decoration:underline}
+@media print{a.to-index,.brand-bar a.home{display:none}}
+</style>
+<style>
+/* This report: status dots, the decision trees and the path cards. */
+svg.diagram .q{fill:var(--surface-2);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .act{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.4}
+svg.diagram .warnbox{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1.6;stroke-dasharray:5 4}
+svg.diagram .t-warn{font-size:12px;fill:var(--warn);font-weight:600}
+svg.diagram .edge.bad{stroke:var(--bad);stroke-width:2}
+svg.diagram .ah-bad{fill:var(--bad)}
+svg.diagram .lbl{font-size:12px;font-weight:700;fill:var(--muted)}
+svg.diagram .dot-ok{fill:var(--ok)} svg.diagram .dot-bad{fill:var(--bad)} svg.diagram .dot-warn{fill:var(--warn)} svg.diagram .dot-todo{fill:var(--line-strong)}
+.paths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px 0}
+@media (max-width:760px){.paths{grid-template-columns:1fr}}
+.path{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:10px;padding:14px 16px}
+.path.p-b{border-top-color:var(--ok)} .path.p-c{border-top-color:var(--warn)} .path.p-d{border-top-color:var(--bad)}
+.path h3{margin:0 0 4px;font-size:18px}
+.path .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.path dl{display:grid;grid-template-columns:96px 1fr;gap:4px 10px;margin:0 0 8px;font-size:14px}
+.path dt{font-weight:600} .path dd{margin:0}
+.path ol{font-size:14.5px;margin-bottom:6px}
+.meter{display:inline-flex;gap:3px;vertical-align:middle}
+.meter i{display:inline-block;width:14px;height:8px;border-radius:2px;background:var(--line)}
+.meter.m1 i:nth-child(-n+1),.meter.m2 i:nth-child(-n+2),.meter.m3 i:nth-child(-n+3){background:var(--accent)}
+</style>
+</head>
+<body>
+<div class="brand-bar"><img src="assets/favicon.png" alt=""><b>Gama Cube Design</b><span>CubeDesign 2026 · TT&amp;C</span><a class="home" href="index.html">← Relatórios</a></div>
+<a class="to-index" href="index.html" aria-label="Voltar ao índice dos relatórios">← Índice</a>
+<div class="layout">
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#medidas">O que os sensores retornaram</a></li>
+    <li><a href="#mapa">O mapa do circuito</a></li>
+    <li><a href="#arvores">Árvores de decisão</a></li>
+    <li><a href="#caminhos">Os caminhos</a></li>
+    <li><a href="#conferir">Como conferir cada passo</a></li>
+    <li><a href="#sem">Se não der: voar sem os sensores</a></li>
+  </ol>
+</nav>
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · OBC · sensores</p>
+  <h1>Os sensores do OBC não entregam dados: caminhos para resolver</h1>
+  <p class="lede">O DS18B20 (temperatura da bateria) e o INA219 (tensão e corrente) estão sem leitura no satélite montado. Este relatório junta o que a Pi mediu em 24/11, mostra onde o defeito pode estar e propõe os caminhos, do mais barato ao mais caro.</p>
+  <div class="meta"><span><b>Data:</b> 24/11/2026</span><span><b>Estado:</b> diagnóstico; a confirmar com o multímetro</span><span><b>Placa:</b> <code>hardware/obc-v2</code></span><span><b>Antes:</b> <a href="2026-11-22-i2c-scl-em-curto.html">SCL em curto (22/11)</a></span></div>
+</header>
+
+<h2 id="resumo"><span class="n">1</span>Resumo</h2>
+<div class="tiles">
+  <div class="tile"><div class="v">0</div><div class="l">escravos no barramento 1-Wire: o kernel não acha o DS18B20</div></div>
+  <div class="tile"><div class="v">0 de 112</div><div class="l">endereços do I²C (0x08–0x77) que respondem; o INA219 deveria estar em 0x40</div></div>
+  <div class="tile"><div class="v">46,16 °C</div><div class="l">temperatura do processador, que funciona: o sensor fica dentro do chip da Pi, sem nenhum fio</div></div>
+</div>
+<p><b>O software não é o problema.</b> O <code>config.txt</code>, os drivers do kernel, o <code>obcd.conf</code> e o <code>board_check.py</code> estão corretos, e o <code>obcd</code> procura os dois sensores a cada leitura. O defeito está do conector da Pi para fora. Duas medidas já descartam partes do circuito:</p>
+<ul>
+  <li><b>O pull-up do 1-Wire está bom.</b> Com o pull-down interno da Pi (~50 kΩ) ligado no GPIO17, a linha continuou em alto em 5 de 5 leituras. Então o R1 está ligado a um 3V3 com tensão.</li>
+  <li><b>O curto do SCL de 22/11 não aparece mais.</b> SDA e SCL estão em alto, mas ninguém responde no barramento.</li>
+</ul>
+<div class="callout"><p><b>Um detalhe da placa que muda a busca:</b> o 3,3 V da Pi (pinos 1 e 17) não está ligado a nada na <code>obc-v2</code>. O INA219, o R1 e o VDD do DS18B20 recebem o 3V3 do <b>barramento, pelo J1.39</b>, que vem da EPS. Para os dois sensores, o 3,3 V tem de chegar por esse caminho.</p></div>
+
+<h2 id="medidas"><span class="n">2</span>O que os sensores retornaram</h2>
+<p>Tudo medido na Pi (<code>pi@gamapi.local</code>) em 24/11, com os três serviços rodando, sem nenhuma escrita em pino de saída. O GPIO22 (burn-wire) e o GPIO23 (aquecedores) ficaram em nível baixo o tempo todo.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Verificação</th><th>Retorno</th><th>O que quer dizer</th><th>Situação</th></tr></thead>
+  <tbody>
+    <tr><td>Kernel: <code>config.txt</code>, módulos</td><td><code>dtoverlay=w1-gpio,gpiopin=17</code>; <code>w1_gpio</code>, <code>wire</code>, <code>i2c_dev</code> carregados</td><td>o kernel está pronto para os dois barramentos</td><td><span class="badge b-ok">ok</span></td></tr>
+    <tr><td>1-Wire: <code>w1_bus_master1</code></td><td><code>w1_master_slave_count = 0</code>, <code>slaves: not found</code></td><td>o DS18B20 não responde ao pulso de reset</td><td><span class="badge b-bad">falha</span></td></tr>
+    <tr><td>GPIO17 em repouso</td><td><code>ip -- | hi</code></td><td>a linha de dados está em alto</td><td><span class="badge b-ok">ok</span></td></tr>
+    <tr><td>GPIO17 com pull-down interno</td><td><code>1 1 1 1 1</code></td><td>o R1 (4,7 kΩ) puxa a linha para um 3V3 com tensão</td><td><span class="badge b-ok">ok</span></td></tr>
+    <tr><td>SDA, SCL (GPIO2, 3)</td><td><code>hi</code>, <code>hi</code></td><td>sem curto ao GND agora (em 22/11 o SCL lia 0)</td><td><span class="badge b-ok">ok</span></td></tr>
+    <tr><td>Varredura I²C, 0x08–0x77</td><td>nenhum endereço responde</td><td>o INA219 não dá ACK: sem 3,3 V, sem as linhas ou danificado</td><td><span class="badge b-bad">falha</span></td></tr>
+    <tr><td>Log do <code>obcd</code>, no boot</td><td><code>ds18b20 found:0</code> → <code>NOT_FOUND</code>; <code>ina219 ok:false, Input/output error</code></td><td>o mesmo, visto pelo daemon</td><td><span class="badge b-bad">falha</span></td></tr>
+    <tr><td>Log do <code>obcd</code>, depois de ~75 min</td><td><code>power_failures 4259</code>, <code>temp_failures 2128</code>; HK com <code>battery_mv 65535</code>, <code>temp_bat_ccel −32768</code></td><td>tentativas a cada ciclo, todas "sem dado"</td><td><span class="badge b-bad">falha</span></td></tr>
+    <tr><td><code>/sys/class/thermal/thermal_zone0/temp</code></td><td><code>46160</code> (<code>cpu-thermal</code>)</td><td>46,16 °C, lido pelo <code>ttcd</code></td><td><span class="badge b-ok">ok</span></td></tr>
+    <tr><td><code>board_check.py check</code></td><td>todas as linhas <code>ok</code></td><td>a configuração bate com o layout, fio a fio</td><td><span class="badge b-ok">ok</span></td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="mapa"><span class="n">3</span>O mapa do circuito</h2>
+<p>Os dois sensores e cada ponto entre eles e a Pi, com o que já foi medido. Verde: medido e bom. Vermelho: o sensor que não responde. Tracejado amarelo: ainda não medido, onde o defeito pode estar.</p>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 900 470" role="img" aria-label="Mapa do circuito dos sensores do OBC">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker>
+  </defs>
+  <!-- zones -->
+  <rect class="zone" x="10" y="20" width="230" height="430" rx="10"/><text class="zone-label" x="24" y="40">RASPBERRY PI ZERO 2 W</text>
+  <rect class="zone" x="290" y="20" width="300" height="430" rx="10"/><text class="zone-label" x="304" y="40">PLACA DO OBC (obc-v2)</text>
+  <rect class="zone" x="640" y="20" width="250" height="430" rx="10"/><text class="zone-label" x="654" y="40">BARRAMENTO J1 · OUTRAS PLACAS</text>
+
+  <!-- Pi pins -->
+  <rect class="box done" x="30" y="60" width="190" height="46" rx="7"/><text class="t-b" x="44" y="80">GPIO2 · SDA · pino 3</text><text class="t-ok" x="44" y="97">em alto</text>
+  <rect class="box done" x="30" y="118" width="190" height="46" rx="7"/><text class="t-b" x="44" y="138">GPIO3 · SCL · pino 5</text><text class="t-ok" x="44" y="155">em alto (o curto sumiu)</text>
+  <rect class="box done" x="30" y="236" width="190" height="46" rx="7"/><text class="t-b" x="44" y="256">GPIO17 · 1-Wire · pino 11</text><text class="t-ok" x="44" y="273">alto, mesmo com pull-down</text>
+  <rect class="box plan" x="30" y="330" width="190" height="46" rx="7"/><text class="t-b" x="44" y="350">3V3 · pinos 1 e 17</text><text class="t-s" x="44" y="367">não ligado na placa</text>
+  <rect class="box done" x="30" y="392" width="190" height="46" rx="7"/><text class="t-b" x="44" y="412">sensor do SoC</text><text class="t-ok" x="44" y="429">46,16 °C (ttcd)</text>
+
+  <!-- OBC -->
+  <rect class="lost" x="380" y="72" width="190" height="80" rx="7"/><text class="t-b" x="394" y="94">U2 · INA219 · 0x40</text><text class="t-s" x="394" y="112">pad 1 VCC · 2 GND</text><text class="t-s" x="394" y="127">pad 3 SCL · 4 SDA</text><text class="t-bad" x="394" y="144">não responde (sem ACK)</text>
+  <rect class="box done" x="380" y="222" width="190" height="46" rx="7"/><text class="t-b" x="394" y="242">R1 · 4,7 kΩ pull-up</text><text class="t-ok" x="394" y="259">puxa para 3V3: medido</text>
+  <rect class="box hw" x="380" y="330" width="190" height="46" rx="7"/><text class="t-b" x="394" y="350">trilho /3V3 do OBC</text><text class="t-s" x="394" y="367">tem tensão (via R1)</text>
+
+  <!-- bus / other boards -->
+  <rect class="warnbox" x="660" y="200" width="210" height="96" rx="7"/><text class="t-b" x="674" y="222">U1 · DS18B20 (TO-92)</text><text class="t-s" x="674" y="240">bateria de cima</text><text class="t-s" x="674" y="256">1 GND · 2 DQ · 3 VDD</text><text class="t-bad" x="674" y="274">0 escravos no 1-Wire</text><text class="t-warn" x="674" y="289">no stack? orientação?</text>
+  <rect class="box hw" x="660" y="330" width="210" height="46" rx="7"/><text class="t-b" x="674" y="350">J1.39 · 3V3 da EPS</text><text class="t-s" x="674" y="367">alimenta os dois sensores</text>
+  <rect class="box hw" x="660" y="392" width="210" height="46" rx="7"/><text class="t-b" x="674" y="412">J1.1 · GND</text><text class="t-s" x="674" y="429">comum a todas as placas</text>
+
+  <!-- I2C wires: Pi -> U2 -->
+  <path class="edge" d="M220 83H320V100H376" marker-end="url(#ah)"/>
+  <path class="edge" d="M220 141H345V124H376" marker-end="url(#ah)"/>
+  <circle class="dot-warn" cx="320" cy="92" r="5"/><circle class="dot-warn" cx="345" cy="132" r="5"/>
+  <text class="t-warn" x="304" y="62">SDA/SCL até o U2: a medir</text>
+
+  <!-- 1-Wire: Pi -> R1 -> J1.9 -> U1 -->
+  <path class="edge" d="M220 259H376" marker-end="url(#ah)"/>
+  <path class="edge" d="M570 245H610V248H656" marker-end="url(#ah)"/>
+  <circle class="dot-warn" cx="610" cy="245" r="5"/>
+  <text class="t-warn" x="612" y="230" text-anchor="middle">J1.9</text>
+
+  <!-- 3V3 feeds -->
+  <path class="edge" d="M660 353H574" marker-end="url(#ah)"/>
+  <path class="edge" d="M475 330V272" marker-end="url(#ah)"/>
+  <path class="edge" d="M380 353H330V185H440V156" marker-end="url(#ah)"/>
+  <circle class="dot-warn" cx="440" cy="172" r="5"/>
+  <text class="t-warn" x="452" y="176">3,3 V no pad 1?</text>
+  <path class="edge" d="M765 330V300" marker-end="url(#ah)"/>
+  <circle class="dot-warn" cx="765" cy="314" r="5"/>
+  <text class="t-warn" x="777" y="318">3,3 V no pino 3?</text>
+</svg></div>
+<figcaption>Os pontos amarelos são os lugares a medir. O INA219 e o DS18B20 dependem do mesmo 3V3 do barramento (J1.39). O trilho do OBC tem tensão, porque o R1 puxa a linha do 1-Wire, mas ainda falta medir se ela chega ao pad 1 do U2 e ao pino 3 do U1. Pinos e redes tirados de <code>hardware/obc-v2/PCB_OBC.kicad_pcb</code> e <code>hardware/bateria-cima/PCB_EPS_1_CIMA.kicad_pcb</code>.</figcaption>
+</figure>
+
+<h2 id="arvores"><span class="n">4</span>Árvores de decisão</h2>
+<p>Uma para cada sensor. Siga de cima para baixo: cada pergunta é uma medida de poucos minutos, e cada "não" leva a uma ação. Com o satélite desligado para medir continuidade; ligado só para medir tensão.</p>
+
+<h3>4.1 DS18B20: 0 escravos no 1-Wire</h3>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 900 560" role="img" aria-label="Árvore de decisão do DS18B20">
+  <defs>
+    <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker>
+    <marker id="ah2b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah-bad" d="M0,0L10,5L0,10z"/></marker>
+  </defs>
+  <rect class="lost" x="120" y="14" width="300" height="44" rx="22"/><text class="t-b" x="270" y="41" text-anchor="middle">0 escravos em w1_bus_master1</text>
+
+  <rect class="q" x="60" y="96" width="420" height="56" rx="7"/><text class="t-b" x="76" y="119">1. A placa da bateria de cima está no stack,</text><text class="t-b" x="76" y="139">com o J1 bem encaixado?</text>
+  <rect class="q" x="60" y="196" width="420" height="56" rx="7"/><text class="t-b" x="76" y="219">2. Com o satélite ligado, o U1 esquenta ao toque?</text><text class="t-s" x="76" y="239">um TO-92 invertido troca VDD e GND</text>
+  <rect class="q" x="60" y="296" width="420" height="56" rx="7"/><text class="t-b" x="76" y="319">3. Há 3,3 V entre o pino 3 (VDD) e o pino 1</text><text class="t-b" x="76" y="339">(GND) do U1?</text>
+  <rect class="q" x="60" y="396" width="420" height="56" rx="7"/><text class="t-b" x="76" y="419">4. Há continuidade do pino 2 (DQ) do U1 ao J1.9</text><text class="t-b" x="76" y="439">e ao pino 11 da Pi? (satélite desligado)</text>
+  <rect class="act" x="60" y="496" width="420" height="50" rx="7"/><text class="t-b" x="76" y="517">O circuito está bom: o sensor está morto ou é falso.</text><text class="t-s" x="76" y="535">Testar fora da placa (caminho B) e trocar o U1.</text>
+
+  <rect class="act" x="560" y="96" width="320" height="56" rx="7"/><text class="t-b" x="576" y="119">Encaixar a placa; o kernel acha o</text><text class="t-b" x="576" y="139">sensor em ~10 s (w1_master_slaves)</text>
+  <rect class="lost" x="560" y="196" width="320" height="56" rx="7"/><text class="t-b" x="576" y="219">Desligar já. Ressoldar o U1 girado</text><text class="t-s" x="576" y="239">talvez precise de um sensor novo</text>
+  <rect class="act" x="560" y="296" width="320" height="56" rx="7"/><text class="t-b" x="576" y="319">Seguir o 3V3: J1.39 → U1 pino 3;</text><text class="t-b" x="576" y="339">o GND: J1.1 → U1 pino 1</text>
+  <rect class="act" x="560" y="396" width="320" height="56" rx="7"/><text class="t-b" x="576" y="419">Trilha ou conector aberto: fio do</text><text class="t-b" x="576" y="439">U1 pino 2 ao J1.9 (caminho C)</text>
+
+  <path class="edge" d="M270 58V92" marker-end="url(#ah2)"/>
+  <path class="edge" d="M270 152V192" marker-end="url(#ah2)"/><text class="lbl" x="280" y="178">sim</text>
+  <path class="edge" d="M270 252V292" marker-end="url(#ah2)"/><text class="lbl" x="280" y="278">não</text>
+  <path class="edge" d="M270 352V392" marker-end="url(#ah2)"/><text class="lbl" x="280" y="378">sim</text>
+  <path class="edge" d="M270 452V492" marker-end="url(#ah2)"/><text class="lbl" x="280" y="478">sim</text>
+  <path class="edge" d="M480 124H556" marker-end="url(#ah2)"/><text class="lbl" x="505" y="116">não</text>
+  <path class="edge bad" d="M480 224H556" marker-end="url(#ah2b)"/><text class="lbl" x="505" y="216">sim</text>
+  <path class="edge" d="M480 324H556" marker-end="url(#ah2)"/><text class="lbl" x="505" y="316">não</text>
+  <path class="edge" d="M480 424H556" marker-end="url(#ah2)"/><text class="lbl" x="505" y="416">não</text>
+</svg></div>
+<figcaption>A ordem vai da causa mais provável e mais barata de checar à mais cara. Em 22/11 o DS18B20 nem estava ligado ao stack (<code>docs/vv/bancada/2026-11-22/notas.md</code>), por isso a pergunta 1 vem primeiro.</figcaption>
+</figure>
+
+<h3>4.2 INA219: nenhum endereço responde no I²C</h3>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 900 560" role="img" aria-label="Árvore de decisão do INA219">
+  <defs>
+    <marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker>
+  </defs>
+  <rect class="lost" x="90" y="14" width="360" height="44" rx="22"/><text class="t-b" x="270" y="41" text-anchor="middle">0 de 112 endereços; SDA e SCL em alto</text>
+
+  <rect class="q" x="60" y="96" width="420" height="56" rx="7"/><text class="t-b" x="76" y="119">1. Há 3,3 V entre o pad 1 (VCC) e o pad 2 (GND)</text><text class="t-b" x="76" y="139">do módulo U2? (satélite ligado)</text>
+  <rect class="q" x="60" y="196" width="420" height="56" rx="7"/><text class="t-b" x="76" y="219">2. Há continuidade do pad 3 (SCL) do U2 ao</text><text class="t-b" x="76" y="239">pino 5 da Pi? (satélite desligado)</text>
+  <rect class="q" x="60" y="296" width="420" height="56" rx="7"/><text class="t-b" x="76" y="319">3. Há continuidade do pad 4 (SDA) do U2 ao</text><text class="t-b" x="76" y="339">pino 3 da Pi?</text>
+  <rect class="q" x="60" y="396" width="420" height="56" rx="7"/><text class="t-b" x="76" y="419">4. O módulo responde em 0x40 ligado por fios</text><text class="t-b" x="76" y="439">direto à Pi, fora da placa? (caminho B)</text>
+  <rect class="act" x="60" y="496" width="420" height="50" rx="7"/><text class="t-b" x="76" y="517">O módulo está bom e a placa não:</text><text class="t-s" x="76" y="535">voar com o módulo ligado por fios (caminho C).</text>
+
+  <rect class="act" x="560" y="96" width="320" height="56" rx="7"/><text class="t-b" x="576" y="119">Solda do pad 1 ou trilha do 3V3:</text><text class="t-b" x="576" y="139">refazer a solda ou um fio do J1.39</text>
+  <rect class="act" x="560" y="196" width="320" height="56" rx="7"/><text class="t-b" x="576" y="219">SCL aberto, talvez pelo conserto</text><text class="t-b" x="576" y="239">do curto de 22/11: fio no SCL</text>
+  <rect class="act" x="560" y="296" width="320" height="56" rx="7"/><text class="t-b" x="576" y="319">SDA aberto: um fio do</text><text class="t-b" x="576" y="339">pad 4 ao pino 3 da Pi</text>
+  <rect class="lost" x="560" y="396" width="320" height="56" rx="7"/><text class="t-b" x="576" y="419">Módulo danificado (talvez no curto):</text><text class="t-b" x="576" y="439">trocar o INA219</text>
+
+  <path class="edge" d="M270 58V92" marker-end="url(#ah3)"/>
+  <path class="edge" d="M270 152V192" marker-end="url(#ah3)"/><text class="lbl" x="280" y="178">sim</text>
+  <path class="edge" d="M270 252V292" marker-end="url(#ah3)"/><text class="lbl" x="280" y="278">sim</text>
+  <path class="edge" d="M270 352V392" marker-end="url(#ah3)"/><text class="lbl" x="280" y="378">sim</text>
+  <path class="edge" d="M270 452V492" marker-end="url(#ah3)"/><text class="lbl" x="280" y="478">sim</text>
+  <path class="edge" d="M480 124H556" marker-end="url(#ah3)"/><text class="lbl" x="505" y="116">não</text>
+  <path class="edge" d="M480 224H556" marker-end="url(#ah3)"/><text class="lbl" x="505" y="216">não</text>
+  <path class="edge" d="M480 324H556" marker-end="url(#ah3)"/><text class="lbl" x="505" y="316">não</text>
+  <path class="edge" d="M480 424H556" marker-end="url(#ah3)"/><text class="lbl" x="505" y="416">não</text>
+</svg></div>
+<figcaption>Medir a continuidade entre os pads do U2 e os pinos da Pi testa a trilha inteira de uma vez, inclusive o ponto onde o curto do SCL foi consertado. Em 22/11 o 3,3 V estava no pad 1 (<code>docs/vv/bancada/2026-11-22/notas.md</code>); vale medir de novo, porque a placa foi mexida depois.</figcaption>
+</figure>
+
+<h2 id="caminhos"><span class="n">5</span>Os caminhos</h2>
+<p>Quatro caminhos, do que só mede ao que aceita a perda. Eles se encadeiam: A diz onde está o defeito, B separa sensor ruim de placa ruim, C contorna a placa e D é o que acontece se nada der certo a tempo.</p>
+<div class="paths">
+  <div class="path">
+    <h3>A · Medir na placa</h3>
+    <p class="sub">As árvores da seção 4, com o multímetro.</p>
+    <dl><dt>Tempo</dt><dd>~20 min para os dois sensores</dd><dt>Esforço</dt><dd><span class="meter m1"><i></i><i></i><i></i></span> nada é desmontado nem soldado</dd><dt>Resolve</dt><dd>encaixe, orientação, solda fria visível; e aponta o resto</dd></dl>
+    <ol><li>Pergunta 1 do DS18B20: a placa da bateria no stack.</li><li>As tensões: 3,3 V no U2 e no U1.</li><li>A continuidade, com o satélite desligado.</li></ol>
+  </div>
+  <div class="path p-b">
+    <h3>B · Testar o sensor fora da placa</h3>
+    <p class="sub">Ligar o sensor por fios direto nos pinos da Pi, sem passar pelas trilhas.</p>
+    <dl><dt>Tempo</dt><dd>~15 min por sensor</dd><dt>Esforço</dt><dd><span class="meter m2"><i></i><i></i><i></i></span> fios jumper e um resistor de 4,7 kΩ</dd><dt>Resolve</dt><dd>diz se o defeito é do sensor ou da placa</dd></dl>
+    <ol><li><b>DS18B20:</b> pino 1 → Pi pino 6 (GND); pino 3 → Pi pino 1 (3V3); pino 2 → Pi pino 11 (GPIO17); 4,7 kΩ entre o pino 2 e o pino 1 da Pi.</li><li><b>INA219:</b> VCC → pino 1; GND → pino 9; SDA → pino 3; SCL → pino 5.</li><li>Ligar os fios com a Pi desligada. <b>Não encostar nos pinos 15 e 16</b> (GPIO22, burn-wire; GPIO23, aquecedores).</li></ol>
+  </div>
+  <div class="path p-c">
+    <h3>C · Contornar a placa com fios</h3>
+    <p class="sub">Se B funcionar e a placa não: o sensor ligado por fios no lugar da trilha ruim.</p>
+    <dl><dt>Tempo</dt><dd>~30–60 min, com solda</dd><dt>Esforço</dt><dd><span class="meter m3"><i></i><i></i><i></i></span> fio soldado, preso para a vibração</dd><dt>Resolve</dt><dd>os dados voltam sem refazer a placa</dd></dl>
+    <ol><li>Um fio só no trecho aberto que a seção 4 achou.</li><li>Sem mudança no software: os pinos da Pi são os mesmos.</li><li>Anotar o fio em <code>hardware/README.md</code> e nas notas da bancada.</li></ol>
+  </div>
+  <div class="path p-d">
+    <h3>D · Voar sem os sensores</h3>
+    <p class="sub">Se não houver tempo: o software já trata a falta deles.</p>
+    <dl><dt>Tempo</dt><dd>nenhum</dd><dt>Esforço</dt><dd><span class="meter"><i></i><i></i><i></i></span> nenhum</dd><dt>Custa</dt><dd>V, I e T da bateria; o termostato</dd></dl>
+    <ol><li>O HK desce com "sem dado" nesses campos.</li><li>Os aquecedores ficam desligados.</li><li>Detalhes na <a href="#sem">seção 7</a>.</li></ol>
+  </div>
+</div>
+<div class="callout warn"><p><b>O DS18B20 aguenta alguns erros; o INA219, não.</b> O DS18B20 é o mais provável de voltar com A ou B: o lado da Pi já está provado, incluindo o pull-up. O INA219 sobreviveu a um curto no SCL e a uma placa mexida depois. Se ele não responder nem fora da placa (B), a solução é um módulo novo.</p></div>
+
+<h2 id="conferir"><span class="n">6</span>Como conferir cada passo</h2>
+<p>Depois de cada mudança no hardware, rode isto do PC. Não precisa reiniciar o <code>obcd</code>: ele procura o DS18B20 e tenta o INA219 a cada ciclo, e registra <code>temp_ok</code>/<code>power_ok</code> quando eles voltam.</p>
+<pre><code># 1-Wire: deve listar um 28-xxxxxxxxxxxx e a temperatura em milésimos de °C
+ssh pi@gamapi.local 'cat /sys/bus/w1/devices/w1_bus_master1/w1_master_slaves; cat /sys/bus/w1/devices/28-*/temperature'
+
+# I²C: deve listar 0x40 e a tensão do barramento em mV (só leitura)
+ssh pi@gamapi.local 'python3 /tmp/i2cscan.py'
+
+# o obcd: as últimas leituras e as falhas
+ssh pi@gamapi.local 'tr -d "\000" &lt; /var/lib/gama/obcd.jsonl | grep -E "sensor|_ok|_fault|status" | tail -5'</code></pre>
+<p>O <code>/tmp/i2cscan.py</code> some se a Pi reiniciar. Este é o código inteiro dele, para recriar:</p>
+<pre><code>import os, fcntl
+I2C_SLAVE = 0x0703
+fd = os.open("/dev/i2c-1", os.O_RDWR)
+found = []
+for a in range(0x08, 0x78):
+    try:
+        fcntl.ioctl(fd, I2C_SLAVE, a); os.read(fd, 1); found.append(a)
+    except OSError:
+        pass
+print("respondem:", [hex(a) for a in found])
+if 0x40 in found:
+    fcntl.ioctl(fd, I2C_SLAVE, 0x40)
+    os.write(fd, bytes([2])); b = os.read(fd, 2)
+    print("barramento: %d mV" % ((((b[0] &lt;&lt; 8) | b[1]) &gt;&gt; 3) * 4))</code></pre>
+<p>O teste do pull-up do 1-Wire, que só mexe no pull interno do GPIO17 e o devolve como estava:</p>
+<pre><code>ssh pi@gamapi.local 'pinctrl set 17 pd; pinctrl lev 17; pinctrl set 17 pn'   # 1 = R1 puxando para um 3V3 vivo</code></pre>
+
+<h2 id="sem"><span class="n">7</span>Se não der: voar sem os sensores</h2>
+<p>O software foi escrito para isto. Nada trava, e a ground vê a falta, em vez de um número falso:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>O que</th><th>Sem o sensor</th><th>Onde</th></tr></thead>
+  <tbody>
+    <tr><td>HK: <code>battery_mv</code>, <code>current_ma</code></td><td>"sem dado" (<code>0xFFFF</code>, <code>0x8000</code>); a página mostra "—"</td><td><code>common/gama_tm.h</code></td></tr>
+    <tr><td>HK: <code>temp_bat_ccel</code></td><td>"sem dado" (<code>0x8000</code>)</td><td><code>common/gama_tm.h</code></td></tr>
+    <tr><td>Aquecedores (D4)</td><td><b>ficam desligados</b>: sem leitura válida, o termostato não liga</td><td><code>flight/obcd/core.c</code>, <code>temp_fault</code></td></tr>
+    <tr><td>Modos e burn-wire</td><td>funcionam igual; não dependem dos sensores</td><td><code>flight/obcd/core.c</code></td></tr>
+    <tr><td><code>temp_soc_ccel</code></td><td>continua: é a única temperatura a bordo</td><td><code>flight/ttcd/main.c</code></td></tr>
+  </tbody>
+</table></div>
+<div class="callout bad"><p><b>O que se perde:</b> a evidência de bateria em condição segura (tensão, corrente e temperatura) do <b>HLR-EPS-04</b>, que já tem uma lacuna no TT&amp;C (<code>docs/requisitos.md</code>). E, sem o DS18B20, a proteção térmica da bateria fica desligada. A temperatura do SoC não substitui a da bateria: ela mede o chip da Pi, que esquenta sozinho (46 °C na bancada).</p></div>
+
+<footer>
+  <p>GCD26 · TT&amp;C · 24/11/2026. As medidas são de 24/11, na Pi do satélite montado (<code>obc-v2</code>), lidas pelo ssh com os três serviços rodando: <code>/sys/bus/w1</code>, <code>pinctrl</code>, uma varredura I²C só de leitura e <code>/var/lib/gama/obcd.jsonl</code>. Os pinos vêm dos arquivos KiCad em <code>hardware/</code>, conferidos por <code>tools/analysis/board_check.py</code>. Nenhuma medida com o multímetro ainda: as árvores da seção 4 são o que falta fazer.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>
