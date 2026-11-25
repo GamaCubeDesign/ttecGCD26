@@ -90,7 +90,7 @@ HINT_INDENT = ' ' * (len(TAGS['ok']) + 1)
 
 # What each kind of run is, said at its start and its end.
 KIND = {
-    'sim': 'simulação: nada físico, tudo neste computador (rádio UDP); não é evidência de bancada',
+    'sim': 'simulação: nada físico, tudo neste computador; não é evidência de bancada',
     'replay': ('hardware real, aviões de um arquivo no lugar do SDR: valida o satélite, '
                'o enlace e a ground, não a recepção ADS-B'),
 }

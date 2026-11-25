@@ -16,7 +16,6 @@ cannot mistake one for the other:
                               the Pi's logs in replay-missao-*
   gama sim mission --input    make sim: the same satellite on this machine,
                               UDP radio; logs under build/
-The old flags (--input, --pc on gama mission) still work, with a note.
 """
 
 import json
@@ -25,9 +24,11 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import common as c
 import doctor
+import ground as page
 
 LOG = '/tmp/gama-mission.log'
 STATE = c.ROOT / 'build' / 'gama-mission.json'
@@ -91,12 +92,12 @@ class Local:
     def esp32(self, given):
         return c.esp32_port(given)
 
-    def start_ground(self, port, secs, power, web_port):
-        argv = [sys.executable, str(c.ROOT / 'ground/host/gs_web.py'), '--serial', port,
-                '--power', str(power), '--adsb', '--mission-s', str(secs), '--port', str(web_port)]
-        if self.pi_ssh:
-            argv += ['--pi-ssh', self.pi_ssh]
-        return subprocess.Popen(argv, cwd=c.ROOT)
+    def holders(self, port):
+        return page.holders(port)
+
+    def start_ground(self, port, secs, power, web_port, prefix='mission-'):
+        args = SimpleNamespace(secs=secs, power=power, web_port=web_port)
+        return subprocess.Popen(page.gs_web_argv('real', args, port, self.pi_ssh, prefix), cwd=c.ROOT)
 
 
 def make_args(args, pi_input):
@@ -130,6 +131,12 @@ def preflight(args, remote, local):
     port, problem = local.esp32(args.port)
     if not port:
         c.fail('ESP32 da ground: ' + problem)
+        return None
+    busy = local.holders(port)
+    if busy:
+        c.fail(f'a ESP32 ({port}) está aberta por outro programa: ' +
+               '; '.join(f'pid {pid} {cmd[:80]}' for pid, cmd in busy),
+               'uma página ainda aberta (./gama ground) ou um monitor serial: Ctrl-C nele')
         return None
     c.ok(f'ESP32 em {port}')
     if not remote.sync():
@@ -199,7 +206,8 @@ def run_pi(args, remote, local, sleep=time.sleep, clock=time.monotonic):
                 return finish(remote, pgid, ground, tail, failed=True)
             sleep(1)
         c.ok('satélite no ar na Pi')
-        ground = local.start_ground(port, args.secs, args.power, args.web_port)
+        ground = local.start_ground(port, args.secs, args.power, args.web_port,
+                                    'replay-mission-' if args.input else 'mission-')
         print()
         c.ok(f'página: http://127.0.0.1:{args.web_port}  →  aba ADS-B  →  "Iniciar missão ADS-B"')
         c.say(f'a missão dura {args.secs} s depois do clique; repita quantas vezes quiser. Ctrl-C encerra tudo.')
@@ -241,7 +249,7 @@ def finish(remote, pgid, ground, tail, failed=False):
         logs = [l.split('logs in ', 1)[1].strip() for l in (text or '').splitlines() if 'logs in ' in l]
         if logs:
             c.ok(f'logs da Pi em {logs[-1]}' + (f' ({len(got)} arquivo(s) trazido(s))' if got else ''))
-        sessions = sorted((c.ROOT / 'ground/host/sessions').glob('mission-*'), key=lambda p: p.stat().st_mtime)
+        sessions = sorted((c.ROOT / 'ground/host/sessions').glob('*mission-*'), key=lambda p: p.stat().st_mtime)
         if ground is not None and sessions:
             c.ok(f'sessão da ground em {sessions[-1].relative_to(c.ROOT)}')
     finally:
@@ -265,23 +273,8 @@ def run_pc(args):
         return 130
 
 
-def kind_of(args):
-    """'real', 'replay' or 'sim', from the command; the flags of before
-    24/11 (gama mission --input | --pc) map onto it with a note."""
-    kind = getattr(args, 'kind', None)
-    if kind in ('replay', 'sim'):
-        return kind
-    if getattr(args, 'pc', False):
-        c.warn('gama mission --pc agora é ./gama sim mission (o --pc some depois de 24/11)')
-        return 'sim'
-    if args.input:
-        c.warn('gama mission --input agora é ./gama replay mission (o --input some daqui depois de 24/11)')
-        return 'replay'
-    return 'real'
-
-
 def cmd_mission(args):
-    kind = kind_of(args)
+    kind = getattr(args, 'kind', 'real')
     if kind != 'real' and not args.input:
         c.fail(f'./gama {kind} mission precisa de --input <captura.ndjson|.sbs>',
                'com aviões de verdade, pelo SDR: ./gama mission')
@@ -295,7 +288,7 @@ def cmd_mission(args):
     if args.secs <= 0:
         c.fail('--secs precisa ser positivo')
         return 2
-    c.banner(kind, f'aviões de {args.input}' if args.input else None)
+    c.banner(kind, ('rádio UDP, ' if kind == 'sim' else '') + f'aviões de {args.input}' if args.input else None)
     try:
         if kind == 'sim':
             return run_pc(args)

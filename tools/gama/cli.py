@@ -19,6 +19,7 @@ import board    # noqa: E402
 import deploy   # noqa: E402
 import doctor   # noqa: E402
 import esp32    # noqa: E402
+import ground   # noqa: E402
 import link     # noqa: E402
 import mission  # noqa: E402
 import net      # noqa: E402
@@ -41,6 +42,8 @@ exemplos, na ordem de uma bancada:
   ./gama replay mission --secs 120 --input docs/vv/trafego-real/2026-11-17-unsam/capture_sem_categoria.ndjson
                                     satélite e rádio reais, aviões de uma captura
   ./gama sim mission --secs 120 --input <captura>   tudo no PC, sem hardware
+  ./gama ground                     só a página, com a ESP32 (o satélite já no ar: os serviços)
+  ./gama sim ground --session <ground.jsonl> --speed 10   repete na página uma sessão gravada
   ./gama service enable             a configuração de voo: os três daemons em todo boot
   ./gama service status             cada serviço e a última linha do log
   ./gama deploy                     plano B da REG-07: o burn-wire disparado na Pi pelo SSH
@@ -60,12 +63,7 @@ def add_mission_args(m, kind):
         m.add_argument('action', nargs='?', choices=['stop'],
                        help='stop: encerra uma missão que ficou rodando na Pi e traz os logs')
     m.add_argument('--secs', type=int, default=120, help='duração da MISSION_ADSB, s (padrão 120; 600 no voo)')
-    if kind == 'real':
-        # Before the prefixes (24/11) the source was a flag; still accepted, with a note.
-        m.add_argument('--input', help=argparse.SUPPRESS)
-        m.add_argument('--sdr', action='store_true', help=argparse.SUPPRESS)
-        m.add_argument('--pc', action='store_true', help=argparse.SUPPRESS)
-    else:
+    if kind != 'real':
         m.add_argument('--input', required=(kind == 'sim'), help='captura (.ndjson ou .sbs) tocada no lugar do SDR')
     m.add_argument('--avr', action='store_true', help='a categoria pela porta AVR (Etapa B, ADR-0023), só nesta missão')
     m.add_argument('--web-port', type=int, default=8080, help='porta da página (padrão 8080)')
@@ -87,14 +85,30 @@ def add_link_args(lk, kind):
                     help=('; '.join(f'{k}: {v}' for k, v in link.WHAT.items()) + '; all: os seis, em ordem').replace('%', '%%'))
     lk.add_argument('--power', type=int, default=2, help='dBm, os dois rádios (padrão 2, a ~1 m)')
     if kind == 'real':
-        lk.add_argument('--udp', action='store_true', help=argparse.SUPPRESS)   # before 24/11: ./gama sim link
         lk.add_argument('--port', help='porta da ESP32 (padrão: a única ttyUSB/ttyACM)')
         lk.add_argument('--conf', help=f'o ttcd.conf na Pi (padrão {link.INSTALLED_CONF})')
         lk.add_argument('--no-build', action='store_true', help='não compila na Pi antes')
         lk.add_argument('--skip-radio-check', action='store_true', help='segue mesmo se o rádio A não responder')
     else:
-        lk.set_defaults(udp=True, port=None, conf=None, no_build=True, skip_radio_check=False)
+        lk.set_defaults(port=None, conf=None, no_build=True, skip_radio_check=False)
     lk.set_defaults(func=link.cmd_link)
+
+
+def add_ground_args(g, kind):
+    """kind: 'real' (the ESP32) or 'sim' (the UDP radio, or a recorded session)."""
+    g.set_defaults(kind=kind, func=ground.cmd_ground)
+    g.add_argument('--secs', type=int, default=600, help='duração da MISSION_ADSB que a página conta, s (padrão 600, o voo)')
+    g.add_argument('--web-port', type=int, default=8080, help='porta da página (padrão 8080)')
+    g.add_argument('--no-adsb', action='store_true', help='sem o processamento ADS-B (mapa e estimativas)')
+    if kind == 'real':
+        g.add_argument('--port', help='porta da ESP32 (padrão: a única ttyUSB/ttyACM)')
+        g.add_argument('--power', type=int, default=2, help='potência da ground, dBm (padrão 2)')
+    else:
+        g.add_argument('--session', metavar='GROUND.JSONL',
+                       help='repete uma sessão gravada da ground, sem satélite (sem isto: o rádio UDP)')
+        g.add_argument('--speed', type=float, default=1.0, help='velocidade da repetição (com --session)')
+        g.add_argument('--loop', action='store_true', help='repete de novo no fim (com --session)')
+        g.add_argument('--no-build', action='store_true', help='não compila antes (o gs_cli do rádio UDP)')
 
 
 def build_parser():
@@ -191,6 +205,10 @@ def build_parser():
     rc.add_argument('--no-sync', action='store_true', help='não copia o código para a Pi antes')
     rc.set_defaults(func=doctor.cmd_radio_check)
 
+    gr = sub.add_parser('ground', help='a página da ground com a ESP32 deste computador',
+                        description=ground.__doc__.split('\n\n')[0])
+    add_ground_args(gr, kind='real')
+
     m = sub.add_parser('mission', help='uma missão ADS-B com aviões de verdade (o SDR), operada pela página',
                        description=MISSION_DESCRIPTION)
     add_mission_args(m, kind='real')
@@ -203,15 +221,17 @@ def build_parser():
     add_mission_args(rps.add_parser('mission', help='a missão ADS-B na Pi, com uma captura no lugar do SDR',
                                     description=MISSION_DESCRIPTION), kind='replay')
 
-    sm = sub.add_parser('sim', help='simulação: nada físico, tudo neste computador (rádio UDP)',
-                        description='sim: o satélite e a ground neste computador, ligados pelo rádio UDP; '
-                                    'nenhum hardware. Serve para ver o fluxo funcionar, nunca como '
+    sm = sub.add_parser('sim', help='simulação: nada físico, tudo neste computador',
+                        description='sim: o satélite e a ground neste computador, ligados pelo rádio UDP, '
+                                    'ou uma sessão gravada na página; nenhum hardware. Serve para ver o fluxo funcionar, nunca como '
                                     'evidência de bancada. Os logs ficam em build/.')
     sms = sm.add_subparsers(dest='group_cmd', metavar='<comando>', required=True)
     add_mission_args(sms.add_parser('mission', help='a missão ADS-B no PC, operada pela página (make sim)',
                                     description=MISSION_DESCRIPTION), kind='sim')
     add_link_args(sms.add_parser('link', help='os passos do enlace com as duas pontas neste computador',
                                  description=link.__doc__.split('\n\n')[0]), kind='sim')
+    add_ground_args(sms.add_parser('ground', help='a página no rádio UDP, ou uma sessão gravada (--session)',
+                                   description=ground.__doc__.split('\n\n')[0]), kind='sim')
     return ap
 
 

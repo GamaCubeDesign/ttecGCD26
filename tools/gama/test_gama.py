@@ -23,6 +23,7 @@ import antenna  # noqa: E402
 import board    # noqa: E402
 import cli      # noqa: E402
 import deploy   # noqa: E402
+import ground   # noqa: E402
 import common   # noqa: E402
 import doctor   # noqa: E402
 import link     # noqa: E402
@@ -230,20 +231,24 @@ class FakeRemote:
 
 
 class FakeLocal:
-    def __init__(self, port='/dev/ttyUSB0'):
-        self.port, self.ground = port, None
+    def __init__(self, port='/dev/ttyUSB0', busy=()):
+        self.port, self.ground, self.busy = port, None, list(busy)
 
     def esp32(self, given):
         return (self.port, None) if self.port else (None, 'a ESP32 não aparece no USB')
 
-    def start_ground(self, port, secs, power, web_port):
+    def holders(self, port):
+        return self.busy
+
+    def start_ground(self, port, secs, power, web_port, prefix='mission-'):
         self.ground = FakeGround()
         self.started = (port, secs, power, web_port)
+        self.prefix = prefix
         return self.ground
 
 
 def mission_args(**kw):
-    base = dict(secs=120, input='capture.ndjson', sdr=False, avr=False, pc=False, port=None, power=2,
+    base = dict(kind='replay', secs=120, input='capture.ndjson', avr=False, port=None, power=2,
                 tx_power=2, web_port=8080, no_build=False, skip_radio_check=False)
     base.update(kw)
     return SimpleNamespace(**base)
@@ -278,6 +283,14 @@ class Mission(unittest.TestCase):
         self.assertIn('http://127.0.0.1:8080', out)
         self.assertIn('missao-120000', out)
         self.assertFalse(mission.STATE.exists())
+        self.assertEqual(local.prefix, 'replay-mission-')     # a capture: the session says replay
+
+    def test_refused_while_another_program_holds_the_esp32(self):
+        remote = FakeRemote(READY_PROBE)
+        code, out = self.run_pi(remote, FakeLocal(busy=[(321, 'python3 ground/host/gs_web.py --serial /dev/ttyUSB0')]))
+        self.assertEqual(code, 1)
+        self.assertEqual(remote.calls, ['reachable'])
+        self.assertIn('pid 321', out)
 
     def test_the_sdr_and_the_category(self):
         remote = FakeRemote(READY_PROBE)
@@ -325,7 +338,7 @@ class Cli(unittest.TestCase):
     def test_help_lists_the_commands(self):
         _, out = quiet(lambda: cli.build_parser().print_help())
         for word in ('doctor', 'net', 'pi', 'radio', 'mission', 'board', 'service', 'link', 'antenna', 'esp32',
-                     'replay', 'sim'):
+                     'replay', 'sim', 'ground'):
             self.assertIn(word, out)
 
     def test_the_prefix_names_the_kind(self):
@@ -337,7 +350,7 @@ class Cli(unittest.TestCase):
         sm = ap.parse_args(['sim', 'mission', '--input', 'x.ndjson'])
         self.assertEqual(sm.kind, 'sim')
         sl = ap.parse_args(['sim', 'link', 'ping'])
-        self.assertEqual((sl.kind, sl.udp, sl.step), ('sim', True, 'ping'))
+        self.assertEqual((sl.kind, sl.step), ('sim', 'ping'))
         self.assertEqual(ap.parse_args(['link', 'ping']).kind, 'real')
         with self.assertRaises(SystemExit), redirect_stdout(io.StringIO()), \
                 unittest.mock.patch('sys.stderr', io.StringIO()):
@@ -348,15 +361,12 @@ class Cli(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn('./gama mission', out)
 
-    def test_the_old_flags_still_work_with_a_note(self):
-        a = cli.build_parser().parse_args(['mission', '--pc', '--input', 'x.ndjson'])
-        kind, out = quiet(mission.kind_of, a)
-        self.assertEqual(kind, 'sim')
-        self.assertIn('./gama sim mission', out)
-        a = cli.build_parser().parse_args(['mission', '--input', 'x.ndjson'])
-        kind, out = quiet(mission.kind_of, a)
-        self.assertEqual(kind, 'replay')
-        self.assertIn('./gama replay mission', out)
+    def test_the_flags_before_the_prefixes_are_gone(self):
+        for argv in (['mission', '--pc', '--input', 'x.ndjson'], ['mission', '--input', 'x.ndjson'],
+                     ['mission', '--sdr'], ['link', 'ping', '--udp']):
+            with self.assertRaises(SystemExit), redirect_stdout(io.StringIO()), \
+                    unittest.mock.patch('sys.stderr', io.StringIO()):
+                cli.build_parser().parse_args(argv)
 
     def test_a_sim_opens_and_closes_with_its_banner(self):
         with tempfile.NamedTemporaryFile(suffix='.ndjson') as f, \
@@ -368,7 +378,7 @@ class Cli(unittest.TestCase):
         self.assertTrue(lines[-1].startswith('[SIM]') and lines[-1].endswith('; fim'))
 
     def test_a_missing_capture_is_refused_before_anything(self):
-        code, out = quiet(cli.main, ['mission', '--input', '/nonexistent.ndjson'])
+        code, out = quiet(cli.main, ['replay', 'mission', '--input', '/nonexistent.ndjson'])
         self.assertEqual(code, 2)
         self.assertIn('não existe', out)
 
@@ -377,7 +387,7 @@ class Cli(unittest.TestCase):
         ap = cli.build_parser()
         self.assertEqual(ap.parse_args(['service', 'enable']).daemons, [])
         self.assertEqual(ap.parse_args(['service', 'stop', 'adsbd']).daemons, ['adsbd'])
-        self.assertEqual(ap.parse_args(['link', 'lost-ack', '--udp']).step, 'lost-ack')
+        self.assertEqual(ap.parse_args(['sim', 'link', 'lost-ack']).step, 'lost-ack')
         self.assertEqual(ap.parse_args(['board', 'install', '-y']).board, 'obc-v2')
         self.assertTrue(ap.parse_args(['antenna', 'check', '--pi']).pi)
         with self.assertRaises(SystemExit), redirect_stdout(io.StringIO()), \
@@ -559,7 +569,7 @@ class Link(unittest.TestCase):
         self.assertEqual(link.make_argv('toa', 'pi', conf='/tmp/x.conf')[-1], 'TTCD_CONF=/tmp/x.conf')
 
     def args(self, **kw):
-        base = dict(step='ping', udp=False, port=None, power=2, conf=None, no_build=False, skip_radio_check=False)
+        base = dict(step='ping', port=None, power=2, conf=None, no_build=False, skip_radio_check=False)
         base.update(kw)
         return SimpleNamespace(**base)
 
@@ -573,7 +583,7 @@ class Link(unittest.TestCase):
 
     def test_sim_link_is_udp_with_its_banner(self):
         calls = []
-        code, out = quiet(link.cmd_link, self.args(kind='sim', udp=True, no_build=True), None, None,
+        code, out = quiet(link.cmd_link, self.args(kind='sim', no_build=True), None, None,
                           lambda argv: calls.append(argv) or 0)
         self.assertEqual(code, 0)
         self.assertEqual(calls[0][-1], 'RADIO=udp')
@@ -681,6 +691,69 @@ class Output(unittest.TestCase):
         self.assertTrue(lines[0].startswith('[SIM]    simulação'))
         self.assertTrue(lines[1].startswith('[REPLAY] hardware real'))
         self.assertTrue(lines[1].endswith('; aviões de x.ndjson'))
+
+
+class Ground(unittest.TestCase):
+    def args(self, **kw):
+        base = dict(kind='real', secs=600, web_port=8080, no_adsb=False, port=None, power=2,
+                    session=None, speed=1.0, loop=False, no_build=True)
+        base.update(kw)
+        return SimpleNamespace(**base)
+
+    def test_the_gs_web_lines(self):
+        real = ground.gs_web_argv('real', self.args(), '/dev/ttyUSB0', 'pi@gamapi.local')
+        self.assertEqual(real[2:], ['--port', '8080', '--mission-s', '600', '--session-prefix', 'mission-',
+                                    '--adsb', '--serial', '/dev/ttyUSB0', '--power', '2',
+                                    '--pi-ssh', 'pi@gamapi.local'])
+        udp = ground.gs_web_argv('sim', self.args(kind='sim', no_adsb=True))
+        self.assertEqual(udp[2:], ['--port', '8080', '--mission-s', '600', '--session-prefix', 'sim-mission-', '--udp'])
+        rec = ground.gs_web_argv('sim', self.args(kind='sim', session='g.jsonl', speed=10.0, loop=True))
+        self.assertEqual(rec[-5:], ['--replay', 'g.jsonl', '--speed', '10.0', '--loop'])
+
+    def test_refused_while_the_esp32_is_held(self):
+        r, out = quiet(ground.preflight, 'real', self.args(), esp32=lambda p: ('/dev/ttyUSB0', None),
+                       held=lambda p: [(77, 'screen /dev/ttyUSB0 115200')], free=lambda p: True)
+        self.assertIsNone(r)
+        self.assertIn('pid 77 screen', out)
+
+    def test_refused_when_the_web_port_is_taken(self):
+        r, out = quiet(ground.preflight, 'real', self.args(), esp32=lambda p: ('/dev/ttyUSB0', None),
+                       held=lambda p: [], free=lambda p: False)
+        self.assertIsNone(r)
+        self.assertIn('--web-port 8081', out)
+
+    def test_a_session_must_exist(self):
+        r, out = quiet(ground.preflight, 'sim', self.args(kind='sim', session='/nonexistent.jsonl'),
+                       free=lambda p: True)
+        self.assertIsNone(r)
+        self.assertIn('não existe', out)
+
+    def test_holders_reads_proc(self):
+        with tempfile.TemporaryDirectory() as d:
+            proc, dev = Path(d) / 'proc', Path(d) / 'ttyUSB0'
+            dev.write_text('')
+            (proc / '4242' / 'fd').mkdir(parents=True)
+            (proc / '4242' / 'fd' / '3').symlink_to(dev)
+            (proc / '4242' / 'cmdline').write_bytes(b'screen\0/dev/ttyUSB0\0')
+            (proc / 'self').mkdir()
+            self.assertEqual(ground.holders(str(dev), proc), [(4242, 'screen /dev/ttyUSB0')])
+
+    def test_sim_ground_opens_and_closes_with_its_banner(self):
+        calls = []
+        with unittest.mock.patch.object(ground, 'port_free', lambda p, host='127.0.0.1': True):
+            code, out = quiet(ground.cmd_ground, self.args(kind='sim'), lambda argv, **kw: calls.append(argv) or 0)
+        self.assertEqual(code, 0)
+        self.assertIn('--udp', calls[0])
+        lines = out.rstrip().splitlines()
+        self.assertTrue(lines[0].startswith('[SIM]') and 'rádio UDP' in lines[0])
+        self.assertTrue(lines[-1].startswith('[SIM]') and lines[-1].endswith('; fim'))
+
+    def test_the_parser(self):
+        ap = cli.build_parser()
+        g = ap.parse_args(['ground', '--secs', '120'])
+        self.assertEqual((g.kind, g.secs, g.func), ('real', 120, ground.cmd_ground))
+        sg = ap.parse_args(['sim', 'ground', '--session', 'g.jsonl', '--speed', '10'])
+        self.assertEqual((sg.kind, sg.session, sg.speed), ('sim', 'g.jsonl', 10.0))
 
 
 class Deploy(unittest.TestCase):
