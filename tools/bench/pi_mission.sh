@@ -13,7 +13,7 @@
 # (/etc/gama/*.conf: the board's pins), with what a bench run changes on top:
 #   MISSION_S  MISSION_ADSB's length, s (default 600, the flight's OBC-6);
 #              obcd gets adsb_timeout_ms = MISSION_S * 1000. Tell the page
-#              the same: make gs-web ADSB=1 MISSION_S=<same>.
+#              the same: ./gama ground --secs <same>.
 #   INPUT      a capture played as dump1090 (NDJSON or *.sbs); empty: the
 #              real SDR, with the dump1090_cmd of adsbd.conf.
 #   AVR=1      the emitter category on the AVR port (ADR-0023, Etapa B); off
@@ -24,7 +24,7 @@
 #   TX_POWER   radio A's power, dBm (default 2: the bench's short range).
 # OUT_DIR receives every process's log. Ctrl-C stops everything.
 #
-# The Makefile runs it: make mission-sat on the Pi, or make pi-mission from
+# The Makefile runs it: make mission-sat on the Pi, which ./gama mission starts from
 # the PC (which also copies INPUT and brings the logs back).
 
 set -euo pipefail
@@ -50,7 +50,7 @@ fi
 # One radio, one SDR, one I2C bus: a service or a leftover from a manual run
 # would fight these for them.
 if pgrep -a -x 'ttcd|obcd|adsbd' >&2; then
-    echo "mission: the daemons above are running; stop them first (make service-stop adsbd-stop obcd-stop, or kill the manual ones)" >&2
+    echo "mission: the daemons above are running; stop them first (./gama pi stop from the PC, or kill the manual ones)" >&2
     exit 1
 fi
 mkdir -p "$out"
@@ -158,7 +158,7 @@ top -b -d 5 | grep --line-buffered -E 'dump1090|adsbd' > "$out/cpu.txt" &
 pids+=($!)
 
 echo "mission: MISSION_ADSB of ${mission_s} s, ${input:-the SDR} as dump1090, ${tx_power} dBm, AVR ${avr[*]:-off}; logs in $out"
-echo "mission: on the PC, make gs-web ADSB=1 MISSION_S=$mission_s, then 'Iniciar missão ADS-B'. Ctrl-C here stops the satellite."
+echo "mission: on the PC, ./gama ground --secs $mission_s, then 'Iniciar missão ADS-B'. Ctrl-C here stops the satellite."
 # Until Ctrl-C, or until one of them dies: then everything stops, and says so.
 wait -n "${pids[@]}" || true
 echo "mission: a process ended on its own — see the .txt and .jsonl in $out" >&2

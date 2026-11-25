@@ -41,9 +41,9 @@ SUDO       ?= sudo
 
 need-pi = $(if $(ON_PI),,$(error $@ is for the Raspberry Pi — from the PC, make pi-$@ (ON_PI=1 forces it here)))
 
-# Operating the bench moved to ./gama (tools/gama/, 21/11). The targets it
-# replaces still work, with this note, until after the on-site tests (24/11).
-superseded = @echo "note: make $@ is superseded by $(1) (./gama --help); it still works until after 24/11" >&2
+# Operating the bench is ./gama (tools/gama/, since 21/11): the network, the
+# Pi, the services, the antenna, a mission, the ground's page. The targets
+# it replaced went on 24/11; the ones below that it runs underneath stay.
 
 ##@ Build and test — on the PC and on the Pi
 
@@ -193,27 +193,13 @@ bench-gs: build ## By hand, terminal 2: gs_cli on radio B, commands typed in; qu
 	@mkdir -p $(BENCH_DIR)
 	$(GS_CMD) | tee -i -a $(BENCH_DIR)/manual-ground.jsonl
 
-# The ground's browser interface (ground/host/gs_web.py), on this machine:
-# the ESP32 on ESP32_PORT by default, gs_cli on the UDP radio with UDP=1, or a
-# recorded ground log with REPLAY=<file.jsonl> (SPEED=10 plays it faster).
-# POWER is the ground's dBm, as in the bench; WEB_HOST=0.0.0.0 opens the page
-# to the network (there is no password). ADSB=1 processes the aircraft as they
-# arrive (the ADS-B tab's map and estimates). MISSION_S is MISSION_ADSB's
-# length in seconds, 600 in flight (OBC-6): the page counts down from it, and
-# a shorter bench mission (make mission-sat MISSION_S=120) tells it the same.
+# The ground's browser page (ground/host/gs_web.py) is ./gama ground (the
+# ESP32), ./gama sim ground (the UDP radio, or --session <ground.jsonl>), since
+# 24/11. make sim below still opens it, with the satellite. MISSION_S is
+# MISSION_ADSB's length in seconds, 600 in flight (OBC-6).
 WEB_HOST   ?= 127.0.0.1
 WEB_PORT   ?= 8080
-SPEED      ?= 1
 MISSION_S  ?= 600
-GS_WEB      = $(PYTHON) ground/host/gs_web.py --host $(WEB_HOST) --port $(WEB_PORT) --mission-s $(MISSION_S) \
-              $(if $(ADSB),--adsb) $(if $(PI_HOST),--pi-ssh $(PI_HOST)) \
-              $(if $(REPLAY),--replay '$(REPLAY)' --speed $(SPEED),$(if $(UDP),--udp,--serial $(ESP32_PORT) --power $(POWER)))
-
-.PHONY: gs-web
-
-gs-web: $(if $(UDP),build) ## The ground's browser page: ESP32_PORT=/dev/ttyUSB0, or UDP=1, or REPLAY=<log>; ADSB=1, MISSION_S=600
-	@echo "gs-web: open http://$(WEB_HOST):$(WEB_PORT)"
-	$(GS_WEB)
 
 # One radio, one owner: a ttcd already running — the service, or make
 # bench-ttcd in another terminal — holds radio A (or the UDP port).
@@ -221,7 +207,7 @@ radio-a-free:
 	@if pgrep -x ttcd >/dev/null; then \
 	    echo "bench: a ttcd is already running and holds radio A (or the UDP port):" >&2; \
 	    pgrep -a -x ttcd | sed 's/^/  /' >&2; \
-	    echo "stop it first: make service-stop for the service, Ctrl-C for make bench-ttcd" >&2; \
+	    echo "stop it first: ./gama service stop ttcd for the service, Ctrl-C for make bench-ttcd" >&2; \
 	    exit 1; \
 	fi
 
@@ -263,54 +249,18 @@ sim: build ## The satellite on this PC, operated from the ground's page: INPUT=<
 # (empty: the real SDR); MISSION_S shortens MISSION_ADSB (obcd's
 # adsb_timeout_ms); AVR=1 adds the category port; TX_POWER is radio A's dBm.
 # The logs go to the day's bench folder, which make pi-fetch brings back.
-# On the PC, the page with the same length: make gs-web ADSB=1 MISSION_S=...
+# From the PC, ./gama mission (or ./gama replay mission) runs this and the
+# page with the same length.
 TX_POWER   ?= 2
 # A capture in place of the SDR is a replay, not the real reception: the
 # folder says so (replay-missao-*), whichever command started it.
 MISSION_DIR = docs/vv/bancada/$(BENCH_DATE)/$(if $(INPUT),replay-)missao-$(BENCH_TIME)
-# pi-sync leaves *.ndjson behind: pi-mission copies INPUT to this path.
-PI_INPUT    = /tmp/gama-mission$(suffix $(INPUT))
-
-.PHONY: mission-sat pi-mission
+.PHONY: mission-sat
 
 mission-sat: build ## On the Pi: the satellite for a mission from the page; MISSION_S=120, INPUT=<capture> (empty: the SDR)
 	$(need-pi)
 	BUILD_DIR=$(BUILD_DIR) PYTHON=$(PYTHON) MISSION_S=$(MISSION_S) INPUT='$(INPUT)' AVR=$(AVR) TX_POWER=$(TX_POWER) \
 	    tools/bench/pi_mission.sh $(MISSION_DIR)
-
-pi-mission: pi-sync ## From the PC: copy INPUT to the Pi, run mission-sat there (Ctrl-C stops it), bring the logs back
-	$(call superseded,./gama mission --secs N --input F)
-	$(if $(INPUT),@test -f '$(INPUT)' || { echo "pi-mission: no $(INPUT)" >&2; exit 1; })
-	$(if $(INPUT),scp -q '$(INPUT)' $(PI_HOST):$(PI_INPUT))
-	status=0; \
-	ssh -t $(PI_HOST) 'make -C $(PI_DIR) mission-sat MISSION_S=$(MISSION_S) TX_POWER=$(TX_POWER) AVR=$(AVR) $(if $(INPUT),INPUT=$(PI_INPUT))' || status=$$?; \
-	$(FETCH) || true; \
-	exit $$status
-
-##@ SDR and antenna — the 1090 MHz receiver alone, on the PC or the Pi
-
-# dump1090 for SDR_SECS seconds with the antenna on the SDR; the aircraft the
-# OpenSky Network sees around the receiver, when there is internet, say
-# whether a silent run means a bad antenna or an empty sky. Everything is
-# kept in the repository, in the day's bench folder: SDR_DIR/<antenna>-<time>/
-# (tools/bench/sdr_check.py). On the Pi, adsbd must not hold the SDR
-# (make pi-adsbd-stop). SDR_OPTS adds options, e.g. --lat/--lon away from FGA.
-ANTENNA    ?= antena
-SDR_SECS   ?= 60
-SDR_GAIN   ?= 49.6
-SDR_DIR    ?= docs/vv/bancada/$(BENCH_DATE)/antena
-SDR_OPTS   ?=
-
-.PHONY: sdr-check sdr-compare
-
-sdr-check: ## Is the antenna delivering aircraft? ANTENNA=cots|gama, SDR_SECS=60; logs in docs/vv/bancada/<date>/antena/
-	$(call superseded,./gama antenna check)
-	$(PYTHON) tools/bench/sdr_check.py run --antenna '$(ANTENNA)' --secs $(SDR_SECS) \
-	    --gain $(SDR_GAIN) --out '$(SDR_DIR)' $(SDR_OPTS)
-
-sdr-compare: ## Every antenna check in docs/vv/bancada side by side (SDR_DIR=<folder> for one day)
-	$(call superseded,./gama antenna compare)
-	$(PYTHON) tools/bench/sdr_check.py compare $(if $(filter command line,$(origin SDR_DIR)),'$(SDR_DIR)',docs/vv/bancada)
 
 ##@ ESP32 ground station — ESP-IDF in Docker (tools/esp32/idf.sh), on the PC
 
@@ -338,8 +288,8 @@ esp32-tests-flash: ## The same suites on the DevKit: ESP32_PORT=/dev/ttyUSB0
 
 ##@ On the Pi — ttcd, adsbd and obcd as systemd services
 
-.PHONY: provision install service-enable service-stop service-status service-logs \
-        adsbd-enable adsbd-stop adsbd-status obcd-enable obcd-stop obcd-status
+# Starting, stopping and following them: ./gama service (tools/gama/service.py).
+.PHONY: provision install
 
 # Once, on a fresh Pi: the build tools, tmux (a long bench run inside it
 # survives a dropped ssh), SPI0 (spidev0.0 and spidev0.1), I2C1 for obcd's
@@ -349,9 +299,6 @@ PROVISION   = sudo apt-get update && sudo apt-get install -y build-essential cma
               && sudo raspi-config nonint do_spi 0 && sudo raspi-config nonint do_i2c 0 \
               && { id -u gama >/dev/null 2>&1 || sudo useradd --system --no-create-home --groups spi,gpio,i2c gama; } \
               && sudo usermod -aG i2c gama
-# log_path in /etc/gama/ttcd.conf.
-SERVICE_LOG ?= /var/lib/gama/ttcd.jsonl
-
 provision: ## Once: build tools, SPI0 and I2C1 enabled, the gama user for the services
 	$(need-pi)
 	$(PROVISION)
@@ -395,85 +342,6 @@ install: build ## Install the daemons, their units and, if absent, /etc/gama fil
 	    if systemctl is-active --quiet $$d; then $(SUDO) systemctl restart $$d; echo "$$d restarted"; fi; \
 	done
 
-service-enable: ## Start ttcd now and at every boot — the flight configuration
-	$(call superseded,./gama service enable ttcd)
-	$(need-pi)
-	$(SUDO) systemctl enable --now ttcd
-
-service-stop: ## Stop ttcd until the next boot: the bench needs radio A
-	$(call superseded,./gama service stop ttcd)
-	$(need-pi)
-	$(SUDO) systemctl stop ttcd
-
-service-status: ## systemd's view of ttcd, and the end of its log
-	$(call superseded,./gama service status)
-	$(need-pi)
-	systemctl status ttcd --no-pager || true
-	tail -n 20 $(SERVICE_LOG)
-
-service-logs: ## Follow ttcd's log; Ctrl-C leaves
-	$(call superseded,./gama service logs ttcd -f)
-	$(need-pi)
-	tail -F $(SERVICE_LOG)
-
-# log_path in /etc/gama/adsbd.conf.
-ADSBD_LOG   ?= /var/lib/gama/adsbd.jsonl
-
-adsbd-enable: ## Start adsbd now and at every boot (dump1090-fa must be installed)
-	$(call superseded,./gama service enable adsbd)
-	$(need-pi)
-	@test -x /usr/bin/dump1090-fa || echo "warning: /usr/bin/dump1090-fa not found; adsbd will keep retrying it" >&2
-	$(SUDO) systemctl enable --now adsbd
-
-adsbd-stop: ## Stop adsbd until the next boot: frees the SDR
-	$(call superseded,./gama service stop adsbd)
-	$(need-pi)
-	$(SUDO) systemctl stop adsbd
-
-adsbd-status: ## systemd's view of adsbd, and the end of its log
-	$(call superseded,./gama service status)
-	$(need-pi)
-	systemctl status adsbd --no-pager || true
-	tail -n 20 $(ADSBD_LOG)
-
-# log_path in /etc/gama/obcd.conf.
-OBCD_LOG    ?= /var/lib/gama/obcd.jsonl
-
-obcd-enable: ## Start obcd now and at every boot (pins and sensors in /etc/gama/obcd.conf)
-	$(call superseded,./gama service enable obcd)
-	$(need-pi)
-	$(SUDO) systemctl enable --now obcd
-
-obcd-stop: ## Stop obcd until the next boot: the modes stop, the outputs go off
-	$(call superseded,./gama service stop obcd)
-	$(need-pi)
-	$(SUDO) systemctl stop obcd
-
-obcd-status: ## systemd's view of obcd, and the end of its log
-	$(call superseded,./gama service status)
-	$(need-pi)
-	systemctl status obcd --no-pager || true
-	tail -n 20 $(OBCD_LOG)
-
-##@ Bench network — the PC's Wi-Fi as the Pi's access point
-
-# The PC's NetworkManager connection bancada-ap (created once, in
-# docs/vv/bancada/README.md) turns its Wi-Fi into the access point
-# gama-bancada and shares the cable's internet; the Pi knows that network
-# with priority 20. Since 21/11 these are ./gama net (tools/gama/net.py),
-# which waits until the Pi answers over ssh (~40 s after it boots).
-
-.PHONY: net-up net-down net-check
-
-net-up: ## Bring the bench network up and wait for the Pi (./gama net up; refuses without the ethernet cable)
-	./gama net up
-
-net-check: ## The network as seen from both ends (./gama net check)
-	./gama net check
-
-net-down: ## Take the bench network down (./gama net down)
-	./gama net down
-
 ##@ From the PC — the same targets, run on the Pi over ssh
 
 # user@host of the Pi — echo 'PI_HOST = pi@raspberrypi.local' > local.mk —
@@ -516,13 +384,7 @@ pi-provision: ## Once: make provision on a Pi that has only ssh so far
 
 ##@ Help
 
-.PHONY: help doctor
-
-# Operating the bench — the network, the Pi, the radio check, a mission —
-# moves to ./gama (tools/gama/, 21/11): one command per scenario, which knows
-# whether it runs on the PC or the Pi and checks before starting.
-doctor: ## The whole bench at once: PC, network, Pi, clock, configuration, SDR, radio A (./gama doctor)
-	./gama doctor
+.PHONY: help
 
 help: ## This list
 	@echo "To operate the bench (network, Pi, board, services, radio, link, antenna, ESP32, a mission): ./gama --help"
@@ -537,4 +399,4 @@ help: ## This list
 	@echo "  PI_HOST=$(or $(PI_HOST),(unset))  PI_DIR=$(PI_DIR)"
 	@echo "  T=<regex> for test and asan, LOG=<file> for toa, TTCD_OPTS and GS_OPTS for extra options"
 	@echo "  INPUT=<ndjson|.sbs> for adsb-chain, which writes under $(CHAIN_DIR)/"
-	@echo "  ANTENNA=$(ANTENNA)  SDR_SECS=$(SDR_SECS)  SDR_GAIN=$(SDR_GAIN) for sdr-check, which writes under $(SDR_DIR)/"
+	@echo "  INPUT=<ndjson|.sbs>  MISSION_S=$(MISSION_S)  WEB_PORT=$(WEB_PORT) for sim, which writes under $(SIM_DIR)/"

@@ -180,7 +180,7 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME live_traffic
              COMMAND ${Python3_EXECUTABLE} -m unittest test_live_traffic
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/live_traffic)
-    # The SDR and antenna check (make sdr-check), against a fake dump1090.
+    # The SDR and antenna check (./gama antenna check), against a fake dump1090.
     add_test(NAME sdr_check
              COMMAND ${Python3_EXECUTABLE} -m unittest test_sdr_check
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/bench)

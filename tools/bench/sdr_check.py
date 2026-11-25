@@ -7,7 +7,7 @@ the SDR and its antenna with dump1090, on the PC or on the Pi, no satellite.
     sdr_check.py compare DIR...        one line per run found under the DIRs
 
 `run` does three things and keeps everything in one folder, by default
-docs/vv/bancada/<date>/antena/<antenna>-<time>/ (make sdr-check):
+docs/vv/bancada/<date>/antena/<antenna>-<time>/ (./gama antenna check):
 
   1. the reference: with internet, the aircraft the OpenSky Network sees
      around the receiver right now (referencia.json). A run that hears
@@ -179,7 +179,7 @@ def verdict(stats, aircraft, ref):
     with_pos = [a for a in aircraft if a['position']]
     accepted = stats.get('accepted', 0)
     if not stats:
-        return 'ERRO', 'o dump1090 não imprimiu estatísticas: o SDR está conectado e livre? (na Pi: make adsbd-stop)'
+        return 'ERRO', 'o dump1090 não imprimiu estatísticas: o SDR está conectado e livre? (na Pi: ./gama service stop adsbd)'
     if with_pos:
         far = max(a['max_km'] for a in with_pos)
         return 'APROVADA', f'{len(with_pos)} aeronave(s) com posição, a até {far:.0f} km'
