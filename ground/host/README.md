@@ -7,6 +7,7 @@ na raiz desta pasta; o ADS-B da ground, em `adsb/`.
 |---|---|
 | `gs_serial.py` | A ponte com a ESP32 da ground (ADR-0018). Reseta a placa, dá a ela o relógio do PC (a ESP32 não tem), manda os comandos e grava as linhas JSON. Para os roteiros da bancada, a ESP32 fica igual à `gs_cli`. Uso em `ground/esp32/README.md` |
 | `gs_web.py`, `web/` | A interface no navegador, central para a operação (abaixo) |
+| `battery.py` | A carga da bateria, a autonomia e a recarga, estimadas a partir do HK (ADR-0024); `python3 battery.py LOG.jsonl` mostra a estimativa a cada HK de um log gravado |
 | `iniciar_ground.sh` | `gs_web.py --adsb` com os argumentos dados |
 | `iniciar_painel.sh` | O painel de trajetórias do estimador (`python -m adsb.estimator.visualize --serve`) |
 | `adsb/estimator/` | O estimador de origem e destino (pacote `adsb.estimator`, do Pedro): recepção de NDJSON, aeroportos e pistas, memória temporal, pares (ADR-0019), conclusão combinada, painel. Detalhes em `adsb/README.md` |
@@ -82,6 +83,13 @@ e sem nada da internet):
     leva um asterisco.
   - Implantação (burn-wire), AOCS (a atitude do HK e o slot da página da equipe do
     AOCS, `web/aocs/README.md`), Sobrevivência e Enlace.
+  - OBC: tensão, corrente e temperaturas do HK, e a carga da bateria estimada no
+    solo (ADR-0024): percentual, autonomia (na descarga) ou tempo até cheia e
+    corrente de recarga estimada (na recarga), tendência em %/h. O INA219 mede só
+    o consumo, então a recarga é inferida pela inclinação da tensão. Os padrões
+    são 3200 mAh (NCR18650B 2S1P) e R = 0,25 Ω; o "R usado / medido" mostra o R
+    medido nos degraus de carga das trocas de modo, para passar em
+    `--battery-r-ohm`.
 - **Utilitários e eventos** ao lado de todas as abas.
 - **Identidade visual da Gama** (`web/css/gama.css`): tema escuro por padrão, claro
   no botão; Open Sans; o favicon oficial sem alteração. Português, espanhol e

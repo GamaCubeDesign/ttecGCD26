@@ -200,6 +200,7 @@ p.toast { position: static; opacity: 1; transform: none; box-shadow: none; borde
 .fig { border: 1px solid var(--line); border-radius: 9px; padding: 9px 12px; background: var(--panel-2); }
 .fig b { display: block; font-size: 1.55em; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.15; }
 .fig b small { font-size: .5em; font-weight: 400; color: var(--muted); margin-left: 3px; }
+.fig.txt b, .figs.big .fig.txt b { font-size: 1.15em; overflow-wrap: anywhere; }
 .figs.mini { grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 6px; }
 .figs.mini .fig { padding: 5px 9px; }
 .figs.mini .fig .lbl { font-size: .66em; white-space: nowrap; }

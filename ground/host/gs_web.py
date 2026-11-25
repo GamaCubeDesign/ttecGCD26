@@ -31,6 +31,8 @@ import time
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from battery import BatteryEstimator, BatteryModel
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 # The page: plain files and ES modules, no build step (ground/host/web).
 WEB_DIR = os.path.join(HERE, "web")
@@ -183,7 +185,7 @@ class GsState:
     # GAMA_HK_F_* (common/gama_tm.h).
     HK_FLAGS = (("obc_linked", 1), ("adsb_linked", 2), ("time_synced", 4), ("dump1090_up", 8))
 
-    def __init__(self, source="", now=time.time):
+    def __init__(self, source="", now=time.time, battery=None):
         self.now = now
         self.source = source
         self.log = collections.deque(maxlen=self.LOG_MAX)
@@ -210,8 +212,10 @@ class GsState:
         self.runs = collections.deque(maxlen=self.RUNS_MAX)
         self.run = None
         # The OBC tab's series: [t, battery_mv, current_ma, temp_bat, temp_ext,
-        # temp_soc], no-data sentinels as None.
+        # temp_soc, soc_pct], no-data sentinels as None.
         self.hk_hist = collections.deque(maxlen=self.HK_HIST_MAX)
+        # The charge, autonomy and charging, from the HK alone (ADR-0024).
+        self.battery = BatteryEstimator(battery)
 
     def _note(self, kind, text):
         self.seq += 1
@@ -342,9 +346,11 @@ class GsState:
             self.mode = mode
             self.mode_at = self.now()
         self._run_mode(mode, obj.get("flags"))
+        self.battery.feed(self.hk_at, obj.get("battery_mv"), obj.get("current_ma"), obj.get("uptime_s"))
         self.hk_hist.append([round(self.hk_at, 1)] + [
             None if NO_DATA.get(k) == obj.get(k) else obj.get(k)
-            for k in ("battery_mv", "current_ma", "temp_bat_ccel", "temp_ext_ccel", "temp_soc_ccel")])
+            for k in ("battery_mv", "current_ma", "temp_bat_ccel", "temp_ext_ccel", "temp_soc_ccel")]
+            + [self.battery.estimate()["soc_pct"]])
         parts = [str(mode)]
         for key, div, unit in (("battery_mv", 1000, "V"), ("current_ma", 1, "mA"),
                                ("temp_bat_ccel", 100, "°C"), ("temp_soc_ccel", 100, "°C SoC")):
@@ -382,6 +388,7 @@ class GsState:
             "log": log, "log_n": self.seq, "full": since is None,
             "runs": [dict(r, acks=list(r["acks"])) for r in self.runs],
             "hk_hist": list(self.hk_hist),
+            "battery": self.battery.estimate(),
             "now": now,
         }
 
@@ -782,6 +789,10 @@ def main(argv=None):
                     help="MISSION_ADSB's length, s: obcd's adsb_timeout_ms / 1000 (600 in flight)")
     ap.add_argument("--pi-ssh", metavar="HOST",
                     help="the Pi, for the deployment over ssh (REG-07's fallback), e.g. pi@gamapi.local")
+    ap.add_argument("--battery-mah", type=float, default=BatteryModel.capacity_mah,
+                    help="the pack's capacity, mAh (NCR18650B 2S1P: 3200 minimum, 3350 typical)")
+    ap.add_argument("--battery-r-ohm", type=float, default=BatteryModel.r_ohm,
+                    help="cells to INA219, Ohm: the page's measured R once the bench has one")
     ap.add_argument("--session-dir", type=Path, default=Path(HERE)/"sessions")
     ap.add_argument("--session-prefix", default="mission-",
                     help="the session folder's prefix: sim-mission- or replay-mission- when not all real")
@@ -808,7 +819,10 @@ def main(argv=None):
     source, name = build_source(args)
     if args.mission_s <= 0:
         ap.error("--mission-s must be positive")
-    hub = Hub(GsState(source=name), source, pipeline, mission_s=args.mission_s, pi_ssh=args.pi_ssh)
+    if args.battery_mah <= 0 or args.battery_r_ohm < 0:
+        ap.error("--battery-mah must be positive and --battery-r-ohm not negative")
+    model = BatteryModel(capacity_mah=args.battery_mah, r_ohm=args.battery_r_ohm)
+    hub = Hub(GsState(source=name, battery=model), source, pipeline, mission_s=args.mission_s, pi_ssh=args.pi_ssh)
     server = None
     def interrupt(signum, frame):
         raise KeyboardInterrupt

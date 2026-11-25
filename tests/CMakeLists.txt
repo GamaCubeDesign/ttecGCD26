@@ -205,6 +205,11 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME gs_web
              COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/host -p test_gs_web.py
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
+    # The battery's charge, autonomy and charging from the HK (ADR-0024),
+    # against a synthetic 2S pack.
+    add_test(NAME gs_battery
+             COMMAND ${Python3_EXECUTABLE} -m unittest discover -s tests/host -p test_battery.py
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ground/host)
     # The page's modules that need no browser (ground/host/web): where Node is.
     find_program(NODE_EXECUTABLE node)
     if(NODE_EXECUTABLE)

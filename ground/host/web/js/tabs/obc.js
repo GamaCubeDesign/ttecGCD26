@@ -1,6 +1,7 @@
 // OBC: the battery's health and the OBC's state, from the housekeeping
 // (every 10 s): the figures now, and the last 30 min that gs_web.py keeps
-// (GsState.hk_hist: [t, battery_mv, current_ma, temp_bat, temp_ext, temp_soc]).
+// (GsState.hk_hist: [t, battery_mv, current_ma, temp_bat, temp_ext, temp_soc,
+// soc_pct]); the charge estimated at the ground (GsState.battery, ADR-0024).
 
 import { esc, fmtAge, fmtNum, setHTML } from '../util.js';
 import { t } from '../i18n.js';
@@ -72,7 +73,12 @@ export const tab = {
         <div class="figs" id="obc-temps"></div>
         <canvas class="spark tall" id="obc-temp-chart"></canvas>
         ${legend([['--forest', t('tbat')], ['--yellow', t('tsoc')]])}</section>
-      <section class="card"><h2>${esc(t('obc_state'))}</h2><div class="kv" id="obc-kv"></div></section>`;
+      <section class="card span-7"><h2>${esc(t('obc_charge'))}</h2>
+        <p class="lead">${esc(t('charge_lead'))}</p>
+        <div class="figs big" id="obc-charge"></div>
+        <canvas class="spark tall" id="obc-soc-chart"></canvas>
+        ${legend([['--forest', t('soc') + ' (%)']])}</section>
+      <section class="card span-5"><h2>${esc(t('obc_state'))}</h2><div class="kv" id="obc-kv"></div></section>`;
     this.drawnAt = null;
   },
   show() { this.drawnAt = null; },
@@ -89,6 +95,17 @@ export const tab = {
       fig(t('tbat'), hk && hk.temp_bat_ccel != null ? hk.temp_bat_ccel / 100 : null, 1, '°C') +
       fig(t('text'), hk && hk.temp_ext_ccel != null ? hk.temp_ext_ccel / 100 : null, 1, '°C') +
       fig(t('tsoc'), hk && hk.temp_soc_ccel != null ? hk.temp_soc_ccel / 100 : null, 1, '°C'));
+    const b = st && st.battery;
+    const dur = (s) => (s == null ? null : fmtAge(s));
+    const figText = (label, text) =>
+      `<div class="fig txt"><span class="lbl">${esc(label)}</span><b>${text == null ? '—' : esc(text)}</b></div>`;
+    const charging = b && b.state === 'charging';
+    setHTML(document.getElementById('obc-charge'), b ? (
+      fig(t('soc'), b.soc_pct, 0, '%') +
+      (charging ? figText(t('full_in'), dur(b.full_in_s)) : figText(t('autonomy'), dur(b.autonomy_s))) +
+      fig(t('trend'), b.trend_pct_h, 1, '%/h') +
+      (charging ? fig(t('charge_in'), b.charge_ma, 0, 'mA') : fig(t('used'), b.used_mah, 0, 'mAh')) +
+      figText(t('b_state'), t('st_' + b.state))) : '');
     const yn = (b) => (b == null ? '—' : b ? '✓ ' + t('yes') : '✗ ' + t('no'));
     setHTML(document.getElementById('obc-kv'), hk ? [
       [t('obc_mode'), st.mode ? `${st.mode} · ${t('for')} ${fmtAge(since(st.mode_age))}` : '—'],
@@ -98,6 +115,8 @@ export const tab = {
       [t('obc_linked'), yn(hk.obc_linked)],
       [t('adsb_linked'), yn(hk.adsb_linked)],
       [t('dump1090_up'), yn(hk.dump1090_up)],
+      [t('soc_v'), b && b.soc_v_pct != null ? fmtNum(b.soc_v_pct, 0) + ' %' : '—'],
+      [t('r_model'), b ? `${fmtNum(b.r_ohm, 2)} / ${b.r_measured_ohm != null ? fmtNum(b.r_measured_ohm, 2) : '—'} Ω` : '—'],
     ].map(([k, x]) => `<span>${esc(k)}</span><span>${esc(x)}</span>`).join('')
       : `<span class="muted">${esc(t('no_hk'))}</span><span></span>`);
     // The charts change only with a new HK.
@@ -108,6 +127,9 @@ export const tab = {
     chart(document.getElementById('obc-bat-chart'), hist, [
       { idx: 1, div: 1000, unit: 'V', digits: 2, color: '--forest', minSpan: 100 },
       { idx: 2, div: 1, unit: 'mA', digits: 0, color: '--yellow', minSpan: 20 },
+    ]);
+    chart(document.getElementById('obc-soc-chart'), hist, [
+      { idx: 6, div: 1, unit: '%', digits: 0, color: '--forest', minSpan: 5 },
     ]);
     chart(document.getElementById('obc-temp-chart'), hist, [
       { idx: 3, div: 100, unit: '°C', digits: 1, color: '--forest', minSpan: 200 },

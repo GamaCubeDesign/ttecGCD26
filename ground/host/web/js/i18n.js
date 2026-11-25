@@ -52,6 +52,10 @@ const T = {
     obc_lead: 'Do housekeeping, a cada 10 s: o INA219 dá tensão e corrente da bateria; o DS18B20, a temperatura dela. Os gráficos guardam os últimos 30 min.',
     obc_mode: 'Modo', hk_age: 'Último HK', obc_linked: 'obcd ligado ao ttcd', adsb_linked: 'adsbd ligado ao ttcd', dump1090_up: 'dump1090 rodando',
     no_hk: 'Sem housekeeping ainda.', last_30: 'últimos 30 min', yes: 'sim', no: 'não',
+    obc_charge: 'Carga da bateria', soc: 'Carga', autonomy: 'Autonomia', full_in: 'Cheia em', trend: 'Tendência',
+    charge_in: 'Recarga (estimada)', b_state: 'Estado', used: 'Consumido', soc_v: 'pela tensão', r_model: 'R usado / medido',
+    charge_lead: 'Estimada no solo a partir do HK (ADR-0024). Na descarga, conta o consumo e corrige devagar pela tensão. Na recarga, segue a inclinação da tensão: o INA219 não vê a corrente de recarga, por isso ela é estimada.',
+    st_discharging: 'descarregando', st_charging: 'carregando', st_no_data: 'sem dado', st_out_of_range: 'tensão fora da faixa',
   },
   es: {
     title: 'GCD26 · Estación terrena', lang: 'ES', theme_dark: 'tema oscuro', theme_light: 'tema claro', big: 'proyectar: letras más grandes',
@@ -78,6 +82,10 @@ const T = {
     obc_bat: 'Batería', obc_temps: 'Temperaturas', obc_state: 'Estado del OBC', power_w: 'Potencia',
     obc_lead: 'Del housekeeping, cada 10 s: el INA219 da tensión y corriente de la batería; el DS18B20, su temperatura. Los gráficos guardan los últimos 30 min.',
     hk_age: 'Último HK', no_hk: 'Sin housekeeping todavía.', last_30: 'últimos 30 min', yes: 'sí', no: 'no',
+    obc_charge: 'Carga de la batería', soc: 'Carga', autonomy: 'Autonomía', full_in: 'Llena en', trend: 'Tendencia',
+    charge_in: 'Recarga (estimada)', b_state: 'Estado', used: 'Consumido', soc_v: 'por la tensión', r_model: 'R usada / medida',
+    charge_lead: 'Estimada en tierra a partir del HK (ADR-0024). En descarga, cuenta el consumo y corrige despacio por la tensión. En recarga, sigue la pendiente de la tensión: el INA219 no ve la corriente de recarga, por eso se estima.',
+    st_discharging: 'descargando', st_charging: 'cargando', st_no_data: 'sin dato', st_out_of_range: 'tensión fuera de rango',
   },
   en: {
     title: 'GCD26 · Ground station', lang: 'EN', theme_dark: 'dark theme', theme_light: 'light theme', big: 'projector: larger text',
@@ -108,6 +116,10 @@ const T = {
     obc_lead: 'From the housekeeping, every 10 s: the INA219 gives the battery\'s voltage and current; the DS18B20, its temperature. The charts keep the last 30 min.',
     obc_mode: 'Mode', hk_age: 'Last HK', obc_linked: 'obcd linked to ttcd', adsb_linked: 'adsbd linked to ttcd', dump1090_up: 'dump1090 running',
     no_hk: 'No housekeeping yet.', last_30: 'last 30 min', yes: 'yes', no: 'no',
+    obc_charge: 'Battery charge', soc: 'Charge', autonomy: 'Autonomy', full_in: 'Full in', trend: 'Trend',
+    charge_in: 'Charging (estimated)', b_state: 'State', used: 'Used', soc_v: 'from the voltage', r_model: 'R used / measured',
+    charge_lead: 'Estimated at the ground from the HK (ADR-0024). Discharging, it counts the load and corrects slowly by the voltage. Charging, it follows the voltage\'s slope: the INA219 does not see the charge current, so that current is estimated.',
+    st_discharging: 'discharging', st_charging: 'charging', st_no_data: 'no data', st_out_of_range: 'voltage out of range',
   },
 };
 
