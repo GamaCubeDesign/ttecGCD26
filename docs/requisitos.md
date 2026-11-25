@@ -405,6 +405,10 @@ nada é transmitido ainda
   carga, o sensor de corrente (INA219, na branch `basic_intermediate` do OBC)
   precisa estar no caminho da bateria, não só no da carga. Confirmar com a
   EPS.
+- **25/11:** confirmado que o INA219 mede só o consumo (achado A9). A ground
+  estima a recarga pela inclinação da tensão: percentual, tendência e corrente
+  de recarga **inferida**, não medida (ADR-0024, aba OBC). Para o REG-09, um
+  amperímetro na linha de carga continua sendo a única medida direta.
 
 ### HLR-EPS-03
 
