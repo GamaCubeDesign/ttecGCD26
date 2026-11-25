@@ -5,6 +5,7 @@ same open-circuit curve (ADR-0024)."""
 import os
 import random
 import sys
+import time
 import unittest
 
 HERE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # ground/host
@@ -66,7 +67,7 @@ class TheCurve(unittest.TestCase):
 
 class Discharging(unittest.TestCase):
     def test_follows_a_constant_load(self):
-        est, pack = battery.BatteryEstimator(), Pack(soc=70.0)
+        est, pack = battery.BatteryEstimator(), Pack(soc=70.0, r=0.55)
         e = pack.run(est, 600, load=600)
         self.assertEqual(e["state"], "discharging")
         self.assertLess(abs(e["soc_pct"] - pack.soc), 1.5)
@@ -83,10 +84,11 @@ class Discharging(unittest.TestCase):
         self.assertAlmostEqual(e["r_measured_ohm"], 0.55, delta=0.08)
         self.assertLess(e["noise_mv"], 10)
 
-    def test_r_unknown_the_state_waits(self):
-        # The load barely moves: no R, and the state waits instead of reading
-        # load swings as steps. One step alone does not make R either: it
-        # could be a charger switched on in the same HK.
+    def test_a_mode_change_with_r_off_is_not_a_charge(self):
+        # The default R (0.55) off by 0.15 Ohm and a 700 mA load step: the
+        # baseline starts again instead of reading 105 mV as a charge. One
+        # step alone does not make R either: it could be a charger switched
+        # on in the same HK.
         est, pack, seen = battery.BatteryEstimator(), Pack(r=0.40), []
         e = pack.run(est, 300, load=300)
         self.assertIsNone(e["r_measured_ohm"])
@@ -159,21 +161,49 @@ class Charging(unittest.TestCase):
             self.assertLessEqual(first(seen, "charging", on), 30, seed)
             self.assertLessEqual(first(seen, "discharging", off), 30, seed)
 
-    def test_a_charge_starting_with_a_load_step(self):
-        # R known, the load's step is compensated and the charge's is not.
+    def test_a_light_soon_after_a_mode_change(self):
+        # 30 s after the load stepped down, the new baseline is there.
         est, pack, seen = battery.BatteryEstimator(), like_25_11(soc=60.0), []
         pack.run(est, 300, load=450)
+        pack.run(est, 30, load=200)
         on = pack.t
         pack.run(est, 120, load=200, charge=500, watch=seen)
         self.assertLessEqual(first(seen, "charging", on), 30)
+
+    def test_right_from_the_first_hk(self):
+        # No wait for R: the light switched on a minute after the page started.
+        est, pack, seen = battery.BatteryEstimator(), like_25_11(), []
+        pack.run(est, 60, load=200)
+        on = pack.t
+        pack.run(est, 60, load=200, charge=300, watch=seen)
+        self.assertLessEqual(first(seen, "charging", on), 30)
+
+    def test_hk_every_2_s(self):
+        # The page's fast HK: the same detector, five times the samples.
+        for seed in range(5):
+            est, pack, seen = battery.BatteryEstimator(), like_25_11(seed=seed), []
+            pack.run(est, 300, load=200, every=2)
+            on = pack.t
+            pack.run(est, 120, load=200, charge=300, every=2, watch=seen)
+            off = pack.t
+            pack.run(est, 120, load=200, every=2, watch=seen)
+            self.assertLessEqual(first(seen, "charging", on), 8, seed)
+            self.assertLessEqual(first(seen, "discharging", off), 8, seed)
+            self.assertEqual([st for t, st in seen if t <= on + 8 or on + 20 < t <= off][-1], "charging")
+
+    def test_no_false_charge_with_hk_every_2_s(self):
+        for seed in range(5):
+            est, pack, seen = battery.BatteryEstimator(), like_25_11(seed=seed), []
+            pack.run(est, 900, load=200, every=2, watch=seen)
+            self.assertEqual({st for _, st in seen}, {"discharging"}, seed)
 
 
 class TheDiode(unittest.TestCase):
     def test_d1_drop_ignored_reads_low(self):
         # The INA219 is after D1: without its 0.3 V the charge reads ~15 % low
         # in the plateau.
-        right = Pack(soc=60.0).run(battery.BatteryEstimator(), 120, load=500)
-        wrong = Pack(soc=60.0).run(battery.BatteryEstimator(battery.BatteryModel(diode_v=0.0)),
+        right = Pack(soc=60.0, r=0.55).run(battery.BatteryEstimator(), 120, load=500)
+        wrong = Pack(soc=60.0, r=0.55).run(battery.BatteryEstimator(battery.BatteryModel(diode_v=0.0)),
                                    120, load=500)
         self.assertLess(abs(right["soc_pct"] - 60.0), 1.5)
         self.assertGreater(60.0 - wrong["soc_pct"], 10.0)
@@ -221,6 +251,80 @@ class InThePage(unittest.TestCase):
         self.assertEqual(snap["hk_hist"][-1][6], snap["battery"]["soc_pct"])
         s.feed({"ev": "hk", "battery_mv": 65535, "current_ma": -32768, "uptime_s": 40})
         self.assertEqual(s.snapshot()["battery"]["state"], "no_data")
+
+
+
+class FastHk(unittest.TestCase):
+    def test_paced_by_the_ack_and_off_by_itself(self):
+        f = gs_web.FastHk()
+        self.assertFalse(f.due(0.0))
+        f.start(0.0)
+        self.assertTrue(f.due(0.0))
+        f.sent(0.0)
+        self.assertFalse(f.due(5.0))                      # no ACK yet
+        f.acked()
+        self.assertTrue(f.due(5.0))
+        f.sent(5.0)
+        f.acked()
+        self.assertFalse(f.due(6.0))                      # 2 s apart
+        self.assertTrue(f.due(7.0))
+        f.sent(7.0)
+        self.assertTrue(f.due(7.0 + f.ACK_TIMEOUT_S))     # an ACK lost: go on
+        self.assertFalse(f.due(f.MAX_S + 1))
+        self.assertEqual(f.snapshot(f.MAX_S + 1)["on"], False)
+
+    def test_the_hub_sends_hk_and_waits_for_its_ack(self):
+        class Source:
+            def __init__(self):
+                self.sent = []
+
+            def send(self, cmd):
+                self.sent.append(cmd)
+                return True
+
+        clock = [100.0]
+        src = Source()
+        hub = gs_web.Hub(gs_web.GsState(now=lambda: clock[0]), src)
+        hub.mono = lambda: clock[0]
+        try:
+            def wait_for(n):
+                for _ in range(40):
+                    if len(src.sent) >= n:
+                        return
+                    time.sleep(0.05)
+
+            self.assertTrue(hub.set_fast_hk(True)["ok"])
+            wait_for(1)
+            self.assertEqual(src.sent, ["hk"])
+            clock[0] += 3
+            time.sleep(0.4)
+            self.assertEqual(len(src.sent), 1)                 # waiting for the ACK
+            hub.feed({"ev": "ack", "cmd": "REQ_HK", "status": "OK", "latency_ms": 300, "attempts": 1})
+            wait_for(2)
+            self.assertEqual(len(src.sent), 2)
+            snap = hub.snapshot()
+            self.assertTrue(snap["fast_hk"]["on"])
+            self.assertNotIn("REQ_HK", " ".join(e["text"] for e in snap["log"]))
+            hub.set_fast_hk(False)
+            hub.feed({"ev": "ack", "cmd": "REQ_HK", "status": "OK", "latency_ms": 300, "attempts": 1})
+            clock[0] += 3
+            time.sleep(0.4)
+            self.assertEqual(len(src.sent), 2)
+            self.assertFalse(hub.snapshot()["fast_hk"]["on"])
+        finally:
+            hub.close()
+
+    def test_one_chart_point_and_one_log_line_in_10_s(self):
+        clock = [1000.0]
+        s = gs_web.GsState(now=lambda: clock[0])
+        s.quiet_hk = True
+        for k in range(10):                                # 20 s of HK every 2 s
+            s.feed({"ev": "hk", "battery_mv": 7100, "current_ma": 180, "uptime_s": 2 * k,
+                    "obc_mode": "PRE_TEST"})
+            clock[0] += 2
+        snap = s.snapshot()
+        self.assertEqual(len(snap["hk_hist"]), 2)
+        self.assertEqual(sum(1 for e in snap["log"] if e["text"].startswith("hk:")), 2)
 
 
 if __name__ == "__main__":

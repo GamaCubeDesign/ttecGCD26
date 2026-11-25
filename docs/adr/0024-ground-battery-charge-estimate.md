@@ -61,17 +61,31 @@ page's OBC tab. Nothing changes on board or on the wire.
   15 mA rms between HK, and no single pair holding more than half of the ΔI²,
   so that a charger switched on in the same HK as a load step cannot make R
   alone; it must lie within 0.05–1.0 Ω. The noise σ is the MAD of the same
-  differences, compensated, divided by √2. A value passed with
-  `--battery-r-ohm` (measured on the bench) is trusted from the first HK;
-  without it, the state waits for R. The first R measured re-anchors the
-  charge on the voltage.
+  differences, compensated, divided by √2. Until then the default, 0.55 Ω
+  (this board's, from the HK of 25/11) or `--battery-r-ohm`, is trusted from
+  the first HK: waiting for R left the state frozen for the first ~3 min. The
+  first R measured, if 0.05 Ω or more off, re-anchors the charge on the
+  voltage.
 - **The state changes only on a step** of the compensated voltage `V + R·I`:
   the light on lifts it by the charge current times the cells' resistance
   with the load unchanged, and off drops it back. A two-sided CUSUM against
   the median of the last 6 HK since the previous step, with slack 1σ,
   threshold 3.5σ and each HK clipped at 3σ, so that one HK alone never
-  changes the state and two in a row do. Only a change of state restarts the
-  trend window.
+  changes the state and two in a row do (single HK reach +28/−37 mV in the
+  25/11 logs, two in a row ±6). With HK closer than 5 s the threshold is 5σ,
+  three HK: five times the HK are five times the chances of two noisy ones in
+  a row (14 false charges in 10 simulated hours at 3.5σ, 1 at 5σ). The load
+  moving 100 mA or more from the baseline's (a mode change) restarts the
+  baseline instead of deciding, so that an R off by 0.15 Ω cannot read a
+  200 mA step as 30 mV of charge. Only a change of state restarts the trend
+  window.
+- **Fast HK for the EPS test:** the OBC tab can ask for one HK every 2 s
+  (`gs_web.py` `FastHk`, the console's `hk`), each after the previous one's
+  ACK, off by itself after 15 min. `obcd` sends its readings to `ttcd` every
+  second, so each HK is a new reading. The state then follows the light in
+  ~6 s instead of 10–20 s. Over LoRa a cycle is ~0.5 s on air (REQ_HK, its
+  ACK, the 0.247 s HK): a quarter of the channel, for the test only. The log
+  and the chart keep one HK in ~10 s; the estimate sees them all.
 - **The trend does not decide the state.** On the curve's plateau 1 % is
   14 mV of the pack, and the 25/11 logs wander 10 mV in 4 min: with no light
   at all, a 5-min trend read +38 %/h. A light already on at the first HK
@@ -159,10 +173,11 @@ charging, which the INA219 cannot see. Kept for discharge only.
   HK after the step.
 - A charge below ~20 mV of step (~80 mA into the cells) is not reliably
   detected, and one of ~15 mV can be seen on and never off. A steadier load
-  than 25/11's (below 15 mA rms between HK) leaves R unmeasured and the
-  state waiting, unless R comes from the bench.
-- For the first ~3 min after the page starts, or a reboot, there is no state
-  change at all (R not yet measured).
+  than 25/11's (below 15 mA rms between HK) leaves R at the default.
+- A light switched within one HK of a mode change goes unseen until it is
+  switched again.
+- The default R is this board's; another board, or a battery swapped, needs
+  `--battery-r-ohm` or ~3 min of HK before the compensation is right.
 - The charge current is inferred, not measured; REG-09 evaluates current and
   voltage, and the jury may want a meter on the charge line.
 - In the CV phase of a charge the voltage stops rising while the charge still

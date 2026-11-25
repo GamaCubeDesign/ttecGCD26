@@ -183,6 +183,7 @@ class GsState:
     SPARK_MAX = 90
     RUNS_MAX = 20
     HK_HIST_MAX = 180     # 30 min of housekeeping at one every 10 s
+    HK_SPARSE_S = 9.0     # the chart and the log keep one HK in ~10 s
     # Modes that end before the next housekeeping (10 s) can show them: the
     # burn-wire pulse (burnwire_ms, 750 ms on obc-v2), the AOCS task without
     # its ESP32. A run of one is complete when SET_MODE was acknowledged and
@@ -225,6 +226,11 @@ class GsState:
         # The OBC tab's series: [t, battery_mv, current_ma, temp_bat, temp_ext,
         # temp_soc, soc_pct], no-data sentinels as None.
         self.hk_hist = collections.deque(maxlen=self.HK_HIST_MAX)
+        # The fast HK (FastHk): its ACKs out of the log, one HK line and one
+        # chart point every ~10 s, as at NOMINAL; the estimate sees them all.
+        self.quiet_hk = False
+        self.hk_hist_t = None
+        self.hk_note_t = None
         # The charge, autonomy and charging, from the HK alone (ADR-0024).
         self.battery = BatteryEstimator(battery)
 
@@ -266,8 +272,9 @@ class GsState:
                 self.latencies.append(obj.get("latency_ms", 0))
             else:
                 self.ack_bad += 1
-            self._note("ok" if ok else "bad", "%s: %s (%s ms, try %s)" % (
-                obj.get("cmd"), obj.get("status"), obj.get("latency_ms"), obj.get("attempts")))
+            if not (ok and self.quiet_hk and obj.get("cmd") == "REQ_HK"):
+                self._note("ok" if ok else "bad", "%s: %s (%s ms, try %s)" % (
+                    obj.get("cmd"), obj.get("status"), obj.get("latency_ms"), obj.get("attempts")))
         elif ev == "tc_failed":
             self._run_ack(dict(obj, status="NO_ACK"))
             self.tc_failed += 1
@@ -363,17 +370,22 @@ class GsState:
             self.mode_at = self.now()
         self._run_mode(mode, obj.get("flags"))
         self.battery.feed(self.hk_at, obj.get("battery_mv"), obj.get("current_ma"), obj.get("uptime_s"))
-        self.hk_hist.append([round(self.hk_at, 1)] + [
+        row = ([round(self.hk_at, 1)] + [
             None if NO_DATA.get(k) == obj.get(k) else obj.get(k)
             for k in ("battery_mv", "current_ma", "temp_bat_ccel", "temp_ext_ccel", "temp_soc_ccel")]
             + [self.battery.estimate()["soc_pct"]])
+        if self.hk_hist_t is None or self.hk_at - self.hk_hist_t >= self.HK_SPARSE_S:
+            self.hk_hist_t = self.hk_at
+            self.hk_hist.append(row)
         parts = [str(mode)]
         for key, div, unit in (("battery_mv", 1000, "V"), ("current_ma", 1, "mA"),
                                ("temp_bat_ccel", 100, "°C"), ("temp_soc_ccel", 100, "°C SoC")):
             v = obj.get(key)
             if isinstance(v, (int, float)) and NO_DATA.get(key) != v:
                 parts.append(("%.2f %s" if div == 1000 else "%.1f %s" if div == 100 else "%d %s") % (v / div, unit))
-        self._note("tm", "hk: " + " · ".join(parts))
+        if not self.quiet_hk or self.hk_note_t is None or self.hk_at - self.hk_note_t >= self.HK_SPARSE_S:
+            self.hk_note_t = self.hk_at
+            self._note("tm", "hk: " + " · ".join(parts))
 
     def snapshot(self, since=None):
         """The page's view. With `since`, only the log entries after that
@@ -407,6 +419,54 @@ class GsState:
             "battery": self.battery.estimate(),
             "now": now,
         }
+
+
+class FastHk:
+    """The page's fast housekeeping, for the EPS test (ADR-0024): one `hk`
+    every PERIOD_S, so that the battery's state follows the light in ~6 s
+    instead of 10-20 s. The next `hk` waits for the previous one's ACK (the
+    console reads a command only after the last one is acknowledged, and
+    over LoRa a retry takes seconds), and the whole thing turns itself off
+    after MAX_S: over LoRa each cycle is ~0.5 s on air (REQ_HK, its ACK and
+    the HK of 0.247 s), a quarter of the channel. Pure: the clock is given."""
+
+    PERIOD_S = 2.0
+    MAX_S = 900.0
+    ACK_TIMEOUT_S = 15.0
+
+    def __init__(self):
+        self.until = None
+        self.sent_at = None
+        self.waiting = False
+
+    def start(self, now):
+        self.until, self.sent_at, self.waiting = now + self.MAX_S, None, False
+
+    def stop(self):
+        self.until, self.waiting = None, False
+
+    def on(self, now):
+        if self.until is not None and now >= self.until:
+            self.until = None
+        return self.until is not None
+
+    def due(self, now):
+        if not self.on(now):
+            return False
+        if self.waiting and now - self.sent_at < self.ACK_TIMEOUT_S:
+            return False
+        return self.sent_at is None or now - self.sent_at >= self.PERIOD_S
+
+    def sent(self, now):
+        self.sent_at, self.waiting = now, True
+
+    def acked(self):
+        self.waiting = False
+
+    def snapshot(self, now):
+        on = self.on(now)
+        return {"on": on, "left_s": round(self.until - now) if on else None,
+                "period_s": self.PERIOD_S}
 
 
 class Hub:
@@ -447,11 +507,16 @@ class Hub:
         self.pushed_n = 0
         self.pusher = threading.Thread(target=self._pusher, name="gs-web-push", daemon=True)
         self.pusher.start()
+        self.fast_hk = FastHk()
+        self.mono = time.monotonic
+        threading.Thread(target=self._fast_hk_loop, name="gs-web-fasthk", daemon=True).start()
 
     def feed(self, obj):
         if self.pipeline:
             self.pipeline.feed(obj)
         with self.lock:
+            if obj.get("ev") in ("ack", "tc_failed") and obj.get("cmd") == "REQ_HK":
+                self.fast_hk.acked()
             self.state.feed(obj)
             self.dirty = True
             self.wake.notify()
@@ -469,6 +534,7 @@ class Hub:
     def _snapshot(self, since=None):
         result = self.state.snapshot(since)
         result["mission_s"] = self.mission_s
+        result["fast_hk"] = self.fast_hk.snapshot(self.mono())
         result["link"] = {"current": self.link, "options": sorted(self.links),
                           "busy": self.switching.locked()}
         if self.pipeline:
@@ -490,6 +556,46 @@ class Hub:
         with self.lock:
             self.closed = True
             self.wake.notify()
+
+    def set_fast_hk(self, on):
+        """The page's fast HK on or off: {ok, why}."""
+        if on and isinstance(self.source, ReplaySource):
+            return {"ok": False, "why": "replay: no hardware commands"}
+        with self.lock:
+            if on:
+                self.fast_hk.start(self.mono())
+                self.state.note("info", "fast HK on: one every %.0f s for %.0f min"
+                                % (FastHk.PERIOD_S, FastHk.MAX_S / 60))
+            else:
+                self.fast_hk.stop()
+                self.state.note("info", "fast HK off")
+            self.state.quiet_hk = on
+            self.dirty = True
+            self.wake.notify()
+        return {"ok": True, "why": "on" if on else "off"}
+
+    def _fast_hk_loop(self):
+        while True:
+            time.sleep(0.25)
+            with self.lock:
+                if self.closed:
+                    return
+                now = self.mono()
+                due = self.fast_hk.due(now)
+                if due:
+                    self.fast_hk.sent(now)
+                elif self.state.quiet_hk and not self.fast_hk.on(now):
+                    self.state.quiet_hk = False         # MAX_S ran out
+                    self.state.note("info", "fast HK off (time)")
+                    self.dirty = True
+                    self.wake.notify()
+            if due and not self.source.send("hk"):
+                with self.lock:
+                    self.fast_hk.stop()
+                    self.state.quiet_hk = False
+                    self.state.note("bad", "fast HK off: the ground is not running")
+                    self.dirty = True
+                    self.wake.notify()
 
     def _pusher(self):
         last = 0.0
@@ -870,7 +976,7 @@ def make_handler(hub):
                 hub.unsubscribe(q)
 
         def do_POST(self):
-            if self.path not in ("/api/cmd", "/api/deploy-ssh", "/api/link"):
+            if self.path not in ("/api/cmd", "/api/deploy-ssh", "/api/link", "/api/fast-hk"):
                 self._send(HTTPStatus.NOT_FOUND, "not found", "text/plain")
                 return
             try:
@@ -883,6 +989,11 @@ def make_handler(hub):
             if self.path == "/api/link":
                 out = hub.switch_link(str(body.get("to")))
                 self._send(HTTPStatus.OK if out["result"] else HTTPStatus.FORBIDDEN,
+                           json.dumps(out), "application/json")
+                return
+            if self.path == "/api/fast-hk":
+                out = hub.set_fast_hk(bool(body.get("on")))
+                self._send(HTTPStatus.OK if out["ok"] else HTTPStatus.FORBIDDEN,
                            json.dumps(out), "application/json")
                 return
             if self.path == "/api/deploy-ssh":

@@ -18,8 +18,8 @@ board). Two limits shape the method, both in ADR-0024:
   by D1's drop plus I·R, with R the cells, the BMS, the switch and the shunt.
   Both are corrected for: the drop is a parameter the bench measures (V at
   P+ against the INA219); R is measured here, from how the voltage follows
-  the load between consecutive HK (0.54-0.61 Ohm on 25/11), the parameter
-  only standing in until then.
+  the load between consecutive HK (0.53-0.61 Ohm on 25/11), the parameter
+  (0.55 Ohm) standing in until then.
 
     python3 battery.py GROUND.jsonl [--capacity-mah 3200] [--r-ohm 0.25] [--diode-v 0.30]
         one line per HK of a recorded ground log, the estimate after it
@@ -49,12 +49,10 @@ class BatteryModel:
     # the minimum, so that the autonomy errs short.
     capacity_mah: float = 3200.0
     cells_series: int = 2
-    # Cells (~2 x 60 mOhm DC), BMS switches and wiring (~30), the INA219's
-    # 100 mOhm shunt: ~0.25 Ohm from the cells to where the INA219 measures.
-    r_ohm: float = 0.25
-    # r_ohm was measured on the bench (--r-ohm): trusted from the first HK,
-    # before the HK themselves show R. Otherwise the state waits for them.
-    r_known: bool = False
+    # From the cells to where the INA219 measures (cells, BMS, D1's slope,
+    # switch, shunt): 0.53-0.61 Ohm from the HK of 25/11 on this board.
+    # Trusted from the first HK; the HK's own R replaces it once measured.
+    r_ohm: float = 0.55
     # D1 on the EPS (hardware/eps-potencia, P+ -> D1 -> SW1 -> 8V Bruto): a
     # 1N5822 Schottky drops ~0.3 V at 0.5 A. Its rise with the current is
     # small next to I*R and lands in the measured R.
@@ -119,14 +117,14 @@ class BatteryEstimator:
     reads high by the unknown charge current times R, but its slope does not,
     and the estimate follows the slope (ADR-0024).
 
-    Only a step changes the state. A light already on at the first HK shows
-    only when it goes off; the state waits ~3 min for R (R_MIN_PAIRS)."""
+    Only a step changes the state, with the load steady. A light already on
+    at the first HK shows only when it goes off."""
 
     WINDOW_S = 300.0        # the trend and the mean load: the last 5 min
     TREND_MIN_S = 120.0     # no trend from less than 2 min of samples
     HOLD_GAP_S = 900.0      # a gap up to this keeps counting at the last load
     STEP_GAP_S = 60.0       # two samples further apart are not compared
-    K_DISCHARGE = 0.02      # per sample, how far the count is pulled to the voltage
+    K_DISCHARGE = 0.02      # per 10 s (one HK at NOMINAL), how far the count is pulled to the voltage
     # R and the noise, from the differences of the last 10 min; R is trusted
     # once the load has moved enough (rms of ΔI) to show it.
     R_WINDOW_S = 600.0
@@ -143,11 +141,20 @@ class BatteryEstimator:
     # single HK 40 mV off with the load unchanged) and two in a row do. With
     # the 25/11 noise (~6 mV), a step of 25 mV (100 mA of charge through
     # ~0.25 Ohm of cells) shows at the second HK.
+    # HK every 2 s (the page's fast HK) are five times the chances per hour
+    # for two noisy HK in a row: 14 false charges in 10 simulated hours at
+    # 3.5, 1 at 5.0 (three HK, 6 s). The threshold follows the HK spacing.
     CUSUM_K = 1.0
     CUSUM_H = 3.5
+    CUSUM_H_FAST = 5.0
+    FAST_HK_S = 5.0         # HK closer than this (median) use CUSUM_H_FAST
     CUSUM_CLIP = 3.0
     BASE_N = 6              # the baseline: median of the last HK since the last step
     BASE_MIN = 3
+    # The load this far from the baseline's: a mode change (the SDR, ~200 mA).
+    # An R off by 0.15 Ohm would make it a 30 mV step, so the baseline starts
+    # again instead; a light switched in the same HK goes unseen.
+    STEP_MA = 100
 
     def __init__(self, model=None):
         self.model = model or BatteryModel()
@@ -172,6 +179,7 @@ class BatteryEstimator:
         self.state_t = None      # when the present state began
         self.r_now, self.sigma_now = None, self.SIGMA_DEFAULT_MV
         self.reanchor = False    # R just measured: the level from the voltage again
+        self.pull_t = None
 
     def feed(self, t, battery_mv, current_ma, uptime_s=None):
         """One HK. t is the ground's time, s; uptime_s, when present, is the
@@ -202,7 +210,7 @@ class BatteryEstimator:
         elif self.reanchor:
             self.soc = self.soc_v
         elif not self.charging:
-            self.soc += self.K_DISCHARGE * (self.soc_v - self.soc)
+            self.soc += self._pull(t) * (self.soc_v - self.soc)
         self.reanchor = False
         self.soc = min(100.0, max(0.0, self.soc))
         self.window.append((t, mv, ma))
@@ -222,7 +230,7 @@ class BatteryEstimator:
         if r is not None:
             # The first R measured: the anchor taken with the default R is
             # off by the difference times the load (8 % at 0.3 Ohm, 0.5 A).
-            if self.r_now is None and not self.charging:
+            if self.r_now is None and not self.charging and abs(r - self.model.r_ohm) > 0.05:
                 self.reanchor = True
             self.r_now = r
         r = self.r_used()
@@ -267,22 +275,17 @@ class BatteryEstimator:
         charger switched on, down switched off."""
         if ma is None:
             return
-        if self.r_now is None and not self.model.r_known:
-            # R unknown: every load swing's I·R would read as a step (with the
-            # 0.25 Ohm default, 27-33 false charges in the 25/11 logs). The
-            # state waits; the trend cannot stand in: on the curve's plateau
-            # 1 % is 14 mV of the pack, and the 25/11 logs wander 10 mV in 4
-            # min, +38 %/h with no light at all.
+        if self.base and abs(ma - _median([b[1] for b in self.base])) >= self.STEP_MA:
             self.base.clear()
             self.gp = self.gn = 0.0
-            return
         if len(self.base) < self.BASE_MIN:
             self.base.append((mv, ma))
             return
         sig = self.sigma_now
         d = mv + r * ma - _median([b[0] + r * b[1] for b in self.base])
         d = max(-self.CUSUM_CLIP * sig, min(self.CUSUM_CLIP * sig, d))
-        k, h = self.CUSUM_K * sig, self.CUSUM_H * sig
+        k = self.CUSUM_K * sig
+        h = (self.CUSUM_H_FAST if self._spacing() < self.FAST_HK_S else self.CUSUM_H) * sig
         self.gp = max(0.0, self.gp + d - k)
         self.gn = max(0.0, self.gn - d - k)
         if self.gp > h or self.gn > h:
@@ -295,6 +298,20 @@ class BatteryEstimator:
             self.base.clear()
             self.gp = self.gn = 0.0
         self.base.append((mv, ma))
+
+    def _spacing(self):
+        """The median time between consecutive HK lately, s."""
+        p = list(self.pairs)[-10:]
+        if len(p) < 3:
+            return 10.0
+        return _median([b[0] - a[0] for a, b in zip(p, p[1:])])
+
+    def _pull(self, t):
+        """K_DISCHARGE for the time since the last sample, so that HK every
+        2 s pull no harder than every 10 s."""
+        dt = t - self.pull_t if self.pull_t is not None else 10.0
+        self.pull_t = t
+        return 1.0 - (1.0 - self.K_DISCHARGE) ** (max(0.0, min(dt, 60.0)) / 10.0)
 
     def _advance(self, t, ma):
         """Moves the estimate to time t: the load counted (trapezoid, the
@@ -379,17 +396,17 @@ class BatteryEstimator:
 
 
 def model_from(capacity_mah, r_ohm, diode_v):
-    """The model from the command line: r_ohm None is not measured."""
+    """The model from the command line: r_ohm None is the default."""
     if r_ohm is None:
         return BatteryModel(capacity_mah=capacity_mah, diode_v=diode_v)
-    return BatteryModel(capacity_mah=capacity_mah, r_ohm=r_ohm, diode_v=diode_v, r_known=True)
+    return BatteryModel(capacity_mah=capacity_mah, r_ohm=r_ohm, diode_v=diode_v)
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="the battery estimate over a recorded ground log")
     ap.add_argument("log", help="ground JSON lines (gs_serial.py, gs_cli, a session's ground.jsonl)")
     ap.add_argument("--capacity-mah", type=float, default=BatteryModel.capacity_mah)
-    ap.add_argument("--r-ohm", type=float, help="R measured on the bench, Ohm (default: from the HK)")
+    ap.add_argument("--r-ohm", type=float, help="R until the HK measure it, Ohm (default 0.55)")
     ap.add_argument("--diode-v", type=float, default=BatteryModel.diode_v)
     args = ap.parse_args(argv)
     est = BatteryEstimator(model_from(args.capacity_mah, args.r_ohm, args.diode_v))

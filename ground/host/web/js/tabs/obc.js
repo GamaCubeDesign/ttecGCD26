@@ -76,9 +76,26 @@ export const tab = {
       <section class="card span-7"><h2>${esc(t('obc_charge'))}</h2>
         <p class="lead">${esc(t('charge_lead'))}</p>
         <div class="figs big" id="obc-charge"></div>
+        <p class="small" style="margin:10px 0 0"><button class="btn" type="button" id="obc-fasthk"></button>
+          <span class="muted" id="obc-fasthk-note"></span></p>
         <canvas class="spark tall" id="obc-soc-chart"></canvas>
         ${legend([['--forest', t('soc') + ' (%)']])}</section>
       <section class="card span-5"><h2>${esc(t('obc_state'))}</h2><div class="kv" id="obc-kv"></div></section>`;
+    // The fast HK (gs_web.py FastHk): the battery's state in ~6 s, for the EPS test.
+    this.fastOn = false;
+    document.getElementById('obc-fasthk').addEventListener('click', async () => {
+      const note = document.getElementById('obc-fasthk-note');
+      try {
+        const r = await fetch('/api/fast-hk', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ on: !this.fastOn }),
+        });
+        const j = await r.json();
+        if (!j.ok) note.textContent = j.why;
+      } catch (e) {
+        note.textContent = t('no_server');
+      }
+    });
     this.drawnAt = null;
   },
   show() { this.drawnAt = null; },
@@ -107,6 +124,13 @@ export const tab = {
       (charging ? fig(t('charge_in'), b.charge_ma, 0, 'mA') : fig(t('used'), b.used_mah, 0, 'mAh')) +
       `<div class="fig txt"><span class="lbl">${esc(t('b_state'))}</span><b>${esc(t('st_' + b.state))}` +
       (b.state_s != null ? `<br><small>${esc(t('for'))} ${esc(fmtAge(b.state_s))}</small>` : '') + '</b></div>') : '');
+    const fh = st && st.fast_hk;
+    this.fastOn = !!(fh && fh.on);
+    const fb = document.getElementById('obc-fasthk');
+    fb.textContent = this.fastOn ? t('fast_hk_stop') : t('fast_hk');
+    fb.className = 'btn' + (this.fastOn ? ' primary' : '');
+    setHTML(document.getElementById('obc-fasthk-note'), esc(this.fastOn
+      ? `${t('fast_hk_on')} ${fmtAge(fh.left_s)}` : t('fast_hk_note')));
     const yn = (b) => (b == null ? '—' : b ? '✓ ' + t('yes') : '✗ ' + t('no'));
     setHTML(document.getElementById('obc-kv'), hk ? [
       [t('obc_mode'), st.mode ? `${st.mode} · ${t('for')} ${fmtAge(since(st.mode_age))}` : '—'],
