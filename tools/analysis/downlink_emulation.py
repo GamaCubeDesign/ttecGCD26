@@ -29,6 +29,18 @@ downlink and prints both conclusions side by side:
 
   downlink_emulation.py capture.ndjson --compare ground/host \\
       --reference-db ground/host/adsb/data/referencias/referencias.db
+
+With --downlinked, a real mission instead of the emulation: the capture is the
+onboard record the mission wrote (adsb.ndjson, brought back with the logs),
+and the other side is what the ground actually received, either the session's
+ground.jsonl or its tracks.ndjson. The same flights, before and after the link:
+
+  downlink_emulation.py docs/vv/bancada/<date>/missao-<time>/adsb.ndjson \\
+      --downlinked ground/host/sessions/<session>/ground.jsonl --compare ground/host \\
+      --reference-db ground/host/adsb/data/referencias/referencias.db
+
+The onboard record is stamped in the Pi's clock (anchored by SET_TIME) and the
+downlink in the PC's; the times printed are from the first onboard message.
 """
 
 import argparse
@@ -138,6 +150,20 @@ def read_capture(path):
                     continue
 
 
+def read_downlinked(path, ground_dir):
+    """The ground's NDJSON from a session: ground.jsonl (gs_cli events,
+    converted as the ground does) or an already converted tracks.ndjson."""
+    with open(path, encoding="utf-8") as f:
+        lines = f.readlines()
+    if not any('"ev"' in line for line in lines):
+        return list(read_capture(path))
+    sys.path.insert(0, str(ground_dir))
+    from adsb.tracks_to_ndjson import convert    # noqa: E402 (the ground's own adapter)
+    out = []
+    convert(lines, lambda text: out.append(json.loads(text)))
+    return out
+
+
 def conclusions(ground_dir, reference_db, lines, t0):
     """Runs the ground's estimator (adsb.estimator) on lines; returns its summary."""
     sys.path.insert(0, str(ground_dir))
@@ -173,10 +199,18 @@ def main():
     ap.add_argument("--compare", metavar="GROUND_DIR",
                     help="ground/host directory: run its estimator (adsb.estimator) on both")
     ap.add_argument("--reference-db", help="the estimator's referencias.db (with --compare)")
+    ap.add_argument("--downlinked", metavar="SESSION_FILE",
+                    help="what the ground received (ground.jsonl or tracks.ndjson), "
+                         "in place of the emulation; needs --compare")
     args = ap.parse_args()
 
     capture = list(read_capture(args.capture))
-    downlink = emulate(capture, args.period, args.loss, args.seed)
+    if args.downlinked:
+        if not args.compare:
+            ap.error("--downlinked needs --compare")
+        downlink = read_downlinked(args.downlinked, args.compare)
+    else:
+        downlink = emulate(capture, args.period, args.loss, args.seed)
     if not args.compare:
         for o in downlink:
             sys.stdout.write(json.dumps(o, separators=(",", ":")) + "\n")
@@ -188,8 +222,16 @@ def main():
     t0 = min(m["rx_epoch_ns"] for m in capture if m.get("rx_epoch_ns"))
     full = conclusions(args.compare, args.reference_db, capture, t0)
     link = conclusions(args.compare, args.reference_db, downlink, t0)
-    print(f"capture: {len(capture)} messages; downlink: {len(downlink)} records "
-          f"(period {args.period} s, loss {args.loss:.0%})")
+    if args.downlinked:
+        print(f"onboard record: {len(capture)} messages; received: {len(downlink)} records "
+              f"({args.downlinked})")
+        seen = {m["icao"].upper() for m in capture if m.get("icao")}
+        got = {m["icao"].upper() for m in downlink if m.get("icao")}
+        print(f"aircraft: {len(seen)} on board, {len(got)} at the ground, "
+              f"{len(seen - got)} only on board, {len(got - seen)} only at the ground")
+    else:
+        print(f"capture: {len(capture)} messages; downlink: {len(downlink)} records "
+              f"(period {args.period} s, loss {args.loss:.0%})")
     print(f"{'ICAO':<8}{'origin, capture':<26}{'origin, downlink':<26}"
           f"{'destination, capture':<26}{'destination, downlink':<26}")
     for icao in sorted(set(full) | set(link)):
