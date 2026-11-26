@@ -15,6 +15,10 @@ link, so the two can be compared on the same flights:
     1/93206 deg, longitude 1/46603 deg, altitude 25 ft, speed 0.1 kt, track
     0.01 deg, age 100 ms;
   - LOSS of the frames lost, 12 records to a frame;
+  - with --avr, the aircraft class adsbd reads from the AVR port (ADR-0023):
+    the capture's emitter category folded into the 2 class bits of the
+    record's flags, and unfolded at the ground as tracks_to_ndjson does
+    (light A1, large A3, rotorcraft A7; anything else unknown, not sent);
   - the time rebuilt as the ground does, arrival - time on air - age, which
     comes back to the update time to within the 100 ms of the age.
 
@@ -55,6 +59,11 @@ from pathlib import Path
 LAT_SCALE, LON_SCALE = 93206.0, 46603.0       # common/gama_tm.h
 RECORDS_PER_FRAME = 12
 
+# common/gama_tm.h GAMA_TRACK_CLASS_* (flight/adsbd/avr.c avr_class), and the
+# category the ground writes for each class (ground/host/adsb/tracks_to_ndjson.py).
+CLASS_OF = {"A1": 1, "A2": 1, "B1": 1, "A3": 2, "A4": 2, "A5": 2, "A6": 2, "A7": 3}
+GROUND_CATEGORY = {1: "A1", 2: "A3", 3: "A7"}
+
 
 def quantise(state):
     q = {}
@@ -70,11 +79,13 @@ def quantise(state):
         q["vertical_rate_fpm"] = int(state["vertical_rate_fpm"])
     if state.get("on_ground") == 1:
         q["on_ground"] = 1
+    if "category" in state:
+        q["category"] = state["category"]
     return q
 
 
 def emulate(messages, period_s=5.0, loss=0.0, seed=1, pos_max_age_s=10.0,
-            field_ttl_s=60.0, expiry_s=60.0, max_records=24):
+            field_ttl_s=60.0, expiry_s=60.0, max_records=24, avr=False):
     """The records the ground would rebuild, from time-ordered messages."""
     rnd = random.Random(seed)
     msgs = sorted((m for m in messages if m.get("rx_epoch_ns")), key=lambda m: m["rx_epoch_ns"])
@@ -98,6 +109,8 @@ def emulate(messages, period_s=5.0, loss=0.0, seed=1, pos_max_age_s=10.0,
                     k[f] = (m[f], t)
             if m.get("on_ground") in (0, 1):
                 k["on_ground"] = (m["on_ground"], t)
+            if avr and m.get("category"):
+                k["class"] = CLASS_OF.get(str(m["category"]).upper(), 0)
         for icao in [a for a, k in tracks.items() if snap - k["last"] > expiry_s * 1e9]:
             del tracks[icao]
 
@@ -115,6 +128,8 @@ def emulate(messages, period_s=5.0, loss=0.0, seed=1, pos_max_age_s=10.0,
                 state["lat"], state["lon"] = k["pos"][0]
             if fresh("on_ground", field_ttl_s):
                 state["on_ground"] = k["on_ground"][0]
+            if k.get("class"):
+                state["category"] = GROUND_CATEGORY[k["class"]]
             candidates.append((not has_pos, -at, icao, at, state))
         candidates.sort()
         records = candidates[:max_records]
@@ -196,6 +211,8 @@ def main():
     ap.add_argument("--period", type=float, default=5.0, help="snapshot period, s (5)")
     ap.add_argument("--loss", type=float, default=0.0, help="fraction of frames lost (0)")
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--avr", action="store_true",
+                    help="carry the aircraft class, as adsbd does with avr_port on (ADR-0023)")
     ap.add_argument("--compare", metavar="GROUND_DIR",
                     help="ground/host directory: run its estimator (adsb.estimator) on both")
     ap.add_argument("--reference-db", help="the estimator's referencias.db (with --compare)")
@@ -210,7 +227,7 @@ def main():
             ap.error("--downlinked needs --compare")
         downlink = read_downlinked(args.downlinked, args.compare)
     else:
-        downlink = emulate(capture, args.period, args.loss, args.seed)
+        downlink = emulate(capture, args.period, args.loss, args.seed, avr=args.avr)
     if not args.compare:
         for o in downlink:
             sys.stdout.write(json.dumps(o, separators=(",", ":")) + "\n")
@@ -231,7 +248,7 @@ def main():
               f"{len(seen - got)} only on board, {len(got - seen)} only at the ground")
     else:
         print(f"capture: {len(capture)} messages; downlink: {len(downlink)} records "
-              f"(period {args.period} s, loss {args.loss:.0%})")
+              f"(period {args.period} s, loss {args.loss:.0%}, class {'on' if args.avr else 'off'})")
     print(f"{'ICAO':<8}{'origin, capture':<26}{'origin, downlink':<26}"
           f"{'destination, capture':<26}{'destination, downlink':<26}")
     for icao in sorted(set(full) | set(link)):
