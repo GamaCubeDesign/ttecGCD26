@@ -97,8 +97,12 @@ export const tab = {
       }
     });
     this.drawnAt = null;
+    // A new theme or a new size: paint the charts again at the next update.
+    const again = () => { this.drawnAt = undefined; };
+    window.addEventListener('gs-redraw', again);
+    window.addEventListener('resize', again);
   },
-  show() { this.drawnAt = null; },
+  show() { this.drawnAt = undefined; },
   update(state) {
     const st = state.st;
     const hk = st && st.hk;

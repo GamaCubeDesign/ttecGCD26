@@ -52,12 +52,16 @@ const SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12"
 const MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.3 8.3 0 0 1 9.4 4a8.3 8.3 0 1 0 10.6 10.6Z"/></svg>';
 
 function applyTheme(theme) {
+  const changed = document.documentElement.dataset.theme !== theme;
   document.documentElement.dataset.theme = theme;
   store('gs-theme', theme);
   const b = $('b-theme');
   b.innerHTML = theme === 'dark' ? SUN : MOON;
   b.title = theme === 'dark' ? t('theme_light') : t('theme_dark');
   b.setAttribute('aria-label', b.title);
+  // The charts are canvases, painted with the colours of the moment: paint
+  // them again in the new theme's.
+  if (changed) window.dispatchEvent(new Event('gs-redraw'));
 }
 
 function relabel() {
@@ -134,6 +138,7 @@ $('events').addEventListener('click', (e) => {
   if (e.target.closest('#ev-size')) applyDock(!body.contains('dock-big'), false);
   if (e.target.closest('#ev-hide')) applyDock(body.contains('dock-big'), !body.contains('dock-hidden'));
 });
+window.addEventListener('gs-redraw', () => { if (state.st) render(state, true); });
 // The bar's height, for what sticks below it (the map).
 new ResizeObserver(() => document.documentElement.style.setProperty('--bar-h', $('bar').offsetHeight + 'px')).observe($('bar'));
 
