@@ -1,0 +1,49 @@
+capture: 6391 messages; downlink: 5487 records (period 5.0 s, loss 0%)
+ICAO    origin, capture           origin, downlink          destination, capture      destination, downlink     
+A13691  —                         —                         —                         —                         
+E03246  —                         —                         —                         —                         
+E03247  —                         —                         —                         —                         
+E03248  —                         —                         —                         —                         
+E03613  —                         —                         —                         —                         
+E0645A  SABE ESTIMATED @1272s     SABE ESTIMATED @1314s     —                         —                         
+E0648B  —                         —                         —                         —                         
+E06541  —                         —                         SABE ESTIMATED @951s      SABE ESTIMATED @951s      
+E06543  —                         —                         —                         —                         
+E0658D  —                         —                         —                         —                         
+E0658F  —                         —                         —                         —                         
+E065D3  —                         —                         SABE ESTIMATED @1909s     SABE ESTIMATED @1909s     
+E07191  —                         —                         —                         —                         
+E072D5  SABE ESTIMATED @2003s     SABE ESTIMATED @2055s     —                         —                         
+E07581  —                         —                         —                         —                         
+E075DA  —                         —                         —                         —                         
+E082D6  —                         —                         —                         —                         
+E082D7  —                         —                         —                         —                         
+E0844F  —                         —                         SAEZ TENTATIVE @885s      —                         
+E0958F  —                         —                         AR-0266 TENTATIVE @2622s  AR-0266 TENTATIVE @2622s  
+E0A5C1  —                         —                         SADZ TENTATIVE @876s      SADZ TENTATIVE @876s      
+E0B110  —                         —                         —                         —                         
+E0B198  SABE ESTIMATED @1775s     SABE ESTIMATED @1802s     —                         —                         
+E0B255  —                         —                         SABE ESTIMATED @446s      SABE ESTIMATED @450s      
+E0B2C5  —                         —                         —                         —                         
+E0B2CF  —                         —                         SUCM TENTATIVE @839s      SUCM TENTATIVE @839s      
+E0B308  —                         —                         —                         —                         
+E20022  —                         —                         —                         —                         
+E2002C  —                         —                         —                         —                         
+E20063  —                         —                         SADP TENTATIVE @572s      SADP TENTATIVE @572s      
+E2008A  —                         —                         —                         —                         
+E200D7  —                         —                         SABE TENTATIVE @217s      SABE TENTATIVE @219s      
+E48135  —                         —                         —                         —                         
+E49523  —                         —                         SABE ESTIMATED @2162s     SABE ESTIMATED @2162s     
+E4952F  —                         —                         SUMU ESTIMATED @1498s     SUMU ESTIMATED @1502s     
+E4953D  —                         —                         SABE ESTIMATED @798s      SABE ESTIMATED @798s      
+E49698  SUMU ESTIMATED @617s      SUMU ESTIMATED @630s      —                         —                         
+E4A00C  —                         —                         —                         —                         
+E4A5C9  —                         —                         SUMU ESTIMATED @1912s     SUMU ESTIMATED @1912s     
+E8026C  SAEZ ESTIMATED @1790s     SAEZ ESTIMATED @1792s     —                         —                         
+E80333  SABE ESTIMATED @372s      SABE ESTIMATED @409s      —                         —                         
+E8040F  —                         —                         —                         —                         
+E8043C  —                         —                         —                         —                         
+E80613  —                         —                         SUMU ESTIMATED @2566s     SUMU ESTIMATED @2566s     
+E80618  —                         —                         SABE ESTIMATED @2433s     SABE ESTIMATED @2433s     
+E8061F  —                         —                         —                         —                         
+E8062C  SAEZ ESTIMATED @707s      SAEZ ESTIMATED @707s      —                         —                         
