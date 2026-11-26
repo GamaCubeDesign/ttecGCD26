@@ -46,8 +46,10 @@ typedef struct {
 /* Writes the configuration. 0, or -1 if the bus failed. */
 int ina219_init(const ina219_bus_t *bus);
 
-/* One reading. Returns 0 and fills the outputs, or -1: the bus failed, or
- * the chip reports an overflow (the math overflow flag, bit 0 of the bus
+/* One reading. Returns 0 and fills the outputs, or -1: the bus failed, the
+ * configuration register does not read back INA219_CONFIG_VALUE (a bus
+ * stuck low reads all zeros from any address), or the chip reports an
+ * overflow (the math overflow flag, bit 0 of the bus
  * register), in which case the current is out of range and not reported.
  * shunt_mohm: the shunt resistance in milliohms, > 0. Current is positive
  * into the load. */

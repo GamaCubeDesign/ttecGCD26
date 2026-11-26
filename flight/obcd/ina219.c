@@ -8,10 +8,19 @@ int ina219_init(const ina219_bus_t *bus)
 int ina219_read(const ina219_bus_t *bus, uint32_t shunt_mohm,
                 uint16_t *battery_mv, int16_t *current_ma)
 {
-    uint16_t bus_raw, shunt_raw;
+    uint16_t config, bus_raw, shunt_raw;
     if (shunt_mohm == 0 ||
+        bus->read_reg16(bus->ctx, INA219_REG_CONFIG, &config) != 0 ||
         bus->read_reg16(bus->ctx, INA219_REG_BUS, &bus_raw) != 0 ||
         bus->read_reg16(bus->ctx, INA219_REG_SHUNT, &shunt_raw) != 0) {
+        return -1;
+    }
+    /* The configuration reads back as written, or as the chip's power-on
+     * value, which is the same word. Anything else is not this chip
+     * answering: with SDA held low every address acknowledges and every
+     * register reads 0x0000, which would otherwise pass as 0 V and 0 mA
+     * (bench, 2026-11-26). */
+    if (config != INA219_CONFIG_VALUE) {
         return -1;
     }
     if (bus_raw & 0x0001u) {

@@ -43,6 +43,7 @@ static const ina219_bus_t BUS = { .ctx = NULL, .write_reg16 = chip_write, .read_
 /* What the chip would hold for this bus voltage and shunt voltage. */
 static void chip_set(uint32_t bus_mv, int32_t shunt_uv)
 {
+    CHIP.reg[INA219_REG_CONFIG] = INA219_CONFIG_VALUE;
     CHIP.reg[INA219_REG_BUS] = (uint16_t)((bus_mv / 4u) << 3 | 0x0002u);   /* CNVR set */
     CHIP.reg[INA219_REG_SHUNT] = (uint16_t)(int16_t)(shunt_uv / 10);
 }
@@ -110,6 +111,18 @@ int main(void)
         CHECK_EQ_INT(ina219_read(&BUS, 100, &mv, &ma), -1);
         CHIP.fail = false;
         CHECK_EQ_INT(ina219_read(&BUS, 0, &mv, &ma), -1);   /* no shunt: no current */
+    }
+
+    TEST_GROUP("ina219: SDA held low (every register 0x0000) is a failure, not 0 V and 0 mA");
+    {
+        memset(&CHIP, 0, sizeof(CHIP));            /* bench, 2026-11-26: all zeros, all ACKed */
+        CHECK_EQ_INT(ina219_read(&BUS, 100, &mv, &ma), -1);
+        chip_set(0, 0);                            /* a real 0 V with the chip answering passes */
+        CHECK_EQ_INT(ina219_read(&BUS, 100, &mv, &ma), 0);
+        CHECK_EQ_INT(mv, 0);
+        chip_set(8000, 1000);
+        CHIP.reg[INA219_REG_CONFIG] = 0x019Fu;     /* another configuration: not ours */
+        CHECK_EQ_INT(ina219_read(&BUS, 100, &mv, &ma), -1);
     }
 
     int16_t c;
