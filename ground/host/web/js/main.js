@@ -6,7 +6,7 @@ import { t, labels, setLang, currentLang } from './i18n.js';
 import { start, subscribe, state } from './state.js';
 import { refreshArm, wire } from './commands.js';
 import { renderBar } from './telemetry.js';
-import { renderEventsFrame, renderEvents } from './events.js';
+import { renderEventsFrame, renderEvents, clearUnseen } from './events.js';
 import { tab as operations } from './tabs/operations.js';
 import { tab as adsb } from './tabs/adsb.js';
 import { deploy, aocs, survival } from './tabs/modes.js';
@@ -69,7 +69,7 @@ function relabel() {
   $('b-big').setAttribute('aria-label', t('big'));
   applyTheme(document.documentElement.dataset.theme || 'dark');
   renderEventsFrame();
-  applyDock(store('gs-dock') === '1');
+  applyDock(store('gs-dock') === '1', store('gs-dock-hidden') === '1');
   for (const x of TABS) if (x.hide) x.hide();
   buildTabs();
   show(active);
@@ -112,17 +112,27 @@ $('b-big').addEventListener('click', () => {
   $('b-big').setAttribute('aria-pressed', String(on));
 });
 wire($('panels'));
-// The events bar, fixed at the bottom of every tab: short (a few lines) or
-// tall; remembered.
-function applyDock(big) {
+// The events bar, fixed at the bottom of every tab: hidden (its header
+// alone, counting what arrives), short (a few lines) or tall; remembered.
+function applyDock(big, hidden) {
   document.body.classList.toggle('dock-big', big);
+  document.body.classList.toggle('dock-hidden', hidden);
   store('gs-dock', big ? '1' : '0');
+  store('gs-dock-hidden', hidden ? '1' : '0');
+  if (!hidden) clearUnseen();
   const b = document.getElementById('ev-size');
-  if (b) { b.textContent = big ? '▾' : '▴'; b.title = t(big ? 'ev_shrink' : 'ev_grow'); b.setAttribute('aria-label', b.title); }
+  if (b) {
+    b.hidden = hidden;
+    b.textContent = big ? '▾' : '▴'; b.title = t(big ? 'ev_shrink' : 'ev_grow'); b.setAttribute('aria-label', b.title);
+  }
+  const h = document.getElementById('ev-hide');
+  if (h) { h.textContent = t(hidden ? 'ev_show' : 'ev_hide'); h.setAttribute('aria-expanded', String(!hidden)); }
   window.dispatchEvent(new Event('resize'));
 }
 $('events').addEventListener('click', (e) => {
-  if (e.target.closest('#ev-size')) applyDock(!document.body.classList.contains('dock-big'));
+  const body = document.body.classList;
+  if (e.target.closest('#ev-size')) applyDock(!body.contains('dock-big'), false);
+  if (e.target.closest('#ev-hide')) applyDock(body.contains('dock-big'), !body.contains('dock-hidden'));
 });
 // The bar's height, for what sticks below it (the map).
 new ResizeObserver(() => document.documentElement.style.setProperty('--bar-h', $('bar').offsetHeight + 'px')).observe($('bar'));

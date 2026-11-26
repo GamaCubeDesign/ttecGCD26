@@ -25,6 +25,9 @@
   --dock-h: 190px;   /* the events bar at the bottom */
 }
 body.dock-big { --dock-h: 46vh; }
+body.dock-hidden { --dock-h: 46px; }
+body.dock-hidden .dock .list { display: none; }
+body.dock-hidden .dock .filters { display: none; }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --header: #000000; --bg: #0a0c0b; --panel: #121614; --panel-2: #19201c; --line: #26302b;
@@ -301,7 +304,12 @@ p.toast { position: static; opacity: 1; transform: none; box-shadow: none; borde
   border-top: 3px solid var(--brand); box-shadow: 0 -8px 24px rgba(0,0,0,.25); }
 .dock-head { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
 .dock-head h2 { margin: 0; }
-.dock-head .tool { margin-left: auto; padding: 2px 10px; }
+.dock-tools { display: flex; gap: 6px; margin-left: auto; }
+.dock-tools .tool { padding: 2px 10px; }
+.dock-tools .tool[hidden] { display: none; }
+.ev-unseen { font-size: .78em; font-weight: 700; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.ev-unseen.bad { border-color: var(--bad); color: var(--bad-fg); background: var(--bad-soft); }
+.ev-unseen[hidden] { display: none; }
 .events .filters { display: flex; flex-wrap: wrap; gap: 5px; }
 .events .filters button { font: inherit; font-size: .74em; font-weight: 700; padding: 3px 9px; border-radius: 999px; cursor: pointer;
   border: 1px solid var(--line); background: none; color: var(--muted); }
