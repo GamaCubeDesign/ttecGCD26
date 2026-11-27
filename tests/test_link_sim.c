@@ -197,8 +197,12 @@ int main(void)
 
     TEST_GROUP("sim: rate change whose acknowledgement is lost");
     {
-        /* The satellite switches; the ground never hears it did. */
+        /* The satellite switches; the ground never hears it did. On a link
+         * already up: the ground has heard the boot housekeeping, so it is
+         * not still searching for the satellite's profile. */
         sim_reset(6);
+        run_until(S.now + 1000);
+        CHECK(S.gs.heard);
         S.drop_type[SAT] = GAMA_FRAME_TC_ACK;
         S.drop_count[SAT] = 1;
         uint8_t p = GAMA_RATE_FAST;
@@ -307,6 +311,66 @@ int main(void)
         CHECK(recovered > 0);
         /* No faster than the SAFE beacon period, no slower than two of them. */
         CHECK(recovered - (t0 + 300000) <= 2u * S.sat.p.safe_beacon_period + 20000u);
+    }
+
+    TEST_GROUP("sim: a ground switched on finds the satellite's profile");
+    {
+        /* 2026-11-26: a ground started at NOMINAL facing a satellite alone
+         * at SAFE heard nothing for 174 s. Now it searches. 60 start times,
+         * one per second, across the SAFE beacon and housekeeping cycles. */
+        enum { PHASES = 60 };
+        uint64_t heard[PHASES], nominal[PHASES];
+        bool all_ok = true;
+        for (int k = 0; k < PHASES; k++) {
+            sim_reset(10);
+            uint64_t on = S.now + 300000u + (uint64_t)k * 1000u;
+            S.blackout_until[SAT] = on;         /* nobody listening, nobody talking */
+            S.blackout_until[GND] = on;
+            run_until(on);
+            all_ok = all_ok && S.profile[SAT] == GAMA_RATE_SAFE;
+            ground_on();
+            heard[k] = nominal[k] = 0;
+            while (S.now < on + 200000u && !nominal[k]) {
+                run_until(S.now + 100);
+                if (!heard[k] && S.gs.in_contact) { heard[k] = S.now - on; }
+                if (heard[k] && S.profile[SAT] == GAMA_RATE_NOMINAL &&
+                    S.profile[GND] == GAMA_RATE_NOMINAL && !S.sat.rate_pending &&
+                    !S.gs.rate_pending) {
+                    nominal[k] = S.now - on;
+                }
+            }
+            all_ok = all_ok && heard[k] && nominal[k];
+        }
+        qsort(heard, PHASES, sizeof(heard[0]), cmp_u64);
+        qsort(nominal, PHASES, sizeof(nominal[0]), cmp_u64);
+        printf("  %-34s satellite at SAFE, %d start times: first frame p50 %.1f s, max %.1f s;"
+               " both on NOMINAL max %.1f s\n", "ground on, satellite alone 5 min", PHASES,
+               (double)heard[PHASES / 2] / 1000.0, (double)heard[PHASES - 1] / 1000.0,
+               (double)nominal[PHASES - 1] / 1000.0);
+        CHECK(all_ok);
+        /* One window at NOMINAL, one at SAFE: never the 150 s contact timeout. */
+        CHECK(heard[PHASES - 1] <= (uint64_t)S.gs.p.search_dwell + S.gs.p.search_safe_dwell);
+
+        /* A satellite still at NOMINAL (recent contact, or just booted) is
+         * found in the first window. */
+        uint64_t worst = 0;
+        for (int k = 0; k < 10; k++) {
+            sim_reset(11);
+            uint64_t on = S.now + 60000u + (uint64_t)k * 1000u;
+            S.blackout_until[SAT] = on;
+            S.blackout_until[GND] = on;
+            run_until(on);
+            ground_on();
+            while (S.now < on + 60000u && !S.gs.in_contact) {
+                run_until(S.now + 100);
+            }
+            all_ok = all_ok && S.gs.in_contact && S.profile[GND] == GAMA_RATE_NOMINAL;
+            if (S.now - on > worst) { worst = S.now - on; }
+        }
+        printf("  %-34s satellite at NOMINAL, 10 start times: first frame max %.1f s\n",
+               "ground on, satellite in contact", (double)worst / 1000.0);
+        CHECK(all_ok);
+        CHECK(worst <= S.gs.p.search_dwell);
     }
 
     TEST_GROUP("sim: SET_MODE reaches the OBC, and only once per command");

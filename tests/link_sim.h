@@ -371,6 +371,17 @@ static bool run_until(uint64_t until)
     }
 }
 
+/* The ground station switched on at S.now, whatever the satellite is doing. */
+static void ground_on(void)
+{
+    gs_params_t gp;
+    gs_params_default(&gp);
+    gs_ops_t go = { .radio_tx = gs_tx, .radio_set_profile = gs_prof,
+                    .event = gs_event, .wall_time = gs_wall };
+    S.air[GND].active = false;
+    gs_init(&S.gs, &gp, &go, S.now);
+}
+
 static void sim_reset(uint64_t seed)
 {
     memset(&S, 0, sizeof(S));
@@ -387,11 +398,7 @@ static void sim_reset(uint64_t seed)
                       .soc_temp = sat_soc, .exit_request = sat_exit };
     ttcd_init(&S.sat, &sp, &so, S.now);
 
-    gs_params_t gp;
-    gs_params_default(&gp);
-    gs_ops_t go = { .radio_tx = gs_tx, .radio_set_profile = gs_prof,
-                    .event = gs_event, .wall_time = gs_wall };
-    gs_init(&S.gs, &gp, &go, S.now);
+    ground_on();
 }
 
 static int submit(uint8_t cmd, const uint8_t *args, uint8_t n)

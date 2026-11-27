@@ -23,6 +23,13 @@ void gs_params_default(gs_params_t *p)
     p->contact_timeout = 150000;   /* longer than the satellite's 120 s */
     p->rate_revert     = 30000;    /* longer than the satellite's 20 s  */
     p->give_up         = 60000;
+    /* Each window holds the satellite's longest silence at that profile plus
+     * its longest frame (ADR-0007 §5): at NOMINAL, housekeeping every 10 s,
+     * 0.25 s on the air; at SAFE, a frame at least every 30 s, the
+     * housekeeping 2.5 s on the air. A frame begun before a switch is lost,
+     * so a shorter window could miss every frame. */
+    p->search_dwell      = 12000;
+    p->search_safe_dwell = 33000;
 }
 
 static uint64_t ms_ceil(uint32_t us)
@@ -185,8 +192,18 @@ void gs_init(gs_link_t *g, const gs_params_t *p, const gs_ops_t *ops, uint64_t n
     g->ops.radio_set_profile(g->ops.ctx, g->profile);
     g->last_rx = now;
     g->last_tc_tx = now;
+    g->search_next = now + p->search_dwell;
     g->next_seq = 1;
     g->next_id = 1;
+}
+
+/* A ground just started does not know the satellite's profile: alone for more
+ * than its 120 s it is at SAFE, just booted or recently in contact it is not.
+ * Waiting at one of them for contact_timeout cost 150 s and more on
+ * 2026-11-26, a ground at NOMINAL facing a satellite at SAFE. */
+static bool searching(const gs_link_t *g)
+{
+    return !g->heard && g->desired_profile != GAMA_RATE_SAFE;
 }
 
 uint32_t gs_submit(gs_link_t *g, uint64_t now, uint8_t cmd,
@@ -264,6 +281,7 @@ void gs_on_rx(gs_link_t *g, uint64_t now, const uint8_t *buf, size_t len,
     }
 
     g->last_rx = now;
+    g->heard = true;                 /* the search, if any, ends here */
     if (!g->in_contact) {
         g->in_contact = true;
         gs_event_t ev = { .kind = GS_EV_CONTACT, .up = true };
@@ -365,8 +383,20 @@ void gs_on_tick(gs_link_t *g, uint64_t now)
         }
     }
 
-    if (g->profile != GAMA_RATE_SAFE && now - g->last_rx >= g->p.contact_timeout &&
-        !g->tx_busy) {
+    /* Never mid-transmission, nor while an ACK may still come at this one. */
+    if (searching(g) && now >= g->search_next && !g->tx_busy && !g->awaiting_ack) {
+        if (g->profile == GAMA_RATE_SAFE) {
+            set_profile(g, now, g->desired_profile, "search");
+            g->search_next = now + g->p.search_dwell;
+        } else {
+            set_profile(g, now, GAMA_RATE_SAFE, "search");
+            g->search_next = now + g->p.search_safe_dwell;
+        }
+    }
+
+    /* Contact is lost only once there was one: before, the search decides. */
+    if (g->in_contact && g->profile != GAMA_RATE_SAFE &&
+        now - g->last_rx >= g->p.contact_timeout && !g->tx_busy) {
         g->in_contact = false;
         g->rate_pending = false;
         g->recovering = false;
@@ -401,8 +431,11 @@ uint64_t gs_next_deadline(const gs_link_t *g)
     if (g->rate_pending) {
         d = min_u64(d, g->rate_deadline);
     }
-    if (g->profile != GAMA_RATE_SAFE) {
+    if (g->in_contact && g->profile != GAMA_RATE_SAFE) {
         d = min_u64(d, g->last_rx + g->p.contact_timeout);
+    }
+    if (searching(g)) {
+        d = min_u64(d, g->search_next);
     }
     if (g->q_count == 0) {
         d = min_u64(d, g->last_tc_tx + g->p.keepalive);

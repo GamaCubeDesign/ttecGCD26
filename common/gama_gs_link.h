@@ -19,6 +19,10 @@
  *   - keeps the link alive with a PING when idle, falls back to SAFE when the
  *     satellite goes silent, and commands the previous profile again once it
  *     hears the satellite at SAFE;
+ *   - until it first hears the satellite, searches for it: the wanted
+ *     profile and SAFE in turn, since a satellite alone for more than its
+ *     contact timeout is at SAFE and one just booted or recently in contact
+ *     is not;
  *   - counts downlink frames lost, by gaps in the satellite's sequence
  *     numbers (HLR-ADS-08).
  *
@@ -55,6 +59,11 @@ typedef struct {
     uint32_t contact_timeout;  /* satellite silence before falling to SAFE   */
     uint32_t rate_revert;      /* unconfirmed profile change reverts         */
     uint32_t give_up;          /* a telecommand is abandoned after this long */
+    /* Before the first satellite frame the ground cannot know the satellite's
+     * profile, so it listens in turn at the profile it wants and at SAFE,
+     * each long enough to hold a whole frame there. */
+    uint32_t search_dwell;     /* at the wanted profile                      */
+    uint32_t search_safe_dwell;/* at SAFE                                    */
 } gs_params_t;
 
 void gs_params_default(gs_params_t *p);
@@ -145,6 +154,8 @@ typedef struct {
 
     uint64_t last_rx;             /* last valid satellite frame              */
     uint64_t last_tc_tx;          /* last telecommand put on the air         */
+    bool     heard;               /* any satellite frame since gs_init       */
+    uint64_t search_next;         /* next switch while searching             */
     bool     in_contact;
     bool     dl_seq_valid;
     uint16_t dl_last_seq;

@@ -9,27 +9,35 @@
 
 static gs_link_t G;
 static uint64_t T = 1000000;
-static int n_tx, n_failed, n_loss_events;
+static int n_tx, n_failed, n_loss_events, n_search, n_contact_lost;
 static uint32_t last_lost;
+static uint8_t radio_profile;
 static uint8_t last_frame[GAMA_FRAME_MAX_TOTAL];
 
 static int f_tx(void *c, const uint8_t *f, size_t n) { (void)c; memcpy(last_frame, f, n); n_tx++; return GS_TX_STARTED; }
-static int f_prof(void *c, uint8_t p) { (void)c; (void)p; return 0; }
+static int f_prof(void *c, uint8_t p) { (void)c; radio_profile = p; return 0; }
 static void f_ev(void *c, uint64_t now, const gs_event_t *e)
 {
     (void)c; (void)now;
     if (e->kind == GS_EV_TC_FAILED) { n_failed++; }
     if (e->kind == GS_EV_LOSS) { n_loss_events++; last_lost = e->lost; }
+    if (e->kind == GS_EV_RATE && strcmp(e->reason, "search") == 0) { n_search++; }
+    if (e->kind == GS_EV_CONTACT && !e->up) { n_contact_lost++; }
+}
+
+static void reset_with(const gs_params_t *p)
+{
+    gs_ops_t o = { .radio_tx = f_tx, .radio_set_profile = f_prof, .event = f_ev };
+    n_tx = n_failed = n_loss_events = n_search = n_contact_lost = 0;
+    last_lost = 0;
+    gs_init(&G, p, &o, T);
 }
 
 static void reset(void)
 {
     gs_params_t p;
     gs_params_default(&p);
-    gs_ops_t o = { .radio_tx = f_tx, .radio_set_profile = f_prof, .event = f_ev };
-    n_tx = n_failed = n_loss_events = 0;
-    last_lost = 0;
-    gs_init(&G, &p, &o, T);
+    reset_with(&p);
 }
 
 /* A satellite frame of `type` with sequence `seq`, delivered to the ground. */
@@ -107,11 +115,12 @@ int main(void)
     TEST_GROUP("gs: an idle link gets a keepalive, sent only in a reply gap");
     {
         reset();
+        sat_frame(GAMA_FRAME_TM_HK, 1, NULL, 0);   /* in contact */
         T += 31000;
         gs_on_tick(&G, T);
         CHECK_EQ_INT(G.q_count, 1);                /* queued ... */
         CHECK_EQ_INT(n_tx, 0);                     /* ... but not sent at random */
-        sat_frame(GAMA_FRAME_TM_HK, 1, NULL, 0);   /* a frame ends: gap open */
+        sat_frame(GAMA_FRAME_TM_HK, 2, NULL, 0);   /* a frame ends: gap open */
         CHECK_EQ_INT(n_tx, 1);
         CHECK_EQ_INT(last_frame[5], GAMA_TC_PING);
     }
@@ -119,6 +128,7 @@ int main(void)
     TEST_GROUP("gs: the operator's command displaces a waiting keepalive");
     {
         reset();
+        sat_frame(GAMA_FRAME_TM_HK, 1, NULL, 0);
         T += 31000;
         gs_on_tick(&G, T);
         CHECK_EQ_INT(G.q_count, 1);
@@ -142,6 +152,94 @@ int main(void)
         CHECK_EQ_INT(n_failed, 1);
         CHECK_EQ_INT(G.n.tc_failed, 1);
         CHECK(n_tx >= 10);                         /* it really tried */
+    }
+
+    TEST_GROUP("gs: until it first hears the satellite, it searches NOMINAL and SAFE in turn");
+    {
+        reset();
+        uint64_t t0 = T;
+        CHECK_EQ_INT(radio_profile, GAMA_RATE_NOMINAL);
+        CHECK(gs_next_deadline(&G) <= t0 + G.p.search_dwell);
+        gs_on_tick(&G, t0 + G.p.search_dwell - 1);
+        CHECK_EQ_INT(radio_profile, GAMA_RATE_NOMINAL);
+        gs_on_tick(&G, t0 + G.p.search_dwell);
+        CHECK_EQ_INT(radio_profile, GAMA_RATE_SAFE);
+        CHECK(gs_next_deadline(&G) <= t0 + G.p.search_dwell + G.p.search_safe_dwell);
+        gs_on_tick(&G, t0 + G.p.search_dwell + G.p.search_safe_dwell - 1);
+        CHECK_EQ_INT(radio_profile, GAMA_RATE_SAFE);
+        gs_on_tick(&G, t0 + G.p.search_dwell + G.p.search_safe_dwell);
+        CHECK_EQ_INT(radio_profile, GAMA_RATE_NOMINAL);
+        CHECK_EQ_INT(n_search, 2);
+        for (T = t0; T < t0 + 600000; T += 1000) {  /* 10 min of silence */
+            gs_on_tick(&G, T);
+        }
+        CHECK_EQ_INT(n_contact_lost, 0);           /* never in contact: nothing lost */
+        CHECK_EQ_INT(G.n.tc_sent, 0);              /* and nothing sent into the void */
+    }
+
+    TEST_GROUP("gs: heard at SAFE while searching, it asks for NOMINAL and stops searching");
+    {
+        reset();
+        uint64_t t0 = T;
+        T = t0 + G.p.search_dwell;
+        gs_on_tick(&G, T);
+        CHECK_EQ_INT(radio_profile, GAMA_RATE_SAFE);
+        sat_frame(GAMA_FRAME_BEACON, 40, NULL, 0);
+        CHECK(G.in_contact);
+        CHECK_EQ_INT(n_tx, 1);
+        CHECK_EQ_INT(last_frame[5], GAMA_TC_SET_RATE);
+        CHECK_EQ_INT(last_frame[6], GAMA_RATE_NOMINAL);
+        int switches = n_search;
+        for (; T < t0 + 300000; T += 1000) {
+            if (G.tx_busy) {
+                gs_on_tx_done(&G, T);
+            }
+            gs_on_tick(&G, T);
+        }
+        CHECK_EQ_INT(n_search, switches);          /* found: no more switching */
+    }
+
+    TEST_GROUP("gs: the search never switches under a transmission or its ACK");
+    {
+        reset();
+        uint64_t t0 = T;
+        T = t0 + G.p.search_dwell - 100;
+        CHECK(gs_submit(&G, T, GAMA_TC_PING, NULL, 0) > 0);
+        CHECK(G.tx_busy);
+        T = t0 + G.p.search_dwell;
+        gs_on_tick(&G, T);
+        CHECK_EQ_INT(radio_profile, GAMA_RATE_NOMINAL);   /* on the air */
+        gs_on_tx_done(&G, T + 100);
+        gs_on_tick(&G, T + 150);
+        CHECK_EQ_INT(radio_profile, GAMA_RATE_NOMINAL);   /* its ACK may come */
+        gs_on_tick(&G, G.ack_deadline);
+        CHECK_EQ_INT(radio_profile, GAMA_RATE_SAFE);      /* then it moves on */
+    }
+
+    TEST_GROUP("gs: a ground told to start at SAFE does not search");
+    {
+        gs_params_t p;
+        gs_params_default(&p);
+        p.initial_profile = GAMA_RATE_SAFE;
+        reset_with(&p);
+        for (uint64_t t = T; t < T + 300000; t += 1000) {
+            gs_on_tick(&G, t);
+        }
+        CHECK_EQ_INT(n_search, 0);
+        CHECK_EQ_INT(radio_profile, GAMA_RATE_SAFE);
+    }
+
+    TEST_GROUP("gs: once heard, silence is a contact loss again, and SAFE stays");
+    {
+        reset();
+        sat_frame(GAMA_FRAME_TM_HK, 1, NULL, 0);
+        uint64_t t0 = T;
+        for (T = t0; T <= t0 + 400000; T += 1000) {
+            gs_on_tick(&G, T);
+        }
+        CHECK_EQ_INT(n_contact_lost, 1);
+        CHECK_EQ_INT(n_search, 0);
+        CHECK_EQ_INT(radio_profile, GAMA_RATE_SAFE);
     }
 
     TEST_SUMMARY("test_gs_link");
