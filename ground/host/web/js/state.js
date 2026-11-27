@@ -11,6 +11,7 @@ export const state = {
   log: [],           // every log entry heard, oldest first, at most LOG_KEEP
   arrivedAt: 0,      // Date.now() when it came
   connected: false,
+  ended: false,      // closed from the page: no reconnecting
 };
 
 // How old a server-side age is now: the age it had when it arrived, plus the
@@ -50,6 +51,7 @@ export function merge(view) {
 }
 
 function connect() {
+  if (state.ended) return;
   const es = new EventSource('/events');
   es.onopen = () => { state.connected = true; emit(false); };
   es.onmessage = (e) => { merge(JSON.parse(e.data)); emit(true); };
@@ -57,8 +59,14 @@ function connect() {
     state.connected = false;
     es.close();
     emit(false);
-    setTimeout(connect, 2000);
+    if (!state.ended) setTimeout(connect, 2000);
   };
+}
+
+// gs_web.py said it is closing (/api/quit): the page stays, read-only.
+export function markEnded() {
+  state.ended = true;
+  emit(false);
 }
 
 export function start() {

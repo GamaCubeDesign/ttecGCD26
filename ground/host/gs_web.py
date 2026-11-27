@@ -994,8 +994,22 @@ def make_handler(hub):
                 hub.unsubscribe(q)
 
         def do_POST(self):
-            if self.path not in ("/api/cmd", "/api/deploy-ssh", "/api/link", "/api/fast-hk"):
+            if self.path not in ("/api/cmd", "/api/deploy-ssh", "/api/link", "/api/fast-hk", "/api/quit"):
                 self._send(HTTPStatus.NOT_FOUND, "not found", "text/plain")
+                return
+            if self.path == "/api/quit":
+                # The page's "end" button: gs_web ends as on Ctrl-C, its
+                # finally closing the ground console, the ssh and the
+                # session. Only with the page's JSON: another site open in
+                # the browser cannot send that without a CORS preflight,
+                # which this server never answers.
+                if self.headers.get("Content-Type", "").split(";")[0].strip() != "application/json":
+                    self._send(HTTPStatus.FORBIDDEN, json.dumps({"ok": False, "why": "JSON only"}),
+                               "application/json")
+                    return
+                hub.note("info", "ground closed from the page")
+                self._send(HTTPStatus.OK, json.dumps({"ok": True}), "application/json")
+                threading.Thread(target=self.server.shutdown, daemon=True).start()
                 return
             try:
                 n = min(int(self.headers.get("Content-Length", "0")), 1024)

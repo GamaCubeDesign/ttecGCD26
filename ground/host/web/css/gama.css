@@ -112,6 +112,10 @@ h3 { font-size: 1.05em; margin-bottom: 8px; }
 .tool.icon { display: grid; place-items: center; width: 34px; height: 32px; padding: 0; }
 .tool.icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .tool[aria-pressed="true"] { background: var(--brand); color: var(--brand-fg); border-color: var(--brand-line); }
+.tool.quit:hover { border-color: var(--bad); color: var(--bad-fg); }
+.tool.quit.confirm { width: auto; gap: 6px; padding: 0 10px; grid-auto-flow: column;
+  border-color: var(--bad); color: var(--bad-fg); background: var(--bad-soft); }
+.tool.quit:disabled { opacity: .4; cursor: default; }
 
 .banner { display: none; padding: 9px 16px; font-weight: 700; background: var(--bad-soft); color: var(--bad-fg);
   border-bottom: 1px solid var(--bad); }

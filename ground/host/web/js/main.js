@@ -3,8 +3,8 @@
 
 import { $, esc, store } from './util.js';
 import { t, labels, setLang, currentLang } from './i18n.js';
-import { start, subscribe, state } from './state.js';
-import { refreshArm, wire } from './commands.js';
+import { start, subscribe, state, markEnded } from './state.js';
+import { refreshArm, wire, toast } from './commands.js';
 import { renderBar } from './telemetry.js';
 import { renderEventsFrame, renderEvents, clearUnseen } from './events.js';
 import { tab as operations } from './tabs/operations.js';
@@ -64,6 +64,45 @@ function applyTheme(theme) {
   if (changed) window.dispatchEvent(new Event('gs-redraw'));
 }
 
+// Closing the ground from the page: two clicks, the second within 5 s, as the
+// link switch. gs_web.py then ends as on Ctrl-C: the ground console and its
+// ssh closed, the session saved, ./gama printing where.
+const QUIT_CONFIRM_MS = 5000;
+const POWER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v8"/><path d="M6.6 6.9a7.6 7.6 0 1 0 10.8 0"/></svg>';
+let quitAsk = 0;
+
+function paintQuit() {
+  const b = $('b-quit');
+  const asking = Date.now() < quitAsk && !state.ended;
+  b.classList.toggle('confirm', asking);
+  b.innerHTML = asking ? POWER + `<span>${esc(t('quit_confirm'))}</span>` : POWER;
+  b.title = t('quit');
+  b.setAttribute('aria-label', asking ? t('quit_confirm') : t('quit'));
+  b.disabled = state.ended;
+}
+
+async function quit() {
+  if (state.ended) return;
+  if (Date.now() >= quitAsk) {
+    quitAsk = Date.now() + QUIT_CONFIRM_MS;
+    paintQuit();
+    const mission = state.st && state.st.mode === 'MISSION_ADSB';
+    toast(t('quit_hint') + (mission ? ' ' + t('quit_mission') : ''), 'bad');
+    setTimeout(paintQuit, QUIT_CONFIRM_MS + 50);
+    return;
+  }
+  quitAsk = 0;
+  paintQuit();
+  try {
+    const r = await fetch('/api/quit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    if (!r.ok) throw new Error(String(r.status));
+    markEnded();
+    paintQuit();
+  } catch (e) {
+    toast(t('quit_fail'), 'bad');
+  }
+}
+
 function relabel() {
   document.title = t('title');
   labels();
@@ -71,6 +110,7 @@ function relabel() {
   // A magnifier: letters larger, for a projector; its name is the tooltip.
   $('b-big').title = t('big');
   $('b-big').setAttribute('aria-label', t('big'));
+  paintQuit();
   applyTheme(document.documentElement.dataset.theme || 'dark');
   renderEventsFrame();
   applyDock(store('gs-dock') === '1', store('gs-dock-hidden') === '1');
@@ -111,6 +151,7 @@ $('b-theme').addEventListener('click', () => {
   clearTimeout(themingTimer);
   themingTimer = setTimeout(() => root.classList.remove('theming'), 450);
 });
+$('b-quit').addEventListener('click', quit);
 $('b-big').addEventListener('click', () => {
   const on = document.body.classList.toggle('big');
   $('b-big').setAttribute('aria-pressed', String(on));

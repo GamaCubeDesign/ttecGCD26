@@ -6,6 +6,10 @@ import { store } from './util.js';
 const T = {
   pt: {
     title: 'GCD26 · Estação de solo', lang: 'PT', theme_dark: 'tema escuro', theme_light: 'tema claro', big: 'projetar: letras maiores',
+    quit: 'encerrar a ground', quit_confirm: 'encerrar?', quit_fail: 'a ground não encerrou: sem resposta do servidor',
+    quit_hint: 'Clique de novo em 5 s para encerrar a ground, como o Ctrl-C. O satélite não muda de modo.',
+    quit_mission: 'A MISSION_ADSB segue no satélite, mas a ground deixa de receber os retratos.',
+    ended: 'ENCERRADA', ended_banner: 'Ground encerrada pela página: a sessão ficou salva. Para voltar, rode ./gama ground de novo.',
     contact: 'EM CONTATO', nocontact: 'SEM CONTATO', wait: 'AGUARDANDO', offline: 'SEM SERVIDOR',
     mode_none: 'modo desconhecido', for: 'há', last_frame: 'último quadro',
     battery: 'Bateria', current: 'Corrente', tbat: 'T. bateria', text: 'T. externa', tsoc: 'T. processador',
@@ -63,6 +67,10 @@ const T = {
   },
   es: {
     title: 'GCD26 · Estación terrena', lang: 'ES', theme_dark: 'tema oscuro', theme_light: 'tema claro', big: 'proyectar: letras más grandes',
+    quit: 'cerrar la estación', quit_confirm: '¿cerrar?', quit_fail: 'la estación no se cerró: el servidor no responde',
+    quit_hint: 'Haga clic de nuevo en 5 s para cerrar la estación, como Ctrl-C. El satélite no cambia de modo.',
+    quit_mission: 'La MISSION_ADSB sigue en el satélite, pero la estación deja de recibir los retratos.',
+    ended: 'CERRADA', ended_banner: 'Estación cerrada desde la página: la sesión quedó guardada. Para volver, ejecute ./gama ground de nuevo.',
     contact: 'EN CONTACTO', nocontact: 'SIN CONTACTO', wait: 'ESPERANDO', offline: 'SIN SERVIDOR',
     mode_none: 'modo desconocido', for: 'hace', last_frame: 'último cuadro',
     battery: 'Batería', current: 'Corriente', tbat: 'T. batería', text: 'T. externa', tsoc: 'T. procesador',
@@ -98,6 +106,10 @@ const T = {
   },
   en: {
     title: 'GCD26 · Ground station', lang: 'EN', theme_dark: 'dark theme', theme_light: 'light theme', big: 'projector: larger text',
+    quit: 'close the ground station', quit_confirm: 'close?', quit_fail: 'the ground did not close: no answer from the server',
+    quit_hint: 'Click again within 5 s to close the ground station, as Ctrl-C does. The satellite keeps its mode.',
+    quit_mission: 'MISSION_ADSB goes on aboard, but the ground stops receiving its snapshots.',
+    ended: 'CLOSED', ended_banner: 'Ground station closed from the page: the session is saved. To come back, run ./gama ground again.',
     contact: 'IN CONTACT', nocontact: 'NO CONTACT', wait: 'WAITING', offline: 'NO SERVER',
     mode_none: 'unknown mode', for: 'for', last_frame: 'last frame',
     battery: 'Battery', current: 'Current', tbat: 'Battery T', text: 'External T', tsoc: 'Processor T',

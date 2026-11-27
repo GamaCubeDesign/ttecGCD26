@@ -511,6 +511,44 @@ class TestLinkSwitch(unittest.TestCase):
         self.assertEqual(hub.snapshot()["link"]["options"], [])
 
 
+class TestQuit(unittest.TestCase):
+    """The page's "end" button: gs_web ends as on Ctrl-C."""
+
+    def setUp(self):
+        self.proc = subprocess.Popen(
+            [sys.executable, os.path.join(HERE, "gs_web.py"), "--port", "0", "--exec",
+             sys.executable, "-c", FAKE_GROUND],
+            stdout=subprocess.PIPE, text=True)
+        self.base = self.proc.stdout.readline().split(" on ")[1].strip()
+
+    def tearDown(self):
+        if self.proc.poll() is None:
+            self.proc.kill()
+        self.proc.wait(timeout=5)
+        self.proc.stdout.close()
+
+    def quit(self, content_type):
+        req = urllib.request.Request(self.base + "/api/quit", data=b"{}",
+                                     headers={"Content-Type": content_type})
+        try:
+            with urllib.request.urlopen(req, timeout=5) as r:
+                return r.status
+        except urllib.error.HTTPError as e:
+            with e:
+                return e.code
+
+    def test_the_page_ends_the_ground(self):
+        self.assertEqual(self.quit("application/json"), 200)
+        self.assertEqual(self.proc.wait(timeout=10), 0)
+
+    def test_not_from_another_site(self):
+        # A form on another site can POST text/plain without a preflight.
+        self.assertEqual(self.quit("text/plain"), 403)
+        with urllib.request.urlopen(self.base + "/api/state", timeout=5) as r:
+            self.assertEqual(r.status, 200)              # still up
+        self.assertIsNone(self.proc.poll())
+
+
 class TestServer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

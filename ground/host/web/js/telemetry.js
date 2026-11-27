@@ -16,7 +16,8 @@ export function renderBar(state) {
   const st = state.st;
   // Contact, then the mode, then the link.
   let contact = `<span class="chip"><i></i>${esc(t('wait'))}</span>`;
-  if (!state.connected) contact = `<span class="chip bad"><i></i>${esc(t('offline'))}</span>`;
+  if (!state.connected) contact = state.ended ? `<span class="chip"><i></i>${esc(t('ended'))}</span>`
+    : `<span class="chip bad"><i></i>${esc(t('offline'))}</span>`;
   else if (st && st.contact === true) contact = `<span class="chip ok"><i></i>${esc(t('contact'))}</span>`;
   else if (st && st.contact === false) contact = `<span class="chip bad"><i></i>${esc(t('nocontact'))}</span>`;
   const mode = st && st.mode
@@ -50,7 +51,8 @@ export function renderBar(state) {
   box.classList.toggle('stale', stale);
 
   const banner = $('banner');
-  if (st && st.source === 'replay') { banner.className = 'banner show demo'; banner.textContent = t('demo'); }
+  if (state.ended) { banner.className = 'banner show demo'; banner.textContent = t('ended_banner'); }
+  else if (st && st.source === 'replay') { banner.className = 'banner show demo'; banner.textContent = t('demo'); }
   else if (st && st.source === 'ssh' && !st.error) { banner.className = 'banner show demo'; banner.textContent = t('ssh_link'); }
   else if (st && st.error) { banner.className = 'banner show'; banner.textContent = st.error; }
   else if (st && st.adsb && st.adsb.error) { banner.className = 'banner show'; banner.textContent = 'ADS-B: ' + st.adsb.error; }
