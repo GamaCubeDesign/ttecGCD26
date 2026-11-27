@@ -3,9 +3,9 @@
 // the aircraft the ground reconstructs, on the map, in a table and one by
 // one (origin and destination by each method, ADR-0019).
 
-import { esc, fmtAge, fmtClock, fmtNum, setHTML } from '../util.js';
+import { esc, fmtAge, fmtClock, fmtNum, setHTML, store } from '../util.js';
 import { t } from '../i18n.js';
-import { serverNow } from '../state.js';
+import { serverNow, state } from '../state.js';
 import { latestRun, ack, step, after } from '../runs.js';
 import { AdsbMap } from '../map.js';
 
@@ -17,6 +17,23 @@ let etag = null;
 let selected = null;
 let map = null;
 let timer = null;
+// The aircraft table's filter: all, those heard now, those heard before.
+// "Now" is still in the satellite's table: adsbd drops an aircraft silent
+// for track_expiry_ms (60 s, flight/adsbd/core.c), the estimator's ACTIVE.
+const NOW_S = 60;
+const SEEN = ['all', 'now', 'past'];
+let seen = SEEN.includes(store('gs-adsb-seen')) ? store('gs-adsb-seen') : 'all';
+let mapKey = '';
+
+// The ground's clock now, in s: a replay plays old times, so there "now" is
+// the newest aircraft's last update.
+function refNow() {
+  if (state.st && state.st.source === 'replay') {
+    const ts = view.aircraft.map((a) => a.t || 0).filter(Boolean);
+    if (ts.length) return Math.max(...ts) / 1000;
+  }
+  return serverNow();
+}
 
 function tag(d) {
   if (!d) return '<span class="tag UNKNOWN">—</span>';
@@ -100,14 +117,33 @@ function drawMission(state) {
 function drawAircraft() {
   const body = document.getElementById('adsb-rows');
   if (!body) return;
-  const rows = view.aircraft.slice().sort((x, y) => (x.callsign || x.icao).localeCompare(y.callsign || y.icao));
-  setHTML(body, rows.length ? rows.map((a) => `<tr data-icao="${esc(a.icao)}" class="${a.icao === selected ? 'sel' : ''}">
+  // a.t: the aircraft's last update aboard, in the ground's clock (ms).
+  const ref = refNow();
+  const all = view.aircraft.map((a) => {
+    const age = a.t ? Math.max(0, ref - a.t / 1000) : null;
+    return { a, age, now: age != null && age <= NOW_S };
+  });
+  const nNow = all.filter((x) => x.now).length;
+  setHTML(document.getElementById('adsb-seen'), [['all', all.length], ['now', nNow], ['past', all.length - nNow]].map(([k, n]) =>
+    `<button type="button" data-seen="${k}" aria-pressed="${k === seen}" title="${esc(t('seen_' + k + '_tip'))}">${esc(t('seen_' + k))} <span class="n">${n}</span></button>`).join(''));
+  const shown = all.filter((x) => seen === 'all' || (seen === 'now') === x.now);
+  const rows = shown.sort((x, y) => (x.now !== y.now ? (x.now ? -1 : 1)
+    : (x.a.callsign || x.a.icao).localeCompare(y.a.callsign || y.a.icao)));
+  setHTML(body, rows.length ? rows.map(({ a, age, now }) => `<tr data-icao="${esc(a.icao)}" class="${a.icao === selected ? 'sel' : ''}${now ? '' : ' past'}">
+      <td>${now ? `<span class="seen-now"><i></i>${esc(t('seen_now'))}</span>`
+        : `<span class="seen-past">${esc(age == null ? '—' : t('seen_ago').replace('{}', fmtAge(age)))}</span>`}</td>
       <td>${esc(a.icao)}</td><td>${esc(a.callsign || '')}</td><td title="${esc(a.category_source === 'kinematics' ? t('cat_inferred') : '')}">${esc(a.category || '—')}${a.category_source === 'kinematics' ? '<sup>*</sup>' : ''}</td><td>${esc(a.phase || '')}</td>
       <td>${esc(a.on_ground ? 'solo' : fmtNum(a.alt))}</td><td>${esc(fmtNum(a.gs))}</td>
       <td>${tag(a.origin)}</td><td>${tag(a.destination)}</td>
       <td>${a.combined ? tag(a.combined.destination) : '—'}</td></tr>`).join('')
-    : `<tr><td colspan="9" class="muted">${esc(t('none_yet'))}</td></tr>`);
-  if (map) map.set(view, selected);
+    : `<tr><td colspan="10" class="muted">${esc(t(all.length ? 'seen_none' : 'none_yet'))}</td></tr>`);
+  // The map shows what the table shows; redrawn only when that changes,
+  // since the table is redrawn every second for the ages.
+  const key = `${view.revision}|${seen}|${selected}|${rows.map((x) => x.a.icao).join(',')}`;
+  if (map && key !== mapKey) {
+    mapKey = key;
+    map.set({ ...view, aircraft: rows.map((x) => x.a) }, selected);
+  }
   drawDetail();
 }
 
@@ -178,8 +214,9 @@ export const tab = {
         <section class="card"><h2>${esc(t('stats'))}</h2><div id="adsb-figs"></div></section>
         <section class="card" id="adsb-detail"></section>
       </div>
-      <section class="card"><h2>${esc(t('table'))}</h2><div class="scroll"><table class="tbl"><thead><tr>
-        <th>${esc(t('c_icao'))}</th><th>${esc(t('c_cs'))}</th><th>${esc(t('c_cat'))}</th><th>${esc(t('c_phase'))}</th>
+      <section class="card"><div class="card-head"><h2>${esc(t('table'))}</h2><div class="adsb-seen" id="adsb-seen" role="group"></div></div>
+        <div class="scroll"><table class="tbl"><thead><tr>
+        <th>${esc(t('c_seen'))}</th><th>${esc(t('c_icao'))}</th><th>${esc(t('c_cs'))}</th><th>${esc(t('c_cat'))}</th><th>${esc(t('c_phase'))}</th>
         <th>${esc(t('c_alt'))}</th><th>${esc(t('c_gs'))}</th><th>${esc(t('c_origin'))}</th><th>${esc(t('c_dest'))}</th>
         <th>${esc(t('c_comb'))}</th></tr></thead><tbody id="adsb-rows"></tbody></table></div></section>`;
     map = new AdsbMap(panel.querySelector('#adsb-map'), (icao) => pick(icao, true));
@@ -197,11 +234,19 @@ export const tab = {
         map.reveal(selected);
       }
     });
+    panel.querySelector('#adsb-seen').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-seen]');
+      if (!b) return;
+      seen = b.dataset.seen;
+      store('gs-adsb-seen', seen);
+      drawAircraft();
+    });
+    mapKey = '';
     drawAircraft();
   },
   show() { poll(); timer = setInterval(poll, POLL_MS); },
   hide() { clearInterval(timer); timer = null; },
-  update(state) { drawMission(state); },
+  update(s) { drawMission(s); drawAircraft(); },   // the ages move on by themselves
   dot(st) {
     const run = latestRun(st, 'MISSION_ADSB');
     if (!run) return '';
