@@ -71,7 +71,12 @@ def holders(path, proc=Path('/proc')):
 
 
 def port_free(port, host='127.0.0.1'):
+    """False only while something listens on the port. SO_REUSEADDR, as
+    gs_web's server binds: without it, the connections a page closed by Ctrl-C
+    leave in TIME_WAIT (60 s on Linux, with the browser still open) read as a
+    page still running, though gs_web would start at once."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             s.bind((host, port))
         except OSError as exc:

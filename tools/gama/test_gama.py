@@ -760,6 +760,25 @@ class Ground(unittest.TestCase):
         self.assertIsNone(r)
         self.assertIn('--web-port 8081', out)
 
+    def test_the_web_port_is_free_after_a_ctrl_c(self):
+        """A listening page takes the port; the TIME_WAIT its closed
+        connections leave behind does not (gs_web binds over it)."""
+        import socket
+        srv = socket.socket()
+        srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        srv.bind(('127.0.0.1', 0))
+        srv.listen()
+        port = srv.getsockname()[1]
+        self.assertFalse(ground.port_free(port))
+        client = socket.create_connection(('127.0.0.1', port))
+        conn, _ = srv.accept()
+        conn.close()                       # the page goes first: its side waits
+        client.settimeout(5)
+        self.assertEqual(client.recv(1), b'')
+        client.close()
+        srv.close()
+        self.assertTrue(ground.port_free(port))
+
     def test_a_session_must_exist(self):
         r, out = quiet(ground.preflight, 'sim', self.args(kind='sim', session='/nonexistent.jsonl'),
                        free=lambda p: True)
