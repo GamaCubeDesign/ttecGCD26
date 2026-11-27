@@ -337,10 +337,17 @@ class GsState:
             run["failed"] = "%s %s" % (obj.get("cmd"), obj.get("status"))
 
     def _run_mode(self, mode, flags):
+        now = self.now()
+        # A run a later command took over still ends when the OBC leaves its
+        # mode: "End now" sends `mode downlink` while MISSION_ADSB runs, and
+        # the mission's clock must stop then, not run on to zero.
+        for old in self.runs:
+            if (old is not self.run and old["entered"] is not None and old["left"] is None
+                    and mode != old["target"]):
+                old["left"], old["left_to"] = now, mode
         run = self.run
         if run is None or run["target"] is None:
             return
-        now = self.now()
         if run["entered"] is None and mode == run["target"]:
             run["entered"] = now
         elif run["entered"] is None and self._short_run_done(run, mode, now):

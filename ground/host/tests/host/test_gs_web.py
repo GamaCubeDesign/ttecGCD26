@@ -165,6 +165,24 @@ class TestState(unittest.TestCase):
         self.assertEqual((run["sent"], run["entered"], run["dump1090"], run["first_tracks"]), (0, 4.0, 9.0, 9.0))
         self.assertEqual((run["tracks"], run["left"], run["left_to"], run["failed"]), (2, 604.0, "MISSION_DOWNLINK", None))
 
+    def test_end_now_stops_the_mission_clock(self):
+        # "End now (downlink)" is a new command, so a new run: the mission's
+        # own run must still close when the OBC leaves MISSION_ADSB.
+        self.clock.t = 0.0
+        self.s.feed(hk())
+        self.s.feed({"ev": "command", "text": "mode mission_adsb"})
+        self.ack("SET_TIME")
+        self.ack("SET_MODE")
+        self.clock.t = 4.0
+        self.s.feed(hk(mode="MISSION_ADSB"))
+        self.clock.t = 120.0
+        self.s.feed({"ev": "command", "text": "mode downlink"})
+        self.ack("SET_MODE")
+        self.clock.t = 121.0
+        self.s.feed(hk(mode="PRE_TEST"))
+        mission = [r for r in self.s.snapshot()["runs"] if r["target"] == "MISSION_ADSB"][-1]
+        self.assertEqual((mission["entered"], mission["left"], mission["left_to"]), (4.0, 121.0, "PRE_TEST"))
+
     def test_a_refused_time_fails_the_run(self):
         self.s.feed({"ev": "command", "text": "mode mission_adsb"})
         self.ack("SET_TIME", status="BAD_ARGS")
