@@ -195,6 +195,10 @@ if(Python3_Interpreter_FOUND)
     add_test(NAME sdr_check
              COMMAND ${Python3_EXECUTABLE} -m unittest test_sdr_check
              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/bench)
+    # The SDR left on (sdr_watch.py): the table of everything heard, against a fake dump1090.
+    add_test(NAME sdr_watch
+             COMMAND ${Python3_EXECUTABLE} -m unittest test_sdr_watch
+             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tools/bench)
     # gama, the bench's operating CLI: the radio check, doctor and a
     # mission's order of steps, against fakes (no Pi, no radio, no ssh).
     add_test(NAME gama_cli
