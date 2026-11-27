@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GCD26 — A ADS-B para a apresentação (26/11/2026)</title>
+<link rel="icon" href="assets/favicon.png">
+<style>
+@font-face{
+  font-family:"Open Sans"; src:url("assets/OpenSans.woff2") format("woff2");
+  font-weight:300 800; font-style:normal; font-display:swap;
+}
+:root{
+  /* Gama Cube Design (identidade_visual_gama.pdf; the same tokens as
+   * ground/host/web/css/gama.css): black, British Racing Green #034a2c and
+   * white; Forest Green, Yellow Orange and Terra Cotta for ok, warning and
+   * failure, in darker shades for text on a light background. */
+  --brand:#034a2c; --brand-band:#000000;
+  --bg:#f3f5f4; --surface:#ffffff; --surface-2:#eaefec; --fg:#111312; --muted:#56605b;
+  --line:#d0d6d3; --line-strong:#7f8a84; --accent:#034a2c; --accent-soft:#e3eee8;
+  --ok:#2f6b3a; --ok-soft:#e6f1e7; --warn:#8a5300; --warn-soft:#fbf0df;
+  --todo:#56605b; --todo-soft:#eceeed; --bad:#a8321f; --bad-soft:#fbe7e3;
+  --code-bg:#eef1ef; --node:#ffffff; --node-hw:#eef1ef; --node-ext:#e3eee8;
+  --sans:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","JetBrains Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0a0c0b; --surface:#121614; --surface-2:#19201c; --fg:#f2f5f3; --muted:#9aa7a0;
+    --line:#26302b; --line-strong:#6f7c75; --accent:#8cc391; --accent-soft:#10251a;
+    --ok:#8cc391; --ok-soft:#15301f; --warn:#f3b866; --warn-soft:#33280e;
+    --todo:#a8b0ac; --todo-soft:#222826; --bad:#ef8d80; --bad-soft:#3a1b19;
+    --code-bg:#19201c; --node:#121614; --node-hw:#19201c; --node-ext:#10251a;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.62 var(--sans);-webkit-text-size-adjust:100%}
+a{color:var(--accent)}
+.layout{max-width:1260px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr)}
+@media (min-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr);gap:56px}}
+nav.toc{font-size:14px;padding:28px 0 0}
+@media (min-width:1100px){nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto;padding-bottom:28px}}
+nav.toc .toc-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{margin:0;padding-left:22px}
+nav.toc li{margin:4px 0}
+nav.toc a{color:var(--fg);text-decoration:none}
+nav.toc a:hover{color:var(--accent);text-decoration:underline}
+main{min-width:0;max-width:880px;padding-top:28px}
+header.doc{padding:8px 0 22px;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+h1{font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.lede{font-size:18px;color:var(--muted);margin:0 0 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:14px;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+h2{font-size:25px;line-height:1.25;margin:52px 0 14px;padding-top:18px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h2 .n{color:var(--muted);font-weight:500;margin-right:8px}
+h3{font-size:19px;line-height:1.3;margin:30px 0 8px;scroll-margin-top:12px}
+h4{font-size:16px;margin:22px 0 6px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 12px;padding-left:24px}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:4px}
+pre{font-family:var(--mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0 0 14px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-weight:600}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.nw{white-space:nowrap}
+tr.total td{font-weight:600;background:var(--surface-2)}
+.badge{display:inline-block;font-size:12px;font-weight:600;line-height:1;padding:4px 8px;border-radius:999px;white-space:nowrap}
+.b-ok{color:var(--ok);background:var(--ok-soft)}
+.b-warn{color:var(--warn);background:var(--warn-soft)}
+.b-todo{color:var(--todo);background:var(--todo-soft)}
+.b-bad{color:var(--bad);background:var(--bad-soft)}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 16px}
+.callout.warn{border-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-color:var(--bad);background:var(--bad-soft)}
+.callout>:last-child{margin-bottom:0}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 10px}
+@media (max-width:640px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .v{font-size:28px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .l{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.4}
+figure{margin:0 0 22px}
+figure .frame{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto}
+figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px;background:#fff}
+figcaption{font-size:13.5px;color:var(--muted);margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:22px;height:13px;border-radius:3px;border:1.5px solid var(--line-strong);background:var(--node)}
+.sw.done{border:2px solid var(--ok)}
+.sw.plan{border-style:dashed}
+.sw.ext{background:var(--node-ext)}
+.sw.hw{background:var(--node-hw)}
+svg.diagram{display:block;width:100%;min-width:720px;height:auto}
+svg.diagram text{font-family:var(--sans);fill:var(--fg)}
+svg.diagram .t-b{font-size:14px;font-weight:600}
+svg.diagram .t-s{font-size:12px;fill:var(--muted)}
+svg.diagram .t-e{font-size:12px;fill:var(--muted)}
+svg.diagram .zone{fill:none;stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .zone-label{font-size:12px;letter-spacing:.07em;fill:var(--muted)}
+svg.diagram .box{fill:var(--node);stroke:var(--line-strong);stroke-width:1.2}
+svg.diagram .box.hw{fill:var(--node-hw)}
+svg.diagram .box.ext{fill:var(--node-ext)}
+svg.diagram .box.plan{stroke-dasharray:5 4}
+svg.diagram .box.done{stroke:var(--ok);stroke-width:2}
+svg.diagram .edge{fill:none;stroke:var(--line-strong);stroke-width:1.4}
+svg.diagram .edge.rf{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 4}
+svg.diagram .ah{fill:var(--line-strong)}
+svg.diagram .ah-rf{fill:var(--accent)}
+.bytes{display:flex;flex-wrap:wrap;margin:6px 0 14px;font-family:var(--mono);font-size:13px}
+.bytes div{border:1px solid var(--line-strong);margin:0 -1px -1px 0;padding:8px 10px;text-align:center;background:var(--surface);min-width:74px}
+.bytes div small{display:block;color:var(--muted);font-family:var(--sans);font-size:11.5px;margin-top:2px}
+.bytes .pl{flex:1 1 220px;background:var(--accent-soft)}
+.adr{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.adr h3{margin:0 0 6px}
+.adr .sub{font-size:13.5px;color:var(--muted);margin:0 0 10px}
+.adr dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;margin:0}
+.adr dt{font-weight:600;font-size:14px}
+.adr dd{margin:0;font-size:15px}
+@media (max-width:640px){.adr dl{grid-template-columns:1fr}.adr dd{margin-bottom:6px}}
+.qa-tools{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:14px;padding:6px 12px;border-radius:6px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+details.qa{border:1px solid var(--line);border-radius:10px;background:var(--surface);margin:0 0 12px;scroll-margin-top:12px}
+details.qa>summary{cursor:pointer;padding:14px 18px;font-weight:600;font-size:16.5px;list-style:none;display:flex;gap:10px;align-items:baseline}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::before{content:"▸";color:var(--muted);display:inline-block;transition:transform .15s}
+details.qa[open]>summary::before{transform:rotate(90deg)}
+details.qa>summary .qn{color:var(--muted);font-weight:500;min-width:28px}
+details.qa .body{padding:14px 20px 8px;border-top:1px solid var(--line)}
+details.qa .body h4:first-child{margin-top:4px}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 20px;margin:0 0 16px}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (max-width:640px){dl.gloss{grid-template-columns:1fr}dl.gloss dd{margin-bottom:8px}}
+.small{font-size:14px;color:var(--muted)}
+footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--fg:#000}
+  body{font-size:10.5pt}
+  nav.toc,.qa-tools{display:none}
+  .layout{display:block;max-width:none;padding:0}
+  main{max-width:none;padding-top:0}
+  h2,h3,h4{break-after:avoid}
+  figure,.tile,.adr,pre,tr{break-inside:avoid}
+  .table-wrap,figure .frame{overflow:visible}
+  pre{white-space:pre-wrap;overflow-wrap:anywhere}
+  a{color:inherit;text-decoration:none}
+}
+
+svg.diagram .lost{fill:var(--bad-soft);stroke:var(--bad);stroke-width:2}
+svg.diagram .new{fill:var(--ok-soft);stroke:var(--ok);stroke-width:2;stroke-dasharray:5 4}
+svg.diagram .edge.ok{stroke:var(--ok);stroke-width:2}
+svg.diagram .ah-ok{fill:var(--ok)}
+svg.diagram .t-bad{font-size:12px;fill:var(--bad);font-weight:600}
+svg.diagram .t-ok{font-size:12px;fill:var(--ok);font-weight:600}
+.bytes .fl{background:var(--warn-soft)}
+
+/* Gama: the band on top, as on the ground's page; ExtraBold titles. */
+.brand-bar{background:var(--brand-band);border-bottom:3px solid var(--brand);color:#fff;
+  display:flex;align-items:center;gap:12px;padding:8px 20px;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.brand-bar img{width:28px;height:28px;display:block}
+.brand-bar b{font-weight:800;letter-spacing:.04em}
+.brand-bar span{opacity:.75}
+h1,h2{font-weight:800}
+.eyebrow{color:var(--accent);font-weight:700}
+@media print{.brand-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+/* Back to the index: in the brand bar, and floating, so it is one tap away anywhere in the report. */
+.brand-bar a.home{margin-left:auto;white-space:nowrap;color:#fff;text-decoration:none;font-weight:600;opacity:.9}
+.brand-bar a.home:hover{opacity:1;text-decoration:underline}
+a.to-index{position:fixed;right:16px;bottom:16px;z-index:10;display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:999px;background:var(--accent);color:var(--bg);font-size:14px;font-weight:600;
+  text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+a.to-index:hover{text-decoration:underline}
+@media print{a.to-index,.brand-bar a.home{display:none}}
+</style>
+<style>
+svg.diagram.map{min-width:0;max-width:600px;margin:0 auto}
+svg.diagram.chart{min-width:600px}
+svg.diagram .map-bg{fill:var(--surface-2);stroke:var(--line)}
+svg.diagram .grid path{stroke:var(--line);stroke-width:1}
+svg.diagram .ring{fill:var(--accent);fill-opacity:.13;stroke:none}
+svg.diagram .ring-mid{fill:none;stroke:var(--accent);stroke-width:1.5;stroke-dasharray:5 4}
+svg.diagram .ring-l{fill:var(--accent);font-weight:600}
+svg.diagram .ap-small{fill:var(--line-strong);opacity:.75}
+svg.diagram .ap-heli{fill:none;stroke:var(--line-strong);stroke-width:1.2;opacity:.75}
+svg.diagram .ap-big{fill:var(--surface);stroke:var(--fg);stroke-width:2}
+svg.diagram .ap-big.win{fill:var(--accent);stroke:var(--surface);stroke-width:2.5}
+svg.diagram .traj{fill:none;stroke:var(--fg);stroke-width:2}
+svg.diagram .traj-after{fill:none;stroke:var(--line-strong);stroke-width:2;stroke-dasharray:3 4}
+svg.diagram .traj-pt{fill:var(--fg);stroke:var(--surface-2);stroke-width:1.5}
+svg.diagram .plane{fill:var(--warn);stroke:var(--surface);stroke-width:2.5}
+svg.diagram .scale{stroke:var(--fg);stroke-width:3}
+svg.diagram .gridl{stroke:var(--line);stroke-width:1}
+svg.diagram .thr{stroke:var(--muted);stroke-width:1.2;stroke-dasharray:4 4}
+svg.diagram .ln-a{fill:none;stroke:var(--accent);stroke-width:2.5}
+svg.diagram .ln-b{fill:none;stroke:var(--line-strong);stroke-width:2;stroke-dasharray:6 4}
+svg.diagram .pt-a{fill:var(--accent);stroke:var(--surface);stroke-width:2}
+svg.diagram .pt-b{fill:var(--surface);stroke:var(--line-strong);stroke-width:2}
+svg.diagram .bar{fill:var(--line-strong)}
+svg.diagram .bar-ok{fill:var(--ok)}
+svg.diagram .dec{stroke:var(--ok);stroke-width:1.5;stroke-dasharray:2 3}
+svg.diagram .lbl{font-size:11px;fill:var(--muted)}
+svg.diagram .mono{font-family:var(--mono);font-size:12px}
+svg.diagram .hl{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+.bytes .pl{flex:0 1 auto}
+table.comp td.cb{min-width:120px;white-space:nowrap}
+table.comp td.na{color:var(--muted)}
+.cbar{display:inline-block;width:64px;height:10px;border-radius:5px;background:var(--surface-2);border:1px solid var(--line);vertical-align:middle;margin-right:8px;overflow:hidden}
+.cbar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.big-eq{font-family:var(--mono);font-size:18px;text-align:center;background:var(--accent-soft);border:1px solid var(--line);border-radius:10px;padding:16px;margin:0 0 16px;overflow-x:auto}
+.big-eq small{display:block;font-family:var(--sans);font-size:13px;color:var(--muted);margin-top:6px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:0 0 18px}
+.step{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:10px;padding:12px 14px}
+.step .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.step h4{margin:4px 0 6px}
+.step p{font-size:14.5px;margin:0}
+.say{border:1px dashed var(--line-strong);border-radius:10px;padding:10px 14px;margin:0 0 18px;font-size:15px}
+.say b:first-child{color:var(--accent)}
+</style>
+</head>
+</head>
+<body>
+<div class="brand-bar"><img src="assets/favicon.png" alt=""><b>Gama Cube Design</b><span>CubeDesign 2026 · TT&amp;C</span><a class="home" href="index.html">← Relatórios</a></div>
+<a class="to-index" href="index.html" aria-label="Voltar ao índice dos relatórios">← Índice</a>
+<div class="layout">
+<nav class="toc" aria-label="Sumário">
+  <p class="toc-title">Sumário</p>
+  <ol>
+    <li><a href="#resumo">Em uma página</a></li>
+    <li><a href="#recebido">O que recebemos</a></li>
+    <li><a href="#trajetoria">A trajetória</a></li>
+    <li><a href="#origem">A origem</a></li>
+    <li><a href="#exemplo">Um voo real, passo a passo</a></li>
+    <li><a href="#banco">O banco de dados</a></li>
+    <li><a href="#resultados">Os resultados</a></li>
+    <li><a href="#perguntas">Perguntas prováveis</a></li>
+    <li><a href="#limites">O que ainda não está provado</a></li>
+  </ol>
+</nav>
+<main>
+<header class="doc">
+  <p class="eyebrow">GCD26 · TT&amp;C · ADS-B · apresentação</p>
+  <h1>A ADS-B para a apresentação</h1>
+  <p class="lede">As três perguntas da apresentação, com figuras: que informação recebemos das aeronaves, como reconstruímos a trajetória e como estimamos o aeroporto de origem a partir do nosso banco de aeroportos. Um voo real de Ezeiza serve de exemplo do começo ao fim.</p>
+  <div class="meta"><span><b>Data:</b> 26/11/2026</span><span><b>Para:</b> preparar a apresentação</span><span><b>Decisões:</b> ADR-0003, 0007, 0009, 0022, 0023</span><span><b>Estudo completo:</b> <a href="2026-11-18-adsb-ponta-a-ponta.html">a ADS-B de ponta a ponta (18/11)</a></span></div>
+</header>
+
+<h2 id="resumo"><span class="n">1</span>Em uma página</h2>
+<div class="tiles">
+  <div class="tile"><div class="v">155 : 1</div><div class="l">a redução a bordo: 7,34 MiB de mensagens brutas de 20 aviões em 10 min viram 48,5 KB de estados (<code>lora_budget.py</code>)</div></div>
+  <div class="tile"><div class="v">20 B</div><div class="l">por aeronave, a cada 5 s: posição, altitude, velocidade, rumo, subida, idade e a classe</div></div>
+  <div class="tile"><div class="v">10 a 23 m</div><div class="l">erro de posição p95 da trajetória reconstruída na ground, pelo LoRa (16/11 e 22/11)</div></div>
+</div>
+<div class="steps">
+  <div class="step"><div class="k">Pergunta 1</div><h4>O que recebemos?</h4><p>O estado de cada aeronave: quem é (ICAO, indicativo, porte), onde está (lat, lon, altitude) e como se move (velocidade, rumo, razão vertical). Decodificado a bordo, resumido em 20 bytes.</p></div>
+  <div class="step"><div class="k">Pergunta 2</div><h4>Como sai a trajetória?</h4><p>Cada registro chega com a sua <b>idade</b>; a ground recalcula o instante exato em que a aeronave estava ali, no próprio relógio. Os pontos, em ordem, são a trajetória.</p></div>
+  <div class="step"><div class="k">Pergunta 3</div><h4>Como sai a origem?</h4><p>Todo aeroporto do banco num raio de 500 km é candidato e recebe uma nota pela geometria da subida. Só se decide quando um candidato fica na frente, com margem, por pelo menos 20 s.</p></div>
+</div>
+<div class="say"><b>Frase para abrir:</b> o rádio desce 129 vezes menos do que as aeronaves transmitem; por isso o satélite não repassa mensagens, ele <i>entende</i> as mensagens e desce só o estado de cada avião. A ground reconstrói a trajetória e deduz de onde ele veio.</div>
+
+<h2 id="recebido"><span class="n">2</span>O que recebemos</h2>
+<p>Cada aeronave transmite, em 1090 MHz, cerca de 4 mensagens ADS-B por segundo. Cada mensagem traz <b>um pedaço</b> do estado: uma traz a posição, outra a velocidade, outra o indicativo. O satélite junta os pedaços por aeronave e desce o retrato completo.</p>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 900 250" role="img" aria-label="A cadeia: aeronave, SDR e dump1090, adsbd, ttcd e LoRa, ground">
+  <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker>
+  <marker id="ahrf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah-rf" d="M0,0L10,5L0,10z"/></marker></defs>
+  <text class="zone-label" x="10" y="18">NO AR</text><text class="zone-label" x="192" y="18">A BORDO DO SATÉLITE (RASPBERRY PI ZERO 2 W)</text><text class="zone-label" x="738" y="18">EM TERRA</text>
+  <rect class="box ext" x="10" y="30" width="150" height="96" rx="8"/>
+  <text class="t-b" x="85" y="56" text-anchor="middle">Aeronave</text>
+  <text class="t-s" x="85" y="76" text-anchor="middle">1090 MHz</text><text class="t-s" x="85" y="92" text-anchor="middle">~4 mensagens/s</text><text class="t-s" x="85" y="108" text-anchor="middle">cada uma, um pedaço</text>
+  <rect class="box hw" x="192" y="30" width="150" height="96" rx="8"/>
+  <text class="t-b" x="267" y="56" text-anchor="middle">SDR + dump1090-fa</text>
+  <text class="t-s" x="267" y="76" text-anchor="middle">demodula e decodifica</text><text class="t-s" x="267" y="92" text-anchor="middle">SBS: texto, 22 campos</text><text class="t-s" x="267" y="108" text-anchor="middle">AVR: a mensagem crua</text>
+  <rect class="box done" x="374" y="30" width="150" height="96" rx="8"/>
+  <text class="t-b" x="449" y="56" text-anchor="middle">adsbd</text>
+  <text class="t-s" x="449" y="76" text-anchor="middle">funde por ICAO</text><text class="t-s" x="449" y="92" text-anchor="middle">tabela de 128 aviões</text><text class="t-s" x="449" y="108" text-anchor="middle">grava tudo no cartão</text>
+  <rect class="box done" x="556" y="30" width="150" height="96" rx="8"/>
+  <text class="t-b" x="631" y="56" text-anchor="middle">ttcd + LoRa</text>
+  <text class="t-s" x="631" y="76" text-anchor="middle">retrato a cada 5 s</text><text class="t-s" x="631" y="92" text-anchor="middle">20 B por aeronave</text><text class="t-s" x="631" y="108" text-anchor="middle">433,92 MHz</text>
+  <rect class="box done" x="738" y="30" width="150" height="96" rx="8"/>
+  <text class="t-b" x="813" y="56" text-anchor="middle">Ground</text>
+  <text class="t-s" x="813" y="76" text-anchor="middle">reconstrói o instante</text><text class="t-s" x="813" y="92" text-anchor="middle">trajetória</text><text class="t-s" x="813" y="108" text-anchor="middle">origem e destino</text>
+  <path class="edge rf" d="M160 78H188" marker-end="url(#ahrf)"/>
+  <path class="edge" d="M342 78H370" marker-end="url(#ah)"/>
+  <path class="edge" d="M524 78H552" marker-end="url(#ah)"/>
+  <path class="edge rf" d="M706 78H734" marker-end="url(#ahrf)"/>
+  <rect class="box hl" x="10" y="150" width="514" height="40" rx="8"/>
+  <text class="t-b" x="267" y="175" text-anchor="middle">7,34 MiB em 10 min · 48 000 mensagens de 20 aviões</text>
+  <rect class="box hl" x="556" y="150" width="332" height="40" rx="8"/>
+  <text class="t-b" x="722" y="175" text-anchor="middle">48,5 KB em 10 min · 120 retratos</text>
+  <text class="t-s" x="267" y="214" text-anchor="middle">o registro de bordo (adsb.ndjson) guarda isto inteiro, para depois do teste</text>
+  <text class="t-s" x="722" y="214" text-anchor="middle">o que cabe no rádio: 2 quadros, 2,09 s no ar por retrato</text>
+  <text class="t-ok" x="540" y="238" text-anchor="middle">155 : 1</text>
+</svg></div>
+<figcaption>Em verde, o que é nosso e testado no CTest. As setas tracejadas são rádio. O dump1090-fa é o decodificador pronto da FlightAware; o resto é deste repositório.</figcaption>
+</figure>
+
+<h3>2.1 Campo por campo</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Informação</th><th>Vem da mensagem ADS-B</th><th>Registro de bordo</th><th>Desce pelo LoRa</th></tr></thead>
+  <tbody>
+    <tr><td><b>Endereço ICAO</b> (24 bits, único por aeronave)</td><td>todas</td><td><span class="badge b-ok">sim</span></td><td><span class="badge b-ok">sim</span> 3 B, chave de tudo</td></tr>
+    <tr><td><b>Posição</b> (latitude, longitude)</td><td>posição em voo (tipo 9–18), decodificada pelo dump1090</td><td><span class="badge b-ok">sim</span></td><td><span class="badge b-ok">sim</span> ~1,2 m de passo</td></tr>
+    <tr><td><b>Altitude</b> barométrica</td><td>posição em voo</td><td><span class="badge b-ok">sim</span></td><td><span class="badge b-ok">sim</span> passo de 25 ft, o do próprio ADS-B</td></tr>
+    <tr><td><b>Velocidade e rumo</b> sobre o solo</td><td>velocidade (tipo 19)</td><td><span class="badge b-ok">sim</span></td><td><span class="badge b-ok">sim</span> 0,1 kt e 0,01°</td></tr>
+    <tr><td><b>Razão vertical</b> (subida/descida)</td><td>velocidade (tipo 19)</td><td><span class="badge b-ok">sim</span></td><td><span class="badge b-ok">sim</span> ft/min</td></tr>
+    <tr><td><b>No solo</b></td><td>posição de superfície (tipo 5–8)</td><td><span class="badge b-ok">sim</span></td><td><span class="badge b-ok">sim</span> 1 bit</td></tr>
+    <tr><td><b>Indicativo</b> (ex.: ARG1842)</td><td>identificação (tipo 1–4)</td><td><span class="badge b-ok">sim</span></td><td><span class="badge b-ok">sim</span> uma vez por avião, no registro <i>roster</i> de 11 B</td></tr>
+    <tr><td><b>Categoria</b> (porte: leve, grande, helicóptero)</td><td>identificação (tipo 1–4), só na saída AVR</td><td><span class="badge b-ok">sim</span> exata (A1, A3…)</td><td><span class="badge b-warn">2 bits</span> só com <code>avr_port</code> ligado (ADR-0023)</td></tr>
+    <tr><td><b>Squawk</b> (código do transponder)</td><td>Mode S, não ADS-B</td><td><span class="badge b-ok">sim</span></td><td><span class="badge b-todo">não</span> não serve à estimativa</td></tr>
+  </tbody>
+</table></div>
+
+<h3>2.2 O registro de 20 bytes</h3>
+<p>Sem ponto flutuante: cada grandeza é um inteiro escalado, com passo menor que a precisão do próprio ADS-B (<code>common/gama_tm.h</code>). A posição é <b>absoluta</b>, não um delta: um quadro perdido não estraga os seguintes.</p>
+<div class="bytes">
+  <div>icao<small>3 B</small></div><div>lat<small>3 B · ×93 206</small></div><div>lon<small>3 B · ×46 603</small></div><div>alt<small>2 B · ÷25 ft</small></div><div>velocidade<small>2 B · ×10 kt</small></div><div>rumo<small>2 B · ×100 °</small></div><div>subida<small>2 B · ft/min</small></div><div class="pl">idade<small>2 B · 0,1 s · a chave do tempo</small></div><div class="fl">flags<small>1 B · válidos + classe</small></div>
+</div>
+<p class="small">Flags, bits 0–5: quais campos são válidos (posição, altitude, velocidade, subida, no solo, indicativo já enviado). Bits 6–7: a classe (00 desconhecida, 01 leve, 10 grande, 11 asa rotativa). 12 registros cabem num quadro de 248 B; 20 aeronaves são 2 quadros.</p>
+
+<h2 id="trajetoria"><span class="n">3</span>A trajetória</h2>
+<p>A trajetória é a sequência de posições de cada aeronave <b>com o instante certo de cada uma</b>. O desafio: a Raspberry Pi não tem relógio de tempo real, e a ground não sincroniza relógio com ela (ADR-0009). A solução é não mandar horário nenhum: o satélite manda <b>há quanto tempo</b> (ADR-0007).</p>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 860 190" role="img" aria-label="A linha do tempo de um registro: atualização, retrato, transmissão, chegada">
+  <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker></defs>
+  <path class="edge" d="M40 80H830" marker-end="url(#ah2)"/>
+  <text class="t-s" x="830" y="102" text-anchor="end">tempo</text>
+  <circle class="pt-a" cx="110" cy="80" r="7"/><text class="t-b" x="110" y="36" text-anchor="middle">1. a mensagem de</text><text class="t-b" x="110" y="54" text-anchor="middle">a aeronave</text>
+  <circle class="pt-b" cx="300" cy="80" r="7"/><text class="t-b" x="300" y="36" text-anchor="middle">2. o adsbd tira</text><text class="t-b" x="300" y="54" text-anchor="middle">o retrato</text>
+  <circle class="pt-b" cx="520" cy="80" r="7"/><text class="t-b" x="520" y="36" text-anchor="middle">3. o ttcd começa</text><text class="t-b" x="520" y="54" text-anchor="middle">a transmitir</text>
+  <circle class="pt-a" cx="720" cy="80" r="7"/><text class="t-b" x="720" y="36" text-anchor="middle">4. o quadro chega</text><text class="t-b" x="720" y="54" text-anchor="middle">(relógio da ground)</text>
+  <path class="ring-mid" d="M110 112V122H516V112"/>
+  <text class="t-b" x="313" y="144" text-anchor="middle">idade = age_ds × 100 ms</text>
+  <text class="t-s" x="313" y="162" text-anchor="middle">medida a bordo, só com o relógio monotônico</text>
+  <path class="ring-mid" d="M524 112V122H720V112"/>
+  <text class="t-b" x="622" y="144" text-anchor="middle">tempo no ar</text>
+  <text class="t-s" x="622" y="162" text-anchor="middle">pelo tamanho do quadro</text>
+</svg></div>
+<figcaption>Os dois intervalos são medidos por quem os conhece. A ground só precisa do relógio dela para pôr o ponto no lugar certo da linha do tempo.</figcaption>
+</figure>
+<div class="big-eq">instante da posição = chegada do quadro − tempo no ar − 100 ms × idade<small><code>ground/host/adsb/tracks_to_ndjson.py</code>, uma linha por registro, no mesmo formato do registro de bordo</small></div>
+
+<h3>3.1 Do registro à trajetória, na ground</h3>
+<div class="steps">
+  <div class="step"><div class="k">1 · instante</div><h4>Reconstruir o tempo</h4><p>A fórmula acima, por registro. Só entram os campos marcados como válidos nos flags.</p></div>
+  <div class="step"><div class="k">2 · repetidos</div><h4>Descartar o que não mudou</h4><p>O satélite manda todo avião em todo retrato. Mesma posição e instante a menos de 250 ms do anterior: é a mesma atualização, entra uma vez.</p></div>
+  <div class="step"><div class="k">3 · janela</div><h4>Guardar por aeronave</h4><p>Cada observação vai para o SQLite da ground, marcada com a sessão; o estimador olha os últimos 900 s (até 2 000 pontos). Lacuna maior: episódio novo.</p></div>
+  <div class="step"><div class="k">4 · derivados</div><h4>Velocidade, subida, fase</h4><p>Razão vertical: mediana dos últimos 10 s, ou regressão robusta (Theil–Sen) da altitude. Fase: CLIMB, LEVEL, DESCENT, APPROACH, GROUND.</p></div>
+  <div class="step"><div class="k">5 · qualidade</div><h4>Confiar ou não</h4><p>Nos últimos 120 s: ≥ 3 posições, ≥ 20 s de trecho, nenhuma lacuna &gt; 60 s, nenhum salto impossível (&gt; 2 km + 0,65 km/s).</p></div>
+</div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Fase</th><th>Regra (<code>flight_state.py</code>)</th><th>Para que serve</th></tr></thead>
+  <tbody>
+    <tr><td><b>CLIMB</b></td><td>subindo &gt; 300 ft/min por 10 s (sai abaixo de 150: histerese)</td><td>a única fase em que se estima a <b>origem</b></td></tr>
+    <tr><td><b>DESCENT</b> / <b>APPROACH</b></td><td>descendo &gt; 300 ft/min por 10 s; APPROACH alinhada a uma pista</td><td>o destino</td></tr>
+    <tr><td><b>LEVEL</b></td><td>entre os dois</td><td>cruzeiro: pouca evidência</td></tr>
+    <tr><td><b>GROUND</b></td><td>o bit "no solo"</td><td>a âncora da decolagem: a última posição no solo</td></tr>
+  </tbody>
+</table></div>
+<h3>3.2 Quanto erra, medido no hardware</h3>
+<p>20 aeronaves simuladas passando por <code>adsbd</code> → <code>ttcd</code> → LoRa → ESP32 → página, comparando o que a ground reconstruiu com o registro de bordo:</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Bancada</th><th class="r">Quadros perdidos</th><th class="r">Latência p95</th><th class="r">Erro de posição p95</th><th class="r">Erro de instante p95</th></tr></thead>
+  <tbody>
+    <tr><td>16/11, bancada (<a href="../vv/bancada/2026-11-16/notas.md">notas</a>)</td><td class="r">0 de 359</td><td class="r">2,8 s</td><td class="r">23 m</td><td class="r">0,11 s</td></tr>
+    <tr><td>22/11, satélite montado, missão 1 (<a href="../vv/bancada/2026-11-22/notas.md">notas</a>)</td><td class="r">1 de 89</td><td class="r">2,4 s</td><td class="r">14 m</td><td class="r">0,07 s</td></tr>
+    <tr><td>22/11, missão 2</td><td class="r">0 de 53</td><td class="r">3,1 s</td><td class="r">10 m</td><td class="r">0,05 s</td></tr>
+  </tbody>
+</table></div>
+<p class="small">HLR-ADS-08 pede latência de até 5 s. Os 23 m de 16/11 são 0,11 s de erro no instante a ~420 kt: o erro de posição é, quase todo, erro de tempo, e o passo da idade é 0,1 s.</p>
+
+<h2 id="origem"><span class="n">4</span>A origem: como o estimador decide</h2>
+<p>O estimador (<code>ground/host/adsb/estimator/</code>, projeto do Pedro integrado ao repositório) não "adivinha" a rota. Ele pergunta, para cada aeroporto possível: <i>esta subida é compatível com ter saído daqui?</i> E só responde quando a resposta se mantém no tempo.</p>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 900 190" role="img" aria-label="O método da origem em seis passos">
+  <defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker></defs>
+  <rect class="box ext" x="0" y="20" width="130" height="120" rx="8"/>
+  <text class="t-b" x="65" y="46" text-anchor="middle">1. candidatos</text><text class="t-s" x="65" y="68" text-anchor="middle">todo aeroporto</text><text class="t-s" x="65" y="84" text-anchor="middle">do banco a</text><text class="t-s" x="65" y="100" text-anchor="middle">até 500 km</text><text class="t-s" x="65" y="122" text-anchor="middle">(470 no exemplo)</text>
+  <rect class="box" x="154" y="20" width="130" height="120" rx="8"/>
+  <text class="t-b" x="219" y="46" text-anchor="middle">2. filtro</text><text class="t-s" x="219" y="68" text-anchor="middle">pela categoria:</text><text class="t-s" x="219" y="84" text-anchor="middle">jato não sai</text><text class="t-s" x="219" y="100" text-anchor="middle">de heliporto</text><text class="t-s" x="219" y="122" text-anchor="middle">(85 fora)</text>
+  <rect class="box" x="308" y="20" width="130" height="120" rx="8"/>
+  <text class="t-b" x="373" y="46" text-anchor="middle">3. componentes</text><text class="t-s" x="373" y="68" text-anchor="middle">6 perguntas</text><text class="t-s" x="373" y="84" text-anchor="middle">de geometria,</text><text class="t-s" x="373" y="100" text-anchor="middle">cada uma 0 a 1</text>
+  <rect class="box" x="462" y="20" width="130" height="120" rx="8"/>
+  <text class="t-b" x="527" y="46" text-anchor="middle">4. nota</text><text class="t-s" x="527" y="68" text-anchor="middle">média ponderada</text><text class="t-s" x="527" y="84" text-anchor="middle">× fator do tipo</text><text class="t-s" x="527" y="100" text-anchor="middle">de aeroporto</text>
+  <rect class="box" x="616" y="20" width="130" height="120" rx="8"/>
+  <text class="t-b" x="681" y="46" text-anchor="middle">5. memória</text><text class="t-s" x="681" y="68" text-anchor="middle">média no tempo</text><text class="t-s" x="681" y="84" text-anchor="middle">(30 s), uma</text><text class="t-s" x="681" y="100" text-anchor="middle">a cada 10 s</text>
+  <rect class="box done" x="770" y="20" width="130" height="120" rx="8"/>
+  <text class="t-b" x="835" y="46" text-anchor="middle">6. decisão</text><text class="t-s" x="835" y="68" text-anchor="middle">ESTIMATED,</text><text class="t-s" x="835" y="84" text-anchor="middle">AMBÍGUO ou</text><text class="t-s" x="835" y="100" text-anchor="middle">UNKNOWN</text>
+  <path class="edge" d="M130 80H150" marker-end="url(#ah3)"/><path class="edge" d="M284 80H304" marker-end="url(#ah3)"/><path class="edge" d="M438 80H458" marker-end="url(#ah3)"/><path class="edge" d="M592 80H612" marker-end="url(#ah3)"/><path class="edge" d="M746 80H766" marker-end="url(#ah3)"/>
+  <text class="t-s" x="450" y="172" text-anchor="middle">só em CLIMB e nos primeiros 180 s depois da primeira posição: depois disso a subida já não diz de onde ele veio</text>
+</svg></div>
+<figcaption>Passos 1 a 4 a cada observação nova (<code>airport_estimator.py</code>); 5 e 6 em <code>decision_fusion.py</code>.</figcaption>
+</figure>
+<div class="big-eq">nota = ( Σ peso × componente ) ÷ ( Σ peso )<br>× fator(categoria, tipo do aeroporto)<small>a nota é uma compatibilidade, não uma probabilidade calibrada: o código diz isso em cada resultado (<code>score_kind</code>)</small></div>
+
+<h3>4.1 O componente que mais pesa sem âncora: a distância pela subida</h3>
+<p>Se a aeronave está <i>h</i> pés acima de um aeroporto, subindo a <i>v</i> ft/min, ela saiu de lá há cerca de <i>h/v</i> minutos. A essa velocidade <i>s</i>, isso dá uma distância esperada (Etapa A, ADR-0022):</p>
+<div class="big-eq">d<sub>esp</sub> = s × 1,852 × (h ÷ v) ÷ 60 km<br>σ = máx(3 km; 0,3 × d<sub>esp</sub>)<br>nota = e<sup>−((d − d<sub>esp</sub>)/σ)²</sup><small>um aeroporto na distância certa ganha perto de 1; longe dela, perto de 0. Só vale com a classe da aeronave conhecida</small></div>
+
+<h3>4.2 Quando ele decide</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Condição para ESTIMATED</th><th class="r">Limite</th><th>Por quê</th></tr></thead>
+  <tbody>
+    <tr><td>melhor candidato em atualizações seguidas</td><td class="r">≥ 3 e ≥ 20 s</td><td>um retrato não decide</td></tr>
+    <tr><td>compatibilidade (memória)</td><td class="r">≥ 0,65</td><td>evidência forte o bastante</td></tr>
+    <tr><td>margem sobre o segundo</td><td class="r">≥ 0,08</td><td>sem margem é <b>AMBÍGUO</b>, não um chute</td></tr>
+    <tr><td>tendência (afastando-se do aeroporto)</td><td class="r">≥ 0,65</td><td>quem saiu de lá se afasta de lá</td></tr>
+    <tr><td>cobertura de evidência e qualidade dos dados</td><td class="r">≥ 0,55 e ≥ 0,35</td><td>componentes suficientes, trajetória limpa</td></tr>
+    <tr><td>altura inicial sobre o aeroporto</td><td class="r">−300 a 6 000 ft</td><td>visto ainda baixo, perto da decolagem</td></tr>
+  </tbody>
+</table></div>
+<div class="callout"><p><b>A filosofia:</b> o estimador foi feito para errar pouco, não para decidir sempre. Errar com confiança é pior do que dizer "não sei". Nos dados reais de validação (18/11), quando decide a origem, acerta 100%.</p></div>
+
+<h2 id="exemplo"><span class="n">5</span>Um voo real, passo a passo: ARG1842 saindo de Ezeiza</h2>
+<p>Tráfego real gravado em 18/11 (adsb.lol, raio de 150 NM da UNSAM), <b>sem a categoria</b>, que é o que a ground recebe hoje com a porta AVR desligada. O Boeing 737 MAX da Aerolíneas aparece a 625 ft logo depois de decolar e vai para o sul. O estimador decide <b>Ezeiza aos 175 s</b>, com 34 posições.</p>
+<figure><div class="frame">
+<svg class="diagram map" viewBox="0 0 469 599" role="img" aria-label="Mapa: a trajetória do ARG1842 saindo de Ezeiza, os aeroportos em volta e o anel da distância esperada">
+<defs><clipPath id="mclip"><rect x="14" y="14" width="441.2" height="548.7"/></clipPath></defs>
+<rect class="map-bg" x="14" y="14" width="441.2" height="548.7" rx="6"/>
+<g class="grid">
+<path d="M119.0 14V562.7"/>
+<path d="M224.0 14V562.7"/>
+<path d="M329.0 14V562.7"/>
+<path d="M434.0 14V562.7"/>
+<path d="M14 119.0H455.2"/>
+<path d="M14 224.0H455.2"/>
+<path d="M14 329.0H455.2"/>
+<path d="M14 434.0H455.2"/>
+<path d="M14 539.0H455.2"/>
+</g>
+<g clip-path="url(#mclip)">
+<path class="ring" fill-rule="evenodd" d="M78.1 510.2a262.2 262.2 0 1 0 524.4 0a262.2 262.2 0 1 0 -524.4 0zM199.1 510.2a141.2 141.2 0 1 0 282.4 0a141.2 141.2 0 1 0 -282.4 0z"/>
+<circle class="ring-mid" cx="340.3" cy="510.2" r="201.7"/>
+</g>
+<rect class="ap-heli" x="270.1" y="202.9" width="5" height="5"><title>Buenos Aires City Oscar and Juan Gálvez Autodrome Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="319.0" y="140.7" width="5" height="5"><title>B. Churruca Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="352.4" y="72.7" width="5" height="5"><title>Centinela Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="226.7" y="43.6" width="5" height="5"><title>Citefa Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="374.5" y="125.7" width="5" height="5"><title>Darsena Sur Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="327.6" y="61.2" width="5" height="5"><title>Dines (Doctor E. Escudero) Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="358.6" y="76.6" width="5" height="5"><title>Fuerza Aérea(Edificio Cóndor) Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="333.8" y="129.4" width="5" height="5"><title>Professor Juan P Garrahan National Pediatric Hospital Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="381.0" y="118.6" width="5" height="5"><title>Madero Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="217.8" y="237.5" width="5" height="5"><title>Sub-Inspector Official Gustavo Soarez de Souza Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="343.5" y="66.6" width="5" height="5"><title>Argentine Naval Prefecture Principal Official Ballestra Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="358.3" y="100.8" width="5" height="5"><title>Presidencia de la Nación Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="307.0" y="89.7" width="5" height="5"><title>Sanatorio Guemes Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="299.8" y="70.8" width="5" height="5"><title>Swiss Medical Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="176.7" y="247.3" width="5" height="5"><title>Terminal Y.P.F. Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="19.0" y="459.4" width="5" height="5"><title>Transener S.A. Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="134.3" y="317.1" width="5" height="5"><title>Campanopolis Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="342.4" y="367.2" width="5" height="5"><title>D.P. El Vapor Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="80.3" y="299.1" width="5" height="5"><title>Lar de Paz S.A. Heliport (heliporto)</title></rect>
+<rect class="ap-heli" x="365.6" y="117.7" width="5" height="5"><title>Madero Harbour Helipad (heliporto)</title></rect>
+<circle class="ap-small" cx="69.9" cy="19.1" r="2.6"><title>Campo de Mayo Military Airport (small_airport)</title></circle>
+<circle class="ap-small" cx="385.7" cy="398.5" r="2.6"><title>La Caida Airport (small_airport)</title></circle>
+<path class="traj" d="M210.8 357.5L214.9 358.4L219.4 359.5L223.5 360.5L228.7 362.0L232.3 363.6L236.2 366.1L239.8 369.3L243.4 372.7L247.2 376.3L251.2 380.3L255.5 384.3L259.9 388.3L264.5 392.3L281.0 403.5L287.1 407.0L293.8 411.0L300.1 414.8L306.6 418.5L313.3 422.2L319.4 425.8L325.6 430.3L330.8 435.3L335.0 441.2L338.3 447.2L341.0 453.9L342.6 460.9L343.1 467.4L343.0 475.1L342.5 482.1L342.1 489.2L341.7 495.8L341.0 502.9L340.3 510.2"/>
+<circle class="traj-pt" cx="210.8" cy="357.5" r="3.2"><title>t = 0 s · 625 ft · 162 kt</title></circle>
+<circle class="traj-pt" cx="214.9" cy="358.4" r="3.2"><title>t = 5 s · 800 ft · 161 kt</title></circle>
+<circle class="traj-pt" cx="219.4" cy="359.5" r="3.2"><title>t = 10 s · 1 000 ft · 164 kt</title></circle>
+<circle class="traj-pt" cx="223.5" cy="360.5" r="3.2"><title>t = 15 s · 1 125 ft · 167 kt</title></circle>
+<circle class="traj-pt" cx="228.7" cy="362.0" r="3.2"><title>t = 21 s · 1 300 ft · 171 kt</title></circle>
+<circle class="traj-pt" cx="232.3" cy="363.6" r="3.2"><title>t = 25 s · 1 450 ft · 170 kt</title></circle>
+<circle class="traj-pt" cx="236.2" cy="366.1" r="3.2"><title>t = 30 s · 1 575 ft · 175 kt</title></circle>
+<circle class="traj-pt" cx="239.8" cy="369.3" r="3.2"><title>t = 35 s · 1 625 ft · 183 kt</title></circle>
+<circle class="traj-pt" cx="243.4" cy="372.7" r="3.2"><title>t = 40 s · 1 700 ft · 190 kt</title></circle>
+<circle class="traj-pt" cx="247.2" cy="376.3" r="3.2"><title>t = 45 s · 1 775 ft · 198 kt</title></circle>
+<circle class="traj-pt" cx="251.2" cy="380.3" r="3.2"><title>t = 50 s · 1 875 ft · 206 kt</title></circle>
+<circle class="traj-pt" cx="255.5" cy="384.3" r="3.2"><title>t = 55 s · 1 975 ft · 214 kt</title></circle>
+<circle class="traj-pt" cx="259.9" cy="388.3" r="3.2"><title>t = 60 s · 2 025 ft · 223 kt</title></circle>
+<circle class="traj-pt" cx="264.5" cy="392.3" r="3.2"><title>t = 65 s · 2 100 ft · 233 kt</title></circle>
+<circle class="traj-pt" cx="281.0" cy="403.5" r="3.2"><title>t = 80 s · 2 350 ft · 260 kt</title></circle>
+<circle class="traj-pt" cx="287.1" cy="407.0" r="3.2"><title>t = 85 s · 2 450 ft · 267 kt</title></circle>
+<circle class="traj-pt" cx="293.8" cy="411.0" r="3.2"><title>t = 90 s · 2 600 ft · 273 kt</title></circle>
+<circle class="traj-pt" cx="300.1" cy="414.8" r="3.2"><title>t = 95 s · 2 750 ft · 278 kt</title></circle>
+<circle class="traj-pt" cx="306.6" cy="418.5" r="3.2"><title>t = 100 s · 2 975 ft · 278 kt</title></circle>
+<circle class="traj-pt" cx="313.3" cy="422.2" r="3.2"><title>t = 105 s · 3 275 ft · 278 kt</title></circle>
+<circle class="traj-pt" cx="319.4" cy="425.8" r="3.2"><title>t = 110 s · 3 550 ft · 276 kt</title></circle>
+<circle class="traj-pt" cx="325.6" cy="430.3" r="3.2"><title>t = 115 s · 3 825 ft · 272 kt</title></circle>
+<circle class="traj-pt" cx="330.8" cy="435.3" r="3.2"><title>t = 120 s · 4 050 ft · 270 kt</title></circle>
+<circle class="traj-pt" cx="335.0" cy="441.2" r="3.2"><title>t = 125 s · 4 225 ft · 269 kt</title></circle>
+<circle class="traj-pt" cx="338.3" cy="447.2" r="3.2"><title>t = 130 s · 4 450 ft · 266 kt</title></circle>
+<circle class="traj-pt" cx="341.0" cy="453.9" r="3.2"><title>t = 135 s · 4 675 ft · 263 kt</title></circle>
+<circle class="traj-pt" cx="342.6" cy="460.9" r="3.2"><title>t = 140 s · 4 875 ft · 260 kt</title></circle>
+<circle class="traj-pt" cx="343.1" cy="467.4" r="3.2"><title>t = 145 s · 5 075 ft · 259 kt</title></circle>
+<circle class="traj-pt" cx="343.0" cy="475.1" r="3.2"><title>t = 150 s · 5 325 ft · 258 kt</title></circle>
+<circle class="traj-pt" cx="342.5" cy="482.1" r="3.2"><title>t = 155 s · 5 550 ft · 258 kt</title></circle>
+<circle class="traj-pt" cx="342.1" cy="489.2" r="3.2"><title>t = 160 s · 5 775 ft · 260 kt</title></circle>
+<circle class="traj-pt" cx="341.7" cy="495.8" r="3.2"><title>t = 165 s · 5 975 ft · 261 kt</title></circle>
+<circle class="traj-pt" cx="341.0" cy="502.9" r="3.2"><title>t = 170 s · 6 200 ft · 262 kt</title></circle>
+<circle class="traj-pt" cx="340.3" cy="510.2" r="3.2"><title>t = 175 s · 6 425 ft · 263 kt</title></circle>
+<g clip-path="url(#mclip)"><path class="traj-after" d="M340.3 510.2L339.7 517.2L339.0 524.3L338.4 531.5L338.0 538.2L337.3 545.3L336.6 552.7L336.0 559.9L335.5 567.1L334.9 573.9L334.3 581.4L333.7 588.8"/></g>
+<circle class="ap-big" cx="315.6" cy="48.3" r="7"><title>Aeroparque Jorge Newbery</title></circle>
+<text class="t-b map-l" x="324.6" y="52.3" text-anchor="start">Aeroparque (SABE)</text>
+<text class="t-s" x="324.6" y="67.3" text-anchor="start">a 44,1 km · nota 0,68</text>
+<circle class="ap-big win" cx="200.3" cy="355.2" r="7"><title>Ezeiza International Airport - Ministro Pistarini</title></circle>
+<text class="t-b map-l" x="188.3" y="359.2" text-anchor="end">Ezeiza (SAEZ)</text>
+<text class="t-s" x="188.3" y="374.2" text-anchor="end">a 19,9 km · nota 0,85</text>
+<circle class="ap-big" cx="126.6" cy="107.3" r="5"><title>El Palomar Airport</title></circle>
+<text class="t-b map-l" x="135.6" y="111.3" text-anchor="start">El Palomar (SADP)</text>
+<text class="t-s" x="135.6" y="126.3" text-anchor="start">a 43,4 km · nota 0,65</text>
+<circle class="ap-big" cx="97.6" cy="184.8" r="5"><title>Morón Airport</title></circle>
+<text class="t-b map-l" x="106.6" y="188.8" text-anchor="start">Morón (SADM)</text>
+<circle class="ap-big" cx="233.8" cy="245.6" r="5"><title>Matanza Airport</title></circle>
+<text class="t-b map-l" x="242.8" y="249.6" text-anchor="start">Matanza (SADZ)</text>
+<circle class="ap-big" cx="410.8" cy="356.7" r="5"><title>El Pajaro Airport</title></circle>
+<text class="t-b map-l" x="418.8" y="380.7" text-anchor="end">El Pájaro</text>
+<text class="t-s" x="418.8" y="395.7" text-anchor="end">a 16,1 km · nota 0,68</text>
+<text class="t-s" x="198.8" y="397.5" text-anchor="end">primeira posição: t = 0 s, 625 ft</text>
+<circle class="plane" cx="340.3" cy="510.2" r="6"/>
+<text class="t-b" x="329.3" y="515.2" text-anchor="end">ARG1842 aos 175 s</text>
+<text class="t-s" x="329.3" y="531.2" text-anchor="end">6 425 ft · 263 kt</text>
+<text class="t-s ring-l" x="191.1" y="669.4" text-anchor="end">distância esperada 19,2 ± 5,8 km</text>
+<path class="scale" d="M26 546.7473249999986H131.0"/><text class="t-s" x="78.5" y="540.7473249999986" text-anchor="middle">10 km</text>
+<text class="t-s" x="447.2" y="32" text-anchor="end">N ↑</text>
+<text class="t-s" x="14" y="580.7">Fonte: referencias.db (OurAirports) e capture_sem_categoria.ndjson de 18/11</text>
+</svg>
+</div>
+<figcaption>Os pontos da linha: as posições da aeronave a cada ~5 s, até a decisão (o tracejado é o que veio depois). Faixa verde: onde a conta da subida diz que o aeroporto de origem deveria estar. Ezeiza cai dentro dela; Aeroparque, a 44,1 km, fica fora. Pontos e quadrados cinza: os 5 aeródromos pequenos e 20 heliportos do banco neste recorte, todos candidatos. Passe o mouse para ver cada um.</figcaption>
+</figure>
+
+<h3>5.1 A conta no instante da decisão</h3>
+<p>Aos 175 s: 6 425 ft, 263,1 kt, subindo a 2 688 ft/min (a mediana dos últimos 10 s). Ezeiza tem elevação de 67 ft. Sem a categoria recebida, a classe "grande" foi <b>inferida pela cinemática</b> (acima de 250 kt), e com ela os heliportos saíram: de 470 candidatos, 85 excluídos, 385 pontuados.</p>
+<div class="big-eq">d<sub>esp</sub> = 19,2 km ± 5,8 km &nbsp;→&nbsp; Ezeiza está a 19,9 km &nbsp;→&nbsp; nota 0,99</div>
+<div class="table-wrap"><table class="comp">
+<thead><tr><th>Componente</th><th class="r">Peso</th><th>Ezeiza<br><span class="small">large airport, 19,9 km</span></th><th>Aeroparque<br><span class="small">large airport, 44,1 km</span></th><th>El Pájaro<br><span class="small">small airport, 16,1 km</span></th></tr></thead><tbody>
+<tr><td><b>tendência</b><br><span class="small">a distância ao aeroporto cresce nos últimos 120 s?</span></td><td class="r">0,40</td><td class="cb"><span class="cbar"><i style="width:99%"></i></span><b>0,99</b></td><td class="cb"><span class="cbar"><i style="width:99%"></i></span><b>0,99</b></td><td class="cb"><span class="cbar"><i style="width:69%"></i></span><b>0,69</b></td></tr>
+<tr><td><b>distância pela subida</b><br><span class="small">a altura e a razão de subida apontam para esta distância?</span></td><td class="r">0,30</td><td class="cb"><span class="cbar"><i style="width:99%"></i></span><b>0,99</b></td><td class="cb"><span class="cbar"><i style="width:0%"></i></span><b>0,00</b></td><td class="cb"><span class="cbar"><i style="width:74%"></i></span><b>0,74</b></td></tr>
+<tr><td><b>altura</b><br><span class="small">baixo o bastante para ter saído dele?</span></td><td class="r">0,25</td><td class="cb"><span class="cbar"><i style="width:96%"></i></span><b>0,96</b></td><td class="cb"><span class="cbar"><i style="width:95%"></i></span><b>0,95</b></td><td class="cb"><span class="cbar"><i style="width:95%"></i></span><b>0,95</b></td></tr>
+<tr><td><b>proximidade</b><br><span class="small">quanto mais perto, melhor</span></td><td class="r">0,15</td><td class="cb"><span class="cbar"><i style="width:85%"></i></span><b>0,85</b></td><td class="cb"><span class="cbar"><i style="width:69%"></i></span><b>0,69</b></td><td class="cb"><span class="cbar"><i style="width:87%"></i></span><b>0,87</b></td></tr>
+<tr><td><b>pista</b><br><span class="small">posição e rumo de agora no eixo de uma pista</span></td><td class="r">0,15</td><td class="cb"><span class="cbar"><i style="width:0%"></i></span><b>0,00</b></td><td class="cb na">—</td><td class="cb na">—</td></tr>
+<tr><td><b>direção</b><br><span class="small">o aeroporto está atrás da aeronave?</span></td><td class="r">0,05</td><td class="cb"><span class="cbar"><i style="width:87%"></i></span><b>0,87</b></td><td class="cb"><span class="cbar"><i style="width:100%"></i></span><b>1,00</b></td><td class="cb"><span class="cbar"><i style="width:98%"></i></span><b>0,98</b></td></tr>
+<tr><td><b>fator do tipo</b><br><span class="small">classe "grande" × tipo do aeroporto</span></td><td class="r">×</td><td class="cb"><b>× 1,00</b></td><td class="cb"><b>× 1,00</b></td><td class="cb"><b>× 0,85</b></td></tr>
+<tr class="total"><td>nota neste instante</td><td></td><td class="cb"><b>0,848</b></td><td class="cb"><b>0,683</b></td><td class="cb"><b>0,676</b></td></tr>
+</tbody></table></div>
+<p class="small">Pista em 0 em Ezeiza: o componente compara a posição e o rumo <i>de agora</i> com o eixo da pista, e aos 175 s a aeronave já voava para o sul. Aeroparque tem 0 na distância pela subida: está a 44,1 km, longe dos 19,2 km esperados. El Pájaro, um aeródromo pequeno, perde pelo fator do tipo (× 0,85 para um avião grande) e pela tendência.</p>
+
+<h3>5.2 A decisão no tempo</h3>
+<p>Ezeiza lidera desde a primeira atualização, mas Pergamino, 230 km atrás dele (longe, mas na direção certa), e Matanza ficam perto demais na nota. Por mais de dois minutos o resultado é <b>AMBÍGUO</b>. Quando a subida acumula evidência, a margem passa de 0,08 e a decisão sai.</p>
+<figure><div class="frame">
+<svg class="diagram chart" viewBox="0 0 720 400" role="img" aria-label="A decisão no tempo: compatibilidade de Ezeiza e do melhor rival, e a margem entre eles">
+<text class="t-b" x="10" y="18">Compatibilidade (memória de 30 s)</text>
+<path class="gridl" d="M70 190.0H690"/><text class="t-s" x="62" y="194.0" text-anchor="end">0,6</text>
+<path class="gridl" d="M70 150.0H690"/><text class="t-s" x="62" y="154.0" text-anchor="end">0,7</text>
+<path class="gridl" d="M70 110.0H690"/><text class="t-s" x="62" y="114.0" text-anchor="end">0,8</text>
+<path class="gridl" d="M70 70.0H690"/><text class="t-s" x="62" y="74.0" text-anchor="end">0,9</text>
+<path class="gridl" d="M70 30.0H690"/><text class="t-s" x="62" y="34.0" text-anchor="end">1,0</text>
+<path class="thr" d="M70 170.0H690"/><text class="t-s" x="76" y="185.0">mínimo para decidir: 0,65</text>
+<path class="ln-a" d="M141.4 49.9L190.6 91.7L242.0 119.3L277.2 132.6L345.8 138.6L381.0 134.0L432.6 145.5L483.9 132.1L534.6 121.2L587.5 111.7L622.1 107.8L673.4 101.2"/>
+<path class="ln-b" d="M141.4 138.6L190.6 138.3L242.0 138.0L277.2 137.7L345.8 136.9L381.0 136.5L432.6 135.6L483.9 135.0L534.6 135.5L587.5 137.2L622.1 138.0L673.4 139.3"/>
+<circle class="pt-a" cx="141.4" cy="49.9" r="4.5"><title>t = 21 s · SAEZ 0,950</title></circle>
+<circle class="pt-a" cx="190.6" cy="91.7" r="4.5"><title>t = 35 s · SAEZ 0,846</title></circle>
+<circle class="pt-a" cx="242.0" cy="119.3" r="4.5"><title>t = 50 s · SAEZ 0,777</title></circle>
+<circle class="pt-a" cx="277.2" cy="132.6" r="4.5"><title>t = 60 s · SAEZ 0,743</title></circle>
+<circle class="pt-a" cx="345.8" cy="138.6" r="4.5"><title>t = 80 s · SAEZ 0,729</title></circle>
+<circle class="pt-a" cx="381.0" cy="134.0" r="4.5"><title>t = 90 s · SAEZ 0,740</title></circle>
+<circle class="pt-a" cx="432.6" cy="145.5" r="4.5"><title>t = 105 s · SAEZ 0,711</title></circle>
+<circle class="pt-a" cx="483.9" cy="132.1" r="4.5"><title>t = 120 s · SAEZ 0,745</title></circle>
+<circle class="pt-a" cx="534.6" cy="121.2" r="4.5"><title>t = 135 s · SAEZ 0,772</title></circle>
+<circle class="pt-a" cx="587.5" cy="111.7" r="4.5"><title>t = 150 s · SAEZ 0,796</title></circle>
+<circle class="pt-a" cx="622.1" cy="107.8" r="4.5"><title>t = 160 s · SAEZ 0,805</title></circle>
+<circle class="pt-a" cx="673.4" cy="101.2" r="4.5"><title>t = 175 s · SAEZ 0,822</title></circle>
+<circle class="pt-b" cx="141.4" cy="138.6" r="4"><title>t = 21 s · melhor rival AR-0768 0,729</title></circle>
+<circle class="pt-b" cx="190.6" cy="138.3" r="4"><title>t = 35 s · melhor rival AR-0768 0,729</title></circle>
+<circle class="pt-b" cx="242.0" cy="138.0" r="4"><title>t = 50 s · melhor rival AR-0768 0,730</title></circle>
+<circle class="pt-b" cx="277.2" cy="137.7" r="4"><title>t = 60 s · melhor rival AR-0768 0,731</title></circle>
+<circle class="pt-b" cx="345.8" cy="136.9" r="4"><title>t = 80 s · melhor rival AR-0768 0,733</title></circle>
+<circle class="pt-b" cx="381.0" cy="136.5" r="4"><title>t = 90 s · melhor rival AR-0768 0,734</title></circle>
+<circle class="pt-b" cx="432.6" cy="135.6" r="4"><title>t = 105 s · melhor rival AR-0768 0,736</title></circle>
+<circle class="pt-b" cx="483.9" cy="135.0" r="4"><title>t = 120 s · melhor rival AR-0768 0,738</title></circle>
+<circle class="pt-b" cx="534.6" cy="135.5" r="4"><title>t = 135 s · melhor rival AR-0768 0,736</title></circle>
+<circle class="pt-b" cx="587.5" cy="137.2" r="4"><title>t = 150 s · melhor rival AR-0768 0,732</title></circle>
+<circle class="pt-b" cx="622.1" cy="138.0" r="4"><title>t = 160 s · melhor rival AR-0768 0,730</title></circle>
+<circle class="pt-b" cx="673.4" cy="139.3" r="4"><title>t = 175 s · melhor rival AR-0768 0,727</title></circle>
+<text class="t-b" x="665.4" y="91.2" text-anchor="end">Ezeiza (SAEZ)</text>
+<text class="t-s" x="665.4" y="161.3" text-anchor="end">melhor rival (Pergamino, Matanza…)</text>
+<text class="t-b" x="10" y="226">Margem sobre o segundo</text>
+<path class="gridl" d="M70 330.0H690"/><text class="t-s" x="62" y="334.0" text-anchor="end">0,0</text>
+<path class="gridl" d="M70 294.0H690"/><text class="t-s" x="62" y="298.0" text-anchor="end">0,1</text>
+<path class="gridl" d="M70 258.0H690"/><text class="t-s" x="62" y="262.0" text-anchor="end">0,2</text>
+<path class="thr" d="M70 301.2H690"/><text class="t-s" x="407.6" y="296.2">mínimo: 0,08</text>
+<rect class="bar" x="134.4" y="250.2" width="14" height="79.8" rx="3"><title>t = 21 s · margem 0,222 · UNKNOWN/EVIDENCIA_INSUFICIENTE</title></rect>
+<rect class="bar" x="183.6" y="288.0" width="14" height="42.0" rx="3"><title>t = 35 s · margem 0,117 · UNKNOWN/EVIDENCIA_INSUFICIENTE</title></rect>
+<rect class="bar" x="235.0" y="313.2" width="14" height="16.8" rx="3"><title>t = 50 s · margem 0,047 · UNKNOWN/AMBIGUO</title></rect>
+<rect class="bar" x="270.2" y="325.4" width="14" height="4.6" rx="3"><title>t = 60 s · margem 0,013 · UNKNOWN/AMBIGUO</title></rect>
+<rect class="bar" x="338.8" y="329.6" width="14" height="1.0" rx="3"><title>t = 80 s · margem 0,001 · UNKNOWN/EVIDENCIA_INSUFICIENTE</title></rect>
+<rect class="bar" x="374.0" y="327.8" width="14" height="2.2" rx="3"><title>t = 90 s · margem 0,006 · UNKNOWN/AMBIGUO</title></rect>
+<rect class="bar" x="425.6" y="321.1" width="14" height="8.9" rx="3"><title>t = 105 s · margem 0,025 · UNKNOWN/EVIDENCIA_INSUFICIENTE</title></rect>
+<rect class="bar" x="476.9" y="327.4" width="14" height="2.6" rx="3"><title>t = 120 s · margem 0,007 · UNKNOWN/AMBIGUO</title></rect>
+<rect class="bar" x="527.6" y="317.2" width="14" height="12.8" rx="3"><title>t = 135 s · margem 0,036 · UNKNOWN/AMBIGUO</title></rect>
+<rect class="bar" x="580.5" y="307.0" width="14" height="23.0" rx="3"><title>t = 150 s · margem 0,064 · UNKNOWN/AMBIGUO</title></rect>
+<rect class="bar" x="615.1" y="302.9" width="14" height="27.1" rx="3"><title>t = 160 s · margem 0,075 · UNKNOWN/AMBIGUO</title></rect>
+<rect class="bar-ok" x="666.4" y="295.7" width="14" height="34.3" rx="3"><title>t = 175 s · margem 0,095 · ESTIMATED/HIPOTESE_TEMPORAL</title></rect>
+<text class="t-s" x="70.0" y="348" text-anchor="middle">0</text>
+<text class="t-s" x="173.3" y="348" text-anchor="middle">30</text>
+<text class="t-s" x="276.7" y="348" text-anchor="middle">60</text>
+<text class="t-s" x="380.0" y="348" text-anchor="middle">90</text>
+<text class="t-s" x="483.3" y="348" text-anchor="middle">120</text>
+<text class="t-s" x="586.7" y="348" text-anchor="middle">150</text>
+<text class="t-s" x="690.0" y="348" text-anchor="middle">180</text>
+<text class="t-s" x="380.0" y="366" text-anchor="middle">segundos desde a primeira posição</text>
+<path class="dec" d="M673.4 24V330"/>
+<text class="t-ok" x="667.4" y="20" text-anchor="end">ESTIMATED aos 175 s</text>
+<text class="t-s" x="293.9" y="254" text-anchor="middle">AMBÍGUO: Ezeiza na frente, sem margem</text>
+</svg>
+</div>
+<figcaption>Em cima, a compatibilidade na memória de cada candidato (média exponencial de 30 s, não a nota instantânea: na decisão, 0,822 na memória contra 0,848 no instante). Embaixo, a margem do primeiro sobre o segundo; a barra verde é a da decisão, 0,095. Dados de <code>avaliacao-local/sem_categoria.db</code>, uma barra por atualização.</figcaption>
+</figure>
+<div class="say"><b>Como contar:</b> durante dois minutos o sistema "sabia" que era provavelmente Ezeiza, mas não tinha margem suficiente, então não afirmou. Afirmou quando a geometria da subida separou Ezeiza do resto.</div>
+
+<h3>5.3 Por que a categoria importa</h3>
+<p>Sem saber o porte, um avião leve decolando de San Fernando (SADF) compete com dezenas de aeródromos e heliportos em volta, e o resultado fica ambíguo. A inferência pela cinemática só prova "grande porte" (rápido, alto, subida forte); um monomotor a 60 kt fica sem classe. Por isso a categoria a bordo (Etapa B, ADR-0023): 2 bits nos flags, <b>nenhum byte a mais</b> no rádio.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Categoria</th><th>Heliporto</th><th>Aeródromo pequeno</th><th>Aeroporto médio</th><th>Aeroporto grande</th></tr></thead>
+  <tbody>
+    <tr><td>leve (A1, A2)</td><td><span class="badge b-bad">excluído</span></td><td>× 1,00 (A2: 0,95)</td><td>× 1,00</td><td>× 1,00</td></tr>
+    <tr><td>grande (A3)</td><td><span class="badge b-bad">excluído</span></td><td>× 0,85</td><td>× 0,95</td><td>× 1,00</td></tr>
+    <tr><td>helicóptero (A7)</td><td>× 1,00</td><td>× 1,00</td><td>× 1,00</td><td>× 1,00</td></tr>
+    <tr><td>desconhecida</td><td>× 0,90</td><td>× 1,00</td><td>× 1,00</td><td>× 1,00</td></tr>
+  </tbody>
+</table></div>
+<p class="small">Fatores de <code>aircraft_category.py</code>; o exemplo acima mostra o × 0,85 do El Pájaro e o × 0,95 de Pergamino.</p>
+
+<h2 id="banco"><span class="n">6</span>O banco de dados: de onde vêm os aeroportos</h2>
+<figure><div class="frame">
+<svg class="diagram" viewBox="0 0 900 330" role="img" aria-label="Os bancos: OurAirports, referencias.db, o estimador, telemetria.db e o banco de pares">
+  <defs><marker id="ah4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0,0L10,5L0,10z"/></marker></defs>
+  <rect class="box ext" x="10" y="40" width="190" height="130" rx="8"/>
+  <text class="t-b" x="105" y="66" text-anchor="middle">OurAirports</text>
+  <text class="t-s" x="105" y="88" text-anchor="middle">base pública, CSV</text><text class="t-s" x="105" y="104" text-anchor="middle">baixada em 22/09/2026</text><text class="t-s" x="105" y="120" text-anchor="middle">airports, runways,</text><text class="t-s" x="105" y="136" text-anchor="middle">countries, regions</text><text class="t-s" x="105" y="156" text-anchor="middle">SHA-256 de cada arquivo</text>
+  <text class="t-s" x="245" y="96" text-anchor="middle">importar_</text><text class="t-s" x="245" y="112" text-anchor="middle">bases.py</text>
+  <path class="edge" d="M200 124H290" marker-end="url(#ah4)"/>
+  <rect class="box done" x="294" y="20" width="250" height="180" rx="8"/>
+  <text class="t-b" x="419" y="46" text-anchor="middle">referencias.db (SQLite, no Git)</text>
+  <text class="t-s mono" x="312" y="74">airports</text><text class="t-s" x="526" y="74" text-anchor="end">86 112</text>
+  <text class="t-s mono" x="312" y="96">runways</text><text class="t-s" x="526" y="96" text-anchor="end">48 250</text>
+  <text class="t-s mono" x="312" y="118">countries, regions</text><text class="t-s" x="526" y="118" text-anchor="end">nomes</text>
+  <text class="t-s mono" x="312" y="140">dataset_sources</text><text class="t-s" x="526" y="140" text-anchor="end">fonte e data</text>
+  <text class="t-s" x="419" y="170" text-anchor="middle">elevação ausente fica NULL, nunca 0</text>
+  <text class="t-s" x="419" y="186" text-anchor="middle">(14 948 instalações sem elevação)</text>
+  <text class="t-s" x="597" y="96" text-anchor="middle">só leitura</text><text class="t-s" x="597" y="112" text-anchor="middle">na partida</text>
+  <path class="edge" d="M544 124H646" marker-end="url(#ah4)"/>
+  <rect class="box done" x="650" y="20" width="240" height="180" rx="8"/>
+  <text class="t-b" x="770" y="46" text-anchor="middle">estimador (memória)</text>
+  <text class="t-s" x="668" y="74">71 233 aeroportos:</text><text class="t-s" x="668" y="92">large, medium, small, heliport</text>
+  <text class="t-s" x="668" y="114">ordenados por latitude: busca</text><text class="t-s" x="668" y="132">binária na faixa ± 4,5° (500 km)</text>
+  <text class="t-s" x="668" y="154">47 181 pistas abertas:</text><text class="t-s" x="668" y="172">cabeceiras e rumos</text>
+  <path class="edge" d="M770 200V246" marker-end="url(#ah4)"/>
+  <rect class="box" x="560" y="250" width="330" height="70" rx="8"/>
+  <text class="t-b" x="725" y="274" text-anchor="middle">telemetria.db, cada linha com a sessão</text>
+  <text class="t-s" x="725" y="294" text-anchor="middle">aircraft, observations, estimates,</text><text class="t-s" x="725" y="310" text-anchor="middle">rejected_messages: tudo o que chegou e o que decidiu</text>
+  <rect class="box plan" x="10" y="250" width="420" height="70" rx="8"/>
+  <text class="t-b" x="220" y="274" text-anchor="middle">pares_aeroportos.db · 599 MB, fora do Git</text>
+  <text class="t-s" x="220" y="294" text-anchor="middle">3 291 aeroportos regulares e todos os pares A → B (ADR-0019)</text><text class="t-s" x="220" y="310" text-anchor="middle">desligado por padrão: 3 de 12 origens no tráfego real</text>
+</svg></div>
+<figcaption>O banco de referência nunca é escrito pelo estimador. Tudo o que a missão produz vai para outro SQLite, por sessão, para auditar cada decisão depois.</figcaption>
+</figure>
+
+<h3>6.1 Como o estimador conversa com o banco</h3>
+<div class="steps">
+  <div class="step"><div class="k">na partida</div><h4>Uma consulta, só leitura</h4><p>Abre <code>referencias.db</code> em <code>mode=ro</code>, carrega os aeroportos dos quatro tipos e as pistas abertas, e fecha a conexão.</p></div>
+  <div class="step"><div class="k">a cada observação</div><h4>Busca na memória</h4><p>Nenhuma consulta SQL durante a missão: corta a lista ordenada pela latitude e confere a distância real de cada um até 500 km.</p></div>
+  <div class="step"><div class="k">o que usa de cada um</div><h4>Posição, elevação, tipo, pistas</h4><p>Posição: distância, direção, tendência. Elevação: altura e distância pela subida. Tipo: o filtro da categoria. Pistas: o alinhamento.</p></div>
+  <div class="step"><div class="k">o que grava</div><h4>Cada estimativa, com o porquê</h4><p>Em <code>telemetria.db</code>: a nota de cada candidato, cada componente e o motivo da decisão. É de lá que saíram as figuras da seção 5.</p></div>
+</div>
+<pre><code>SELECT id, ident, icao_code, name, type, latitude_deg, longitude_deg, elevation_ft
+  FROM airports
+ WHERE type IN ('small_airport','medium_airport','large_airport','heliport')
+ ORDER BY latitude_deg                      -- airport_estimator.py, na partida</code></pre>
+<div class="table-wrap"><table>
+  <thead><tr><th>Tipo no OurAirports</th><th class="r">No banco</th><th>Candidato?</th></tr></thead>
+  <tbody>
+    <tr><td>aeródromo pequeno (<code>small_airport</code>)</td><td class="r">42 733</td><td><span class="badge b-ok">sim</span></td></tr>
+    <tr><td>heliporto (<code>heliport</code>)</td><td class="r">23 220</td><td><span class="badge b-ok">sim</span> exceto para avião com categoria</td></tr>
+    <tr><td>aeroporto médio (<code>medium_airport</code>)</td><td class="r">4 106</td><td><span class="badge b-ok">sim</span></td></tr>
+    <tr><td>aeroporto grande (<code>large_airport</code>)</td><td class="r">1 174</td><td><span class="badge b-ok">sim</span></td></tr>
+    <tr><td>fechado, base de hidroavião, balão</td><td class="r">—</td><td><span class="badge b-todo">não</span> (13 544 fechados)</td></tr>
+    <tr class="total"><td>carregados pelo estimador</td><td class="r">71 233</td><td>de 86 112 no banco</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="resultados"><span class="n">7</span>Os resultados</h2>
+<p>Origem pelo método local contra o gabarito montado com as trilhas da OpenSky. "6 de 6" quer dizer 6 decididas, 6 certas.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Conjunto</th><th class="r">Sem a categoria (hoje)</th><th class="r">Com a categoria</th><th>Observação</th></tr></thead>
+  <tbody>
+    <tr><td>Real 18/11, 1 h, 26 origens conhecidas (validação)</td><td class="r">6 de 6</td><td class="r">10 de 10</td><td>nenhum erro; o resto fica UNKNOWN</td></tr>
+    <tr><td>Real 17/11, 1 h, 27 origens conhecidas (calibração)</td><td class="r">7 de 7</td><td class="r">7 de 7</td><td>antes da Etapa A: 0 decididas</td></tr>
+    <tr><td>Sintético: 23 voos retos entre aeroportos</td><td class="r">10 de 10</td><td class="r">—</td><td></td></tr>
+    <tr><td>Sintético: 12 aeronaves inventadas, longe de aeroportos</td><td class="r">0 decididas</td><td class="r">—</td><td>o certo é 0: <b>nenhum falso positivo</b></td></tr>
+  </tbody>
+</table></div>
+<p>E pelo downlink emulado de 5 s (26/11, <a href="../vv/bancada/2026-11-26/notas.md">notas</a>): das 17 origens que a captura completa decide nos dois dias, o que desce pelo rádio decide <b>12 sem a categoria</b> e <b>16 com a categoria a bordo</b>. As 4 recuperadas são aviões leves de San Fernando.</p>
+<div class="callout warn"><p><b>Cobertura, dito com honestidade:</b> das 26 origens conhecidas em 18/11, muitas são voos que entram na área já em cruzeiro (vindos de Madri, Miami, Houston…). Nenhum método local vê a decolagem desses; o estimador abstém, como deve. A cobertura sobe de 23% para 38% com a categoria.</p></div>
+
+<h2 id="perguntas"><span class="n">8</span>Perguntas prováveis da banca</h2>
+<details class="qa"><summary><span class="qn">1</span>Por que não descer as mensagens brutas e decodificar em terra?</summary><div class="body"><p>Porque não cabem: 7,34 MiB contra 58 KB que o LoRa desce em 10 min (129 vezes). E as mensagens brutas ficam inteiras no cartão do satélite, para análise depois do teste.</p></div></details>
+<details class="qa"><summary><span class="qn">2</span>Sem relógio na Pi, como vocês sabem o instante de cada posição?</summary><div class="body"><p>O satélite não manda horário, manda a idade: há quanto tempo a posição foi recebida, medida com o relógio monotônico. A ground subtrai essa idade e o tempo no ar do instante de chegada, no relógio dela. Erro p95 medido: 0,05 a 0,11 s.</p></div></details>
+<details class="qa"><summary><span class="qn">3</span>E se um quadro do rádio se perder?</summary><div class="body"><p>Perde-se um ponto de 5 s daquela aeronave, nada mais: cada registro tem posição absoluta, não um delta. O próximo retrato traz tudo de novo. Toda perda é contada (HLR-ADS-08).</p></div></details>
+<details class="qa"><summary><span class="qn">4</span>A nota de 0,82 é uma probabilidade de 82%?</summary><div class="body"><p>Não. É uma compatibilidade geométrica, sem calibração estatística; o próprio resultado diz <code>temporal_compatibility_not_probability</code>. O que dá confiança é a regra de decisão: margem, persistência e várias evidências juntas.</p></div></details>
+<details class="qa"><summary><span class="qn">5</span>Por que não estimar a origem de todos os aviões?</summary><div class="body"><p>A origem só aparece na subida. Um avião visto já em cruzeiro, vindo de 2 000 km, não deixa evidência dela; dizer um aeroporto ali seria chute. Preferimos UNKNOWN a um erro confiante.</p></div></details>
+<details class="qa"><summary><span class="qn">6</span>A competição usa aeronaves simuladas. Isso quebra o método?</summary><div class="body"><p>O método só usa geometria e o banco de aeroportos real; não depende de rotas conhecidas. Com 12 aeronaves inventadas, longe de qualquer aeroporto, não decidiu nenhuma: zero falsos positivos.</p></div></details>
+<details class="qa"><summary><span class="qn">7</span>Por que não usam a rota (aeroporto A → B) inteira?</summary><div class="body"><p>Testamos (ADR-0019, banco de pares). Rotas reais não seguem o grande círculo perto dos aeroportos e voos curtos cabem em muitos pares: 3 de 12 origens no tráfego real. Ficou desligado por padrão.</p></div></details>
+<details class="qa"><summary><span class="qn">8</span>De onde vêm os aeroportos? E se faltar um?</summary><div class="body"><p>Do OurAirports, base pública, com 86 112 instalações no mundo, importada com data e SHA-256 de cada arquivo. Um aeroporto que não esteja lá não pode ser escolhido; a elevação ausente vira "sem dado", não 0 ft.</p></div></details>
+
+<h2 id="limites"><span class="n">9</span>O que ainda não está provado</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Item</th><th>Situação</th></tr></thead>
+  <tbody>
+    <tr><td>A cadeia inteira em hardware, com aeronaves simuladas</td><td><span class="badge b-ok">feito</span> 16/11 e 22/11, números da seção 3.2</td></tr>
+    <tr><td>Estimador com tráfego real gravado, contra a verdade</td><td><span class="badge b-ok">feito</span> 17 e 18/11, seção 7</td></tr>
+    <tr><td>A antena da bancada recebendo aviões reais</td><td><span class="badge b-warn">pendente</span> em 16/11 não recebeu nenhum; o SDR e o dump1090 estão bem. Ganho do SDR ao ar livre é a próxima etapa</td></tr>
+    <tr><td>A categoria a bordo (<code>avr_port</code>) numa missão real</td><td><span class="badge b-warn">pendente</span> pronta e testada sem hardware; desligada no voo até a bancada</td></tr>
+    <tr><td>O enlace LoRa do rádio A</td><td><span class="badge b-bad">fora desde 25/11</span> as missões seguem pelo SSH (<code>./gama ground --ssh</code>), que a página marca como "não é evidência de RF"</td></tr>
+  </tbody>
+</table></div>
+
+<footer>
+  <p>GCD26 · TT&amp;C · 26/11/2026. Os números do voo de exemplo (mapa, tabela de componentes e gráfico da decisão) saem de <code>docs/vv/trafego-real/2026-11-18-unsam/</code> e do <code>referencias.db</code>, por um gerador; o orçamento, de <code>tools/analysis/lora_budget.py</code>; a bancada, das notas de 16/11, 22/11 e 26/11. O estudo completo, com as fórmulas de todos os componentes do destino, está em <a href="2026-11-18-adsb-ponta-a-ponta.html">a ADS-B de ponta a ponta</a> e no <a href="2026-11-18-estimador-antes-depois-etapa-a.html">relatório do estimador</a>.</p>
+</footer>
+</main>
+</div>
+</body>
+</html>
