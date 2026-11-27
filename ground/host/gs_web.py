@@ -72,6 +72,32 @@ NO_DATA = {"battery_mv": 65535, "current_ma": -32768, "temp_bat_ccel": -32768,
            "temp_ext_ccel": -32768, "temp_soc_ccel": -32768, "roll_cdeg": -32768,
            "pitch_cdeg": -32768, "yaw_cdeg": -32768, "adsb_msgs": 4294967295}
 
+# A track record's flags (GAMA_TRACK_F_*, common/gama_tm.h): bits 0-5 say
+# which fields are valid, bits 6-7 the aircraft class (ADR-0023).
+TRACK_CLASS = ("unknown", "light", "large", "rotor")
+
+
+def track_view(r):
+    """One track record as the events bar shows it: a field its flags call
+    invalid is None, not the 0 it travels as; the age in seconds."""
+    f = r.get("flags") if isinstance(r.get("flags"), int) else 0
+    pos, vel = f & 1, f & 4
+    age = r.get("age_ds")
+    if not isinstance(age, (int, float)):
+        age = None
+    return {"icao": r.get("icao"), "cls": TRACK_CLASS[(f >> 6) & 3],
+            "lat": r.get("lat") if pos else None, "lon": r.get("lon") if pos else None,
+            "alt_ft": r.get("alt_ft") if f & 2 else None,
+            "gs_kt": r.get("gs_kt") if vel else None, "trk": r.get("trk") if vel else None,
+            "vr_fpm": r.get("vr_fpm") if f & 8 else None, "ground": bool(f & 16),
+            "age_s": None if age is None or age == 65535 else age / 10.0}
+
+
+def track_words(v):
+    """'E0958F 1775 ft, no position': the English line, for the log file."""
+    alt = "%s ft" % v["alt_ft"] if v["alt_ft"] is not None else "no altitude"
+    return "%s %s%s" % (v["icao"], alt, "" if v["lat"] is not None else ", no position")
+
 # The commands the page may send. Anything else is refused: no shutdown, no
 # deafen, no console setup. The `armed` ones act on the mechanism or hand the
 # bus to the AOCS, so they need the page's arm switch (checked here too).
@@ -239,9 +265,15 @@ class GsState:
         # The charge, autonomy and charging, from the HK alone (ADR-0024).
         self.battery = BatteryEstimator(battery)
 
-    def _note(self, kind, text):
+    def _note(self, kind, text, ev=None, data=None):
+        """A line of the events bar. With `ev` and `data`, what the frame
+        carried, decoded, for the page to show in the reader's language and
+        to open on a click; `text` stays the line in English."""
         self.seq += 1
-        self.log.append({"n": self.seq, "t": self.now(), "kind": kind, "text": text})
+        entry = {"n": self.seq, "t": self.now(), "kind": kind, "text": text}
+        if ev is not None:
+            entry["ev"], entry["data"] = ev, data
+        self.log.append(entry)
 
     def note(self, kind, text):
         self._note(kind, text)
@@ -265,7 +297,9 @@ class GsState:
             self.stat = {k: obj.get(k) for k in (
                 "msgs_received", "msgs_decoded", "aircraft", "tm_frames_sent",
                 "tc_frames_rx", "tc_frames_bad", "latency_p95_ms", "dump1090_restarts")}
-            self._note("tm", "stat: %s aircraft, %s messages" % (obj.get("aircraft"), obj.get("msgs_received")))
+            self._note("tm", "stat: %s messages received, %s decoded, %s aircraft" % (
+                obj.get("msgs_received"), obj.get("msgs_decoded"), obj.get("aircraft")),
+                "stat", dict(self.stat, **self._frame_meta(obj)))
         elif ev == "contact":
             self.contact = bool(obj.get("up"))
             self._note("ok" if self.contact else "bad", "contact " + ("up" if self.contact else "lost"))
@@ -311,10 +345,28 @@ class GsState:
                 if run["first_tracks"] is None:
                     run["first_tracks"] = self.now()
             self.tracks = obj.get("n", self.tracks)
-            self._note("tm", "tracks: %s records" % obj.get("n"))
-        elif ev in ("roster", "rate", "per", "ping_summary", "summary", "auto_time"):
+            # A malformed record is left out of the line, never a crash of
+            # the page (the pipeline counts it on its side).
+            views = [track_view(r) for r in obj.get("records") or [] if isinstance(r, dict)]
+            more = len(views) - 3
+            self._note("tm", "tracks: %s aircraft%s%s" % (
+                obj.get("n"), " · " if views else "", "; ".join(track_words(v) for v in views[:3])
+                + (" +%d" % more if more > 0 else "")),
+                "tracks", dict(self._frame_meta(obj), n=obj.get("n"), records=views))
+        elif ev == "roster":
+            ac = [{"icao": a.get("icao"), "callsign": (a.get("callsign") or "").strip()}
+                  for a in obj.get("aircraft") or []]
+            self._note("tm", "roster: %d aircraft%s" % (len(ac), "".join(
+                " · %s%s" % (a["icao"], " (%s)" % a["callsign"] if a["callsign"] else "") for a in ac[:4])),
+                "roster", dict(self._frame_meta(obj), aircraft=ac))
+        elif ev in ("rate", "per", "ping_summary", "summary", "auto_time"):
             body = {k: v for k, v in obj.items() if k not in ("mono_ms", "wall_ms", "ev", "payload")}
             self._note("info", "%s %s" % (ev, json.dumps(body, separators=(",", ":"))))
+
+    @staticmethod
+    def _frame_meta(obj):
+        """The frame around a record: its sequence, signal and time on air."""
+        return {k: obj.get(k) for k in ("seq", "rssi", "snr", "toa_ms") if obj.get(k) is not None}
 
     def _command(self, text):
         parts = text.split()
@@ -397,7 +449,13 @@ class GsState:
                 parts.append(("%.2f %s" if div == 1000 else "%.1f %s" if div == 100 else "%d %s") % (v / div, unit))
         if not self.quiet_hk or self.hk_note_t is None or self.hk_at - self.hk_note_t >= self.HK_SPARSE_S:
             self.hk_note_t = self.hk_at
-            self._note("tm", "hk: " + " · ".join(parts))
+            data = {k: (None if NO_DATA.get(k) == obj.get(k) else obj.get(k)) for k in (
+                "obc_mode", "link", "battery_mv", "current_ma", "temp_bat_ccel", "temp_ext_ccel",
+                "temp_soc_ccel", "uptime_s", "adsb_msgs")}
+            flags = obj.get("flags")
+            if isinstance(flags, int):
+                data.update({name: bool(flags & bit) for name, bit in self.HK_FLAGS})
+            self._note("tm", "hk: " + " · ".join(parts), "hk", dict(data, **self._frame_meta(obj)))
 
     def snapshot(self, since=None):
         """The page's view. With `since`, only the log entries after that

@@ -324,6 +324,21 @@ p.toast { position: static; opacity: 1; transform: none; box-shadow: none; borde
 .ev time { color: var(--faint); }
 .ev[hidden] { display: none; }
 .ev span { white-space: pre-wrap; overflow-wrap: anywhere; }
+.ev.more { cursor: pointer; }
+.ev.more > span::after { content: ' ▸'; color: var(--faint); }
+.ev.more.open > span::after { content: ' ▾'; }
+.ev-tag { font-size: .78em; font-weight: 700; letter-spacing: .02em; padding: 1px 7px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.ev-detail { grid-column: 2; cursor: auto; padding: 6px 0 8px; font-size: .92em; }
+.ev-detail[hidden] { display: none; }
+.ev-what { margin: 0 0 8px; color: var(--muted); max-width: 90ch; white-space: normal; }
+.ev-meta { margin: 6px 0 0; color: var(--faint); }
+.ev-scroll { overflow-x: auto; }
+.ev-table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.ev-table th, .ev-table td { text-align: left; padding: 3px 14px 3px 0; white-space: nowrap; border-bottom: 1px solid var(--line); }
+.ev-table th { color: var(--faint); font-weight: 600; }
+.ev-kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 16px; margin: 0; }
+.ev-kv dt { color: var(--faint); } .ev-kv dd { margin: 0; font-variant-numeric: tabular-nums; }
 .ev.ok span { color: var(--ok-fg); } .ev.bad span { color: var(--bad-fg); font-weight: 700; }
 .ev.mode span { color: var(--fg); font-weight: 800; } .ev.cmd span { color: var(--warn-fg); }
 .ev.tm span { color: var(--muted); }

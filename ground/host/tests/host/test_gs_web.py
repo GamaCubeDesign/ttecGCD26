@@ -165,6 +165,30 @@ class TestState(unittest.TestCase):
         self.assertEqual((run["sent"], run["entered"], run["dump1090"], run["first_tracks"]), (0, 4.0, 9.0, 9.0))
         self.assertEqual((run["tracks"], run["left"], run["left_to"], run["failed"]), (2, 604.0, "MISSION_DOWNLINK", None))
 
+    def test_a_tracks_line_carries_its_aircraft_decoded(self):
+        # 26/11, E0958F: altitude, speed and vertical rate valid, no position.
+        self.s.feed({"ev": "tracks", "seq": 42, "rssi": -50, "snr": 10, "toa_ms": 226, "n": 2, "records": [
+            {"icao": "E0958F", "lat": 0.0, "lon": 0.0, "alt_ft": 850, "gs_kt": 140.0, "trk": 124.0,
+             "vr_fpm": -704, "age_ds": 75, "flags": 2 | 4 | 8},
+            {"icao": "E0F002", "lat": -31.565, "lon": -60.57, "alt_ft": 6000, "gs_kt": 270.0, "trk": 90.0,
+             "vr_fpm": 0, "age_ds": 65535, "flags": 15 | (2 << 6)}]})
+        e = self.s.snapshot()["log"][-1]
+        self.assertEqual(e["text"], "tracks: 2 aircraft · E0958F 850 ft, no position; E0F002 6000 ft")
+        self.assertEqual(e["ev"], "tracks")
+        a, b = e["data"]["records"]
+        self.assertEqual((a["lat"], a["lon"], a["alt_ft"], a["vr_fpm"], a["age_s"], a["cls"]),
+                         (None, None, 850, -704, 7.5, "unknown"))
+        self.assertEqual((b["lat"], b["cls"], b["age_s"]), (-31.565, "large", None))
+        self.assertEqual((e["data"]["seq"], e["data"]["toa_ms"]), (42, 226))
+
+    def test_a_stat_line_says_what_it_counts(self):
+        self.s.feed({"ev": "stat", "seq": 52, "rssi": -50, "snr": 10, "msgs_received": 37, "msgs_decoded": 37,
+                     "aircraft": 1, "tm_frames_sent": 52, "tc_frames_rx": 7, "tc_frames_bad": 0,
+                     "latency_p95_ms": 4300, "dump1090_restarts": 0})
+        e = self.s.snapshot()["log"][-1]
+        self.assertEqual(e["text"], "stat: 37 messages received, 37 decoded, 1 aircraft")
+        self.assertEqual((e["ev"], e["data"]["latency_p95_ms"], e["data"]["seq"]), ("stat", 4300, 52))
+
     def test_end_now_stops_the_mission_clock(self):
         # "End now (downlink)" is a new command, so a new run: the mission's
         # own run must still close when the OBC leaves MISSION_ADSB.
